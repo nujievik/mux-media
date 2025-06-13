@@ -1,5 +1,5 @@
 use crate::common::{cfg, data_file};
-use crate::{compare_arg_cases, test_cli_args};
+use crate::{compare_arg_cases, test_cli_args, test_from_str, range};
 use mux_media::*;
 
 fn new_fonts(args: &[&str]) -> FontAttachs {
@@ -96,59 +96,31 @@ fn test_id_contains() {
     assert!(id_rng.contains(id_range("2-8")));
 }
 
-#[test]
-fn test_id_from_str() {
-    let cases = [
-        (id(1), "1"),
-        (id(16), "16"),
-        (id_range("1-"), "1-"),
-        (id_range("1-8"), "1-8"),
-    ];
-    for (id, s) in cases {
-        assert!(id == s.parse::<AttachID>().unwrap());
-    }
-
-    let bad_cases = ["0", "2-1", "", "x", "eng"];
-    for s in bad_cases {
-        assert!(s.parse::<AttachID>().is_err());
-    }
-}
-
-fn try_fonts_str(s: &str) -> Result<FontAttachs, MuxError> {
-    s.parse::<FontAttachs>()
-}
-
-fn try_other_str(s: &str) -> Result<OtherAttachs, MuxError> {
-    s.parse::<OtherAttachs>()
-}
+test_from_str!(
+    AttachID, test_id_from_str,
+    [
+        (AttachID::U32(1), "1"),
+        (AttachID::U32(16), "16"),
+        (AttachID::Range(range::new("1-")), "1-"),
+        (AttachID::Range(range::new("1-8")), "1-8"),
+    ],
+    ["0", "2-1", "", "x", "eng"],
+    @ok_compare
+);
 
 fn fonts_str(s: &str) -> FontAttachs {
-    try_fonts_str(s).unwrap()
+    s.parse::<FontAttachs>().unwrap()
 }
 
 fn other_str(s: &str) -> OtherAttachs {
-    try_other_str(s).unwrap()
+    s.parse::<OtherAttachs>().unwrap()
 }
 
-macro_rules! test_from_str {
-    ($test_name:ident, $try_from_str:ident) => {
-        #[test]
-        fn $test_name() {
-            let cases = ["1-", "1", "1-1", "!1", "1,3,4"];
-            cases
-                .into_iter()
-                .for_each(|s| assert!($try_from_str(s).is_ok()));
+const FROM_STR_CASES: [&'static str; 5] = ["1-", "1", "1-1", "!1", "1,3,4"];
+const FROM_STR_ERR_CASES: [&'static str; 5] = ["0", "2-1", "", "x", "eng"];
 
-            let bad_cases = ["0", "2-1", "", "x", "eng"];
-            bad_cases
-                .into_iter()
-                .for_each(|s| assert!($try_from_str(s).is_err()));
-        }
-    };
-}
-
-test_from_str!(test_fonts_from_str, try_fonts_str);
-test_from_str!(test_other_from_str, try_other_str);
+test_from_str!(FontAttachs, test_fonts_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
+test_from_str!(OtherAttachs, test_other_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
 
 macro_rules! test_save_attach {
     ($test_name:ident, $from_str:ident) => {

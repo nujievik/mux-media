@@ -53,15 +53,15 @@ impl FromStr for TrackNames {
             let id = TrackID::from_str(id)?;
             let name = name.to_string();
 
-            if id.is_hashable() {
-                map_hashed.get_or_insert_with(HashMap::new).insert(id, name);
-            } else {
+            if id.is_range() {
                 map_unhashed.get_or_insert_with(Vec::new).push((id, name));
+            } else {
+                map_hashed.get_or_insert_with(HashMap::new).insert(id, name);
             }
         }
 
         if map_hashed.is_none() && map_unhashed.is_none() {
-            return Err(MuxError::from("No names found"));
+            return Err("No names found".into());
         }
 
         Ok(Self::new()

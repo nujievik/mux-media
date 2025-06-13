@@ -1,30 +1,25 @@
 use super::mux::config_raw;
 use mux_media::{IsDefault, LangCode, MuxError};
 
-fn new(s: &str) -> LangCode {
-    s.parse::<LangCode>()
-        .expect(&format!("Fail LangCode from {}", s))
-}
-
 #[test]
 fn test_is_default() {
     assert!(LangCode::default().is_default());
     assert!(!LangCode::Jpn.is_default());
 }
 
-#[test]
-fn test_from_str() {
-    assert!(LangCode::Eng == new("eng"));
-    assert!(LangCode::Eng == new("en"));
-    assert!(LangCode::Rus == new("rus"));
-    assert!(LangCode::Rus == new("ru"));
-    assert!(LangCode::Jpn == new("jpn"));
-}
-
-#[test]
-fn test_err_from_str() {
-    assert!("missing".parse::<LangCode>().is_err());
-}
+crate::test_from_str!(
+    LangCode, test_from_str,
+    [
+        (LangCode::Eng, "eng"),
+        (LangCode::Eng, "en"),
+        (LangCode::Rus, "rus"),
+        (LangCode::Rus, "ru"),
+        (LangCode::Jpn, "jpn"),
+        (LangCode::Jpn, "ja"),
+    ],
+    ["missing", "trash", "9325124"],
+    @ok_compare
+);
 
 #[test]
 fn test_to_string() {

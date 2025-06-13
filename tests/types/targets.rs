@@ -14,9 +14,9 @@ fn test_from_track_type() {
     }
 }
 
-#[test]
-fn test_from_str() {
-    let cases = [
+crate::test_from_str!(
+    TargetGroup, test_from_str,
+    [
         (TargetGroup::Audio, "a"),
         (TargetGroup::Audio, "audio"),
         (TargetGroup::Video, "v"),
@@ -28,12 +28,10 @@ fn test_from_str() {
         (TargetGroup::Fonts, "f"),
         (TargetGroup::Fonts, "f"),
         (TargetGroup::Buttons, "buttons"),
-    ];
-
-    for (group, s) in cases {
-        assert!(group == s.parse::<TargetGroup>().unwrap());
-    }
-}
+    ],
+    ["missing"],
+    @ok_compare
+);
 
 #[test]
 fn test_try_signs_from_str() {

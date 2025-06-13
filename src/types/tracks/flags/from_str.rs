@@ -19,12 +19,12 @@ impl FromStr for TFlags {
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, b) = part.split_once(':').unwrap_or((part, "true"));
             let id = TrackID::from_str(id)?;
-            let b = parse_bool(b)?;
+            let bool = parse_bool(b)?;
 
-            if id.is_hashable() {
-                map_hashed.get_or_insert_with(HashMap::new).insert(id, b);
+            if id.is_range() {
+                map_hashed.get_or_insert_with(HashMap::new).insert(id, bool);
             } else {
-                map_unhashed.get_or_insert_with(Vec::new).push((id, b));
+                map_unhashed.get_or_insert_with(Vec::new).push((id, bool));
             }
         }
 

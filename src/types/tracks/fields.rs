@@ -74,10 +74,10 @@ impl FromStr for Tracks {
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let id = TrackID::from_str(part)?;
-            if id.is_hashable() {
-                ids_hashed.get_or_insert_with(HashSet::new).insert(id);
-            } else {
+            if id.is_range() {
                 ids_unhashed.get_or_insert_with(Vec::new).push(id);
+            } else {
+                ids_hashed.get_or_insert_with(HashSet::new).insert(id);
             }
         }
 

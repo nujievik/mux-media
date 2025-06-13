@@ -53,10 +53,10 @@ impl FromStr for TrackLangs {
             let id = TrackID::from_str(id)?;
             let lng = LangCode::from_str(lng)?;
 
-            if id.is_hashable() {
-                map_hashed.get_or_insert_with(HashMap::new).insert(id, lng);
-            } else {
+            if id.is_range() {
                 map_unhashed.get_or_insert_with(Vec::new).push((id, lng));
+            } else {
+                map_hashed.get_or_insert_with(HashMap::new).insert(id, lng);
             }
         }
 

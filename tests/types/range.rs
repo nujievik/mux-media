@@ -4,7 +4,7 @@ use std::str::FromStr;
 const MAX: u32 = u32::MAX;
 
 pub fn new(s: &str) -> Range<u32> {
-    Range::<u32>::from_str(s).expect(&format!("Fail range from '{}'", s))
+    s.parse::<Range<u32>>().expect(&format!("Fail range from '{}'", s))
 }
 
 #[test]
@@ -19,21 +19,11 @@ fn test_empty_str() {
     assert_eq!(u32::MAX, range.end);
 }
 
-#[test]
-fn test_from_str() {
-    for s in [
-        "", "5", "0", " 10 ", "5,10", "5,", ",10", "5-10", "5-", "-10", "5..10",
-    ] {
-        new(s);
-    }
-}
-
-#[test]
-fn test_err_from_str() {
-    for s in &["a,10", "5,b", "5,10,15", "5-10-15", "5.10", "10,5"] {
-        assert!(Range::<u32>::from_str(s).is_err());
-    }
-}
+crate::test_from_str!(
+    Range<u32>, test_from_str,
+    ["", "5", "0", " 10 ", "5,10", "5,", ",10", "5-10", "5-", "-10", "5..10"],
+    ["a,10", "5,b", "5,10,15", "5-10-15", "5.10", "10,5"]
+);
 
 #[test]
 fn test_expected_start_end() {

@@ -1,5 +1,5 @@
 use crate::common::{data_file, from_cfg};
-use crate::{compare_arg_cases, range, test_cli_args};
+use crate::{compare_arg_cases, range, test_cli_args, test_from_str};
 use mux_media::*;
 
 const MAX_STR: &str = "4294967295";
@@ -65,13 +65,9 @@ fn id(s: &str) -> TrackID {
     s.parse::<TrackID>().unwrap()
 }
 
-fn try_id(s: &str) -> Result<TrackID, MuxError> {
-    s.parse::<TrackID>()
-}
-
-#[test]
-fn test_id_from_str() {
-    let cases = [
+test_from_str!(
+    TrackID, test_id_from_str,
+    [
         (TrackID::U32(0), "0"),
         (TrackID::U32(8), "8"),
         (TrackID::Lang(LangCode::Eng), "eng"),
@@ -79,31 +75,23 @@ fn test_id_from_str() {
         (TrackID::Range(range::new("0-0")), "0-0"),
         (TrackID::Range(range::new("1-8")), "1-8"),
         (TrackID::Range(range::new("0-")), "0-"),
-    ];
-
-    for (expected, s) in cases {
-        assert!(expected == id(s));
-    }
-
-    let bad_cases = ["missing", "x", "1--2", "1;2"];
-
-    for s in bad_cases {
-        assert!(try_id(s).is_err());
-    }
-}
+    ],
+    ["missing", "x", "1--2", "1;2"],
+    @ok_compare
+);
 
 #[test]
-fn test_id_is_hashable() {
-    let cases = ["0", "8", "eng", "rus"];
+fn test_id_is_range() {
+    let cases = ["0-", "1-1", "-8"];
 
     for s in cases {
-        assert!(id(s).is_hashable());
+        assert!(id(s).is_range());
     }
 
-    let bad_cases = ["0-", "1-1", "-8"];
+    let bad_cases = ["0", "8", "eng", "rus"];
 
     for s in bad_cases {
-        assert!(!id(s).is_hashable());
+        assert!(!id(s).is_range());
     }
 }
 
@@ -142,23 +130,13 @@ fn test_id_contains() {
     }
 }
 
-macro_rules! test_from_str {
-    ($type:ident, $test_fn:ident) => {
-        #[test]
-        fn $test_fn() {
-            let cases = ["0", "8", "eng", "rus", "1-8", "0,8,eng,1-8", "!0"];
+const FROM_STR_CASES: [&'static str; 7] = ["0", "8", "eng", "rus", "1-8", "0,8,eng,1-8", "!0"];
+const FROM_STR_ERR_CASES: [&'static str; 0] = [];
 
-            for s in cases {
-                s.parse::<$type>().unwrap();
-            }
-        }
-    };
-}
-
-test_from_str!(AudioTracks, test_audio_from_str);
-test_from_str!(SubTracks, test_sub_from_str);
-test_from_str!(VideoTracks, test_video_from_str);
-test_from_str!(ButtonTracks, test_button_from_str);
+test_from_str!(AudioTracks, test_audio_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
+test_from_str!(SubTracks, test_sub_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
+test_from_str!(VideoTracks, test_video_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
+test_from_str!(ButtonTracks, test_button_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
 
 macro_rules! test_save_track {
     ($type:ident, $test_fn:ident) => {

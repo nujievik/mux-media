@@ -42,23 +42,25 @@ fn test_cli_args() {
 
 #[test]
 fn test_to_mkvmerge_args() {
-    let path = data_file("srt.srt");
-    let path_str = path.to_str().unwrap();
-
-    let cases = [
-        (vec![], vec![]),
-        (vec!["--no-chapters"], vec!["-C"]),
-        (vec!["--no-chapters"], vec!["--no-chapters"]),
-        (vec!["--chapters", path_str], vec!["-c", path_str]),
-        (vec!["--chapters", path_str], vec!["--chapters", path_str]),
-    ];
-
     let cache = std::collections::HashMap::new();
 
-    for (expected, args) in cases {
-        assert_eq!(
-            to_args(expected),
-            cfg_args::<MCChapters>(args, &path, cache.clone())
-        );
+    for file in ["srt.srt", "audio_x1.mka", "sub_x8.mks"] {
+        let path = data_file(file);
+        let path_str = path.to_str().unwrap();
+
+        let cases = [
+            (vec![], vec![]),
+            (vec!["--no-chapters"], vec!["-C"]),
+            (vec!["--no-chapters"], vec!["--no-chapters"]),
+            (vec!["--chapters", path_str], vec!["-c", path_str]),
+            (vec!["--chapters", path_str], vec!["--chapters", path_str]),
+        ];
+
+        for (expected, args) in cases {
+            assert_eq!(
+                to_args(expected),
+                cfg_args::<MCChapters>(args, &path, cache.clone())
+            );
+        }
     }
 }

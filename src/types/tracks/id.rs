@@ -45,10 +45,10 @@ impl FromStr for TrackID {
 }
 
 impl TrackID {
-    pub fn is_hashable(self) -> bool {
+    pub fn is_range(self) -> bool {
         match self {
-            TrackID::Range(_) => false,
-            _ => true,
+            TrackID::Range(_) => true,
+            _ => false,
         }
     }
 }

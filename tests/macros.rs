@@ -43,3 +43,34 @@ macro_rules! compare_arg_cases {
         }
     }}
 }
+
+#[macro_export]
+macro_rules! test_from_str {
+    ($type:ty, $err_cases:expr, @err) => {{
+        for s in $err_cases {
+            assert!(s.parse::<$type>().is_err(), "Fail is_err() parse '{}'", s);
+        }
+    }};
+
+    ($type:ty, $test_fn:ident, $cases:expr, $err_cases:expr) => {
+        #[test]
+        fn $test_fn() {
+            for s in $cases {
+                assert!(s.parse::<$type>().is_ok(), "Fail is_ok() parse '{}'", s);
+            }
+
+            $crate::test_from_str!($type, $err_cases, @err);
+        }
+    };
+
+    ($type:ty, $test_fn:ident, $cases:expr, $err_cases:expr, @ok_compare) => {
+        #[test]
+        fn $test_fn() {
+            for (exp, s) in $cases {
+                assert!(exp == s.parse::<$type>().unwrap(), "Fail == parse '{}'", s);
+            }
+
+            $crate::test_from_str!($type, $err_cases, @err);
+        }
+    };
+}
