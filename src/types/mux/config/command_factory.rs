@@ -20,7 +20,7 @@ impl CommandFactory for MuxConfig {
             .other()
             .version()
             .help()
-            .unwrap()
+            .into()
     }
 
     fn command_for_update() -> Command {
@@ -30,7 +30,7 @@ impl CommandFactory for MuxConfig {
 
 impl CommandFactory for TargetMuxConfig {
     fn command() -> Command {
-        Blocks::new().target().version().help().unwrap()
+        Blocks::new().target().version().help().into()
     }
 
     fn command_for_update() -> Command {
@@ -38,24 +38,24 @@ impl CommandFactory for TargetMuxConfig {
     }
 }
 
-struct Blocks {
-    cmd: Command,
+impl From<Blocks> for Command {
+    fn from(blocks: Blocks) -> Command {
+        blocks.0
+    }
 }
+
+struct Blocks(pub Command);
 
 impl Blocks {
     // other fn impl Blocks in modules
     fn new() -> Self {
-        Self {
-            cmd: Command::new(env!("CARGO_PKG_NAME"))
+        Self(
+            Command::new(env!("CARGO_PKG_NAME"))
                 .no_binary_name(true)
                 .version(concat!("v", env!("CARGO_PKG_VERSION")))
                 .disable_help_flag(true)
                 .disable_version_flag(true)
                 .override_usage(concat!(env!("CARGO_PKG_NAME"), " [options]")),
-        }
-    }
-
-    fn unwrap(self) -> Command {
-        self.cmd
+        )
     }
 }

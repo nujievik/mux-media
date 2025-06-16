@@ -3,16 +3,17 @@ mod builders;
 mod getters;
 mod mkvinfo;
 mod mkvmerge_args;
-pub(crate) mod set_get_path_field;
+pub(crate) mod set_get_field;
 mod ti_cache;
 
 use crate::{
     AttachID, AttachType, LangCode, MCInput, MCTools, MIAttachsInfo, MITracksInfo, MuxConfig,
-    MuxError, TFlagsCounts, Target, TargetGroup, Tools, TrackID, TrackType,
+    MuxError, TFlagsCounts, Target, TargetGroup, Tools, TrackID, TrackOrder, TrackType,
 };
+use enum_map::EnumMap;
 use log::warn;
 use mkvinfo::Mkvinfo;
-use set_get_path_field::{MIMkvmergeI, MISavedAudioU32IDs};
+use set_get_field::{MIMkvmergeI, MISavedTrackNums};
 use std::collections::{BTreeSet, HashMap};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -20,10 +21,11 @@ use std::path::{Path, PathBuf};
 pub struct MediaInfo<'a> {
     pub mc: &'a MuxConfig,
     pub counts: TFlagsCounts,
-    cache: HashMap<PathBuf, MICache>,
-    stem: OsString,
     tools: &'a Tools,
     upmost: &'a Path,
+    stem: OsString,
+    track_order: CacheState<TrackOrder>,
+    cache: HashMap<PathBuf, MICache>,
 }
 
 #[derive(Clone, Default)]
@@ -31,34 +33,31 @@ pub struct MICache {
     char_encoding: CacheState<String>,
     mkvinfo: CacheState<Mkvinfo>,
     mkvmerge_i: CacheState<Vec<String>>,
+    //mkvmerge_os_args: CacheState<Vec<OsString>>,
+    path_tail: CacheState<String>,
+    relative_upmost: CacheState<String>,
     target_group: CacheState<TargetGroup>,
     targets: CacheState<[Target; 3]>,
 
     tracks_info: CacheState<HashMap<TrackID, TICache>>,
-    saved_audio_u32_ids: CacheState<BTreeSet<u32>>,
-    saved_sub_u32_ids: CacheState<BTreeSet<u32>>,
-    saved_video_u32_ids: CacheState<BTreeSet<u32>>,
-    saved_button_u32_ids: CacheState<BTreeSet<u32>>,
-
-    path_tail: CacheState<String>,
-    relative_upmost: CacheState<String>,
-
+    saved_track_nums: CacheState<EnumMap<TrackType, BTreeSet<u64>>>,
     attachs_info: CacheState<HashMap<AttachID, AICache>>,
 }
 
 #[derive(Clone, Default)]
 pub struct TICache {
-    pub id_u32: u32,
+    pub num: u64,
     pub track_type: TrackType,
     pub mkvmerge_id_line: String,
-    mkvinfo_cutted: Option<Mkvinfo>,
     lang: CacheState<LangCode>,
+    mkvinfo_cutted: Option<Mkvinfo>,
+    //mkvmerge_os_args: CacheState<Vec<OsString>>,
     name: CacheState<String>,
 }
 
 #[derive(Clone, Default)]
 pub struct AICache {
-    pub id_u32: u32,
+    pub num: u64,
     pub attach_type: AttachType,
     pub mkvmerge_id_line: String,
 }
@@ -80,6 +79,7 @@ impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
             tools,
             upmost,
             cache: HashMap::new(),
+            track_order: CacheState::NotCached,
             counts: TFlagsCounts::default(),
             stem: OsString::new(),
         }
@@ -87,6 +87,19 @@ impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
 }
 
 impl MediaInfo<'_> {
+    pub fn clear(&mut self) {
+        self.clear_cache();
+        self.clear_counts();
+    }
+
+    pub fn clear_cache(&mut self) {
+        self.cache.clear();
+    }
+
+    pub fn clear_counts(&mut self) {
+        self.counts = TFlagsCounts::default();
+    }
+
     pub fn is_empty(&self) -> bool {
         self.cache.is_empty()
     }
@@ -95,8 +108,8 @@ impl MediaInfo<'_> {
         self.cache.len()
     }
 
-    pub fn clear_cache(&mut self) {
-        self.cache.clear()
+    pub fn get_cache(&self) -> &HashMap<PathBuf, MICache> {
+        &self.cache
     }
 
     pub fn take_cache(&mut self) -> HashMap<PathBuf, MICache> {
@@ -105,10 +118,6 @@ impl MediaInfo<'_> {
 
     pub fn upd_cache(&mut self, cache: HashMap<PathBuf, MICache>) {
         self.cache = cache;
-    }
-
-    pub fn clear_counts(&mut self) {
-        self.counts = TFlagsCounts::default();
     }
 
     pub fn upd_stem(&mut self, stem: impl Into<OsString>) {
@@ -120,7 +129,7 @@ impl MediaInfo<'_> {
         Ok(())
     }
 
-    pub fn try_insert_paths_with_empty_filter(
+    pub fn try_insert_paths_with_filter(
         &mut self,
         paths: &[PathBuf],
         exit_on_err: bool,
@@ -139,7 +148,7 @@ impl MediaInfo<'_> {
 
             if !skip {
                 let mut empty_ti = false;
-                let _ = self.try_get::<MISavedAudioU32IDs>(&path);
+                let _ = self.try_get::<MISavedTrackNums>(&path);
                 if let Some(ti) = self.get::<MITracksInfo>(&path) {
                     if ti.is_empty() {
                         empty_ti = true;

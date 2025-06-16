@@ -10,7 +10,7 @@ pub fn run() -> Result<(), MuxError> {
     let mc = MuxConfig::try_init()?;
 
     MuxLogger::init_with_filter(mc.get::<MCVerbosity>().to_level_filter());
-    Msg::set_lang_code(*mc.get::<MCLocale>());
+    Msg::upd_lang_code_or_log_warn(*mc.get::<MCLocale>());
 
     let output = mc.get::<MCOutput>();
     let result = mux(&mc, output);
@@ -34,7 +34,7 @@ fn mux(mc: &MuxConfig, output: &Output) -> Result<(), MuxError> {
             continue;
         }
 
-        mi.try_insert_paths_with_empty_filter(&media.files, exit_on_err)?;
+        mi.try_insert_paths_with_filter(&media.files, exit_on_err)?;
         if mi.is_empty() {
             warn!(
                 "No found any save Track or Attach for out '{}'. Skipping",
@@ -62,8 +62,7 @@ fn mux(mc: &MuxConfig, output: &Output) -> Result<(), MuxError> {
         }
 
         tools.run(Tool::Mkvmerge, args, None)?;
-        mi.clear_cache();
-        mi.clear_counts();
+        mi.clear();
     }
 
     Ok(())

@@ -1,5 +1,8 @@
-use crate::common::{data_file, from_cfg};
-use crate::{compare_arg_cases, range, test_cli_args, test_from_str};
+#[path = "tracks/flags.rs"]
+mod flags;
+
+use crate::common::from_cfg;
+use crate::{compare_arg_cases, fn_variants_of_args, range, test_cli_args, test_from_str};
 use mux_media::*;
 
 const MAX_STR: &str = "4294967295";
@@ -68,8 +71,8 @@ fn id(s: &str) -> TrackID {
 test_from_str!(
     TrackID, test_id_from_str,
     [
-        (TrackID::U32(0), "0"),
-        (TrackID::U32(8), "8"),
+        (TrackID::Num(0), "0"),
+        (TrackID::Num(8), "8"),
         (TrackID::Lang(LangCode::Eng), "eng"),
         (TrackID::Lang(LangCode::Rus), "rus"),
         (TrackID::Range(range::new("0-0")), "0-0"),
@@ -112,7 +115,7 @@ fn test_id_contains() {
     ];
 
     for (s_exp, s) in cases {
-        assert!(id(s_exp).contains(id(s)));
+        assert!(id(s_exp).contains(&id(s)));
     }
 
     let bad_cases = [
@@ -126,17 +129,37 @@ fn test_id_contains() {
     ];
 
     for (s_exp, s) in bad_cases {
-        assert!(!id(s_exp).contains(id(s)));
+        assert!(!id(s_exp).contains(&id(s)));
     }
 }
 
 const FROM_STR_CASES: [&'static str; 7] = ["0", "8", "eng", "rus", "1-8", "0,8,eng,1-8", "!0"];
 const FROM_STR_ERR_CASES: [&'static str; 0] = [];
 
-test_from_str!(AudioTracks, test_audio_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
-test_from_str!(SubTracks, test_sub_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
-test_from_str!(VideoTracks, test_video_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
-test_from_str!(ButtonTracks, test_button_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
+test_from_str!(
+    AudioTracks,
+    test_audio_from_str,
+    FROM_STR_CASES,
+    FROM_STR_ERR_CASES
+);
+test_from_str!(
+    SubTracks,
+    test_sub_from_str,
+    FROM_STR_CASES,
+    FROM_STR_ERR_CASES
+);
+test_from_str!(
+    VideoTracks,
+    test_video_from_str,
+    FROM_STR_CASES,
+    FROM_STR_ERR_CASES
+);
+test_from_str!(
+    ButtonTracks,
+    test_button_from_str,
+    FROM_STR_CASES,
+    FROM_STR_ERR_CASES
+);
 
 macro_rules! test_save_track {
     ($type:ident, $test_fn:ident) => {
@@ -157,11 +180,11 @@ macro_rules! test_save_track {
             for (s_ids, s) in cases {
                 let tracks = s.parse::<$type>().unwrap();
                 for s_id in s_ids {
-                    let u32 = s_id.parse::<u32>().unwrap_or(99);
-                    let lang = s_id.parse::<LangCode>().unwrap_or(LangCode::Und);
+                    let tid = TrackID::Num(s_id.parse::<u64>().unwrap_or(99));
+                    let l_tid = TrackID::Lang(s_id.parse::<LangCode>().unwrap_or(LangCode::Und));
 
                     assert!(
-                        tracks.save_track(u32, lang),
+                        tracks.save_track(&tid, &l_tid),
                         "Tracks '{}' not save track '{}'",
                         s,
                         s_id,
@@ -183,11 +206,11 @@ macro_rules! test_save_track {
             for (s_ids, s) in bad_cases {
                 let tracks = s.parse::<$type>().unwrap();
                 for s_id in s_ids {
-                    let u32 = s_id.parse::<u32>().unwrap_or(99);
-                    let lang = s_id.parse::<LangCode>().unwrap_or(LangCode::Und);
+                    let tid = TrackID::Num(s_id.parse::<u64>().unwrap_or(99));
+                    let l_tid = TrackID::Lang(s_id.parse::<LangCode>().unwrap_or(LangCode::Und));
 
                     assert!(
-                        !tracks.save_track(u32, lang),
+                        !tracks.save_track(&tid, &l_tid),
                         "Tracks '{}' save track '{}'",
                         s,
                         s_id
@@ -220,23 +243,14 @@ fn test_id_to_mkvmerge_arg() {
     }
 }
 
-#[inline]
-fn short_to_long(arg: &str) -> String {
-    let arg = match arg {
-        "-a" => "--audio",
-        "-A" => "--no-audio",
-        "-s" => "--subs",
-        "-S" => "--no-subs",
-        "-d" => "--video",
-        "-D" => "--no-video",
-        _ => arg,
-    };
-    arg.to_string()
-}
-
-fn to_long_args(args: &Vec<&str>) -> Vec<String> {
-    args.into_iter().map(|arg| short_to_long(arg)).collect()
-}
+fn_variants_of_args!(
+    "-a" => vec!["--audio", "--audio-tracks", "--atracks"],
+    "-A" => vec!["--no-audio", "--noaudio"],
+    "-s" => vec!["--subs", "--subtitle-tracks", "--subtitles", "--sub-tracks", "--stracks"],
+    "-S" => vec!["--no-subs", "--no-subtitles", "--nosubtitles", "--nosubs"],
+    "-d" => vec!["--video", "--video-tracks", "--vtracks"],
+    "-D" => vec!["--no-video", "--novideo"],
+);
 
 macro_rules! test_x8_file_to_mkvmerge_arg {
     ( $( $type:ident, $test_fn:ident, $file:expr, $field:ident, $arg:expr, $no_arg:expr );* $(;)?) => {
@@ -259,7 +273,7 @@ macro_rules! test_x8_file_to_mkvmerge_arg {
                 (vec![$arg, "1,2,3,4,7"], vec![$arg, "!0,5-6"]),
             ];
 
-            compare_arg_cases!(cases, to_long_args, $file, $field, MITracksInfo);
+            compare_arg_cases!(cases, variants_of_args, $file, $field, MITracksInfo);
         }
         )*
     };
@@ -292,7 +306,7 @@ macro_rules! test_x1_file_to_mkvmerge_arg {
                 (vec![$no_arg], vec![$arg, "!0,5-6"]),
             ];
 
-            compare_arg_cases!(cases, to_long_args, $file, $field, MITracksInfo);
+            compare_arg_cases!(cases, variants_of_args, $file, $field, MITracksInfo);
         }
         )*
     };

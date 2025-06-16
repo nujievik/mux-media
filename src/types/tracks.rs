@@ -4,6 +4,7 @@ mod from_arg_matches;
 pub(crate) mod id;
 mod langs;
 mod names;
+pub(crate) mod order;
 mod to_mkvmerge_args;
 pub(crate) mod track_type;
 

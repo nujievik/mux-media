@@ -1,27 +1,31 @@
 use mux_media::{MaxValue, Range, ToMkvmergeArg};
 use std::str::FromStr;
 
-const MAX: u32 = u32::MAX;
+const MAX: u64 = u64::MAX;
 
-pub fn new(s: &str) -> Range<u32> {
-    s.parse::<Range<u32>>().expect(&format!("Fail range from '{}'", s))
+pub fn new(s: &str) -> Range<u64> {
+    s.parse::<Range<u64>>()
+        .expect(&format!("Fail range from '{}'", s))
 }
 
 #[test]
 fn test_max_value() {
-    assert_eq!(MAX, <u32 as MaxValue>::MAX);
+    assert_eq!(MAX, <u64 as MaxValue>::MAX);
 }
 
 #[test]
 fn test_empty_str() {
     let range = new("");
     assert_eq!(0, range.start);
-    assert_eq!(u32::MAX, range.end);
+    assert_eq!(u64::MAX, range.end);
 }
 
 crate::test_from_str!(
-    Range<u32>, test_from_str,
-    ["", "5", "0", " 10 ", "5,10", "5,", ",10", "5-10", "5-", "-10", "5..10"],
+    Range<u64>,
+    test_from_str,
+    [
+        "", "5", "0", " 10 ", "5,10", "5,", ",10", "5-10", "5-", "-10", "5..10"
+    ],
     ["a,10", "5,b", "5,10,15", "5-10-15", "5.10", "10,5"]
 );
 
@@ -160,7 +164,7 @@ fn test_contains_range() {
         for x in vals {
             let rng = new(x);
             assert!(
-                range.contains_range(rng),
+                range.contains_range(&rng),
                 "Not contains range '{}' in range from '{}'",
                 x,
                 s
@@ -185,7 +189,7 @@ fn test_not_contains_range() {
         for x in vals {
             let rng = new(x);
             assert!(
-                !range.contains_range(rng),
+                !range.contains_range(&rng),
                 "Not contains range {} in range from {}",
                 x,
                 s
@@ -207,7 +211,7 @@ fn test_expected_err_messages() {
     ];
 
     for (s, expected_msg) in &cases {
-        match Range::<u32>::from_str(s) {
+        match Range::<u64>::from_str(s) {
             Err(e) => assert!(
                 e.to_string().contains(expected_msg),
                 "Expected error contains '{}' for '{}', but got '{}'",

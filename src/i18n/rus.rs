@@ -1,11 +1,8 @@
 use super::Msg;
 
-pub(super) fn rus(msg: Msg) -> String {
+pub(super) fn rus(msg: &Msg) -> String {
     match msg {
-        Msg::ExeCommand => "Выполнение команды".to_string(),
-        Msg::FailCreateThdPool => {
-            "Не удалось лимитировать количество потоков (используем дефолтное)".to_string()
-        }
+        Msg::ErrUpdLangCode => "Не удалось обновить код языка".into(),
         Msg::FailSetPaths { s, s1 } => format!(
             "'{}' из пакета '{}' не установлен. Пожалуйста, установите его, добавьте в системный PATH и перезапустите",
             s, s1
@@ -15,9 +12,7 @@ pub(super) fn rus(msg: Msg) -> String {
             s
         ),
         Msg::NoInputFiles => "Не найдены файлы с треками во входящей директории".to_string(),
-        Msg::UnsupLngLog { s, s1 } => format!(
-            "Язык '{}' не поддерживается для ведения журнала. Используем '{}'",
-            s, s1
-        ),
+        Msg::RunningCommand => "Выполнение команды".into(),
+        Msg::Using => "Используется".into(),
     }
 }

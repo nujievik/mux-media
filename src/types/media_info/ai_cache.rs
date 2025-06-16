@@ -2,10 +2,10 @@ use super::AICache;
 use crate::{AttachType, MuxError};
 
 impl AICache {
-    pub fn try_init(id_u32: u32, mkvmerge_id_line: String) -> Result<Self, MuxError> {
+    pub fn try_init(num: u64, mkvmerge_id_line: String) -> Result<Self, MuxError> {
         let attach_type = Self::try_init_attach_type(&mkvmerge_id_line)?;
         Ok(Self {
-            id_u32,
+            num,
             attach_type,
             mkvmerge_id_line,
         })

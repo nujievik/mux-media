@@ -36,7 +36,7 @@ impl clap::FromArgMatches for MuxConfig {
             input,
             output,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
-            locale: from_arg_matches!(matches, LangCode, Locale, LangCode::default),
+            locale: from_arg_matches!(matches, LangCode, Locale, LangCode::init),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
             off_on_pro: OffOnPro::from_arg_matches_mut(matches)?,
             retiming,

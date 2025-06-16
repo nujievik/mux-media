@@ -6,8 +6,8 @@ use std::str::FromStr;
 
 impl Blocks {
     pub fn io(mut self) -> Self {
-        self.cmd = self
-            .cmd
+        self.0 = self
+            .0
             .next_help_heading("I/O options")
             .arg(
                 Arg::new(<Input as CLIArgs>::Arg::Input.as_long())

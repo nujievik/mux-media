@@ -38,6 +38,13 @@ pub trait GetOptField<F> {
     fn get(&self) -> Option<&Self::FieldType>;
 }
 
+pub trait SetGetField<F> {
+    type FieldType;
+    fn try_set(&mut self) -> Result<(), MuxError>;
+    fn try_get(&mut self) -> Result<&Self::FieldType, MuxError>;
+    fn get(&mut self) -> Option<&Self::FieldType>;
+}
+
 pub trait SetGetPathField<F> {
     type FieldType;
     fn try_set(&mut self, path: &Path) -> Result<(), MuxError>;
@@ -47,9 +54,9 @@ pub trait SetGetPathField<F> {
 
 pub trait SetGetPathTrackField<F> {
     type FieldType;
-    fn try_set(&mut self, path: &Path, tid: TrackID) -> Result<(), MuxError>;
-    fn try_get(&mut self, path: &Path, tid: TrackID) -> Result<&Self::FieldType, MuxError>;
-    fn get(&mut self, path: &Path, tid: TrackID) -> Option<&Self::FieldType>;
+    fn try_set(&mut self, path: &Path, tid: &TrackID) -> Result<(), MuxError>;
+    fn try_get(&mut self, path: &Path, tid: &TrackID) -> Result<&Self::FieldType, MuxError>;
+    fn get(&mut self, path: &Path, tid: &TrackID) -> Option<&Self::FieldType>;
 }
 
 pub trait TryInit {

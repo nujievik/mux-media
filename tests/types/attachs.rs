@@ -1,5 +1,5 @@
-use crate::common::{cfg, data_file};
-use crate::{compare_arg_cases, test_cli_args, test_from_str, range};
+use crate::common::cfg;
+use crate::{compare_arg_cases, fn_variants_of_args, range, test_cli_args, test_from_str};
 use mux_media::*;
 
 fn new_fonts(args: &[&str]) -> FontAttachs {
@@ -54,11 +54,11 @@ fn test_at_as_str_mkvtoolnix() {
 }
 
 fn id_range(s: &str) -> AttachID {
-    AttachID::Range(s.parse::<Range<u32>>().unwrap())
+    AttachID::Range(s.parse::<Range<u64>>().unwrap())
 }
 
-fn id(u: u32) -> AttachID {
-    AttachID::U32(u)
+fn id(num: u64) -> AttachID {
+    AttachID::Num(num)
 }
 
 #[test]
@@ -77,30 +77,30 @@ fn test_id_to_mkvmerge_arg() {
 
 #[test]
 fn test_id_contains() {
-    assert!(id(1).contains(id(1)));
-    assert!(!id(1).contains(id(2)));
+    assert!(id(1).contains(&id(1)));
+    assert!(!id(1).contains(&id(2)));
 
     let id_rng = id_range("1-");
-    assert!(id_rng.contains(id(1)));
-    assert!(id_rng.contains(id(2)));
-    assert!(id_rng.contains(id(u32::MAX)));
-    assert!(id_rng.contains(id_range("1-")));
+    assert!(id_rng.contains(&id(1)));
+    assert!(id_rng.contains(&id(2)));
+    assert!(id_rng.contains(&id(u64::MAX)));
+    assert!(id_rng.contains(&id_range("1-")));
 
     let id_rng = id_range("2-16");
-    assert!(!id_rng.contains(id(1)));
-    assert!(id_rng.contains(id(2)));
-    assert!(id_rng.contains(id(16)));
-    assert!(!id_rng.contains(id(u32::MAX)));
-    assert!(!id_rng.contains(id_range("1-")));
-    assert!(!id_rng.contains(id_range("1-8")));
-    assert!(id_rng.contains(id_range("2-8")));
+    assert!(!id_rng.contains(&id(1)));
+    assert!(id_rng.contains(&id(2)));
+    assert!(id_rng.contains(&id(16)));
+    assert!(!id_rng.contains(&id(u64::MAX)));
+    assert!(!id_rng.contains(&id_range("1-")));
+    assert!(!id_rng.contains(&id_range("1-8")));
+    assert!(id_rng.contains(&id_range("2-8")));
 }
 
 test_from_str!(
     AttachID, test_id_from_str,
     [
-        (AttachID::U32(1), "1"),
-        (AttachID::U32(16), "16"),
+        (AttachID::Num(1), "1"),
+        (AttachID::Num(16), "16"),
         (AttachID::Range(range::new("1-")), "1-"),
         (AttachID::Range(range::new("1-8")), "1-8"),
     ],
@@ -119,40 +119,50 @@ fn other_str(s: &str) -> OtherAttachs {
 const FROM_STR_CASES: [&'static str; 5] = ["1-", "1", "1-1", "!1", "1,3,4"];
 const FROM_STR_ERR_CASES: [&'static str; 5] = ["0", "2-1", "", "x", "eng"];
 
-test_from_str!(FontAttachs, test_fonts_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
-test_from_str!(OtherAttachs, test_other_from_str, FROM_STR_CASES, FROM_STR_ERR_CASES);
+test_from_str!(
+    FontAttachs,
+    test_fonts_from_str,
+    FROM_STR_CASES,
+    FROM_STR_ERR_CASES
+);
+test_from_str!(
+    OtherAttachs,
+    test_other_from_str,
+    FROM_STR_CASES,
+    FROM_STR_ERR_CASES
+);
 
 macro_rules! test_save_attach {
     ($test_name:ident, $from_str:ident) => {
         #[test]
         fn $test_name() {
             let cases = [
-                (vec![1, 16, u32::MAX], "1-"),
+                (vec![1, 16, u64::MAX], "1-"),
                 (vec![1], "1"),
                 (vec![1], "1-1"),
-                (vec![2, 16, u32::MAX], "!1"),
+                (vec![2, 16, u64::MAX], "!1"),
                 (vec![1, 3, 4], "1,3,4"),
             ];
 
-            for (check_ids, s) in cases {
+            for (check_nums, s) in cases {
                 let attachs = $from_str(s);
-                check_ids
+                check_nums
                     .into_iter()
-                    .for_each(|id| assert!(attachs.save_attach(id)));
+                    .for_each(|num| assert!(attachs.save_attach(&AttachID::Num(num))));
             }
 
             let bad_cases = [
-                (vec![2, 16, u32::MAX], "1"),
-                (vec![2, 16, u32::MAX], "1-1"),
+                (vec![2, 16, u64::MAX], "1"),
+                (vec![2, 16, u64::MAX], "1-1"),
                 (vec![1], "!1"),
-                (vec![2, 5, u32::MAX], "1,3,4"),
+                (vec![2, 5, u64::MAX], "1,3,4"),
             ];
 
-            for (check_ids, s) in bad_cases {
+            for (check_nums, s) in bad_cases {
                 let attachs = $from_str(s);
-                check_ids
+                check_nums
                     .into_iter()
-                    .for_each(|id| assert!(!attachs.save_attach(id)));
+                    .for_each(|num| assert!(!attachs.save_attach(&AttachID::Num(num))));
             }
         }
     };
@@ -161,21 +171,12 @@ macro_rules! test_save_attach {
 test_save_attach!(test_fonts_save_attach, fonts_str);
 test_save_attach!(test_other_save_attach, other_str);
 
-#[inline]
-fn short_to_long(arg: &str) -> String {
-    let arg = match arg {
-        "-f" => "--fonts",
-        "-F" => "--no-fonts",
-        "-m" => "--attachs",
-        "-M" => "--no-attachs",
-        _ => arg,
-    };
-    arg.to_string()
-}
-
-fn to_long_args(args: &Vec<&str>) -> Vec<String> {
-    args.into_iter().map(|arg| short_to_long(arg)).collect()
-}
+fn_variants_of_args!(
+    "-f" => vec!["--fonts"],
+    "-F" => vec!["--no-fonts"],
+    "-m" => vec!["--attachs"],
+    "-M" => vec!["--no-attachs"],
+);
 
 fn current_args(at: AttachType) -> (&'static str, &'static str, &'static str, &'static str) {
     match at {
@@ -201,7 +202,7 @@ fn build_test_to_mkvmerge_args(file: &str, at: AttachType) {
 
     compare_arg_cases!(
         cases,
-        to_long_args,
+        variants_of_args,
         file,
         MCFontAttachs,
         MIAttachsInfo,
@@ -241,7 +242,7 @@ fn build_test_mix_to_mvkmerge_args(file: &str, at: AttachType) {
 
     compare_arg_cases!(
         cases,
-        to_long_args,
+        variants_of_args,
         file,
         MCFontAttachs,
         MIAttachsInfo,

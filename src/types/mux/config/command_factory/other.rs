@@ -4,8 +4,8 @@ use clap::{Arg, ArgAction};
 impl Blocks {
     pub fn other(mut self) -> Self {
         // Help Only. This args processing in crate::types::app::config::raw
-        self.cmd = self
-            .cmd
+        self.0 = self
+            .0
             .next_help_heading("Other options")
             .arg(
                 Arg::new("list_langs")
@@ -42,7 +42,7 @@ impl Blocks {
     }
 
     pub fn version(mut self) -> Self {
-        self.cmd = self.cmd.arg(
+        self.0 = self.0.arg(
             Arg::new("version")
                 .short('V')
                 .long("version")
@@ -55,7 +55,7 @@ impl Blocks {
     }
 
     pub fn help(mut self) -> Self {
-        self.cmd = self.cmd.arg(
+        self.0 = self.0.arg(
             Arg::new("help")
                 .short('h')
                 .long("help")

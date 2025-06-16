@@ -1,5 +1,4 @@
 pub(crate) mod counts;
-//mod default;
 mod from_str;
 mod to_mkvmerge_args;
 
@@ -16,11 +15,11 @@ impl TFlags {
         cnt < self.lim_for_unset.unwrap_or(0)
     }
 
-    pub fn get_or_less_cnt(&self, tid: TrackID, cnt: u32) -> bool {
+    pub fn get_or_less_cnt(&self, tid: &TrackID, cnt: u32) -> bool {
         self.get(tid).unwrap_or(self.less_cnt(cnt))
     }
 
-    pub fn get(&self, tid: TrackID) -> Option<bool> {
+    pub fn get(&self, tid: &TrackID) -> Option<bool> {
         if let Some(val) = &self.unmapped {
             return Some(*val);
         }
@@ -33,7 +32,7 @@ impl TFlags {
 
         if let Some(vals) = &self.map_unhashed {
             for (id, val) in vals.iter() {
-                if id.contains(tid) {
+                if id.contains(&tid) {
                     return Some(*val);
                 }
             }

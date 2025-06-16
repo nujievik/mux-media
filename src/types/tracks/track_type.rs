@@ -1,6 +1,7 @@
+use enum_map::{Enum, EnumMap, enum_map};
 use strum_macros::EnumIter;
 
-#[derive(Clone, Copy, Default, PartialEq, EnumIter)]
+#[derive(Clone, Copy, Default, PartialEq, Enum, EnumIter)]
 pub enum TrackType {
     #[default]
     Audio,
@@ -21,5 +22,12 @@ impl TrackType {
             Self::Video => "video",
             Self::Button => "buttons",
         }
+    }
+
+    pub fn new_enum_map<T>() -> EnumMap<Self, T>
+    where
+        T: Default,
+    {
+        enum_map! { _ => T::default() }
     }
 }

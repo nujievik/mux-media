@@ -8,7 +8,7 @@ pub use i18n::Msg;
 pub use run::run;
 
 pub use traits::{
-    CLIArg, CLIArgs, GetField, GetOptField, IsDefault, MaxValue, SetGetPathField,
+    CLIArg, CLIArgs, GetField, GetOptField, IsDefault, MaxValue, SetGetField, SetGetPathField,
     SetGetPathTrackField, ToMkvmergeArg, ToMkvmergeArgs, TryFinalizeInit, TryInit,
 };
 
@@ -19,10 +19,10 @@ pub use types::{
     input::Input,
     lang_code::LangCode,
     // Get Field MediaInfo markers
-    media_info::set_get_path_field::{
-        MIAttachsInfo, MICharEncoding, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
-        MISavedAudioU32IDs, MISavedButtonU32IDs, MISavedSubU32IDs, MISavedVideoU32IDs, MITILang,
-        MITIName, MITargetGroup, MITargets, MITracksInfo,
+    media_info::set_get_field::{
+        MIAttachsInfo, MICharEncoding, MICmnTrackOrder, MIMkvinfo, MIMkvmergeI, MIPathTail,
+        MIRelativeUpmost, MISavedTrackNums, MITILang, MITIName, MITargetGroup, MITargets,
+        MITracksInfo,
     },
     media_info::{CacheState, MICache, MediaInfo},
     media_number::MediaNumber,
@@ -49,7 +49,7 @@ pub use types::{
     tracks::{
         AudioTracks, ButtonTracks, DefaultTFlags, EnabledTFlags, ForcedTFlags, SubTracks, TFlags,
         TrackLangs, TrackNames, Tracks, VideoTracks, flags::counts::TFlagsCounts, id::TrackID,
-        track_type::TrackType,
+        order::TrackOrder, track_type::TrackType,
     },
     verbosity::Verbosity,
 };

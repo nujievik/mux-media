@@ -7,7 +7,7 @@ use strum_macros::EnumIter;
 
 impl Blocks {
     pub fn off(mut self) -> Self {
-        let mut cmd = self.cmd.next_help_heading("Off on Pro options");
+        let mut cmd = self.0.next_help_heading("Off on Pro options");
 
         for flag in OffFlag::iter() {
             let help_arg = flag.to_help_arg();
@@ -36,7 +36,7 @@ impl Blocks {
                 );
         }
 
-        self.cmd = cmd;
+        self.0 = cmd;
         self
     }
 }

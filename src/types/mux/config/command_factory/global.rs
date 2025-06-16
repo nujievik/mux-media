@@ -5,8 +5,8 @@ use std::str::FromStr;
 
 impl Blocks {
     pub fn global(mut self) -> Self {
-        self.cmd = self
-            .cmd
+        self.0 = self
+            .0
             .next_help_heading("Global options")
             .arg(
                 Arg::new(<Verbosity as CLIArgs>::Arg::Verbose.as_long())

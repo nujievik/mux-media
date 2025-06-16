@@ -4,14 +4,14 @@ use log::trace;
 
 impl TICache {
     pub fn try_init(
-        id_u32: u32,
+        num: u64,
         mkvmerge_id_line: String,
         mkvinfo: Option<&Mkvinfo>,
     ) -> Result<Self, MuxError> {
         let track_type = Self::init_track_type(&mkvmerge_id_line)?;
-        let mkvinfo_cutted = Self::init_mkvinfo_cutted(id_u32, mkvinfo);
+        let mkvinfo_cutted = Self::init_mkvinfo_cutted(num, mkvinfo);
         Ok(Self {
-            id_u32,
+            num,
             track_type,
             mkvmerge_id_line,
             mkvinfo_cutted,
@@ -28,13 +28,13 @@ impl TICache {
         Err("Unrecognized track type".into())
     }
 
-    fn init_mkvinfo_cutted(id: u32, mkvinfo: Option<&Mkvinfo>) -> Option<Mkvinfo> {
+    fn init_mkvinfo_cutted(num: u64, mkvinfo: Option<&Mkvinfo>) -> Option<Mkvinfo> {
         let mkvinfo = mkvinfo?;
-        // mkvinfo uses 1-based indexing (add 1 to id for mkvmerge)
-        let id = id + 1;
+        // mkvinfo uses 1-based indexing (add 1 to num for mkvmerge)
+        let num = num + 1;
 
-        let start_pattern = format!("Track number: {}", id);
-        let end_pattern = format!("Track number: {}", id + 1);
+        let start_pattern = format!("Track number: {}", num);
+        let end_pattern = format!("Track number: {}", num + 1);
         let mut start_idx = None;
         let mut end_idx = None;
 
@@ -58,8 +58,8 @@ impl TICache {
                     "{}",
                     format!(
                         "Start mkvinfo for TID {} (mkvinfo {}) not found",
-                        id - 1,
-                        id
+                        num - 1,
+                        num
                     )
                 );
                 None

@@ -1,10 +1,56 @@
 use super::{AICache, CacheState, MediaInfo, TICache, mkvinfo::Mkvinfo};
 use crate::{
-    AttachID, LangCode, MuxError, SetGetPathField, SetGetPathTrackField, Target, TargetGroup,
-    TrackID,
+    AttachID, LangCode, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField, Target,
+    TargetGroup, TrackID, TrackOrder, TrackType,
 };
+use enum_map::EnumMap;
 use std::collections::{BTreeSet, HashMap};
 use std::path::Path;
+
+macro_rules! set_get_fields {
+    ($( $field:ident, $field_ty:ty, $builder:ident => $marker:ident; )*) => {
+        $(
+            pub struct $marker;
+
+            impl SetGetField<$marker> for MediaInfo<'_> {
+                type FieldType = $field_ty;
+
+                fn try_set(&mut self) -> Result<(), MuxError> {
+                    let (state, result) = match self.$builder() {
+                        Ok(val) => (CacheState::Cached(val), Ok(())),
+                        Err(e) => (CacheState::Failed, Err(e)),
+                    };
+
+                    self.$field = state;
+                    result
+                }
+
+
+                fn try_get(&mut self) -> Result<&Self::FieldType, MuxError> {
+                    match &self.$field {
+                        CacheState::NotCached => <Self as SetGetField::<$marker>>::try_set(self)?,
+                        _ => {}
+                    }
+
+                    match &self.$field {
+                        CacheState::Cached(val) => Ok(val),
+                        _ => Err("Previously failed to load".into()),
+                    }
+                }
+
+                fn get(&mut self) -> Option<&Self::FieldType> {
+                    match <Self as SetGetField::<$marker>>::try_get(self) {
+                        Ok(val) => Some(val),
+                        Err(e) => {
+                            log::trace!("{}", e);
+                            None
+                        }
+                    }
+                }
+            }
+        )*
+    };
+}
 
 macro_rules! set_get_path_fields {
     ($( $map_field:ident, $field_ty:ty, $builder:ident => $marker:ident; )*) => {
@@ -65,21 +111,21 @@ macro_rules! set_get_path_fields {
             impl SetGetPathTrackField<$marker> for MediaInfo<'_> {
                 type FieldType = $field_ty;
 
-                fn try_set(&mut self, path: &Path, tid: TrackID) -> Result<(), MuxError> {
-                    let _ = self.get_mut_ti_cache(path, &tid).ok_or("None TICache")?;
+                fn try_set(&mut self, path: &Path, tid: &TrackID) -> Result<(), MuxError> {
+                    let _ = self.get_mut_ti_cache(path, tid).ok_or("None TICache")?;
 
                     let (state, result) = match self.$builder(path, tid) {
                         Ok(val) => (CacheState::Cached(val), Ok(())),
                         Err(e) => (CacheState::Failed, Err(e)),
                     };
 
-                    let tic = self.get_mut_ti_cache(path, &tid).expect("None TICache");
+                    let tic = self.get_mut_ti_cache(path, tid).expect("None TICache");
                     tic.$tic_field = state;
                     result
                 }
 
-                fn try_get(&mut self, path: &Path, tid: TrackID) -> Result<&Self::FieldType, MuxError> {
-                    let tic = self.get_mut_ti_cache(path, &tid).ok_or("None TICache")?;
+                fn try_get(&mut self, path: &Path, tid: &TrackID) -> Result<&Self::FieldType, MuxError> {
+                    let tic = self.get_mut_ti_cache(path, tid).ok_or("None TICache")?;
                     let need_try_set = match tic.$tic_field {
                         CacheState::NotCached => true,
                         _ => false,
@@ -89,7 +135,7 @@ macro_rules! set_get_path_fields {
                         <Self as SetGetPathTrackField::<$marker>>::try_set(self, path, tid)?;
                     }
 
-                    let tic = self.get_mut_ti_cache(path, &tid).expect("None TICache");
+                    let tic = self.get_mut_ti_cache(path, tid).expect("None TICache");
                     match &tic.$tic_field {
                         CacheState::Cached(val) => Ok(val),
                         CacheState::Failed => Err("Previously failed to load".into()),
@@ -97,7 +143,7 @@ macro_rules! set_get_path_fields {
                     }
                 }
 
-                fn get(&mut self, path: &Path, tid: TrackID) -> Option<&Self::FieldType> {
+                fn get(&mut self, path: &Path, tid: &TrackID) -> Option<&Self::FieldType> {
                     match <Self as SetGetPathTrackField::<$marker>>::try_get(self, path, tid) {
                         Ok(val) => Some(val),
                         Err(e) => {
@@ -111,19 +157,20 @@ macro_rules! set_get_path_fields {
     }
 }
 
+set_get_fields!(
+    track_order, TrackOrder, build_track_order => MICmnTrackOrder;
+);
+
 set_get_path_fields!(
     char_encoding, String, build_char_encoding => MICharEncoding;
     mkvinfo, Mkvinfo, build_mkvinfo => MIMkvinfo;
     mkvmerge_i, Vec<String>, build_mkvmerge_i => MIMkvmergeI;
+    path_tail, String, build_path_tail => MIPathTail;
+    relative_upmost, String, build_relative_upmost => MIRelativeUpmost;
     target_group, TargetGroup, build_target_group => MITargetGroup;
     targets, [Target; 3], build_targets => MITargets;
     tracks_info, HashMap<TrackID, TICache>, build_tracks_info => MITracksInfo;
-    saved_audio_u32_ids, BTreeSet<u32>, build_saved_audio_u32_ids => MISavedAudioU32IDs;
-    saved_sub_u32_ids, BTreeSet<u32>, build_saved_sub_u32_ids => MISavedSubU32IDs;
-    saved_video_u32_ids, BTreeSet<u32>, build_saved_video_u32_ids => MISavedVideoU32IDs;
-    saved_button_u32_ids, BTreeSet<u32>, build_saved_button_u32_ids => MISavedButtonU32IDs;
-    path_tail, String, build_path_tail => MIPathTail;
-    relative_upmost, String, build_relative_upmost => MIRelativeUpmost;
+    saved_track_nums, EnumMap<TrackType, BTreeSet<u64>>, build_saved_track_nums => MISavedTrackNums;
     attachs_info, HashMap<AttachID, AICache>, build_attachs_info => MIAttachsInfo;
 );
 

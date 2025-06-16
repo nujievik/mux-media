@@ -1,12 +1,11 @@
-//mod aids;
-mod tids;
+mod saved;
 
 use super::mkvinfo::{MKVILang, MKVIName, Mkvinfo};
 use super::{AICache, MediaInfo, TICache};
 use crate::{
     AttachID, EXTENSIONS, LangCode, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost, MITIName,
-    MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool, TrackID, TrackType,
-    os_helpers,
+    MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool, TrackID, TrackOrder,
+    TrackType, os_helpers,
 };
 use std::collections::HashMap;
 use std::ffi::OsStr;
@@ -17,7 +16,7 @@ use std::path::Path;
 const READ_LIMIT: usize = 32 * 1024; // 32 KiB
 
 macro_rules! from_name_tail_relative_or_fallback {
-    ($mi:ident, $path:ident, $tid:ident, $typ:ident, $try_str:ident, $try_slice_string:ident, $dflt:ident) => {
+    ($mi:ident, $path:ident, $tid:expr, $typ:ident, $try_str:ident, $try_slice_string:ident, $dflt:ident) => {
         $mi.try_get_ti::<MITIName>($path, $tid)
             .ok()
             .and_then(|name| $typ::$try_str(name.to_lowercase().as_ref()).ok())
@@ -36,6 +35,10 @@ macro_rules! from_name_tail_relative_or_fallback {
 }
 
 impl MediaInfo<'_> {
+    pub(super) fn build_track_order(&mut self) -> Result<TrackOrder, MuxError> {
+        TrackOrder::try_from(self)
+    }
+
     pub(super) fn build_char_encoding(&mut self, path: &Path) -> Result<String, MuxError> {
         let enc = if path.extension().map_or(false, |ext| {
             EXTENSIONS.matroska.contains(ext.as_encoded_bytes())
@@ -65,7 +68,7 @@ impl MediaInfo<'_> {
                     from_name_tail_relative_or_fallback!(
                         self,
                         path,
-                        tid,
+                        &tid,
                         TargetGroup,
                         try_signs_from_str,
                         try_signs_from_slice_string,
@@ -112,25 +115,25 @@ impl MediaInfo<'_> {
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
         let re = regex::Regex::new(r"Track ID (\d+):")?;
 
-        let raw: Vec<(u32, String)> = mkvmerge_i
+        let num_lines: Vec<(u64, String)> = mkvmerge_i
             .into_iter()
             .filter_map(|line| {
                 re.captures(line).and_then(|caps| {
                     caps.get(1)?
                         .as_str()
-                        .parse::<u32>()
+                        .parse::<u64>()
                         .ok()
-                        .map(|u32| (u32, line.to_string()))
+                        .map(|num| (num, line.to_string()))
                 })
             })
             .collect();
 
         let mkvinfo = self.get::<MIMkvinfo>(path);
-        let ti: HashMap<TrackID, TICache> = raw
+        let ti: HashMap<TrackID, TICache> = num_lines
             .into_iter()
-            .map(|(u32, line)| {
-                let id = TrackID::U32(u32);
-                TICache::try_init(u32, line, mkvinfo).map(|cache| (id, cache))
+            .map(|(num, line)| {
+                let tid = TrackID::Num(num);
+                TICache::try_init(num, line, mkvinfo).map(|cache| (tid, cache))
             })
             .collect::<Result<_, _>>()?;
 
@@ -148,9 +151,9 @@ impl MediaInfo<'_> {
             .into_iter()
             .filter_map(|line| {
                 re.captures(line).and_then(|caps| {
-                    let id = caps.get(1)?.as_str().parse::<u32>().ok()?;
-                    let ai_cache = AICache::try_init(id, line.to_string()).ok()?;
-                    Some((AttachID::U32(id), ai_cache))
+                    let num = caps.get(1)?.as_str().parse::<u64>().ok()?;
+                    let ai_cache = AICache::try_init(num, line.to_string()).ok()?;
+                    Some((AttachID::Num(num), ai_cache))
                 })
             })
             .collect();
@@ -172,9 +175,9 @@ impl MediaInfo<'_> {
             })
     }
 
-    pub(super) fn build_ti_name(&mut self, path: &Path, tid: TrackID) -> Result<String, MuxError> {
+    pub(super) fn build_ti_name(&mut self, path: &Path, tid: &TrackID) -> Result<String, MuxError> {
         let tic = self
-            .get_mut_ti_cache(path, &tid)
+            .get_mut_ti_cache(path, tid)
             .ok_or("Unexpected None TICache")?;
 
         let name = tic
@@ -200,10 +203,10 @@ impl MediaInfo<'_> {
     pub(super) fn build_ti_lang(
         &mut self,
         path: &Path,
-        tid: TrackID,
+        tid: &TrackID,
     ) -> Result<LangCode, MuxError> {
         let tic = self
-            .get_mut_ti_cache(path, &tid)
+            .get_mut_ti_cache(path, tid)
             .ok_or("Unexpected None TICache")?;
         let lang = tic
             .mkvinfo_cutted

@@ -10,7 +10,7 @@ impl IsDefault for TrackNames {
 }
 
 impl TrackNames {
-    pub fn get(&self, tid: TrackID) -> Option<&str> {
+    pub fn get(&self, tid: &TrackID) -> Option<&str> {
         if let Some(name) = &self.unmapped {
             return Some(name);
         }
@@ -23,7 +23,7 @@ impl TrackNames {
 
         if let Some(names) = &self.map_unhashed {
             for (id, name) in names.iter() {
-                if id.contains(tid) {
+                if id.contains(&tid) {
                     return Some(name);
                 }
             }

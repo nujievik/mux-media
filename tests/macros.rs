@@ -28,20 +28,50 @@ macro_rules! take_mi_cache {
 }
 
 #[macro_export]
+macro_rules! fn_variants_of_args {
+    ( $( $arg:expr => $vars:expr ),* $(,)?) => {
+        fn variants_of_args(args: Vec<&str>) -> Vec<Vec<String>> {
+            let mut variants: Vec<Vec<String>> = Vec::new();
+            let args: Vec<String> = args
+                .into_iter()
+                .map(|arg| arg.to_string())
+                .collect();
+
+            for (i, arg) in args.iter().enumerate() {
+                let alts: Option<Vec<&str>> = match arg.as_str() {
+                    $( $arg => Some($vars), )*
+                    _ => None,
+                };
+
+                if let Some(alts) = alts {
+                    for alt in alts {
+                        let mut new_args = args.clone();
+                        new_args[i] = alt.to_string();
+                        variants.push(new_args);
+                    }
+                }
+            }
+
+            variants.push(args);
+
+            variants
+        }
+    };
+}
+
+#[macro_export]
 macro_rules! compare_arg_cases {
-    ($cases:expr, $to_long:ident, $file:expr, $field:ident, $( $cache_field:ident ),* $(,)?) => {{
-        let path = data_file($file);
+    ($cases:expr, $var_args:ident, $file:expr, $field:ident, $( $cache_field:ident ),* $(,)?) => {{
+        let path = $crate::common::data_file($file);
         let cache = $crate::take_mi_cache!(&path, $( $cache_field, )*);
 
         for (exp, args) in $cases {
             let exp = $crate::common::to_args(exp);
-            let alt_args_raw = $to_long(&args);
-            let alt_args = alt_args_raw.iter().map(|x| x.as_str()).collect();
-
-            assert_eq!(exp, $crate::common::cfg_args::<$field>(args, &path, cache.clone()));
-            assert_eq!(exp, $crate::common::cfg_args::<$field>(alt_args, &path, cache.clone()));
+            $var_args(args).into_iter().for_each(|args| {
+                assert_eq!(exp, $crate::common::cfg_args::<$field>(args, &path, cache.clone()));
+            });
         }
-    }}
+    }};
 }
 
 #[macro_export]

@@ -2,7 +2,7 @@ use crate::{Msg, MuxError};
 use log::{debug, warn};
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
-use std::fmt::{self, Display};
+use std::fmt;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
@@ -101,7 +101,7 @@ impl Tools {
                     Some(vec)
                 }
                 Err(e) => {
-                    warn!("{}", Msg::FailWriteJson { s: &e }.get());
+                    warn!("{}", Msg::FailWriteJson { s: &e });
                     command.args(args);
                     None
                 }
@@ -113,7 +113,7 @@ impl Tools {
             }
         };
 
-        debug!("{}:\n{}", Msg::ExeCommand.get(), CommandDisplay(&command));
+        debug!("{}:\n{}", Msg::RunningCommand, CommandDisplay(&command));
         if let Some(args) = args_json {
             debug!("Args in JSON:\n{:?}", args);
         }
@@ -132,7 +132,7 @@ impl Tools {
 
 struct CommandDisplay<'a>(&'a Command);
 
-impl<'a> Display for CommandDisplay<'a> {
+impl<'a> fmt::Display for CommandDisplay<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "\"{}\"", self.0.get_program().to_string_lossy())?;
         for arg in self.0.get_args() {
@@ -159,7 +159,7 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
                 s: tool.as_ref(),
                 s1: tool.to_str_package(),
             }
-            .get()
+            .to_string()
             .into())
         }
     }
@@ -193,7 +193,7 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
                 s: tool.as_ref(),
                 s1: tool.to_str_package(),
             }
-            .get()
+            .to_string()
             .into()),
         }
     }

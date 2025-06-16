@@ -1,11 +1,8 @@
 use super::Msg;
 
-pub(super) fn eng(msg: Msg) -> String {
+pub(super) fn eng(msg: &Msg) -> String {
     match msg {
-        Msg::ExeCommand => "Executing command".to_string(),
-        Msg::FailCreateThdPool => {
-            "Failed to create limited thread pool (using default)".to_string()
-        }
+        Msg::ErrUpdLangCode => "LangCode update failed".into(),
         Msg::FailSetPaths { s, s1 } => format!(
             "'{}' from package '{}' is not installed. Please install it, add to system PATH and re-run",
             s, s1
@@ -15,9 +12,7 @@ pub(super) fn eng(msg: Msg) -> String {
             s
         ),
         Msg::NoInputFiles => "No track files found in the input directory".to_string(),
-        Msg::UnsupLngLog { s, s1 } => format!(
-            "Language '{}' is not supported for logging. Using '{}'",
-            s, s1
-        ),
+        Msg::RunningCommand => "Running command".to_string(),
+        Msg::Using => "Using".into(),
     }
 }

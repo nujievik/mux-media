@@ -31,7 +31,7 @@ impl Input {
         let stems: Vec<&OsStr> = files.iter().filter_map(|path| path.file_stem()).collect();
 
         if stems.is_empty() {
-            return Err(format!("{}: {}", Msg::NoInputFiles.get(), self.dir.display()).into());
+            return Err(format!("{}: {}", Msg::NoInputFiles, self.dir.display()).into());
         }
 
         let parent_dirs: Vec<PathBuf> = (1..=self.up)

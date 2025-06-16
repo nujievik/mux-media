@@ -21,7 +21,7 @@ where
         value >= self.start && value <= self.end
     }
 
-    pub fn contains_range(&self, rng: Self) -> bool {
+    pub fn contains_range(&self, rng: &Self) -> bool {
         rng.start >= self.start && rng.end <= self.end
     }
 }

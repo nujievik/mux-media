@@ -1,15 +1,15 @@
 use super::{AudioTracks, ButtonTracks, SubTracks, VideoTracks, id::TrackID};
 use crate::{
-    CLIArg, IsDefault, MCOffOnPro, MISavedAudioU32IDs, MISavedButtonU32IDs, MISavedSubU32IDs,
-    MISavedVideoU32IDs, MITILang, MITIName, MITracksInfo, MediaInfo, ToMkvmergeArg, ToMkvmergeArgs,
-    TrackLangs, TrackNames, ok_or_return_vec_new, to_mkvmerge_args,
+    CLIArg, IsDefault, MCOffOnPro, MISavedTrackNums, MITILang, MITIName, MITracksInfo, MediaInfo,
+    ToMkvmergeArg, ToMkvmergeArgs, TrackLangs, TrackNames, TrackType, ok_or_return_vec_new,
+    to_mkvmerge_args,
 };
 use std::path::Path;
 
 impl ToMkvmergeArg for TrackID {
     fn to_mkvmerge_arg(&self) -> String {
         match self {
-            Self::U32(n) => n.to_string(),
+            Self::Num(n) => n.to_string(),
             Self::Lang(code) => code.to_string(),
             Self::Range(rng) => rng.to_mkvmerge_arg(),
         }
@@ -17,7 +17,7 @@ impl ToMkvmergeArg for TrackID {
 }
 
 macro_rules! tracks_to_mkvmerge_args {
-    ( $( $type:ident, $mi_marker:ident => $arg:ident, $no_arg:ident, )* ) => {
+    ( $( $type:ident, $track_type:expr => $arg:ident, $no_arg:ident, )* ) => {
         $(
             impl ToMkvmergeArgs for $type {
                 fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path
@@ -28,9 +28,11 @@ macro_rules! tracks_to_mkvmerge_args {
                         let no_arg = to_mkvmerge_args!(@cli_arg, $no_arg);
                         vec![no_arg]
                     } else {
-                        let ids: String = ok_or_return_vec_new!(mi.get::<$mi_marker>(path))
-                            .into_iter()
-                            .map(|id| id.to_mkvmerge_arg())
+                        let ids: String = ok_or_return_vec_new!(
+                            mi.get::<MISavedTrackNums>(path)
+                        )[$track_type]
+                            .iter()
+                            .map(|num| num.to_mkvmerge_arg())
                             .collect::<Vec<_>>()
                             .join(",");
 
@@ -51,10 +53,10 @@ macro_rules! tracks_to_mkvmerge_args {
 }
 
 tracks_to_mkvmerge_args!(
-    AudioTracks, MISavedAudioU32IDs => Audio, NoAudio,
-    SubTracks, MISavedSubU32IDs => Subs, NoSubs,
-    VideoTracks, MISavedVideoU32IDs => Video, NoVideo,
-    ButtonTracks, MISavedButtonU32IDs => Buttons, NoButtons,
+    AudioTracks, TrackType::Audio => Audio, NoAudio,
+    SubTracks, TrackType::Sub => Subs, NoSubs,
+    VideoTracks, TrackType::Video => Video, NoVideo,
+    ButtonTracks, TrackType::Button => Buttons, NoButtons,
 );
 
 macro_rules! langs_or_names_to_mkvmerge_args {
@@ -69,8 +71,8 @@ macro_rules! langs_or_names_to_mkvmerge_args {
                 let val_args: Vec<String> = tids_u32
                     .into_iter()
                     .filter_map(|tid| {
-                        self.get(tid).map(|x| x.to_string())
-                            .or_else(|| add.then(|| mi.get_ti::<$tic_marker>(path, tid))
+                        self.get(&tid).map(|x| x.to_string())
+                            .or_else(|| add.then(|| mi.get_ti::<$tic_marker>(path, &tid))
                                 .flatten()
                                 .map(|x| x.to_string()))
                             .map(|val| format!("{}:{}", tid.to_mkvmerge_arg(), val.to_string()))

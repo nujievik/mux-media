@@ -35,10 +35,10 @@ macro_rules! any_t_flags_to_mkvmerge_args {
                     let val_args: Vec<String> = tid_tt_pairs
                         .into_iter()
                         .filter_map(|(tid_u32, tt)| {
-                            self.get(tid_u32)
+                            self.get(&tid_u32)
                                 .or_else(|| {
-                                    fi.get_ti::<MITILang>(path, tid_u32)
-                                        .and_then(|lang| self.get(TrackID::Lang(*lang)))
+                                    fi.get_ti::<MITILang>(path, &tid_u32)
+                                        .and_then(|lang| self.get(&TrackID::Lang(*lang)))
                                 })
                                 .or_else(|| {
                                     add.then(|| {

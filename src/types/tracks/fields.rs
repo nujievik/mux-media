@@ -1,5 +1,5 @@
 use super::{AudioTracks, ButtonTracks, SubTracks, Tracks, VideoTracks, id::TrackID};
-use crate::{IsDefault, LangCode, MuxError, deref_tuple_fields};
+use crate::{IsDefault, MuxError, deref_tuple_fields};
 use std::collections::HashSet;
 use std::str::FromStr;
 
@@ -15,9 +15,9 @@ impl IsDefault for Tracks {
 }
 
 impl Tracks {
-    // Every Media Track has 2 mkvmerge supported TrackID: TrackID::U32 and TrackID::Lang.
-    // We use them as u32 and LangCode
-    pub fn save_track(&self, id_u32: u32, id_lang: LangCode) -> bool {
+    // Every Media Track has 2 mkvmerge supported TrackID: TrackID::Num and TrackID::Lang.
+    // Use them both
+    pub fn save_track(&self, tid: &TrackID, other_tid: &TrackID) -> bool {
         if self.no_flag {
             return false;
         }
@@ -26,11 +26,16 @@ impl Tracks {
             return true;
         }
 
-        if self.contains(TrackID::U32(id_u32)) {
+        let contains = |&id| match id {
+            TrackID::Range(_) => self.ids_unhashed_contains(&id),
+            _ => self.contains(&id),
+        };
+
+        if contains(tid) {
             return !self.inverse;
         }
 
-        if self.ids_hashed_contains(TrackID::Lang(id_lang)) {
+        if contains(other_tid) {
             return !self.inverse;
         }
 
@@ -38,19 +43,19 @@ impl Tracks {
     }
 
     #[inline]
-    fn contains(&self, id: TrackID) -> bool {
+    fn contains(&self, id: &TrackID) -> bool {
         self.ids_hashed_contains(id) || self.ids_unhashed_contains(id)
     }
 
     #[inline]
-    fn ids_hashed_contains(&self, id: TrackID) -> bool {
+    fn ids_hashed_contains(&self, id: &TrackID) -> bool {
         self.ids_hashed
             .as_ref()
-            .map_or(false, |ids| ids.contains(&id))
+            .map_or(false, |ids| ids.contains(id))
     }
 
     #[inline]
-    fn ids_unhashed_contains(&self, id: TrackID) -> bool {
+    fn ids_unhashed_contains(&self, id: &TrackID) -> bool {
         self.ids_unhashed
             .as_ref()
             .map_or(false, |ids| ids.iter().any(|s_id| s_id.contains(id)))

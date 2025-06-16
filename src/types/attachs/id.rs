@@ -3,16 +3,16 @@ use std::str::FromStr;
 
 #[derive(Copy, Clone, Hash, Eq, PartialEq)]
 pub enum AttachID {
-    U32(u32),
-    Range(Range<u32>),
+    Num(u64),
+    Range(Range<u64>),
 }
 
 impl AttachID {
-    pub fn contains(self, id: Self) -> bool {
+    pub fn contains(&self, id: &Self) -> bool {
         match self {
-            Self::U32(_) => self == id,
+            Self::Num(_) => self == id,
             Self::Range(rng) => match id {
-                Self::U32(n) => rng.contains(n),
+                Self::Num(n) => rng.contains(*n),
                 Self::Range(id_rng) => rng.contains_range(id_rng),
             },
         }
@@ -25,12 +25,12 @@ impl FromStr for AttachID {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim();
 
-        if let Ok(n) = s.parse::<u32>() {
+        if let Ok(n) = s.parse::<u64>() {
             match n != 0 {
-                true => Ok(Self::U32(n)),
+                true => Ok(Self::Num(n)),
                 false => Err(format!("Attach ID '{}' must be >= 1", s).into()),
             }
-        } else if let Ok(rng) = Range::<u32>::from_str(s) {
+        } else if let Ok(rng) = Range::<u64>::from_str(s) {
             match rng.start != 0 && rng.end != 0 {
                 true => Ok(Self::Range(rng)),
                 false => Err(format!("Attach ID '{}' must be >= 1", s).into()),

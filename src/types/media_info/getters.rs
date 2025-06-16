@@ -24,7 +24,7 @@ impl MediaInfo<'_> {
     pub fn get_ti<F>(
         &mut self,
         path: &Path,
-        tid: TrackID,
+        tid: &TrackID,
     ) -> Option<&<Self as SetGetPathTrackField<F>>::FieldType>
     where
         Self: SetGetPathTrackField<F>,
@@ -35,7 +35,7 @@ impl MediaInfo<'_> {
     pub fn try_get_ti<F>(
         &mut self,
         path: &Path,
-        tid: TrackID,
+        tid: &TrackID,
     ) -> Result<&<Self as SetGetPathTrackField<F>>::FieldType, MuxError>
     where
         Self: SetGetPathTrackField<F>,

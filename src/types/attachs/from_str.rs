@@ -20,7 +20,7 @@ impl std::str::FromStr for Attachs {
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let id = AttachID::from_str(part)?;
             match id {
-                AttachID::U32(_) => {
+                AttachID::Num(_) => {
                     ids_hashed.get_or_insert_with(HashSet::new).insert(id);
                 }
                 AttachID::Range(_) => ids_unhashed.get_or_insert_with(Vec::new).push(id),

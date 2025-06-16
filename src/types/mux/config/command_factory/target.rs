@@ -9,8 +9,8 @@ use std::str::FromStr;
 
 impl Blocks {
     pub fn target(mut self) -> Self {
-        self.cmd = self
-            .cmd
+        self.0 = self
+            .0
             .next_help_heading("Target options")
             .arg(
                 Arg::new("target_help")
@@ -23,12 +23,6 @@ impl Blocks {
                 Arg::new("list_targets")
                     .long("list-targets")
                     .help("Show supported targets")
-                    .action(ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new("target_exclude_help")
-                    .long("target <trg> --no-files")
-                    .help("Exclude trg files (no global trg)")
                     .action(ArgAction::SetTrue),
             )
             .arg(
@@ -62,7 +56,7 @@ impl Blocks {
                 Arg::new(<SubTracks as CLIArgs>::Arg::NoSubs.as_long())
                     .short('S')
                     .long(<SubTracks as CLIArgs>::Arg::NoSubs.as_long())
-                    .aliases(&["no-subtitles", "nosubs"])
+                    .aliases(&["no-subtitles", "nosubtitles", "nosubs"])
                     .help("Don't copy any subtitle track")
                     .action(ArgAction::SetTrue)
                     .conflicts_with(<SubTracks as CLIArgs>::Arg::Subs.as_long()),
@@ -157,7 +151,7 @@ impl Blocks {
             .arg(
                 Arg::new(<DefaultTFlags as CLIArgs>::Arg::Defaults.as_long())
                     .long(<DefaultTFlags as CLIArgs>::Arg::Defaults.as_long())
-                    .aliases(&["default-track-flag", "default-track"])
+                    .aliases(&["default-track-flags", "default-tracks"])
                     .value_name("[n:]B[,m:B]...")
                     .help("Bool default-track-flags")
                     .value_parser(ValueParser::new(DefaultTFlags::from_str)),
@@ -172,7 +166,7 @@ impl Blocks {
             .arg(
                 Arg::new(<ForcedTFlags as CLIArgs>::Arg::Forceds.as_long())
                     .long(<ForcedTFlags as CLIArgs>::Arg::Forceds.as_long())
-                    .aliases(&["forced-display-flag", "forced-track"])
+                    .aliases(&["forced-display-flags", "forced-tracks"])
                     .value_name("[n:]B[,m:B]...")
                     .help("Bool forced-display-flags")
                     .value_parser(ValueParser::new(ForcedTFlags::from_str)),
@@ -187,7 +181,7 @@ impl Blocks {
             .arg(
                 Arg::new(<EnabledTFlags as CLIArgs>::Arg::Enableds.as_long())
                     .long(<EnabledTFlags as CLIArgs>::Arg::Enableds.as_long())
-                    .alias("track-enabled-flag")
+                    .alias("track-enabled-flags")
                     .value_name("[n:]B[,m:B]...")
                     .help("Bool track-enabled-flags")
                     .value_parser(ValueParser::new(EnabledTFlags::from_str)),

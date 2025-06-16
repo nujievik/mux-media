@@ -9,7 +9,7 @@ use std::path::Path;
 impl ToMkvmergeArg for AttachID {
     fn to_mkvmerge_arg(&self) -> String {
         match self {
-            Self::U32(n) => n.to_string(),
+            Self::Num(n) => n.to_string(),
             Self::Range(rng) => rng.to_mkvmerge_arg(),
         }
     }
@@ -48,30 +48,31 @@ impl ToMkvmergeArgs for Attachs {
             return Vec::new();
         }
 
-        let u32_ids: BTreeSet<u32> = ai
+        let nums: BTreeSet<u64> = ai
             .into_iter()
             .filter_map(|(_, cache)| {
-                let u32 = cache.id_u32;
+                let num = cache.num;
+                let tid = AttachID::Num(num);
                 match cache.attach_type {
-                    AttachType::Font if fonts.save_attach(u32) => Some(u32),
-                    AttachType::Other if other.save_attach(u32) => Some(u32),
+                    AttachType::Font if fonts.save_attach(&tid) => Some(num),
+                    AttachType::Other if other.save_attach(&tid) => Some(num),
                     _ => None,
                 }
             })
             .collect();
 
-        let cnt = u32_ids.len();
+        let cnt = nums.len();
         if cnt == cnt_init {
             return Vec::new();
         }
 
-        if u32_ids.is_empty() {
+        if nums.is_empty() {
             let no_arg = to_mkvmerge_args!(@cli_arg, NoAttachs);
             vec![no_arg]
         } else {
             let arg = to_mkvmerge_args!(@cli_arg, Attachs);
-            let u32_ids = shortest_u32_ids(u32_ids, cnt, cnt_init);
-            vec![arg, u32_ids]
+            let nums = shortest_track_nums(nums, cnt, cnt_init);
+            vec![arg, nums]
         }
     }
 
@@ -79,27 +80,27 @@ impl ToMkvmergeArgs for Attachs {
 }
 
 #[inline]
-fn shortest_u32_ids(mut u32_ids: BTreeSet<u32>, cnt: usize, cnt_init: usize) -> String {
+fn shortest_track_nums(mut nums: BTreeSet<u64>, cnt: usize, cnt_init: usize) -> String {
     let inverse = cnt > (cnt_init / 2);
 
     if inverse {
-        u32_ids = (1..=cnt_init)
-            .filter_map(|n| {
-                let aid = n as u32;
-                (!u32_ids.contains(&aid)).then(|| aid)
+        nums = (1..=cnt_init)
+            .filter_map(|num| {
+                let num = num as u64;
+                (!nums.contains(&num)).then(|| num)
             })
             .collect();
     }
 
-    let mut u32_ids: String = u32_ids
+    let mut nums: String = nums
         .into_iter()
         .map(|aid| aid.to_string())
         .collect::<Vec<_>>()
         .join(",");
 
     if inverse {
-        u32_ids.insert(0, '!');
+        nums.insert(0, '!');
     }
 
-    u32_ids
+    nums
 }

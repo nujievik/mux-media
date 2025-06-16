@@ -4,8 +4,8 @@ use clap::{Arg, ArgAction, builder::ValueParser};
 
 impl Blocks {
     pub fn retiming(mut self) -> Self {
-        self.cmd = self
-            .cmd
+        self.0 = self
+            .0
             .next_help_heading("Retiming options")
             .arg(
                 Arg::new(<Retiming as CLIArgs>::Arg::RmSegments.as_long())

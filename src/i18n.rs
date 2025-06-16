@@ -1,58 +1,72 @@
 mod eng;
 mod rus;
 
-use crate::LangCode;
-use std::cell::RefCell;
+use crate::{LangCode, MuxError};
+use once_cell::sync::Lazy;
+use std::fmt;
+use std::sync::Mutex;
 
-thread_local! {
-    static LANG_CODE: RefCell<LangCode> = RefCell::new(LangCode::Eng);
-}
+static LANG_CODE: Lazy<Mutex<LangCode>> = Lazy::new(|| Mutex::new(LangCode::init()));
 
 pub enum Msg<'a> {
-    ExeCommand,
-    FailCreateThdPool,
+    ErrUpdLangCode,
     FailSetPaths { s: &'a str, s1: &'a str },
     FailWriteJson { s: &'a str },
     NoInputFiles,
-    UnsupLngLog { s: &'a str, s1: &'a str },
+    RunningCommand,
+    Using,
 }
 
-impl<'a> Msg<'a> {
-    pub fn get(self) -> String {
-        match Self::get_lang_code() {
+impl fmt::Display for Msg<'_> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let msg = match Self::get_lang_code() {
             LangCode::Eng => eng::eng(self),
             LangCode::Rus => rus::rus(self),
             _ => eng::eng(self),
-        }
+        };
+
+        write!(f, "{}", msg)
+    }
+}
+
+impl<'a> Msg<'a> {
+    pub fn get_lang_code() -> LangCode {
+        LANG_CODE
+            .lock()
+            .map(|guard| *guard)
+            .unwrap_or(LangCode::Eng)
     }
 
-    pub fn set_lang_code(lng: LangCode) {
-        if Self::is_supported_lang(&lng) {
-            LANG_CODE.with(|code| *code.borrow_mut() = lng);
+    pub fn try_upd_lang_code(lang: LangCode) -> Result<(), MuxError> {
+        if Self::is_supported_lang(lang) {
+            let mut code = LANG_CODE
+                .lock()
+                .map_err(|_| MuxError::from("Fail LANG_CODE.lock()"))?;
+            *code = lang;
+            Ok(())
         } else {
-            LANG_CODE.with(|code| {
-                let using = code.borrow();
-                eprintln!(
-                    "Warning: {}",
-                    Msg::UnsupLngLog {
-                        s: lng.as_ref(),
-                        s1: using.as_ref()
-                    }
-                    .get()
-                );
-            });
+            Err(format!("Language '{}' is not supported for logging", lang).into())
         }
     }
 
-    fn is_supported_lang(lng: &LangCode) -> bool {
-        match lng {
+    pub fn upd_lang_code_or_log_warn(lang: LangCode) {
+        Self::try_upd_lang_code(lang).unwrap_or_else(|e| {
+            log::warn!(
+                "{}: {}. {} '{}'",
+                Msg::ErrUpdLangCode,
+                e,
+                Msg::Using,
+                Msg::get_lang_code()
+            )
+        })
+    }
+
+    #[inline]
+    fn is_supported_lang(lang: LangCode) -> bool {
+        match lang {
             LangCode::Eng => true,
             LangCode::Rus => true,
             _ => false,
         }
-    }
-
-    fn get_lang_code() -> LangCode {
-        LANG_CODE.with(|code| code.borrow().clone())
     }
 }

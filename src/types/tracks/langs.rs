@@ -10,7 +10,7 @@ impl IsDefault for TrackLangs {
 }
 
 impl TrackLangs {
-    pub fn get(&self, tid: TrackID) -> Option<&LangCode> {
+    pub fn get(&self, tid: &TrackID) -> Option<&LangCode> {
         if let Some(lang) = &self.unmapped {
             return Some(lang);
         }
@@ -23,7 +23,7 @@ impl TrackLangs {
 
         if let Some(langs) = &self.map_unhashed {
             for (id, lang) in langs.iter() {
-                if id.contains(tid) {
+                if id.contains(&tid) {
                     return Some(lang);
                 }
             }
