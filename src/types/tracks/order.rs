@@ -1,13 +1,43 @@
 use crate::{
-    LangCode, MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale, MISavedTrackNums,
-    MITILang, MITargetGroup, MITargets, MediaInfo, MuxError, TargetGroup, TrackID, TrackType,
+    LangCode, MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale, MISavedTracks, MITILang,
+    MITargetGroup, MITargets, MediaInfo, MuxError, TargetGroup, ToMkvmergeArgs, TrackID, TrackType,
+    to_mkvmerge_args, unmut_get,
 };
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 pub struct TrackOrder {
-    pub fid_map: HashMap<u64, PathBuf>,
-    pub fid_num_type: Vec<(u64, u64, TrackType)>,
+    pub paths: Vec<PathBuf>,
+    pub i_num_type: Vec<(usize, u64, TrackType)>,
+}
+
+impl ToMkvmergeArgs for TrackOrder {
+    fn to_mkvmerge_args(&self, _mi: &mut MediaInfo, _path: &std::path::Path) -> Vec<String> {
+        let mut i_to_fid: HashMap<usize, usize> = HashMap::new();
+        let mut max_fid: usize = 0;
+
+        let order_arg: String = self
+            .i_num_type
+            .iter()
+            .map(|(i, num, _)| {
+                let fid = match i_to_fid.get(i) {
+                    Some(fid) => *fid,
+                    None => {
+                        let fid = max_fid;
+                        i_to_fid.insert(*i, fid);
+                        max_fid += 1;
+                        fid
+                    }
+                };
+                format!("{}:{}", fid, num)
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+
+        vec!["--track-order".into(), order_arg]
+    }
+
+    to_mkvmerge_args!(@fn_os);
 }
 
 impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
@@ -18,29 +48,29 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
             return Err("Not found any cached Media".into());
         }
 
-        let locale_lang = *mi.mc.get::<MCLocale>();
         let paths: Vec<PathBuf> = mi.get_cache().keys().cloned().collect();
 
+        let locale_lang = *mi.mc.get::<MCLocale>();
         let mut sorted: Vec<(usize, u64, TrackType, OrderSortKey)> = Vec::new();
-        let mut i: usize = 0;
 
+        let mut i: usize = 0;
         for path in &paths {
             let num_types: Vec<(u64, TrackType)> = mi
-                .try_get::<MISavedTrackNums>(path)?
+                .try_get::<MISavedTracks>(path)?
                 .iter()
                 .flat_map(|(tt, nums)| nums.iter().map(move |num| (*num, tt)))
                 .collect();
 
             let target_group = *mi.try_get::<MITargetGroup>(path)?;
-            let targets = mi.try_get::<MITargets>(path)?.clone();
+            let targets = unmut_get!(@try, mi, MITargets, path)?;
 
-            let defaults = mi.mc.get_trg::<MCDefaultTFlags>(&targets);
-            let forceds = mi.mc.get_trg::<MCForcedTFlags>(&targets);
-            let enableds = mi.mc.get_trg::<MCEnabledTFlags>(&targets);
+            let defaults = mi.mc.get_trg::<MCDefaultTFlags>(targets);
+            let forceds = mi.mc.get_trg::<MCForcedTFlags>(targets);
+            let enableds = mi.mc.get_trg::<MCEnabledTFlags>(targets);
 
             for (num, ttype) in num_types {
                 let tid = TrackID::Num(num);
-                let lang = *mi.try_get_ti::<MITILang>(path, &tid)?;
+                let lang = *mi.try_get_ti::<MITILang>(path, num)?;
                 let lang_tid = TrackID::Lang(lang);
 
                 let default = defaults.get(&tid).or_else(|| defaults.get(&lang_tid));
@@ -65,40 +95,15 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
 
         sorted.sort_by(|a, b| a.3.cmp(&b.3));
 
-        let mut fid_num_type: Vec<(u64, u64, TrackType)> = Vec::new();
-        let mut i_to_fid: Vec<u64> = vec![0; paths.len()];
-        let mut added: HashSet<usize> = HashSet::new();
-
-        let mut fid: u64 = 0;
-
-        for (i, num, ttype, _) in sorted {
-            if !added.contains(&i) {
-                added.insert(i);
-                i_to_fid[i] = fid;
-                fid += 1;
-            }
-            fid_num_type.push((fid, num, ttype));
-        }
-
-        i = paths.len();
-
-        let fid_map: HashMap<u64, PathBuf> = paths
+        let i_num_type: Vec<(usize, u64, TrackType)> = sorted
             .into_iter()
-            .rev()
-            .map(|pb| {
-                i -= 1; // Len - 1
-                (i_to_fid[i], pb)
-            })
+            .map(|(i, num, ttype, _)| (i, num, ttype))
             .collect();
 
-        Ok(Self {
-            fid_map,
-            fid_num_type,
-        })
+        Ok(Self { paths, i_num_type })
     }
 }
 
-#[derive(Clone)]
 struct OrderSortKey {
     track_type: u8,
     default: u8,

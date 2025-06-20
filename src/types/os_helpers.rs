@@ -22,7 +22,7 @@ pub fn os_str_starts_with(prefix: &OsStr, longer: &OsStr) -> bool {
 #[inline]
 pub fn os_str_tail(prefix: &OsStr, longer: &OsStr) -> Result<OsString, MuxError> {
     if !os_str_starts_with(prefix, longer) {
-        return Err(format!("Longer {:?} is not starts with {:?}", prefix, longer).into());
+        return Err(format!("Longer {:?} is not starts with {:?}", longer, prefix).into());
     }
 
     #[cfg(unix)]

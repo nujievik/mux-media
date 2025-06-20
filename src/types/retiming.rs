@@ -1,4 +1,4 @@
-use crate::{CLIArg, IsDefault, cli_args, from_arg_matches};
+use crate::{IsDefault, cli_args, from_arg_matches};
 use globset::GlobSet;
 
 #[derive(Clone)]

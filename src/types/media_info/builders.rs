@@ -4,8 +4,7 @@ use super::mkvinfo::{MKVILang, MKVIName, Mkvinfo};
 use super::{AICache, MediaInfo, TICache};
 use crate::{
     AttachID, EXTENSIONS, LangCode, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost, MITIName,
-    MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool, TrackID, TrackOrder,
-    TrackType, os_helpers,
+    MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool, TrackType, os_helpers,
 };
 use std::collections::HashMap;
 use std::ffi::OsStr;
@@ -16,8 +15,8 @@ use std::path::Path;
 const READ_LIMIT: usize = 32 * 1024; // 32 KiB
 
 macro_rules! from_name_tail_relative_or_fallback {
-    ($mi:ident, $path:ident, $tid:expr, $typ:ident, $try_str:ident, $try_slice_string:ident, $dflt:ident) => {
-        $mi.try_get_ti::<MITIName>($path, $tid)
+    ($mi:ident, $path:ident, $num:expr, $typ:ident, $try_str:ident, $try_slice_string:ident, $fall:ident) => {
+        $mi.try_get_ti::<MITIName>($path, $num)
             .ok()
             .and_then(|name| $typ::$try_str(name.to_lowercase().as_ref()).ok())
             .or_else(|| {
@@ -30,15 +29,11 @@ macro_rules! from_name_tail_relative_or_fallback {
                     .ok()
                     .and_then(|s| $typ::$try_slice_string(str_to_words(&s).as_slice()).ok())
             })
-            .unwrap_or($typ::$dflt)
+            .unwrap_or($typ::$fall)
     };
 }
 
 impl MediaInfo<'_> {
-    pub(super) fn build_track_order(&mut self) -> Result<TrackOrder, MuxError> {
-        TrackOrder::try_from(self)
-    }
-
     pub(super) fn build_char_encoding(&mut self, path: &Path) -> Result<String, MuxError> {
         let enc = if path.extension().map_or(false, |ext| {
             EXTENSIONS.matroska.contains(ext.as_encoded_bytes())
@@ -54,21 +49,21 @@ impl MediaInfo<'_> {
     }
 
     pub(super) fn build_target_group(&mut self, path: &Path) -> Result<TargetGroup, MuxError> {
-        let tid_types: Vec<(TrackID, TrackType)> = self
+        let num_types: Vec<(u64, TrackType)> = self
             .try_get::<MITracksInfo>(path)?
             .iter()
-            .map(|(tid, cache)| (*tid, cache.track_type))
+            .map(|(num, cache)| (*num, cache.track_type))
             .collect();
 
         for tt in [TrackType::Video, TrackType::Audio, TrackType::Sub] {
-            if let Some(&(tid, _)) = tid_types.iter().find(|(_, t)| *t == tt) {
+            if let Some(&(num, _)) = num_types.iter().find(|(_, t)| *t == tt) {
                 return Ok(if tt != TrackType::Sub {
                     tt.into()
                 } else {
                     from_name_tail_relative_or_fallback!(
                         self,
                         path,
-                        &tid,
+                        num,
                         TargetGroup,
                         try_signs_from_str,
                         try_signs_from_slice_string,
@@ -78,7 +73,7 @@ impl MediaInfo<'_> {
             }
         }
 
-        Err("No found any media track".into())
+        Err("Not found any Media Track".into())
     }
 
     pub(super) fn build_mkvinfo(&mut self, path: &Path) -> Result<Mkvinfo, MuxError> {
@@ -111,7 +106,7 @@ impl MediaInfo<'_> {
     pub(super) fn build_tracks_info(
         &mut self,
         path: &Path,
-    ) -> Result<HashMap<TrackID, TICache>, MuxError> {
+    ) -> Result<HashMap<u64, TICache>, MuxError> {
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
         let re = regex::Regex::new(r"Track ID (\d+):")?;
 
@@ -129,12 +124,9 @@ impl MediaInfo<'_> {
             .collect();
 
         let mkvinfo = self.get::<MIMkvinfo>(path);
-        let ti: HashMap<TrackID, TICache> = num_lines
+        let ti: HashMap<u64, TICache> = num_lines
             .into_iter()
-            .map(|(num, line)| {
-                let tid = TrackID::Num(num);
-                TICache::try_init(num, line, mkvinfo).map(|cache| (tid, cache))
-            })
+            .map(|(num, line)| TICache::try_init(num, line, mkvinfo).map(|cache| (num, cache)))
             .collect::<Result<_, _>>()?;
 
         Ok(ti)
@@ -162,23 +154,26 @@ impl MediaInfo<'_> {
     }
 
     pub(super) fn build_path_tail(&mut self, path: &Path) -> Result<String, MuxError> {
-        os_helpers::os_str_tail(self.stem.as_os_str(), path.as_os_str())
+        let stem = path
+            .file_stem()
+            .ok_or_else(|| format!("Path '{}' has not file_stem()", path.display()))?;
+        os_helpers::os_str_tail(self.stem.as_os_str(), stem)
             .map(|os| os.to_string_lossy().into_owned())
     }
 
     pub(super) fn build_relative_upmost(&mut self, path: &Path) -> Result<String, MuxError> {
         path.parent()
-            .ok_or(format!("Path '{}' has not parent directory", path.display()).into())
+            .ok_or_else(|| format!("Path '{}' has not parent()", path.display()).into())
             .and_then(|parent| {
                 os_helpers::os_str_tail(self.upmost.as_os_str(), parent.as_os_str())
                     .map(|os| os.to_string_lossy().into_owned())
             })
     }
 
-    pub(super) fn build_ti_name(&mut self, path: &Path, tid: &TrackID) -> Result<String, MuxError> {
+    pub(super) fn build_ti_name(&mut self, path: &Path, num: u64) -> Result<String, MuxError> {
         let tic = self
-            .get_mut_ti_cache(path, tid)
-            .ok_or("Unexpected None TICache")?;
+            .get_mut_ti_cache(path, num)
+            .ok_or_else(|| "Unexpected None TICache")?;
 
         let name = tic
             .mkvinfo_cutted
@@ -200,14 +195,10 @@ impl MediaInfo<'_> {
         Ok(name.clone())
     }
 
-    pub(super) fn build_ti_lang(
-        &mut self,
-        path: &Path,
-        tid: &TrackID,
-    ) -> Result<LangCode, MuxError> {
+    pub(super) fn build_ti_lang(&mut self, path: &Path, num: u64) -> Result<LangCode, MuxError> {
         let tic = self
-            .get_mut_ti_cache(path, tid)
-            .ok_or("Unexpected None TICache")?;
+            .get_mut_ti_cache(path, num)
+            .ok_or_else(|| "Unexpected None TICache")?;
         let lang = tic
             .mkvinfo_cutted
             .as_ref()
@@ -215,7 +206,7 @@ impl MediaInfo<'_> {
             .unwrap_or_else(|| {
                 use std::str::FromStr;
                 from_name_tail_relative_or_fallback!(
-                    self, path, tid, LangCode, from_str, try_from, Und
+                    self, path, num, LangCode, from_str, try_from, Und
                 )
             });
         Ok(lang)

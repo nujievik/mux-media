@@ -1,5 +1,4 @@
 use crate::{LangCode, MuxError, Range};
-use std::str::FromStr;
 
 #[derive(Copy, Clone, Eq, Hash, PartialEq)]
 pub enum TrackID {
@@ -9,6 +8,13 @@ pub enum TrackID {
 }
 
 impl TrackID {
+    pub fn is_range(&self) -> bool {
+        match self {
+            TrackID::Range(_) => true,
+            _ => false,
+        }
+    }
+
     pub fn contains(&self, id: &TrackID) -> bool {
         match self {
             Self::Num(_) => self == id,
@@ -22,7 +28,17 @@ impl TrackID {
     }
 }
 
-impl FromStr for TrackID {
+impl crate::ToMkvmergeArg for TrackID {
+    fn to_mkvmerge_arg(&self) -> String {
+        match self {
+            Self::Num(n) => n.to_string(),
+            Self::Lang(code) => code.to_string(),
+            Self::Range(rng) => rng.to_mkvmerge_arg(),
+        }
+    }
+}
+
+impl std::str::FromStr for TrackID {
     type Err = MuxError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -30,25 +46,17 @@ impl FromStr for TrackID {
 
         if let Ok(n) = s.parse::<u64>() {
             Ok(Self::Num(n))
-        } else if let Ok(rng) = Range::<u64>::from_str(s) {
+        } else if let Ok(rng) = s.parse::<Range<u64>>() {
             Ok(Self::Range(rng))
         } else {
             match LangCode::from_str(s) {
                 Ok(code) => Ok(Self::Lang(code)),
-                Err(_) => Err(MuxError::from(format!(
+                Err(_) => Err(format!(
                     "Invalid track ID '{}' (must be num, range (n-m) of num or lang code)",
                     s
-                ))),
+                )
+                .into()),
             }
-        }
-    }
-}
-
-impl TrackID {
-    pub fn is_range(&self) -> bool {
-        match self {
-            TrackID::Range(_) => true,
-            _ => false,
         }
     }
 }

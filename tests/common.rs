@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+pub const MAX_U64_STR: &str = "18446744073709551615";
 const TEST_DATA: &str = "tests/test_data";
 
 pub fn data_dir() -> PathBuf {

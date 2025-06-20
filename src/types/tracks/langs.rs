@@ -1,7 +1,27 @@
-use super::{TrackLangs, id::TrackID};
-use crate::{IsDefault, LangCode, MuxError};
+use super::id::TrackID;
+use crate::{
+    IsDefault, LangCode, MuxError, cli_args, from_arg_matches, mkvmerge_arg, to_mkvmerge_args,
+};
 use std::collections::HashMap;
-use std::str::FromStr;
+
+#[derive(Clone, Default)]
+pub struct TrackLangs {
+    unmapped: Option<LangCode>,
+    map_hashed: Option<HashMap<TrackID, LangCode>>,
+    map_unhashed: Option<Vec<(TrackID, LangCode)>>,
+}
+
+cli_args!(TrackLangs, TrackLangsArg; Langs => "langs");
+mkvmerge_arg!(TrackLangs, "--language");
+to_mkvmerge_args!(@names_or_langs, TrackLangs, Langs, add_langs, MITILang);
+
+impl clap::FromArgMatches for TrackLangs {
+    from_arg_matches!(@unrealized_fns);
+
+    fn from_arg_matches_mut(matches: &mut clap::ArgMatches) -> Result<Self, clap::Error> {
+        Ok(from_arg_matches!(matches, Self, Langs, Self::default))
+    }
+}
 
 impl IsDefault for TrackLangs {
     fn is_default(&self) -> bool {
@@ -10,37 +30,45 @@ impl IsDefault for TrackLangs {
 }
 
 impl TrackLangs {
-    pub fn get(&self, tid: &TrackID) -> Option<&LangCode> {
+    pub fn get(&self, tid: &TrackID) -> Option<LangCode> {
         if let Some(lang) = &self.unmapped {
-            return Some(lang);
+            return Some(*lang);
         }
 
-        if let Some(langs) = &self.map_hashed {
-            if let Some(lang) = langs.get(&tid) {
-                return Some(lang);
-            }
+        match tid {
+            TrackID::Num(_) => self
+                .get_from_hashed(tid)
+                .or_else(|| self.get_from_unhashed(tid)),
+            TrackID::Lang(_) => self.get_from_hashed(tid),
+            TrackID::Range(_) => self.get_from_unhashed(tid),
         }
+    }
 
-        if let Some(langs) = &self.map_unhashed {
-            for (id, lang) in langs.iter() {
-                if id.contains(&tid) {
-                    return Some(lang);
-                }
-            }
-        }
+    #[inline(always)]
+    fn get_from_hashed(&self, tid: &TrackID) -> Option<LangCode> {
+        self.map_hashed
+            .as_ref()
+            .and_then(|map| map.get(tid))
+            .copied()
+    }
 
-        None
+    #[inline(always)]
+    fn get_from_unhashed(&self, tid: &TrackID) -> Option<LangCode> {
+        self.map_unhashed
+            .as_ref()
+            .and_then(|map| map.iter().find(|(id, _)| id.contains(tid)))
+            .map(|(_, lang)| *lang)
     }
 }
 
-impl FromStr for TrackLangs {
+impl std::str::FromStr for TrackLangs {
     type Err = MuxError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let s = s.trim();
 
         if !s.contains(':') {
-            return Ok(Self::new().unmapped(Some(LangCode::from_str(s)?)));
+            return Ok(Self::new().unmapped(Some(s.parse::<LangCode>()?)));
         }
 
         let mut map_hashed: Option<HashMap<TrackID, LangCode>> = None;
@@ -49,7 +77,7 @@ impl FromStr for TrackLangs {
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, lng) = part
                 .split_once(':')
-                .ok_or(MuxError::from("Invalid format: Must be [n:]L[,m:L]..."))?;
+                .ok_or("Invalid format: Must be [n:]L[,m:L]...")?;
             let id = TrackID::from_str(id)?;
             let lng = LangCode::from_str(lng)?;
 
@@ -61,7 +89,7 @@ impl FromStr for TrackLangs {
         }
 
         if map_hashed.is_none() && map_unhashed.is_none() {
-            return Err(MuxError::from("No languages found"));
+            return Err("No languages found".into());
         }
 
         Ok(Self::new()
@@ -71,7 +99,7 @@ impl FromStr for TrackLangs {
 }
 
 impl TrackLangs {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self::default()
     }
 

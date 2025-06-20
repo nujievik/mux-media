@@ -1,6 +1,6 @@
 use crate::{Msg, MuxError};
+use enum_map::{Enum, EnumMap};
 use log::{debug, warn};
-use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
 use std::fmt;
 use std::fs::File;
@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AsRefStr, EnumIter, EnumString)]
+#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, AsRefStr, Enum, EnumIter, EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Tool {
     Ffprobe,
@@ -31,7 +31,7 @@ impl Tool {
         self != Self::Ffprobe
     }
 
-    fn to_str_package(self) -> &'static str {
+    fn as_str_package(self) -> &'static str {
         if self.is_mkvtoolnix() {
             "mkvtoolnix"
         } else {
@@ -40,24 +40,30 @@ impl Tool {
     }
 }
 
+impl fmt::Display for Tool {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_ref())
+    }
+}
+
 #[derive(Clone, Default)]
 pub struct Tools {
-    paths: HashMap<Tool, PathBuf>,
+    paths: EnumMap<Tool, Option<PathBuf>>,
     json: Option<PathBuf>,
 }
 
 impl Tools {
     pub fn try_from(iter: impl IntoIterator<Item = Tool>) -> Result<Self, MuxError> {
-        let mut paths = HashMap::with_capacity(4);
+        let mut paths: EnumMap<Tool, Option<PathBuf>> = EnumMap::default();
         for tool in iter.into_iter() {
-            paths.insert(tool, get_tool_path(tool)?);
+            paths[tool] = Some(get_tool_path(tool)?);
         }
 
         Ok(Self { paths, json: None })
     }
 
-    pub fn try_insert(&mut self, tool: Tool) -> Result<(), MuxError> {
-        self.paths.insert(tool, get_tool_path(tool)?);
+    pub fn try_upd_tool_path(&mut self, tool: Tool) -> Result<(), MuxError> {
+        self.paths[tool] = Some(get_tool_path(tool)?);
         Ok(())
     }
 
@@ -67,12 +73,12 @@ impl Tools {
         json
     }
 
-    pub fn update_json(&mut self, json: impl Into<PathBuf>) {
+    pub fn upd_json(&mut self, json: impl Into<PathBuf>) {
         self.json = Some(json.into());
     }
 
     pub fn json(mut self, json: impl Into<PathBuf>) -> Self {
-        self.update_json(json);
+        self.upd_json(json);
         self
     }
 
@@ -86,8 +92,8 @@ impl Tools {
         }
 
         let mut command = Command::new(
-            self.paths
-                .get(&tool)
+            self.paths[tool]
+                .as_ref()
                 .map(|p| p.as_path())
                 .unwrap_or(Path::new(tool.as_ref())),
         );
@@ -156,8 +162,8 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
             Ok(PathBuf::from(tool_str))
         } else {
             Err(Msg::FailSetPaths {
-                s: tool.as_ref(),
-                s1: tool.to_str_package(),
+                s: tool_str,
+                s1: tool.as_str_package(),
             }
             .to_string()
             .into())
@@ -190,8 +196,8 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
         }) {
             Some(valid_path) => Ok(valid_path),
             None => Err(Msg::FailSetPaths {
-                s: tool.as_ref(),
-                s1: tool.to_str_package(),
+                s: tool_str,
+                s1: tool.as_str_package(),
             }
             .to_string()
             .into()),
@@ -199,6 +205,7 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
     }
 }
 
+#[inline(always)]
 fn write_args_to_json<I, T>(args: I, json: &Path) -> Result<Vec<String>, String>
 where
     I: IntoIterator<Item = T> + Clone,

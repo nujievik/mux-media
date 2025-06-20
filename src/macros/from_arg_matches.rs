@@ -1,11 +1,13 @@
 #[macro_export]
 macro_rules! from_arg_matches {
     // Case 1: Return Option<T>
-    ($matches:ident, $typ:ty, $arg:ident, @no_default) => {
+    ($matches:ident, $typ:ty, $arg:ident, @no_default) => {{
+        use $crate::CLIArg;
+
         $matches
-        .try_remove_one::<$typ>(<Self as $crate::CLIArgs>::Arg::$arg.as_long())
-        .map_err($crate::MuxError::from)?
-    };
+            .try_remove_one::<$typ>(<Self as $crate::CLIArgs>::Arg::$arg.as_long())
+            .map_err($crate::MuxError::from)?
+    }};
 
     // Case 2: Default function returns plain value
     ($matches:ident, $typ:ty, $arg:ident, $default_fn:expr) => {

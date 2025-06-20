@@ -1,5 +1,5 @@
 use super::Specials;
-use crate::{CLIArg, cli_args, from_arg_matches};
+use crate::{cli_args, from_arg_matches};
 
 cli_args!(Specials, SpecialsArg; Specials => "specials");
 

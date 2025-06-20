@@ -1,7 +1,25 @@
-use super::{TrackNames, id::TrackID};
-use crate::{IsDefault, MuxError};
+use super::id::TrackID;
+use crate::{IsDefault, MuxError, cli_args, from_arg_matches, mkvmerge_arg, to_mkvmerge_args};
 use std::collections::HashMap;
-use std::str::FromStr;
+
+#[derive(Clone, Default)]
+pub struct TrackNames {
+    unmapped: Option<String>,
+    map_hashed: Option<HashMap<TrackID, String>>,
+    map_unhashed: Option<Vec<(TrackID, String)>>,
+}
+
+cli_args!(TrackNames, TrackNamesArg; Names => "names");
+mkvmerge_arg!(TrackNames, "--track-name");
+to_mkvmerge_args!(@names_or_langs, TrackNames, Names, add_names, MITIName);
+
+impl clap::FromArgMatches for TrackNames {
+    from_arg_matches!(@unrealized_fns);
+
+    fn from_arg_matches_mut(matches: &mut clap::ArgMatches) -> Result<Self, clap::Error> {
+        Ok(from_arg_matches!(matches, Self, Names, Self::default))
+    }
+}
 
 impl IsDefault for TrackNames {
     fn is_default(&self) -> bool {
@@ -10,63 +28,31 @@ impl IsDefault for TrackNames {
 }
 
 impl TrackNames {
-    pub fn get(&self, tid: &TrackID) -> Option<&str> {
+    pub fn get(&self, tid: &TrackID) -> Option<&String> {
         if let Some(name) = &self.unmapped {
             return Some(name);
         }
 
-        if let Some(names) = &self.map_hashed {
-            if let Some(name) = names.get(&tid) {
-                return Some(name);
-            }
+        match tid {
+            TrackID::Num(_) => self
+                .get_from_hashed(tid)
+                .or_else(|| self.get_from_unhashed(tid)),
+            TrackID::Lang(_) => self.get_from_hashed(tid),
+            TrackID::Range(_) => self.get_from_unhashed(tid),
         }
-
-        if let Some(names) = &self.map_unhashed {
-            for (id, name) in names.iter() {
-                if id.contains(&tid) {
-                    return Some(name);
-                }
-            }
-        }
-
-        None
     }
-}
 
-impl FromStr for TrackNames {
-    type Err = MuxError;
+    #[inline(always)]
+    fn get_from_hashed(&self, tid: &TrackID) -> Option<&String> {
+        self.map_hashed.as_ref().and_then(|map| map.get(tid))
+    }
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.trim();
-
-        if !s.contains(':') {
-            return Ok(Self::new().unmapped(Some(s.to_string())));
-        }
-
-        let mut map_hashed: Option<HashMap<TrackID, String>> = None;
-        let mut map_unhashed: Option<Vec<(TrackID, String)>> = None;
-
-        for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
-            let (id, name) = part
-                .split_once(':')
-                .ok_or(MuxError::from("Invalid format: Must be [n:]N[,m:N]..."))?;
-            let id = TrackID::from_str(id)?;
-            let name = name.to_string();
-
-            if id.is_range() {
-                map_unhashed.get_or_insert_with(Vec::new).push((id, name));
-            } else {
-                map_hashed.get_or_insert_with(HashMap::new).insert(id, name);
-            }
-        }
-
-        if map_hashed.is_none() && map_unhashed.is_none() {
-            return Err("No names found".into());
-        }
-
-        Ok(Self::new()
-            .map_hashed(map_hashed)
-            .map_unhashed(map_unhashed))
+    #[inline(always)]
+    fn get_from_unhashed(&self, tid: &TrackID) -> Option<&String> {
+        self.map_unhashed
+            .as_ref()
+            .and_then(|map| map.iter().find(|(id, _)| id.contains(tid)))
+            .map(|(_, name)| name)
     }
 }
 
@@ -88,5 +74,42 @@ impl TrackNames {
     fn map_unhashed(mut self, map: Option<Vec<(TrackID, String)>>) -> Self {
         self.map_unhashed = map;
         self
+    }
+}
+
+impl std::str::FromStr for TrackNames {
+    type Err = MuxError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+
+        if !s.contains(':') {
+            return Ok(Self::new().unmapped(Some(s.to_string())));
+        }
+
+        let mut map_hashed: Option<HashMap<TrackID, String>> = None;
+        let mut map_unhashed: Option<Vec<(TrackID, String)>> = None;
+
+        for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
+            let (id, name) = part
+                .split_once(':')
+                .ok_or("Invalid format: Must be [n:]N[,m:N]...")?;
+            let id = id.parse::<TrackID>()?;
+            let name = name.to_string();
+
+            if id.is_range() {
+                map_unhashed.get_or_insert_with(Vec::new).push((id, name));
+            } else {
+                map_hashed.get_or_insert_with(HashMap::new).insert(id, name);
+            }
+        }
+
+        if map_hashed.is_none() && map_unhashed.is_none() {
+            return Err("No names found".into());
+        }
+
+        Ok(Self::new()
+            .map_hashed(map_hashed)
+            .map_unhashed(map_unhashed))
     }
 }

@@ -2,7 +2,8 @@ use super::{MuxConfig, TargetMuxConfig};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
     GetField, GetOptField, Input, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials,
-    SubTracks, Target, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, get_fields,
+    SubTracks, TFlagType, TFlags, Target, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
+    get_fields,
 };
 
 get_fields! {
@@ -58,5 +59,13 @@ impl MuxConfig {
         }
 
         self.get::<F>()
+    }
+
+    pub fn get_trg_t_flags(&self, targets: &[Target], ft: TFlagType) -> &TFlags {
+        match ft {
+            TFlagType::Default => self.get_trg::<MCDefaultTFlags>(targets).inner(),
+            TFlagType::Forced => self.get_trg::<MCForcedTFlags>(targets).inner(),
+            TFlagType::Enabled => self.get_trg::<MCEnabledTFlags>(targets).inner(),
+        }
     }
 }

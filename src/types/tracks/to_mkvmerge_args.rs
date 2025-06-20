@@ -1,47 +1,41 @@
-use super::{AudioTracks, ButtonTracks, SubTracks, VideoTracks, id::TrackID};
+use super::{AudioTracks, ButtonTracks, SubTracks, VideoTracks};
 use crate::{
-    CLIArg, IsDefault, MCOffOnPro, MISavedTrackNums, MITILang, MITIName, MITracksInfo, MediaInfo,
-    ToMkvmergeArg, ToMkvmergeArgs, TrackLangs, TrackNames, TrackType, ok_or_return_vec_new,
-    to_mkvmerge_args,
+    IsDefault, MISavedTracks, MediaInfo, MkvmergeArg, MkvmergeNoArg, ToMkvmergeArg, ToMkvmergeArgs,
+    TrackType, mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args, unwrap_or_return_vec,
 };
 use std::path::Path;
 
-impl ToMkvmergeArg for TrackID {
-    fn to_mkvmerge_arg(&self) -> String {
-        match self {
-            Self::Num(n) => n.to_string(),
-            Self::Lang(code) => code.to_string(),
-            Self::Range(rng) => rng.to_mkvmerge_arg(),
-        }
-    }
-}
+mkvmerge_arg!(AudioTracks, "-a");
+mkvmerge_no_arg!(AudioTracks, "-A");
+mkvmerge_arg!(SubTracks, "-s");
+mkvmerge_no_arg!(SubTracks, "-S");
+mkvmerge_arg!(VideoTracks, "-d");
+mkvmerge_no_arg!(VideoTracks, "-D");
+mkvmerge_arg!(ButtonTracks, "-b");
+mkvmerge_no_arg!(ButtonTracks, "-B");
 
 macro_rules! tracks_to_mkvmerge_args {
     ( $( $type:ident, $track_type:expr => $arg:ident, $no_arg:ident, )* ) => {
         $(
             impl ToMkvmergeArgs for $type {
-                fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path
-                ) -> Vec<String> {
+                fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
                     if self.is_default() {
                         Vec::new()
                     } else if self.no_flag {
-                        let no_arg = to_mkvmerge_args!(@cli_arg, $no_arg);
-                        vec![no_arg]
+                        vec![Self::MKVMERGE_NO_ARG.into()]
                     } else {
-                        let ids: String = ok_or_return_vec_new!(
-                            mi.get::<MISavedTrackNums>(path)
+                        let nums: String = unwrap_or_return_vec!(
+                            mi.get::<MISavedTracks>(path)
                         )[$track_type]
                             .iter()
                             .map(|num| num.to_mkvmerge_arg())
                             .collect::<Vec<_>>()
                             .join(",");
 
-                        if ids.is_empty() {
-                            let no_arg = to_mkvmerge_args!(@cli_arg, $no_arg);
-                            vec![no_arg]
+                        if nums.is_empty() {
+                            vec![Self::MKVMERGE_NO_ARG.into()]
                         } else {
-                            let arg = to_mkvmerge_args!(@cli_arg, $arg);
-                            vec![arg, ids]
+                            vec![Self::MKVMERGE_ARG.into(), nums]
                         }
                     }
                 }
@@ -58,44 +52,3 @@ tracks_to_mkvmerge_args!(
     VideoTracks, TrackType::Video => Video, NoVideo,
     ButtonTracks, TrackType::Button => Buttons, NoButtons,
 );
-
-macro_rules! langs_or_names_to_mkvmerge_args {
-    ($typ:ident, $arg:ident, $add_marker:ident, $tic_marker:ident) => {
-        impl ToMkvmergeArgs for $typ {
-            fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
-                let arg = to_mkvmerge_args!(@cli_arg, $arg);
-                let add = mi.mc.get::<MCOffOnPro>().$add_marker;
-                let tids_u32: Vec<TrackID> = ok_or_return_vec_new!(mi.get::<MITracksInfo>(path))
-                    .keys().copied().collect();
-
-                let val_args: Vec<String> = tids_u32
-                    .into_iter()
-                    .filter_map(|tid| {
-                        self.get(&tid).map(|x| x.to_string())
-                            .or_else(|| add.then(|| mi.get_ti::<$tic_marker>(path, &tid))
-                                .flatten()
-                                .map(|x| x.to_string()))
-                            .map(|val| format!("{}:{}", tid.to_mkvmerge_arg(), val.to_string()))
-                    })
-                    .collect();
-
-                if val_args.is_empty() {
-                    return Vec::new();
-                }
-
-                let mut args: Vec<String> = Vec::with_capacity(val_args.len() * 2);
-                for val in val_args {
-                    args.push(arg.clone());
-                    args.push(val);
-                }
-
-                args
-            }
-
-            to_mkvmerge_args!(@fn_os);
-        }
-    };
-}
-
-langs_or_names_to_mkvmerge_args!(TrackLangs, Langs, add_langs, MITILang);
-langs_or_names_to_mkvmerge_args!(TrackNames, Names, add_names, MITIName);

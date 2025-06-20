@@ -161,7 +161,7 @@ impl Blocks {
                     .long(<DefaultTFlags as CLIArgs>::Arg::LimDefaults.as_long())
                     .value_name("n")
                     .help("Max true default-track-flags in auto")
-                    .value_parser(clap::value_parser!(u32)),
+                    .value_parser(clap::value_parser!(u64)),
             )
             .arg(
                 Arg::new(<ForcedTFlags as CLIArgs>::Arg::Forceds.as_long())
@@ -176,7 +176,7 @@ impl Blocks {
                     .long(<ForcedTFlags as CLIArgs>::Arg::LimForceds.as_long())
                     .value_name("n")
                     .help("Max true forced-display-flags in auto")
-                    .value_parser(clap::value_parser!(u32)),
+                    .value_parser(clap::value_parser!(u64)),
             )
             .arg(
                 Arg::new(<EnabledTFlags as CLIArgs>::Arg::Enableds.as_long())
@@ -191,7 +191,7 @@ impl Blocks {
                     .long(<EnabledTFlags as CLIArgs>::Arg::LimEnableds.as_long())
                     .value_name("n")
                     .help("Max true track-enabled-flags in auto")
-                    .value_parser(clap::value_parser!(u32)),
+                    .value_parser(clap::value_parser!(u64)),
             )
             .arg(
                 Arg::new(<TrackNames as CLIArgs>::Arg::Names.as_long())

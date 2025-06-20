@@ -1,4 +1,23 @@
 #[macro_export]
+macro_rules! unmut_get {
+    ($ref_mut_self:ident, $marker:ident, $path:expr) => {{
+        // First mut get, this caches unhashed value if needed. Then unmut_get
+        if $ref_mut_self.get::<$marker>($path).is_none() {
+            None
+        } else {
+            $ref_mut_self.unmut_get::<$marker>($path)
+        }
+    }};
+
+    (@try, $ref_mut_self:ident, $marker:ident, $path:expr) => {{
+        let _ = $ref_mut_self.try_get::<$marker>($path)?;
+        $ref_mut_self
+            .unmut_get::<$marker>($path)
+            .ok_or("Unexpected None Targets")
+    }};
+}
+
+#[macro_export]
 macro_rules! get_fields {
     // trait GetField only
     ($type:ident;

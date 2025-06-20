@@ -1,7 +1,6 @@
 use super::{AudioTracks, ButtonTracks, SubTracks, Tracks, VideoTracks, id::TrackID};
 use crate::{IsDefault, MuxError, deref_tuple_fields};
 use std::collections::HashSet;
-use std::str::FromStr;
 
 deref_tuple_fields!(AudioTracks, Tracks, @all, no_flag: bool);
 deref_tuple_fields!(SubTracks, Tracks, @all, no_flag: bool);
@@ -27,8 +26,9 @@ impl Tracks {
         }
 
         let contains = |&id| match id {
+            TrackID::Num(_) => self.contains(&id),
+            TrackID::Lang(_) => self.ids_hashed_contains(&id),
             TrackID::Range(_) => self.ids_unhashed_contains(&id),
-            _ => self.contains(&id),
         };
 
         if contains(tid) {
@@ -62,7 +62,7 @@ impl Tracks {
     }
 }
 
-impl FromStr for Tracks {
+impl std::str::FromStr for Tracks {
     type Err = MuxError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -78,7 +78,7 @@ impl FromStr for Tracks {
         let mut ids_unhashed: Option<Vec<TrackID>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
-            let id = TrackID::from_str(part)?;
+            let id = part.parse::<TrackID>()?;
             if id.is_range() {
                 ids_unhashed.get_or_insert_with(Vec::new).push(id);
             } else {
@@ -87,7 +87,7 @@ impl FromStr for Tracks {
         }
 
         if ids_hashed.is_none() && ids_unhashed.is_none() {
-            return Err(MuxError::from("No track IDs found"));
+            return Err("No track IDs found".into());
         }
 
         Ok(Self {

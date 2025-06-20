@@ -7,24 +7,23 @@ pub(crate) mod set_get_field;
 mod ti_cache;
 
 use crate::{
-    AttachID, AttachType, LangCode, MCInput, MCTools, MIAttachsInfo, MITracksInfo, MuxConfig,
-    MuxError, TFlagsCounts, Target, TargetGroup, Tools, TrackID, TrackOrder, TrackType,
+    AttachID, AttachType, LangCode, MCInput, MCOffOnPro, MCTools, MIAttachsInfo, MITracksInfo,
+    MuxConfig, MuxError, OffOnPro, Target, TargetGroup, Tools, TrackType,
 };
 use enum_map::EnumMap;
 use log::warn;
 use mkvinfo::Mkvinfo;
-use set_get_field::{MIMkvmergeI, MISavedTrackNums};
+use set_get_field::{MIMkvmergeI, MISavedTracks};
 use std::collections::{BTreeSet, HashMap};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 pub struct MediaInfo<'a> {
     pub mc: &'a MuxConfig,
-    pub counts: TFlagsCounts,
+    pub off_on_pro: &'a OffOnPro,
     tools: &'a Tools,
     upmost: &'a Path,
     stem: OsString,
-    track_order: CacheState<TrackOrder>,
     cache: HashMap<PathBuf, MICache>,
 }
 
@@ -33,14 +32,13 @@ pub struct MICache {
     char_encoding: CacheState<String>,
     mkvinfo: CacheState<Mkvinfo>,
     mkvmerge_i: CacheState<Vec<String>>,
-    //mkvmerge_os_args: CacheState<Vec<OsString>>,
     path_tail: CacheState<String>,
     relative_upmost: CacheState<String>,
     target_group: CacheState<TargetGroup>,
     targets: CacheState<[Target; 3]>,
 
-    tracks_info: CacheState<HashMap<TrackID, TICache>>,
-    saved_track_nums: CacheState<EnumMap<TrackType, BTreeSet<u64>>>,
+    tracks_info: CacheState<HashMap<u64, TICache>>,
+    saved_tracks: CacheState<EnumMap<TrackType, BTreeSet<u64>>>,
     attachs_info: CacheState<HashMap<AttachID, AICache>>,
 }
 
@@ -51,7 +49,6 @@ pub struct TICache {
     pub mkvmerge_id_line: String,
     lang: CacheState<LangCode>,
     mkvinfo_cutted: Option<Mkvinfo>,
-    //mkvmerge_os_args: CacheState<Vec<OsString>>,
     name: CacheState<String>,
 }
 
@@ -72,15 +69,15 @@ pub enum CacheState<T> {
 
 impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
     fn from(mc: &'a MuxConfig) -> Self {
+        let off_on_pro = mc.get::<MCOffOnPro>();
         let tools = mc.get::<MCTools>();
         let upmost = mc.get::<MCInput>().get_upmost();
         Self {
             mc,
+            off_on_pro,
             tools,
             upmost,
             cache: HashMap::new(),
-            track_order: CacheState::NotCached,
-            counts: TFlagsCounts::default(),
             stem: OsString::new(),
         }
     }
@@ -88,16 +85,7 @@ impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
 
 impl MediaInfo<'_> {
     pub fn clear(&mut self) {
-        self.clear_cache();
-        self.clear_counts();
-    }
-
-    pub fn clear_cache(&mut self) {
         self.cache.clear();
-    }
-
-    pub fn clear_counts(&mut self) {
-        self.counts = TFlagsCounts::default();
     }
 
     pub fn is_empty(&self) -> bool {
@@ -148,7 +136,7 @@ impl MediaInfo<'_> {
 
             if !skip {
                 let mut empty_ti = false;
-                let _ = self.try_get::<MISavedTrackNums>(&path);
+                let _ = self.try_get::<MISavedTracks>(&path);
                 if let Some(ti) = self.get::<MITracksInfo>(&path) {
                     if ti.is_empty() {
                         empty_ti = true;

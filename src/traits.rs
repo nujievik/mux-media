@@ -1,4 +1,4 @@
-use crate::{MediaInfo, MuxError, TrackID};
+use crate::{MediaInfo, MuxError};
 use std::path::Path;
 
 pub trait CLIArgs {
@@ -8,6 +8,14 @@ pub trait CLIArgs {
 pub trait CLIArg {
     fn as_long(self) -> &'static str;
     fn to_mkvmerge(self) -> Option<&'static str>;
+}
+
+pub trait MkvmergeArg {
+    const MKVMERGE_ARG: &'static str;
+}
+
+pub trait MkvmergeNoArg {
+    const MKVMERGE_NO_ARG: &'static str;
 }
 
 pub trait ToMkvmergeArg {
@@ -38,25 +46,19 @@ pub trait GetOptField<F> {
     fn get(&self) -> Option<&Self::FieldType>;
 }
 
-pub trait SetGetField<F> {
-    type FieldType;
-    fn try_set(&mut self) -> Result<(), MuxError>;
-    fn try_get(&mut self) -> Result<&Self::FieldType, MuxError>;
-    fn get(&mut self) -> Option<&Self::FieldType>;
-}
-
 pub trait SetGetPathField<F> {
     type FieldType;
     fn try_set(&mut self, path: &Path) -> Result<(), MuxError>;
     fn try_get(&mut self, path: &Path) -> Result<&Self::FieldType, MuxError>;
     fn get(&mut self, path: &Path) -> Option<&Self::FieldType>;
+    fn unmut_get(&self, path: &Path) -> Option<&Self::FieldType>;
 }
 
 pub trait SetGetPathTrackField<F> {
     type FieldType;
-    fn try_set(&mut self, path: &Path, tid: &TrackID) -> Result<(), MuxError>;
-    fn try_get(&mut self, path: &Path, tid: &TrackID) -> Result<&Self::FieldType, MuxError>;
-    fn get(&mut self, path: &Path, tid: &TrackID) -> Option<&Self::FieldType>;
+    fn try_set(&mut self, path: &Path, num: u64) -> Result<(), MuxError>;
+    fn try_get(&mut self, path: &Path, num: u64) -> Result<&Self::FieldType, MuxError>;
+    fn get(&mut self, path: &Path, num: u64) -> Option<&Self::FieldType>;
 }
 
 pub trait TryInit {

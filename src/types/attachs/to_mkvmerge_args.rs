@@ -1,7 +1,7 @@
 use super::{Attachs, FontAttachs, OtherAttachs, id::AttachID};
 use crate::{
     AttachType, CLIArg, IsDefault, MCFontAttachs, MCOtherAttachs, MIAttachsInfo, MITargets,
-    MediaInfo, ToMkvmergeArg, ToMkvmergeArgs, ok_or_return_vec_new, to_mkvmerge_args,
+    MediaInfo, ToMkvmergeArg, ToMkvmergeArgs, to_mkvmerge_args, unmut_get, unwrap_or_return_vec,
 };
 use std::collections::BTreeSet;
 use std::path::Path;
@@ -33,15 +33,16 @@ impl ToMkvmergeArgs for OtherAttachs {
 
 impl ToMkvmergeArgs for Attachs {
     fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
-        let targets = ok_or_return_vec_new!(mi.get::<MITargets>(path)).clone();
-        let fonts = mi.mc.get_trg::<MCFontAttachs>(&targets);
-        let other = mi.mc.get_trg::<MCOtherAttachs>(&targets);
+        let targets = unwrap_or_return_vec!(unmut_get!(mi, MITargets, path));
+
+        let fonts = mi.mc.get_trg::<MCFontAttachs>(targets);
+        let other = mi.mc.get_trg::<MCOtherAttachs>(targets);
 
         if fonts.is_default() && other.is_default() {
             return Vec::new();
         }
 
-        let ai = ok_or_return_vec_new!(mi.get::<MIAttachsInfo>(path));
+        let ai = unwrap_or_return_vec!(mi.get::<MIAttachsInfo>(path));
         let cnt_init = ai.len();
 
         if cnt_init == 0 {

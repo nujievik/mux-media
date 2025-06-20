@@ -1,28 +1,32 @@
 #[path = "tracks/flags.rs"]
 mod flags;
+#[path = "tracks/names.rs"]
+mod names;
 
-use crate::common::from_cfg;
+use crate::common::{MAX_U64_STR, from_cfg};
 use crate::{compare_arg_cases, fn_variants_of_args, range, test_cli_args, test_from_str};
 use mux_media::*;
 
-const MAX_STR: &str = "4294967295";
-
 #[test]
 fn test_cli_args() {
-    test_cli_args!(AudioTracks; Audio => "audio", "-a", NoAudio => "no-audio", "-A");
-    test_cli_args!(SubTracks; Subs => "subs", "-s", NoSubs => "no-subs", "-S");
-    test_cli_args!(VideoTracks; Video => "video", "-d", NoVideo => "no-video", "-D");
-    test_cli_args!(ButtonTracks; Buttons => "buttons", "-b", NoButtons => "no-buttons", "-B");
+    test_cli_args!(AudioTracks; Audio => "audio", NoAudio => "no-audio");
+    test_cli_args!(SubTracks; Subs => "subs", NoSubs => "no-subs");
+    test_cli_args!(VideoTracks; Video => "video", NoVideo => "no-video");
+    test_cli_args!(ButtonTracks; Buttons => "buttons", NoButtons => "no-buttons");
 
-    test_cli_args!(DefaultTFlags; Defaults => "defaults", "--default-track-flag",
-                   LimDefaults => "lim-defaults", "");
-    test_cli_args!(ForcedTFlags; Forceds => "forceds", "--forced-display-flag",
-                   LimForceds => "lim-forceds", "");
-    test_cli_args!(EnabledTFlags; Enableds => "enableds", "--track-enabled-flag",
-                   LimEnableds => "lim-enableds", "");
+    test_cli_args!(TrackLangs; Langs => "langs");
+}
 
-    test_cli_args!(TrackNames; Names => "names", "--track-name");
-    test_cli_args!(TrackLangs; Langs => "langs", "--language");
+#[test]
+fn test_mkvmerge_args() {
+    assert_eq!("-a", AudioTracks::MKVMERGE_ARG);
+    assert_eq!("-A", AudioTracks::MKVMERGE_NO_ARG);
+    assert_eq!("-s", SubTracks::MKVMERGE_ARG);
+    assert_eq!("-S", SubTracks::MKVMERGE_NO_ARG);
+    assert_eq!("-d", VideoTracks::MKVMERGE_ARG);
+    assert_eq!("-D", VideoTracks::MKVMERGE_NO_ARG);
+    assert_eq!("-b", ButtonTracks::MKVMERGE_ARG);
+    assert_eq!("-B", ButtonTracks::MKVMERGE_NO_ARG);
 }
 
 #[test]
@@ -31,10 +35,6 @@ fn test_default_is_default() {
     assert!(SubTracks::default().is_default());
     assert!(VideoTracks::default().is_default());
     assert!(ButtonTracks::default().is_default());
-    assert!(DefaultTFlags::default().is_default());
-    assert!(ForcedTFlags::default().is_default());
-    assert!(EnabledTFlags::default().is_default());
-    assert!(TrackNames::default().is_default());
     assert!(TrackLangs::default().is_default());
 }
 
@@ -44,10 +44,6 @@ fn test_empty_args_is_default() {
     assert!(from_cfg::<MCSubTracks>(vec![]).is_default());
     assert!(from_cfg::<MCVideoTracks>(vec![]).is_default());
     assert!(from_cfg::<MCButtonTracks>(vec![]).is_default());
-    assert!(from_cfg::<MCDefaultTFlags>(vec![]).is_default());
-    assert!(from_cfg::<MCForcedTFlags>(vec![]).is_default());
-    assert!(from_cfg::<MCEnabledTFlags>(vec![]).is_default());
-    assert!(from_cfg::<MCTrackNames>(vec![]).is_default());
     assert!(from_cfg::<MCTrackLangs>(vec![]).is_default());
 }
 
@@ -57,10 +53,6 @@ fn test_any_args_is_not_default() {
     assert!(!from_cfg::<MCSubTracks>(vec!["-S"]).is_default());
     assert!(!from_cfg::<MCVideoTracks>(vec!["-D"]).is_default());
     assert!(!from_cfg::<MCButtonTracks>(vec!["-B"]).is_default());
-    assert!(!from_cfg::<MCDefaultTFlags>(vec!["--lim-defaults", "1"]).is_default());
-    assert!(!from_cfg::<MCForcedTFlags>(vec!["--lim-forceds", "0"]).is_default());
-    assert!(!from_cfg::<MCEnabledTFlags>(vec!["--lim-enableds", MAX_STR]).is_default());
-    assert!(!from_cfg::<MCTrackNames>(vec!["--names", "name"]).is_default());
     assert!(!from_cfg::<MCTrackLangs>(vec!["--langs", "eng"]).is_default());
 }
 
@@ -172,7 +164,7 @@ macro_rules! test_save_track {
                 (vec!["rus"], "rus"),
                 (vec!["1", "2", "3", "4", "5", "6", "7", "8"], "1-8"),
                 (vec!["0", "12", "eng", "4"], "0,12,eng,1-8"),
-                (vec!["1", "8", MAX_STR], "!0"),
+                (vec!["1", "8", MAX_U64_STR], "!0"),
                 (vec!["eng", "rus", "0", "4"], "!jpn"),
                 (vec!["eng", "rus", "0", "4"], "!1-3"),
             ];
@@ -194,7 +186,7 @@ macro_rules! test_save_track {
 
             let bad_cases = [
                 (vec!["1", "8", "eng"], "0"),
-                (vec!["0", MAX_STR, "rus"], "8"),
+                (vec!["0", MAX_U64_STR, "rus"], "8"),
                 (vec!["rus", "8", "jpn"], "eng"),
                 (vec!["eng", "0", "jpn"], "rus"),
                 (vec!["0", "9", "eng", "rus"], "1-8"),
@@ -231,7 +223,7 @@ fn test_id_to_mkvmerge_arg() {
     let cases = [
         ("0", "0"),
         ("8", "8"),
-        (MAX_STR, MAX_STR),
+        (MAX_U64_STR, MAX_U64_STR),
         ("eng", "eng"),
         ("rus", "rus"),
         ("0,1,2,3,4", "-4"),

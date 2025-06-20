@@ -1,4 +1,4 @@
-use crate::{CLIArg, cli_args, from_arg_matches};
+use crate::{cli_args, from_arg_matches};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Verbosity {

@@ -1,9 +1,8 @@
 use super::{MuxConfig, TargetMuxConfig};
 use crate::{
-    AudioTracks, ButtonTracks, CLIArg, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs,
-    ForcedTFlags, Input, IsDefault, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials,
-    SubTracks, Tool, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, cli_args,
-    from_arg_matches,
+    AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
+    Input, IsDefault, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks,
+    Tool, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, cli_args, from_arg_matches,
 };
 
 cli_args!(MuxConfig, MuxConfigArg; Output => "output", Locale => "locale",
@@ -17,7 +16,7 @@ impl clap::FromArgMatches for MuxConfig {
 
         let mut tools = Tools::try_from(Tool::iter_mkvtoolnix())?;
         if !retiming.is_default() {
-            tools.try_insert(Tool::Ffprobe)?;
+            tools.try_upd_tool_path(Tool::Ffprobe)?;
         }
 
         let mut input = Input::from_arg_matches_mut(matches)?;
@@ -30,7 +29,7 @@ impl clap::FromArgMatches for MuxConfig {
             input.upd_out_need_num(true);
         }
 
-        tools.update_json(Tools::make_json(output.get_temp_dir()));
+        tools.upd_json(Tools::make_json(output.get_temp_dir()));
 
         Ok(Self {
             input,

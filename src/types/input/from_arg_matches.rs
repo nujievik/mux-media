@@ -1,5 +1,5 @@
 use super::Input;
-use crate::{CLIArg, Range, cli_args, from_arg_matches};
+use crate::{Range, cli_args, from_arg_matches};
 use globset::GlobSet;
 use std::path::PathBuf;
 

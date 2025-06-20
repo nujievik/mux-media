@@ -34,6 +34,7 @@ fn mux(mc: &MuxConfig, output: &Output) -> Result<(), MuxError> {
             continue;
         }
 
+        mi.upd_stem(media.stem);
         mi.try_insert_paths_with_filter(&media.files, exit_on_err)?;
         if mi.is_empty() {
             warn!(
@@ -42,7 +43,6 @@ fn mux(mc: &MuxConfig, output: &Output) -> Result<(), MuxError> {
             );
             continue;
         }
-        mi.upd_stem(media.stem);
 
         let mut args: Vec<OsString> = Vec::new();
         args.push("-o".into());

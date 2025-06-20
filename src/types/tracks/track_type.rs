@@ -1,4 +1,4 @@
-use enum_map::{Enum, EnumMap, enum_map};
+use enum_map::{Enum, EnumMap};
 use strum_macros::EnumIter;
 
 #[derive(Clone, Copy, Default, PartialEq, Enum, EnumIter)]
@@ -28,6 +28,6 @@ impl TrackType {
     where
         T: Default,
     {
-        enum_map! { _ => T::default() }
+        EnumMap::default()
     }
 }
