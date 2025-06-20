@@ -35,7 +35,11 @@ where
     cfg(args).get::<F>().clone()
 }
 
-pub fn to_args(args: Vec<&str>) -> Vec<String> {
+pub fn to_args<I, S>(args: I) -> Vec<String>
+where
+    I: IntoIterator<Item = S>,
+    S: ToString,
+{
     args.into_iter().map(|s| s.to_string()).collect()
 }
 
@@ -48,4 +52,22 @@ where
     let mut mi = MediaInfo::from(&mc);
     mi.upd_cache(cache);
     mc.get::<F>().to_mkvmerge_args(&mut mi, path)
+}
+
+pub fn repeat_track_arg(arg: &str, val: &str, range: &str) -> Vec<String> {
+    range
+        .parse::<Range<u8>>()
+        .unwrap()
+        .iter()
+        .map(|n| [arg.to_string(), format!("{}:{}", n, val)])
+        .flatten()
+        .collect()
+}
+
+pub fn append_str_vecs<I, S>(vecs: I) -> Vec<String>
+where
+    I: IntoIterator<Item = Vec<S>>,
+    S: ToString,
+{
+    vecs.into_iter().flatten().map(|s| s.to_string()).collect()
 }

@@ -15,7 +15,7 @@ pub struct Range<T> {
 
 impl<T> Range<T>
 where
-    T: PartialOrd + Copy,
+    T: Copy + PartialOrd,
 {
     pub fn contains(&self, value: T) -> bool {
         value >= self.start && value <= self.end
@@ -95,6 +95,7 @@ where
     Ok((start, end))
 }
 
+#[inline(always)]
 fn parse_single_or_empty<T>(s: &str) -> Result<(T, T), MuxError>
 where
     T: FromStr + Default + MaxValue,

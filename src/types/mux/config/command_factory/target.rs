@@ -196,7 +196,7 @@ impl Blocks {
             .arg(
                 Arg::new(<TrackNames as CLIArgs>::Arg::Names.as_long())
                     .long(<TrackNames as CLIArgs>::Arg::Names.as_long())
-                    .aliases(&["track-names", "track-name"])
+                    .alias("track-names")
                     .value_name("[n:]N[,m:N]...")
                     .help("Track names")
                     .value_parser(ValueParser::new(TrackNames::from_str)),
@@ -204,7 +204,7 @@ impl Blocks {
             .arg(
                 Arg::new(<TrackLangs as CLIArgs>::Arg::Langs.as_long())
                     .long(<TrackLangs as CLIArgs>::Arg::Langs.as_long())
-                    .aliases(&["languages", "language"])
+                    .alias("languages")
                     .value_name("[n:]L[,m:L]...")
                     .help("Track languages")
                     .value_parser(ValueParser::new(TrackLangs::from_str)),

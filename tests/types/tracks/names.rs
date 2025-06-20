@@ -1,5 +1,5 @@
 use super::id;
-use crate::common::{MAX_U64_STR, from_cfg};
+use crate::common::*;
 use crate::*;
 use mux_media::*;
 
@@ -13,6 +13,8 @@ fn test_is_default() {
     assert!(TrackNames::default().is_default());
     assert!(from_cfg::<MCTrackNames>(vec![]).is_default());
     assert!(!from_cfg::<MCTrackNames>(vec!["--names", "name"]).is_default());
+    assert!(!from_cfg::<MCTrackNames>(vec!["--names", "0:a,1:b"]).is_default());
+    assert!(!from_cfg::<MCTrackNames>(vec!["--names", "0-8:a"]).is_default());
 }
 
 test_from_str!(
@@ -70,14 +72,83 @@ fn test_get() {
     }
 }
 
-/*
-fn build_test_to_mkvmerge_args(file: &str) {
+fn_variants_of_args!("--names" => vec!["--track-names"]);
+
+fn build_test_x1_to_mkvmerge_args(file: &str) {
     let cases = [
-        ("name", vec!["0", "8", "eng", "rus", MAX_U64_STR]),
-        ("0:a,1:b,8:c", vec!["0", "1", "8"]),
-        ("eng:a,rus:b,jpn:c", vec!["eng", "rus", "jpn"]),
-        ("0-8:a", vec!["0", "1", "8"]),
-        ("0-8:a,eng:b", vec!["0", "eng"]),
+        (vec![], vec!["--pro"]),
+        (vec![], vec!["--pro", "--names", "eng:a"]),
+        (vec![], vec!["--pro", "--names", "2:a"]),
+        (vec!["--track-name", "0:a"], vec!["--pro", "--names", "0:a"]),
+        (vec!["--track-name", "0:a"], vec!["--names", "a"]),
+        (vec!["--track-name", "0:a"], vec!["--names", "0:a"]),
+        (vec!["--track-name", "0:a"], vec!["--names", "und:a"]),
+        (vec!["--track-name", "0:a"], vec!["--names", "0-8:a"]),
+        (vec!["--track-name", "0:a"], vec!["--names", "0:a,1:b,2:c"]),
+        (vec!["--track-name", "0:bc"], vec!["--names", "0:bc"]),
     ];
+
+    compare_arg_cases!(cases, variants_of_args, file, MCTrackNames, MITracksInfo);
 }
-*/
+
+#[test]
+fn test_x1_audio_to_mkvmerge_args() {
+    build_test_x1_to_mkvmerge_args("audio_x1.mka");
+}
+
+#[test]
+fn test_x1_sub_to_mkvmerge_args() {
+    build_test_x1_to_mkvmerge_args("sub_x1.mks");
+}
+
+#[test]
+fn test_x1_video_to_mkvmerge_args() {
+    build_test_x1_to_mkvmerge_args("video_x1.mkv");
+}
+
+fn build_test_x8_to_mkvmerge_args(file: &str) {
+    let cases = [
+        (vec![], vec!["--pro"]),
+        (vec![], vec!["--pro", "--names", "eng:a"]),
+        (
+            to_args(["--track-name", "0:a"]),
+            vec!["--pro", "--names", "0:a"],
+        ),
+        (
+            to_args(["--track-name", "2:a", "--track-name", "4:b"]),
+            vec!["--pro", "--names", "2:a,4:b"],
+        ),
+        (
+            repeat_track_arg("--track-name", "a", "0-7"),
+            vec!["--names", "a"],
+        ),
+        (
+            repeat_track_arg("--track-name", "bc", "0-7"),
+            vec!["--names", "bc"],
+        ),
+        (
+            append_str_vecs([
+                repeat_track_arg("--track-name", "a", "0-2"),
+                repeat_track_arg("--track-name", "b", "3-7"),
+            ]),
+            vec!["--names", "0-2:a,und:b"],
+        ),
+    ];
+
+    compare_arg_cases!(cases, variants_of_args, file, MCTrackNames, MITracksInfo);
+}
+
+#[test]
+fn test_x8_audio_to_mkvmerge_args() {
+    build_test_x8_to_mkvmerge_args("audio_x8.mka");
+}
+
+#[test]
+fn test_x8_sub_to_mkvmerge_args() {
+    build_test_x8_to_mkvmerge_args("sub_x8.mks");
+}
+
+#[test]
+fn test_x8_video_to_mkvmerge_args() {
+    build_test_x8_to_mkvmerge_args("video_x8.mkv");
+}

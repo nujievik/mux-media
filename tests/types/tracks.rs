@@ -1,5 +1,7 @@
 #[path = "tracks/flags.rs"]
 mod flags;
+#[path = "tracks/langs.rs"]
+mod lagns;
 #[path = "tracks/names.rs"]
 mod names;
 
@@ -13,8 +15,6 @@ fn test_cli_args() {
     test_cli_args!(SubTracks; Subs => "subs", NoSubs => "no-subs");
     test_cli_args!(VideoTracks; Video => "video", NoVideo => "no-video");
     test_cli_args!(ButtonTracks; Buttons => "buttons", NoButtons => "no-buttons");
-
-    test_cli_args!(TrackLangs; Langs => "langs");
 }
 
 #[test]
@@ -30,30 +30,29 @@ fn test_mkvmerge_args() {
 }
 
 #[test]
-fn test_default_is_default() {
+fn test_is_default() {
     assert!(AudioTracks::default().is_default());
     assert!(SubTracks::default().is_default());
     assert!(VideoTracks::default().is_default());
     assert!(ButtonTracks::default().is_default());
-    assert!(TrackLangs::default().is_default());
-}
 
-#[test]
-fn test_empty_args_is_default() {
     assert!(from_cfg::<MCAudioTracks>(vec![]).is_default());
     assert!(from_cfg::<MCSubTracks>(vec![]).is_default());
     assert!(from_cfg::<MCVideoTracks>(vec![]).is_default());
     assert!(from_cfg::<MCButtonTracks>(vec![]).is_default());
-    assert!(from_cfg::<MCTrackLangs>(vec![]).is_default());
-}
 
-#[test]
-fn test_any_args_is_not_default() {
     assert!(!from_cfg::<MCAudioTracks>(vec!["-A"]).is_default());
+    assert!(!from_cfg::<MCAudioTracks>(vec!["-a", "0"]).is_default());
+    assert!(!from_cfg::<MCAudioTracks>(vec!["-a", "0-8"]).is_default());
     assert!(!from_cfg::<MCSubTracks>(vec!["-S"]).is_default());
+    assert!(!from_cfg::<MCSubTracks>(vec!["-s", "0"]).is_default());
+    assert!(!from_cfg::<MCSubTracks>(vec!["-s", "0-8"]).is_default());
     assert!(!from_cfg::<MCVideoTracks>(vec!["-D"]).is_default());
+    assert!(!from_cfg::<MCVideoTracks>(vec!["-d", "0"]).is_default());
+    assert!(!from_cfg::<MCVideoTracks>(vec!["-d", "0-8"]).is_default());
     assert!(!from_cfg::<MCButtonTracks>(vec!["-B"]).is_default());
-    assert!(!from_cfg::<MCTrackLangs>(vec!["--langs", "eng"]).is_default());
+    assert!(!from_cfg::<MCButtonTracks>(vec!["-b", "0"]).is_default());
+    assert!(!from_cfg::<MCButtonTracks>(vec!["-b", "0-8"]).is_default());
 }
 
 fn id(s: &str) -> TrackID {

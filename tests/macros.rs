@@ -30,7 +30,11 @@ macro_rules! take_mi_cache {
 #[macro_export]
 macro_rules! fn_variants_of_args {
     ( $( $arg:expr => $vars:expr ),* $(,)?) => {
-        fn variants_of_args(args: Vec<&str>) -> Vec<Vec<String>> {
+        fn variants_of_args<I, S>(args: I) -> Vec<Vec<String>>
+        where
+            I: IntoIterator<Item = S>,
+            S: ToString,
+        {
             let mut variants: Vec<Vec<String>> = Vec::new();
             let args: Vec<String> = args
                 .into_iter()
