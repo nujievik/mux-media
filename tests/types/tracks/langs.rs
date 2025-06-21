@@ -79,12 +79,18 @@ fn build_test_x1_to_mkvmerge_args(file: &str) {
         (vec![], vec!["--pro"]),
         (vec![], vec!["--pro", "--langs", "eng:en"]),
         (vec![], vec!["--pro", "--langs", "2:en"]),
-        (vec!["--language", "0:eng"], vec!["--pro", "--langs", "0:eng"]),
+        (
+            vec!["--language", "0:eng"],
+            vec!["--pro", "--langs", "0:eng"],
+        ),
         (vec!["--language", "0:eng"], vec!["--langs", "en"]),
         (vec!["--language", "0:eng"], vec!["--langs", "0:en"]),
         (vec!["--language", "0:eng"], vec!["--langs", "und:en"]),
         (vec!["--language", "0:eng"], vec!["--langs", "0-8:en"]),
-        (vec!["--language", "0:eng"], vec!["--langs", "0:en,1:ru,2:en"]),
+        (
+            vec!["--language", "0:eng"],
+            vec!["--langs", "0:en,1:ru,2:en"],
+        ),
         (vec!["--language", "0:rus"], vec!["--langs", "0:rus"]),
     ];
 

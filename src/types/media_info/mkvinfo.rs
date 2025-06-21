@@ -1,4 +1,4 @@
-use super::CacheState;
+use super::cache::CacheState;
 use crate::{GetOptField, LangCode};
 
 macro_rules! mkvinfo_get_opt_fields {

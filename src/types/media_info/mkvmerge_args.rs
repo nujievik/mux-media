@@ -85,7 +85,7 @@ impl MediaInfo<'_> {
 
             Err(e) => {
                 log::warn!("{}", e);
-                let paths: Vec<PathBuf> = self.cache.keys().cloned().collect();
+                let paths: Vec<PathBuf> = self.cache.of_files.keys().cloned().collect();
                 for path in paths {
                     extend_file_args(args, self, &path);
                     args.push(path.into_os_string());

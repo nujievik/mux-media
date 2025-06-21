@@ -46,6 +46,14 @@ pub trait GetOptField<F> {
     fn get(&self) -> Option<&Self::FieldType>;
 }
 
+pub trait SetGetField<F> {
+    type FieldType;
+    fn try_set(&mut self) -> Result<(), MuxError>;
+    fn try_get(&mut self) -> Result<&Self::FieldType, MuxError>;
+    fn get(&mut self) -> Option<&Self::FieldType>;
+    fn unmut_get(&self) -> Option<&Self::FieldType>;
+}
+
 pub trait SetGetPathField<F> {
     type FieldType;
     fn try_set(&mut self, path: &Path) -> Result<(), MuxError>;

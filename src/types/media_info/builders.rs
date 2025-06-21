@@ -1,13 +1,15 @@
 mod saved;
 
+use super::MediaInfo;
+use super::cache::{CacheMIOfFileAttach, CacheMIOfFileTrack};
 use super::mkvinfo::{MKVILang, MKVIName, Mkvinfo};
-use super::{AICache, MediaInfo, TICache};
 use crate::{
-    AttachID, EXTENSIONS, LangCode, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost, MITIName,
-    MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool, TrackType, os_helpers,
+    AttachID, EXTENSIONS, LangCode, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail,
+    MIRelativeUpmost, MITIName, MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool,
+    TrackType, os_helpers,
 };
 use std::collections::HashMap;
-use std::ffi::OsStr;
+use std::ffi::{OsStr, OsString};
 use std::fs::File;
 use std::io::{self, Read};
 use std::path::Path;
@@ -34,6 +36,18 @@ macro_rules! from_name_tail_relative_or_fallback {
 }
 
 impl MediaInfo<'_> {
+    pub(super) fn build_stem(&mut self) -> Result<OsString, MuxError> {
+        let shortest: &OsStr = self
+            .cache
+            .of_files
+            .keys()
+            .filter_map(|path| path.file_stem().filter(|s| !s.is_empty()))
+            .min_by_key(|s| s.len())
+            .ok_or("Not found any file_strm()")?;
+
+        Ok(shortest.to_os_string())
+    }
+
     pub(super) fn build_char_encoding(&mut self, path: &Path) -> Result<String, MuxError> {
         let enc = if path.extension().map_or(false, |ext| {
             EXTENSIONS.matroska.contains(ext.as_encoded_bytes())
@@ -106,7 +120,7 @@ impl MediaInfo<'_> {
     pub(super) fn build_tracks_info(
         &mut self,
         path: &Path,
-    ) -> Result<HashMap<u64, TICache>, MuxError> {
+    ) -> Result<HashMap<u64, CacheMIOfFileTrack>, MuxError> {
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
         let re = regex::Regex::new(r"Track ID (\d+):")?;
 
@@ -124,9 +138,11 @@ impl MediaInfo<'_> {
             .collect();
 
         let mkvinfo = self.get::<MIMkvinfo>(path);
-        let ti: HashMap<u64, TICache> = num_lines
+        let ti: HashMap<u64, CacheMIOfFileTrack> = num_lines
             .into_iter()
-            .map(|(num, line)| TICache::try_init(num, line, mkvinfo).map(|cache| (num, cache)))
+            .map(|(num, line)| {
+                CacheMIOfFileTrack::try_init(num, line, mkvinfo).map(|cache| (num, cache))
+            })
             .collect::<Result<_, _>>()?;
 
         Ok(ti)
@@ -135,17 +151,17 @@ impl MediaInfo<'_> {
     pub(super) fn build_attachs_info(
         &mut self,
         path: &Path,
-    ) -> Result<HashMap<AttachID, AICache>, MuxError> {
+    ) -> Result<HashMap<AttachID, CacheMIOfFileAttach>, MuxError> {
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
         let re = regex::Regex::new(r"Attachment ID (\d+):")?;
 
-        let ai: HashMap<AttachID, AICache> = mkvmerge_i
+        let ai: HashMap<AttachID, CacheMIOfFileAttach> = mkvmerge_i
             .into_iter()
             .filter_map(|line| {
                 re.captures(line).and_then(|caps| {
                     let num = caps.get(1)?.as_str().parse::<u64>().ok()?;
-                    let ai_cache = AICache::try_init(num, line.to_string()).ok()?;
-                    Some((AttachID::Num(num), ai_cache))
+                    let cache = CacheMIOfFileAttach::try_init(num, line.to_string()).ok()?;
+                    Some((AttachID::Num(num), cache))
                 })
             })
             .collect();
@@ -154,11 +170,11 @@ impl MediaInfo<'_> {
     }
 
     pub(super) fn build_path_tail(&mut self, path: &Path) -> Result<String, MuxError> {
+        let cmn_stem = self.try_get_cmn::<MICmnStem>()?;
         let stem = path
             .file_stem()
             .ok_or_else(|| format!("Path '{}' has not file_stem()", path.display()))?;
-        os_helpers::os_str_tail(self.stem.as_os_str(), stem)
-            .map(|os| os.to_string_lossy().into_owned())
+        os_helpers::os_str_tail(cmn_stem, stem).map(|os| os.to_string_lossy().into_owned())
     }
 
     pub(super) fn build_relative_upmost(&mut self, path: &Path) -> Result<String, MuxError> {
@@ -173,7 +189,7 @@ impl MediaInfo<'_> {
     pub(super) fn build_ti_name(&mut self, path: &Path, num: u64) -> Result<String, MuxError> {
         let tic = self
             .get_mut_ti_cache(path, num)
-            .ok_or_else(|| "Unexpected None TICache")?;
+            .ok_or_else(|| "Unexpected None CacheMIOfFileTrack")?;
 
         let name = tic
             .mkvinfo_cutted
@@ -198,7 +214,7 @@ impl MediaInfo<'_> {
     pub(super) fn build_ti_lang(&mut self, path: &Path, num: u64) -> Result<LangCode, MuxError> {
         let tic = self
             .get_mut_ti_cache(path, num)
-            .ok_or_else(|| "Unexpected None TICache")?;
+            .ok_or_else(|| "Unexpected None CacheMIOfFileTrack")?;
         let lang = tic
             .mkvinfo_cutted
             .as_ref()

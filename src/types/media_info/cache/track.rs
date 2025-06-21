@@ -1,8 +1,9 @@
-use super::{TICache, mkvinfo::Mkvinfo};
+use super::super::mkvinfo::Mkvinfo;
+use super::CacheMIOfFileTrack;
 use crate::{MuxError, TrackType};
 use log::trace;
 
-impl TICache {
+impl CacheMIOfFileTrack {
     pub fn try_init(
         num: u64,
         mkvmerge_id_line: String,
@@ -19,6 +20,7 @@ impl TICache {
         })
     }
 
+    #[inline(always)]
     fn init_track_type(mkvmerge_id_line: &str) -> Result<TrackType, MuxError> {
         for tt in TrackType::iter() {
             if mkvmerge_id_line.contains(tt.as_str_mkvtoolnix()) {

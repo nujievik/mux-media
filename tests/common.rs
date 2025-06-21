@@ -1,5 +1,4 @@
 use mux_media::*;
-use std::collections::HashMap;
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
@@ -43,7 +42,7 @@ where
     args.into_iter().map(|s| s.to_string()).collect()
 }
 
-pub fn cfg_args<F>(args: Vec<String>, path: &Path, cache: HashMap<PathBuf, MICache>) -> Vec<String>
+pub fn cfg_args<F>(args: Vec<String>, path: &Path, cache: CacheMI) -> Vec<String>
 where
     MuxConfig: GetField<F>,
     <MuxConfig as GetField<F>>::FieldType: ToMkvmergeArgs,

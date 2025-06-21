@@ -9,7 +9,8 @@ pub use run::run;
 
 pub use traits::{
     CLIArg, CLIArgs, GetField, GetOptField, IsDefault, MaxValue, MkvmergeArg, MkvmergeNoArg,
-    SetGetPathField, SetGetPathTrackField, ToMkvmergeArg, ToMkvmergeArgs, TryFinalizeInit, TryInit,
+    SetGetField, SetGetPathField, SetGetPathTrackField, ToMkvmergeArg, ToMkvmergeArgs,
+    TryFinalizeInit, TryInit,
 };
 
 pub use types::{
@@ -18,12 +19,16 @@ pub use types::{
     extensions::EXTENSIONS,
     input::Input,
     lang_code::LangCode,
-    // Get Field MediaInfo markers
-    media_info::set_get_field::{
-        MIAttachsInfo, MICharEncoding, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
-        MISavedTracks, MITILang, MITIName, MITargetGroup, MITargets, MITracksInfo,
+    media_info::{
+        MediaInfo,
+        cache::{CacheMI, CacheState},
+        // Get Field MediaInfo markers
+        set_get_field::{
+            MIAttachsInfo, MICharEncoding, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail,
+            MIRelativeUpmost, MISavedTracks, MITILang, MITIName, MITargetGroup, MITargets,
+            MITracksInfo,
+        },
     },
-    media_info::{CacheState, MICache, MediaInfo},
     media_number::MediaNumber,
     mux::{
         // Get Field MuxConfig markers

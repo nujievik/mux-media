@@ -1,7 +1,7 @@
-use super::AICache;
+use super::CacheMIOfFileAttach;
 use crate::{AttachType, MuxError};
 
-impl AICache {
+impl CacheMIOfFileAttach {
     pub fn try_init(num: u64, mkvmerge_id_line: String) -> Result<Self, MuxError> {
         let attach_type = Self::try_init_attach_type(&mkvmerge_id_line)?;
         Ok(Self {
@@ -11,7 +11,7 @@ impl AICache {
         })
     }
 
-    #[inline]
+    #[inline(always)]
     fn try_init_attach_type(mkvmerge_id_line: &str) -> Result<AttachType, MuxError> {
         for at in AttachType::iter() {
             if mkvmerge_id_line.contains(at.as_str_mkvtoolnix()) {

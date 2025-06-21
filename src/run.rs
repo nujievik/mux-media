@@ -34,9 +34,9 @@ fn mux(mc: &MuxConfig, output: &Output) -> Result<(), MuxError> {
             continue;
         }
 
-        mi.upd_stem(media.stem);
+        mi.upd_cmn_stem(media.stem);
         mi.try_insert_paths_with_filter(&media.files, exit_on_err)?;
-        if mi.is_empty() {
+        if mi.is_no_files() {
             warn!(
                 "No found any save Track or Attach for out '{}'. Skipping",
                 out.display()
@@ -56,7 +56,7 @@ fn mux(mc: &MuxConfig, output: &Output) -> Result<(), MuxError> {
                 args.push(f.into());
             });
 
-        if mi.len_cache() == 1 && args.len() == 3 {
+        if mi.len() == 1 && args.len() == 4 {
             warn!("No found any change for out. Skipping");
             continue;
         }

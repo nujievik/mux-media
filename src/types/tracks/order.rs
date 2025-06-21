@@ -48,7 +48,7 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
             return Err("Not found any cached Media".into());
         }
 
-        let paths: Vec<PathBuf> = mi.get_cache().keys().cloned().collect();
+        let paths: Vec<PathBuf> = mi.get_cache().of_files.keys().cloned().collect();
 
         let locale_lang = *mi.mc.get::<MCLocale>();
         let mut sorted: Vec<(usize, u64, TrackType, OrderSortKey)> = Vec::new();
