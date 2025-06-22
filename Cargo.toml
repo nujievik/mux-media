@@ -19,6 +19,7 @@ regex = "1"
 serde_json = "1.0"
 strum = "0.25"
 strum_macros = "0.25"
+supports-color = "3.0.2"
 walkdir = "2"
 
 [dev-dependencies]

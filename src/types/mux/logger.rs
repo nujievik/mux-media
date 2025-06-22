@@ -1,10 +1,12 @@
-use atty::Stream;
 use log::{Level, LevelFilter, Log, Metadata, Record};
+use once_cell::sync::Lazy;
 use std::io::{self, Write};
 use std::sync::Once;
+use supports_color::Stream;
 
 static LOGGER: MuxLogger = MuxLogger;
 static INIT: Once = Once::new();
+static STDERR_ON_COLOR: Lazy<bool> = Lazy::new(|| supports_color::on(Stream::Stderr).is_some());
 
 pub struct MuxLogger;
 
@@ -28,24 +30,12 @@ impl Log for MuxLogger {
             return;
         }
 
-        match record.level() {
+        let level = record.level();
+
+        match level {
             Level::Error | Level::Warn => {
-                let color = if atty::is(Stream::Stderr) {
-                    record_level_to_color(record.level())
-                } else {
-                    ""
-                };
-                let reset = if color.is_empty() { "" } else { "\x1b[0m" };
-
-                let msg = format!(
-                    "{}{}{}: {}\n",
-                    color,
-                    record_level_to_str(record.level()),
-                    reset,
-                    record.args()
-                );
+                let msg = format!("{}{}", get_stderr_color_prefix(level), record.args());
                 let msg = msg.as_bytes();
-
                 let _ = io::stderr()
                     .write_all(msg)
                     .or_else(|_| io::stdout().write_all(msg));
@@ -60,20 +50,16 @@ impl Log for MuxLogger {
     fn flush(&self) {}
 }
 
-#[inline]
-fn record_level_to_color(level: Level) -> &'static str {
+/// Returns a colored or plain log level prefix for stderr output.
+///
+/// Only `Error` and `Warn` levels return a non-empty string. ANSI color codes
+/// are applied if stderr supports them.
+pub(crate) fn get_stderr_color_prefix(level: log::Level) -> &'static str {
     match level {
-        Level::Error => "\x1b[31m", // Red
-        Level::Warn => "\x1b[33m",  // Yellow/Orange
-        _ => "\x1b[32m",            // Green
-    }
-}
-
-#[inline]
-fn record_level_to_str(level: Level) -> &'static str {
-    match level {
-        Level::Error => "Error",
-        Level::Warn => "Warning",
+        Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",
+        Level::Error => "Error: ",
+        Level::Warn if *STDERR_ON_COLOR => "\x1b[33mWarning\x1b[0m: ",
+        Level::Warn => "Warning: ",
         _ => "",
     }
 }

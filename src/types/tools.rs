@@ -107,7 +107,13 @@ impl Tools {
                     Some(vec)
                 }
                 Err(e) => {
-                    warn!("{}", Msg::FailWriteJson { s: &e });
+                    warn!(
+                        "{}: {}. {} CLI ({})",
+                        Msg::ErrWriteJson,
+                        e,
+                        Msg::Using,
+                        Msg::MayFailIfCommandLong
+                    );
                     command.args(args);
                     None
                 }
@@ -151,23 +157,25 @@ impl<'a> fmt::Display for CommandDisplay<'a> {
 fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
     let tool_str: &str = tool.as_ref();
 
+    let err = || -> MuxError {
+        [
+            (Msg::NotFound, format!(" '{}' (", tool_str)),
+            (Msg::FromPackage, format!(" '{}'). ", tool.as_str_package())),
+            (Msg::InstallTool, String::new()),
+        ]
+        .as_slice()
+        .into()
+    };
+
     #[cfg(unix)]
     {
-        if Command::new(tool_str)
+        Command::new(tool_str)
             .arg("-h")
             .output()
-            .map(|o| o.status.success())
-            .unwrap_or(false)
-        {
-            Ok(PathBuf::from(tool_str))
-        } else {
-            Err(Msg::FailSetPaths {
-                s: tool_str,
-                s1: tool.as_str_package(),
-            }
-            .to_string()
-            .into())
-        }
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|_| PathBuf::from(tool_str))
+            .ok_or_else(err)
     }
 
     #[cfg(windows)]
@@ -192,15 +200,10 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
                 .arg("-h")
                 .output()
                 .map(|o| o.status.success())
-                .unwrap_or(false)
+                .unwrap_or_default()
         }) {
             Some(valid_path) => Ok(valid_path),
-            None => Err(Msg::FailSetPaths {
-                s: tool_str,
-                s1: tool.as_str_package(),
-            }
-            .to_string()
-            .into()),
+            None => Err(err()),
         }
     }
 }

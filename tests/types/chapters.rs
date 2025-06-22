@@ -25,7 +25,7 @@ fn test_try_from_path() {
 }
 
 fn err_msg(file: &str) -> String {
-    try_new(file).unwrap_err().message.unwrap()
+    format!("{}", try_new(file).unwrap_err())
 }
 
 #[test]

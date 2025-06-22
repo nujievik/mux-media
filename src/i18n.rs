@@ -8,28 +8,38 @@ use std::sync::Mutex;
 
 static LANG_CODE: Lazy<Mutex<LangCode>> = Lazy::new(|| Mutex::new(LangCode::init()));
 
-pub enum Msg<'a> {
+#[derive(Copy, Clone, Debug)]
+pub enum Msg {
     ErrUpdLangCode,
-    FailSetPaths { s: &'a str, s1: &'a str },
-    FailWriteJson { s: &'a str },
-    NoInputFiles,
+    ErrWriteJson,
+    FromPackage,
+    InstallTool,
+    MayFailIfCommandLong,
+    NoInputMedia,
+    NotFound,
     RunningCommand,
     Using,
 }
 
-impl fmt::Display for Msg<'_> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let msg = match Self::get_lang_code() {
-            LangCode::Eng => eng::eng(self),
-            LangCode::Rus => rus::rus(self),
-            _ => eng::eng(self),
-        };
-
-        write!(f, "{}", msg)
+impl fmt::Display for Msg {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_str())
     }
 }
 
-impl<'a> Msg<'a> {
+impl Msg {
+    pub fn to_str_eng(self) -> &'static str {
+        eng::eng(self)
+    }
+
+    pub fn to_str(self) -> &'static str {
+        match Self::get_lang_code() {
+            LangCode::Eng => eng::eng(self),
+            LangCode::Rus => rus::rus(self),
+            _ => eng::eng(self),
+        }
+    }
+
     pub fn get_lang_code() -> LangCode {
         LANG_CODE
             .lock()
@@ -53,15 +63,15 @@ impl<'a> Msg<'a> {
         Self::try_upd_lang_code(lang).unwrap_or_else(|e| {
             log::warn!(
                 "{}: {}. {} '{}'",
-                Msg::ErrUpdLangCode,
+                Self::ErrUpdLangCode,
                 e,
-                Msg::Using,
-                Msg::get_lang_code()
+                Self::Using,
+                Self::get_lang_code()
             )
         })
     }
 
-    #[inline]
+    #[inline(always)]
     fn is_supported_lang(lang: LangCode) -> bool {
         match lang {
             LangCode::Eng => true,

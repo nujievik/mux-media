@@ -8,7 +8,7 @@ use std::collections::{BTreeSet, HashMap};
 use std::ffi::OsString;
 use std::path::PathBuf;
 
-#[derive(Clone, Default, PartialEq)]
+#[derive(Clone, Default, Debug, PartialEq)]
 pub enum CacheState<T> {
     #[default]
     NotCached,

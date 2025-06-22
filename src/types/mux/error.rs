@@ -1,28 +1,66 @@
+use super::logger::get_stderr_color_prefix;
+use crate::{LangCode, Msg};
 use clap::parser::MatchesError;
-
-#[derive(Debug)]
-pub enum MuxErrorKind {
-    InvalidValue,
-    MatchesErrorDowncast,
-    MatchesErrorUnknownArgument,
-    Unknown,
-}
-
-impl Default for MuxErrorKind {
-    fn default() -> Self {
-        Self::Unknown
-    }
-}
+use std::fmt;
 
 #[derive(Debug)]
 pub struct MuxError {
-    pub message: Option<String>,
+    message: Option<MuxErrorMessage>,
     pub code: i32,
     pub kind: MuxErrorKind,
 }
 
-impl std::fmt::Display for MuxError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+#[derive(Debug, Default)]
+pub enum MuxErrorKind {
+    InvalidValue,
+    MatchesErrorDowncast,
+    MatchesErrorUnknownArgument,
+    #[default]
+    Unknown,
+}
+
+#[derive(Debug)]
+enum MuxErrorMessage {
+    String(String),
+    I18n(MuxErrorMessageI18n),
+}
+
+impl MuxErrorMessage {
+    fn as_str(&self) -> &str {
+        match self {
+            Self::String(s) => s,
+            Self::I18n(i18n) => &i18n.eng,
+        }
+    }
+
+    fn as_str_localized(&self) -> &str {
+        match self {
+            Self::String(s) => s,
+            Self::I18n(i18n) => match &i18n.localized {
+                Some(s) => s,
+                None => &i18n.eng,
+            },
+        }
+    }
+}
+
+#[derive(Debug)]
+struct MuxErrorMessageI18n {
+    eng: String,
+    localized: Option<String>,
+}
+
+impl fmt::Display for MuxErrorMessage {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Self::String(s) => write!(f, "{}", s),
+            Self::I18n(i18n) => write!(f, "{}", i18n.eng),
+        }
+    }
+}
+
+impl fmt::Display for MuxError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match &self.message {
             Some(msg) => write!(f, "{}", msg),
             None => write!(f, ""),
@@ -32,16 +70,22 @@ impl std::fmt::Display for MuxError {
 
 impl std::error::Error for MuxError {}
 
-impl MuxError {
-    pub fn new() -> Self {
+impl Default for MuxError {
+    fn default() -> Self {
         Self {
             message: None,
             code: 1,
             kind: MuxErrorKind::default(),
         }
     }
+}
 
-    pub fn ok() -> Self {
+impl MuxError {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn new_ok() -> Self {
         Self::new().code(0)
     }
 
@@ -50,7 +94,7 @@ impl MuxError {
     }
 
     pub fn message(mut self, msg: impl ToString) -> Self {
-        self.message = Some(msg.to_string());
+        self.message = Some(MuxErrorMessage::String(msg.to_string()));
         self
     }
 
@@ -68,13 +112,24 @@ impl MuxError {
         self.code != 0
     }
 
+    #[inline(always)]
+    fn print_in_stderr_or_stdout(&self, msg: &str) {
+        if self.use_stderr() {
+            eprintln!("{}{}", get_stderr_color_prefix(log::Level::Error), msg);
+        } else {
+            println!("{}", msg);
+        }
+    }
+
     pub fn print(&self) {
         if let Some(msg) = &self.message {
-            if self.use_stderr() {
-                eprintln!("{}", msg);
-            } else {
-                println!("{}", msg);
-            }
+            self.print_in_stderr_or_stdout(msg.as_str())
+        }
+    }
+
+    pub fn print_localized(&self) {
+        if let Some(msg) = &self.message {
+            self.print_in_stderr_or_stdout(msg.as_str_localized())
         }
     }
 }
@@ -90,6 +145,51 @@ impl From<&str> for MuxError {
         Self::new().message(s)
     }
 }
+
+macro_rules! from_slice_msg_opt {
+    ($ty_opt:ty) => {
+        impl From<&[(Msg, $ty_opt)]> for MuxErrorMessageI18n {
+            fn from(slice: &[(Msg, $ty_opt)]) -> Self {
+                let build = |is_eng: bool| {
+                    slice
+                        .iter()
+                        .map(|(msg, opt)| {
+                            let msg = if is_eng {
+                                msg.to_str_eng()
+                            } else {
+                                msg.to_str()
+                            };
+                            format!("{}{}", msg, opt)
+                        })
+                        .collect::<String>()
+                };
+
+                let eng = build(true);
+
+                let localized = match Msg::get_lang_code() {
+                    LangCode::Eng => None,
+                    _ => Some(build(false)),
+                };
+
+                Self { eng, localized }
+            }
+        }
+
+        impl From<&[(Msg, $ty_opt)]> for MuxError {
+            fn from(slice: &[(Msg, $ty_opt)]) -> Self {
+                let i18n: MuxErrorMessageI18n = slice.into();
+                Self {
+                    message: Some(MuxErrorMessage::I18n(i18n)),
+                    code: 1,
+                    ..Default::default()
+                }
+            }
+        }
+    };
+}
+
+from_slice_msg_opt!(String);
+from_slice_msg_opt!(&str);
 
 impl From<clap::Error> for MuxError {
     fn from(err: clap::Error) -> Self {

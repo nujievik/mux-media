@@ -1,18 +1,16 @@
 use super::Msg;
 
-pub(super) fn rus(msg: &Msg) -> String {
+#[inline(always)]
+pub(super) fn rus(msg: Msg) -> &'static str {
     match msg {
-        Msg::ErrUpdLangCode => "Не удалось обновить код языка".into(),
-        Msg::FailSetPaths { s, s1 } => format!(
-            "'{}' из пакета '{}' не установлен. Пожалуйста, установите его, добавьте в системный PATH и перезапустите",
-            s, s1
-        ),
-        Msg::FailWriteJson { s } => format!(
-            "Не удалось записать команду в JSON: {}. Используем CLI (может привести к ошибке, если команда слишком длинная)",
-            s
-        ),
-        Msg::NoInputFiles => "Не найдены файлы с треками во входящей директории".to_string(),
-        Msg::RunningCommand => "Выполнение команды".into(),
+        Msg::ErrUpdLangCode => "Не удалось обновить код языка",
+        Msg::ErrWriteJson => "Ошибка записи команды в JSON",
+        Msg::FromPackage => "Из пакета",
+        Msg::InstallTool => "Пожалуйста, установите его, добавьте в системный PATH и перезапустите",
+        Msg::MayFailIfCommandLong => "Может привести к ошибке если команда длинная",
+        Msg::NoInputMedia => "Не найдены медиа во входной директории",
+        Msg::NotFound => "Не найден",
+        Msg::RunningCommand => "Выполнение команды",
         Msg::Using => "Используется".into(),
     }
 }

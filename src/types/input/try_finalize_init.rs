@@ -13,12 +13,12 @@ impl TryFinalizeInit for Input {
 }
 
 impl Input {
-    #[inline]
+    #[inline(always)]
     fn upd_dirs(&mut self) {
         self.dirs = DirIter::new(&self.upmost, self.down, self.skip.as_ref()).collect();
     }
 
-    #[inline]
+    #[inline(always)]
     fn try_upd_upmost(&mut self) -> Result<(), MuxError> {
         if self.up == 0 {
             return Ok(());
@@ -31,7 +31,9 @@ impl Input {
         let stems: Vec<&OsStr> = files.iter().filter_map(|path| path.file_stem()).collect();
 
         if stems.is_empty() {
-            return Err(format!("{}: {}", Msg::NoInputFiles, self.dir.display()).into());
+            return Err([(Msg::NoInputMedia, format!(": {}", self.dir.display()))]
+                .as_slice()
+                .into());
         }
 
         let parent_dirs: Vec<PathBuf> = (1..=self.up)
@@ -54,7 +56,7 @@ impl Input {
         Ok(())
     }
 
-    #[inline]
+    #[inline(always)]
     fn check_dir(&self, dir: &Path, stems: &[&OsStr]) -> bool {
         self.iter_media_in_dir(dir)
             .take(self.check as usize)

@@ -11,18 +11,18 @@ impl TryInit for RawMuxConfig {
 
         if cfg.list_langs {
             LangCode::print_list_langs();
-            return Err(MuxError::ok());
+            return Err(MuxError::new_ok());
         }
 
         if cfg.list_targets {
             // add fn print_list_targets()
-            return Err(MuxError::ok());
+            return Err(MuxError::new_ok());
         }
 
         if let Some((tool, args)) = cfg.call_tool {
             let tools = Tools::try_from([tool])?;
             let msg = tools.run(tool, args, None)?;
-            return Err(MuxError::ok().message(msg));
+            return Err(MuxError::new_ok().message(msg));
         }
 
         Ok(cfg)
