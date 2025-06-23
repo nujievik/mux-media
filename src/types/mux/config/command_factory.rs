@@ -6,7 +6,7 @@ mod retiming;
 mod target;
 mod val_parsers;
 
-use super::{MuxConfig, TargetMuxConfig};
+use super::{MuxConfig, MuxConfigTarget};
 use clap::{Command, CommandFactory};
 
 impl CommandFactory for MuxConfig {
@@ -28,7 +28,7 @@ impl CommandFactory for MuxConfig {
     }
 }
 
-impl CommandFactory for TargetMuxConfig {
+impl CommandFactory for MuxConfigTarget {
     fn command() -> Command {
         Blocks::new().target().version().help().into()
     }

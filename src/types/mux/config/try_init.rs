@@ -1,4 +1,4 @@
-use super::{MuxConfig, RawMuxConfig, TargetMuxConfig};
+use super::{MuxConfig, MuxConfigTarget, RawMuxConfig};
 use crate::{MuxError, Target, TryFinalizeInit, TryInit};
 use clap::{CommandFactory, FromArgMatches};
 use std::collections::HashMap;
@@ -41,21 +41,21 @@ impl MuxConfig {
         &mut self,
         trg_args: HashMap<Target, Vec<OsString>>,
     ) -> Result<(), MuxError> {
-        let cmd = TargetMuxConfig::command();
+        let cmd = MuxConfigTarget::command();
         let len_trg_args = trg_args.len();
-        let mut targets: HashMap<Target, TargetMuxConfig> = HashMap::with_capacity(len_trg_args);
+        let mut targets: HashMap<Target, MuxConfigTarget> = HashMap::with_capacity(len_trg_args);
 
         let mut count = 1;
         for (trg, args) in trg_args {
             if count == len_trg_args {
                 let mut matches = cmd.try_get_matches_from(args)?;
-                let cfg = TargetMuxConfig::from_arg_matches_mut(&mut matches)?;
+                let cfg = MuxConfigTarget::from_arg_matches_mut(&mut matches)?;
                 targets.insert(trg, cfg);
                 break; // break because is last
             } else {
                 // Diff is cmd.clone() and not break
                 let mut matches = cmd.clone().try_get_matches_from(args)?;
-                let cfg = TargetMuxConfig::from_arg_matches_mut(&mut matches)?;
+                let cfg = MuxConfigTarget::from_arg_matches_mut(&mut matches)?;
                 targets.insert(trg, cfg);
             }
             count += 1;

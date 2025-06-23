@@ -1,4 +1,4 @@
-use super::{MuxConfig, TargetMuxConfig};
+use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
     GetField, GetOptField, Input, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials,
@@ -19,7 +19,7 @@ get_fields! {
 }
 
 get_fields! {
-    MuxConfig, TargetMuxConfig;
+    MuxConfig, MuxConfigTarget;
     audio_tracks, AudioTracks => MCAudioTracks,
     sub_tracks, SubTracks => MCSubTracks,
     video_tracks, VideoTracks => MCVideoTracks,
@@ -46,12 +46,12 @@ impl MuxConfig {
     pub fn get_trg<F>(&self, targets: &[Target]) -> &<Self as GetField<F>>::FieldType
     where
         Self: GetField<F>,
-        TargetMuxConfig: GetOptField<F, FieldType = <Self as GetField<F>>::FieldType>,
+        MuxConfigTarget: GetOptField<F, FieldType = <Self as GetField<F>>::FieldType>,
     {
         if let Some(map) = self.targets.as_ref() {
             for target in targets {
                 if let Some(tgt_cfg) = map.get(target) {
-                    if let Some(value) = <TargetMuxConfig as GetOptField<F>>::get(tgt_cfg) {
+                    if let Some(value) = <MuxConfigTarget as GetOptField<F>>::get(tgt_cfg) {
                         return value;
                     }
                 }

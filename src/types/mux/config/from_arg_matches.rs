@@ -1,4 +1,4 @@
-use super::{MuxConfig, TargetMuxConfig};
+use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
     Input, IsDefault, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks,
@@ -58,7 +58,7 @@ impl clap::FromArgMatches for MuxConfig {
     }
 }
 
-impl clap::FromArgMatches for TargetMuxConfig {
+impl clap::FromArgMatches for MuxConfigTarget {
     from_arg_matches!(@unrealized_fns);
 
     fn from_arg_matches_mut(matches: &mut clap::ArgMatches) -> Result<Self, clap::Error> {

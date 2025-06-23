@@ -47,7 +47,7 @@ fn mux(mc: &MuxConfig, output: &Output) -> Result<(), MuxError> {
         let mut args: Vec<OsString> = Vec::new();
         args.push("-o".into());
         args.push(out.into());
-        mi.extend_vec_os_mkvmerge_args(&mut args);
+        mi.append_vec_os_mkvmerge_args(&mut args);
         fonts
             .get_or_insert_with(|| input.collect_fonts())
             .iter()

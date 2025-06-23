@@ -11,15 +11,15 @@ use std::path::{Path, PathBuf};
 impl MediaInfo<'_> {
     pub fn collect_os_mkvmerge_args(&mut self) -> Vec<OsString> {
         let mut args: Vec<OsString> = Vec::new();
-        self.extend_vec_os_mkvmerge_args(&mut args);
+        self.append_vec_os_mkvmerge_args(&mut args);
         args
     }
 
-    pub fn extend_vec_os_mkvmerge_args(&mut self, args: &mut Vec<OsString>) {
+    pub fn append_vec_os_mkvmerge_args(&mut self, args: &mut Vec<OsString>) {
         match self.init_track_order() {
             Ok(order) => {
                 // self and Path unused, just trait requirements
-                args.extend(order.to_os_mkvmerge_args(self, Path::new("")));
+                args.append(&mut order.to_os_mkvmerge_args(self, Path::new("")));
 
                 let (mut paths, i_num_type) = (order.paths, order.i_num_type);
                 let mut path_args: Vec<Vec<OsString>> = vec![Vec::new(); paths.len()];
@@ -76,8 +76,8 @@ impl MediaInfo<'_> {
                 for (i, _, _) in i_num_type {
                     if !added[i] {
                         added[i] = true;
-                        extend_file_args(args, self, &paths[i]);
-                        args.extend(std::mem::take(&mut path_args[i]));
+                        append_target_args(args, self, &paths[i]);
+                        args.append(&mut std::mem::take(&mut path_args[i]));
                         args.push(std::mem::take(&mut paths[i]).into_os_string());
                     }
                 }
@@ -87,7 +87,7 @@ impl MediaInfo<'_> {
                 log::warn!("{}", e);
                 let paths: Vec<PathBuf> = self.cache.of_files.keys().cloned().collect();
                 for path in paths {
-                    extend_file_args(args, self, &path);
+                    append_target_args(args, self, &path);
                     args.push(path.into_os_string());
                 }
             }
@@ -100,58 +100,25 @@ impl MediaInfo<'_> {
     }
 }
 
-fn extend_file_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, path: &Path) {
-    let targets = match mi.get::<MITargets>(path) {
-        Some(targets) => targets.clone(),
-        None => return,
-    };
+macro_rules! append_target_args {
+    ($args:expr, $mi:ident, $path:expr; $( $field:ident ),*) => {$(
+        if let Some(targets) = $mi.unmut_get::<MITargets>($path) {
+            let mut args = $mi.mc.get_trg::<$field>(targets).to_os_mkvmerge_args($mi, $path);
+            $args.append(&mut args);
+        }
+    )*};
+}
 
-    args.extend(
-        mi.mc
-            .get_trg::<MCAudioTracks>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
-    args.extend(
-        mi.mc
-            .get_trg::<MCSubTracks>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
-    args.extend(
-        mi.mc
-            .get_trg::<MCVideoTracks>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
-    args.extend(
-        mi.mc
-            .get_trg::<MCButtonTracks>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
+fn append_target_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, path: &Path) {
+    // Cache MITargets if need. Immediate return if None
+    if let None = mi.get::<MITargets>(path) {
+        return;
+    }
 
-    args.extend(
-        mi.mc
-            .get_trg::<MCChapters>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
-    // Adds fonts and other attachs both
-    args.extend(
-        mi.mc
-            .get_trg::<MCFontAttachs>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
-
-    args.extend(
-        mi.mc
-            .get_trg::<MCTrackNames>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
-    args.extend(
-        mi.mc
-            .get_trg::<MCTrackLangs>(&targets)
-            .to_os_mkvmerge_args(mi, path),
-    );
-    args.extend(
-        mi.mc
-            .get_trg::<MCSpecials>(&targets)
-            .to_os_mkvmerge_args(mi, path),
+    append_target_args!(
+        args, mi, path;
+        MCAudioTracks, MCSubTracks, MCVideoTracks, MCButtonTracks,
+        MCChapters, MCFontAttachs, MCTrackNames, MCTrackLangs,
+        MCSpecials
     );
 }

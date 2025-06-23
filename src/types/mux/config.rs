@@ -41,11 +41,11 @@ pub struct MuxConfig {
     track_names: TrackNames,
     track_langs: TrackLangs,
     specials: Specials,
-    targets: Option<HashMap<Target, TargetMuxConfig>>,
+    targets: Option<HashMap<Target, MuxConfigTarget>>,
     tools: Tools,
 }
 
-pub struct TargetMuxConfig {
+pub struct MuxConfigTarget {
     audio_tracks: Option<AudioTracks>,
     sub_tracks: Option<SubTracks>,
     video_tracks: Option<VideoTracks>,

@@ -11,6 +11,6 @@ pub(super) fn rus(msg: Msg) -> &'static str {
         Msg::NoInputMedia => "Не найдены медиа во входной директории",
         Msg::NotFound => "Не найден",
         Msg::RunningCommand => "Выполнение команды",
-        Msg::Using => "Используется".into(),
+        Msg::Using => "Используется",
     }
 }
