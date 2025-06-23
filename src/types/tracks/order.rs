@@ -48,57 +48,57 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
             return Err("Not found any cached Media".into());
         }
 
-        let paths: Vec<PathBuf> = mi.get_cache().of_files.keys().cloned().collect();
+        let mut paths: Vec<PathBuf> = mi.get_cache().of_files.keys().cloned().collect();
+        paths.sort(); // First sort by names
 
-        let locale_lang = *mi.mc.get::<MCLocale>();
-        let mut sorted: Vec<(usize, u64, TrackType, OrderSortKey)> = Vec::new();
+        let i_num_type = {
+            let locale_lang = *mi.mc.get::<MCLocale>();
+            let mut to_sort: Vec<(usize, u64, TrackType, OrderSortKey)> = Vec::new();
 
-        let mut i: usize = 0;
-        for path in &paths {
-            let num_types: Vec<(u64, TrackType)> = mi
-                .try_get::<MISavedTracks>(path)?
-                .iter()
-                .flat_map(|(tt, nums)| nums.iter().map(move |num| (*num, tt)))
-                .collect();
+            for (i, path) in paths.iter().enumerate() {
+                let num_types: Vec<(u64, TrackType)> = mi
+                    .try_get::<MISavedTracks>(path)?
+                    .iter()
+                    .flat_map(|(tt, nums)| nums.iter().map(move |num| (*num, tt)))
+                    .collect();
 
-            let target_group = *mi.try_get::<MITargetGroup>(path)?;
-            let targets = unmut_get!(@try, mi, MITargets, path)?;
+                let target_group = *mi.try_get::<MITargetGroup>(path)?;
+                let targets = unmut_get!(@try, mi, MITargets, path)?;
 
-            let defaults = mi.mc.get_trg::<MCDefaultTFlags>(targets);
-            let forceds = mi.mc.get_trg::<MCForcedTFlags>(targets);
-            let enableds = mi.mc.get_trg::<MCEnabledTFlags>(targets);
+                let defaults = mi.mc.get_trg::<MCDefaultTFlags>(targets);
+                let forceds = mi.mc.get_trg::<MCForcedTFlags>(targets);
+                let enableds = mi.mc.get_trg::<MCEnabledTFlags>(targets);
 
-            for (num, ttype) in num_types {
-                let tid = TrackID::Num(num);
-                let lang = *mi.try_get_ti::<MITILang>(path, num)?;
-                let lang_tid = TrackID::Lang(lang);
+                for (num, ttype) in num_types {
+                    let tid = TrackID::Num(num);
+                    let lang = *mi.try_get_ti::<MITILang>(path, num)?;
+                    let lang_tid = TrackID::Lang(lang);
 
-                let default = defaults.get(&tid).or_else(|| defaults.get(&lang_tid));
-                let forced = forceds.get(&tid).or_else(|| forceds.get(&lang_tid));
-                let enabled = enableds.get(&tid).or_else(|| enableds.get(&lang_tid));
+                    let default = defaults.get(&tid).or_else(|| defaults.get(&lang_tid));
+                    let forced = forceds.get(&tid).or_else(|| forceds.get(&lang_tid));
+                    let enabled = enableds.get(&tid).or_else(|| enableds.get(&lang_tid));
 
-                let key = OrderSortKey::new(
-                    ttype,
-                    default,
-                    forced,
-                    enabled,
-                    target_group,
-                    lang,
-                    locale_lang,
-                );
+                    let key = OrderSortKey::new(
+                        ttype,
+                        default,
+                        forced,
+                        enabled,
+                        target_group,
+                        lang,
+                        locale_lang,
+                    );
 
-                sorted.push((i, num, ttype, key));
+                    to_sort.push((i, num, ttype, key));
+                }
             }
 
-            i += 1;
-        }
+            to_sort.sort_by(|a, b| a.3.cmp(&b.3));
 
-        sorted.sort_by(|a, b| a.3.cmp(&b.3));
-
-        let i_num_type: Vec<(usize, u64, TrackType)> = sorted
-            .into_iter()
-            .map(|(i, num, ttype, _)| (i, num, ttype))
-            .collect();
+            to_sort
+                .into_iter()
+                .map(|(i, num, ttype, _)| (i, num, ttype))
+                .collect()
+        };
 
         Ok(Self { paths, i_num_type })
     }
