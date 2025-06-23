@@ -7,7 +7,6 @@ pub trait CLIArgs {
 
 pub trait CLIArg {
     fn as_long(self) -> &'static str;
-    fn to_mkvmerge(self) -> Option<&'static str>;
 }
 
 pub trait MkvmergeArg {

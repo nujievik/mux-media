@@ -1,4 +1,7 @@
-use crate::{CLIArg, MuxError, ToMkvmergeArgs, cli_args, from_arg_matches, to_mkvmerge_args};
+use crate::{
+    MuxError, ToMkvmergeArgs, cli_args, from_arg_matches, mkvmerge_arg, mkvmerge_no_arg,
+    to_mkvmerge_args,
+};
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -27,8 +30,9 @@ impl Chapters {
     }
 }
 
-cli_args!(Chapters, ChaptersArg; Chapters => "chapters", "--chapters",
-          NoChapters => "no-chapters", "--no-chapters");
+cli_args!(Chapters, ChaptersArg; Chapters => "chapters", NoChapters => "no-chapters");
+mkvmerge_arg!(Chapters, "--chapters");
+mkvmerge_no_arg!(Chapters, "--no-chapters");
 
 impl clap::FromArgMatches for Chapters {
     from_arg_matches!(@unrealized_fns);
@@ -39,15 +43,14 @@ impl ToMkvmergeArgs for Chapters {
     to_mkvmerge_args!(@fn);
 
     fn to_os_mkvmerge_args(&self, _: &mut crate::MediaInfo, _: &Path) -> Vec<std::ffi::OsString> {
-        use crate::traits::IsDefault;
+        use crate::{IsDefault, MkvmergeArg, MkvmergeNoArg};
 
         if self.is_default() {
             Vec::new()
         } else if self.no_flag {
-            let arg = to_mkvmerge_args!(@cli_arg, NoChapters);
-            vec![arg.into()]
+            vec![Self::MKVMERGE_NO_ARG.into()]
         } else if let Some(file) = &self.file {
-            let arg = to_mkvmerge_args!(@cli_arg, Chapters);
+            let arg = Self::MKVMERGE_ARG;
             let file = file.as_os_str().to_os_string();
             vec![arg.into(), file]
         } else {

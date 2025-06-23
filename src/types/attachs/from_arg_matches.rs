@@ -1,7 +1,6 @@
-use super::{Attachs, FontAttachs, OtherAttachs};
+use super::{FontAttachs, OtherAttachs};
 use crate::{cli_args, from_arg_matches};
 
-cli_args!(Attachs, AttachsArg; Attachs => "", "-m", NoAttachs => "", "-M");
 cli_args!(FontAttachs, FontAttachsArg; Fonts => "fonts", NoFonts => "no-fonts");
 cli_args!(OtherAttachs, OtherAttachsArg; Attachs => "attachs", NoAttachs => "no-attachs");
 

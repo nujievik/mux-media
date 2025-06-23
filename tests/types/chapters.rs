@@ -13,6 +13,17 @@ fn try_new(file: &str) -> Result<Chapters, MuxError> {
 }
 
 #[test]
+fn test_cli_args() {
+    test_cli_args!(Chapters; Chapters => "chapters", NoChapters => "no-chapters");
+}
+
+#[test]
+fn test_mkvmerge_args() {
+    assert_eq!("--chapters", Chapters::MKVMERGE_ARG);
+    assert_eq!("--no-chapters", Chapters::MKVMERGE_NO_ARG);
+}
+
+#[test]
 fn test_is_default() {
     assert!(Chapters::default().is_default());
     assert!(!new("srt.srt").is_default());
@@ -32,12 +43,6 @@ fn err_msg(file: &str) -> String {
 fn test_err_messages() {
     assert_eq!("Is not a file", err_msg(""));
     assert!(err_msg("missing").contains("No such file or directory"));
-}
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(Chapters; Chapters => "chapters", "--chapters",
-                   NoChapters => "no-chapters", "--no-chapters");
 }
 
 fn_variants_of_args!("-c" => vec!["--chapters"], "-C" => vec!["--no-chapters"]);

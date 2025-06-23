@@ -13,9 +13,11 @@ pub struct MuxLogger;
 impl MuxLogger {
     pub fn init_with_filter(filter: LevelFilter) {
         INIT.call_once(|| {
+            // set_logger() returns Err if a logger has already been set.
+            // That means Err is excluded because used INIT.call_once()
             log::set_logger(&LOGGER)
                 .map(|()| log::set_max_level(filter))
-                .unwrap();
+                .unwrap_or_else(|_| eprintln!("Unexpected repeat set_logger()"));
         });
     }
 }

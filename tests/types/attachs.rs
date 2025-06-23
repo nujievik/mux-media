@@ -14,9 +14,14 @@ fn new_other(args: &[&str]) -> OtherAttachs {
 
 #[test]
 fn test_cli_args() {
-    test_cli_args!(Attachs; Attachs => "", "-m", NoAttachs => "", "-M");
     test_cli_args!(FontAttachs; Fonts => "fonts", NoFonts => "no-fonts");
     test_cli_args!(OtherAttachs; Attachs => "attachs", NoAttachs => "no-attachs");
+}
+
+#[test]
+fn test_mkvmerge_args() {
+    assert_eq!("-m", Attachs::MKVMERGE_ARG);
+    assert_eq!("-M", Attachs::MKVMERGE_NO_ARG);
 }
 
 #[test]

@@ -23,7 +23,7 @@ macro_rules! cli_args {
             type Arg = $enum_arg;
         }
 
-        #[derive(Clone, Copy)]
+        #[derive(Copy, Clone)]
         pub enum $enum_arg {
             $( $arg ),*
         }
@@ -39,12 +39,6 @@ macro_rules! cli_args {
                     $( Self::$arg => $long ),*
                 }
             }
-
-            fn to_mkvmerge(self) -> Option<&'static str> {
-                match self {
-                    $( Self::$arg => Some($mkvmerge) ),*
-                }
-            }
         }
     };
 
@@ -56,10 +50,6 @@ macro_rules! cli_args {
                 match self {
                     $( Self::$arg => $long ),*
                 }
-            }
-
-            fn to_mkvmerge(self) -> Option<&'static str> {
-                None
             }
         }
     };

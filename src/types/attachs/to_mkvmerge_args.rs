@@ -1,10 +1,14 @@
 use super::{Attachs, FontAttachs, OtherAttachs, id::AttachID};
 use crate::{
-    AttachType, CLIArg, IsDefault, MCFontAttachs, MCOtherAttachs, MIAttachsInfo, MITargets,
-    MediaInfo, ToMkvmergeArg, ToMkvmergeArgs, to_mkvmerge_args, unmut_get, unwrap_or_return_vec,
+    AttachType, IsDefault, MCFontAttachs, MCOtherAttachs, MIAttachsInfo, MITargets, MediaInfo,
+    MkvmergeArg, MkvmergeNoArg, ToMkvmergeArg, ToMkvmergeArgs, mkvmerge_arg, mkvmerge_no_arg,
+    to_mkvmerge_args, unmut_get, unwrap_or_return_vec,
 };
 use std::collections::BTreeSet;
 use std::path::Path;
+
+mkvmerge_arg!(Attachs, "-m");
+mkvmerge_no_arg!(Attachs, "-M");
 
 impl ToMkvmergeArg for AttachID {
     fn to_mkvmerge_arg(&self) -> String {
@@ -68,10 +72,9 @@ impl ToMkvmergeArgs for Attachs {
         }
 
         if nums.is_empty() {
-            let no_arg = to_mkvmerge_args!(@cli_arg, NoAttachs);
-            vec![no_arg]
+            vec![Self::MKVMERGE_NO_ARG.into()]
         } else {
-            let arg = to_mkvmerge_args!(@cli_arg, Attachs);
+            let arg: String = Self::MKVMERGE_ARG.into();
             let nums = shortest_track_nums(nums, cnt, cnt_init);
             vec![arg, nums]
         }

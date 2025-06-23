@@ -4,15 +4,6 @@ macro_rules! test_cli_args {
     $( $arg:ident => $long:expr ),* $(,)?) => {{
         $(
             assert_eq!($long, <$type as mux_media::CLIArgs>::Arg::$arg.as_long());
-            assert_eq!(None, <$type as mux_media::CLIArgs>::Arg::$arg.to_mkvmerge());
-        )*
-    }};
-
-    ($type:ident;
-    $( $arg:ident => $long:expr, $mkvmerge:expr ),* $(,)?) => {{
-        $(
-            assert_eq!($long, <$type as mux_media::CLIArgs>::Arg::$arg.as_long());
-            assert_eq!(Some($mkvmerge), <$type as mux_media::CLIArgs>::Arg::$arg.to_mkvmerge());
         )*
     }};
 }

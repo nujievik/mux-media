@@ -1,17 +1,12 @@
 use crate::{cli_args, from_arg_matches};
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub enum Verbosity {
     Quiet,
+    #[default]
     Normal,
     Verbose,
     Debug,
-}
-
-impl Default for Verbosity {
-    fn default() -> Self {
-        Verbosity::Normal
-    }
 }
 
 impl From<u8> for Verbosity {
