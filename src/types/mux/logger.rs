@@ -36,7 +36,7 @@ impl Log for MuxLogger {
 
         match level {
             Level::Error | Level::Warn => {
-                let msg = format!("{}{}", get_stderr_color_prefix(level), record.args());
+                let msg = format!("{}{}\n", get_stderr_color_prefix(level), record.args());
                 let msg = msg.as_bytes();
                 let _ = io::stderr()
                     .write_all(msg)

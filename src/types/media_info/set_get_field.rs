@@ -2,8 +2,8 @@ use super::MediaInfo;
 use super::cache::{CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState};
 use super::mkvinfo::Mkvinfo;
 use crate::{
-    AttachID, LangCode, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField, Target,
-    TargetGroup, TrackType,
+    LangCode, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField, Target, TargetGroup,
+    TrackID, TrackType,
 };
 use enum_map::EnumMap;
 use std::collections::{BTreeSet, HashMap};
@@ -181,15 +181,16 @@ set_get_path_fields!(
     mkvmerge_i, Vec<String>, build_mkvmerge_i => MIMkvmergeI;
     path_tail, String, build_path_tail => MIPathTail;
     relative_upmost, String, build_relative_upmost => MIRelativeUpmost;
+    saved_tracks, EnumMap<TrackType, BTreeSet<u64>>, build_saved_tracks => MISavedTracks;
     target_group, TargetGroup, build_target_group => MITargetGroup;
     targets, [Target; 3], build_targets => MITargets;
     tracks_info, HashMap<u64, CacheMIOfFileTrack>, build_tracks_info => MITracksInfo;
-    saved_tracks, EnumMap<TrackType, BTreeSet<u64>>, build_saved_tracks => MISavedTracks;
-    attachs_info, HashMap<AttachID, CacheMIOfFileAttach>, build_attachs_info => MIAttachsInfo;
+    attachs_info, HashMap<u64, CacheMIOfFileAttach>, build_attachs_info => MIAttachsInfo;
 );
 
 set_get_path_fields!(
     @ti;
-    name, String, build_ti_name => MITIName;
     lang, LangCode, build_ti_lang => MITILang;
+    name, String, build_ti_name => MITIName;
+    track_ids, [TrackID; 2], build_ti_track_ids => MITITrackIDs;
 );

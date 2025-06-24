@@ -55,24 +55,22 @@ impl ToMkvmergeArgs for Attachs {
 
         let nums: BTreeSet<u64> = ai
             .into_iter()
-            .filter_map(|(_, cache)| {
-                let num = cache.num;
-                let tid = AttachID::Num(num);
+            .filter_map(|(num, cache)| {
+                let id = &cache.id;
                 match cache.attach_type {
-                    AttachType::Font if fonts.save_attach(&tid) => Some(num),
-                    AttachType::Other if other.save_attach(&tid) => Some(num),
+                    AttachType::Font if fonts.save_attach(id) => Some(*num),
+                    AttachType::Other if other.save_attach(id) => Some(*num),
                     _ => None,
                 }
             })
             .collect();
 
         let cnt = nums.len();
-        if cnt == cnt_init {
-            return Vec::new();
-        }
 
-        if nums.is_empty() {
+        if cnt == 0 {
             vec![Self::MKVMERGE_NO_ARG.into()]
+        } else if cnt == cnt_init {
+            Vec::new()
         } else {
             let arg: String = Self::MKVMERGE_ARG.into();
             let nums = shortest_track_nums(nums, cnt, cnt_init);

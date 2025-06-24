@@ -1,11 +1,12 @@
 use super::CacheMIOfFileAttach;
-use crate::{AttachType, MuxError};
+use crate::{AttachID, AttachType, MuxError};
 
 impl CacheMIOfFileAttach {
     pub fn try_init(num: u64, mkvmerge_id_line: String) -> Result<Self, MuxError> {
+        let id = AttachID::Num(num);
         let attach_type = Self::try_init_attach_type(&mkvmerge_id_line)?;
         Ok(Self {
-            num,
+            id,
             attach_type,
             mkvmerge_id_line,
         })

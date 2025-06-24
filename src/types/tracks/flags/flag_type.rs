@@ -1,4 +1,4 @@
-use crate::ToMkvmergeArg;
+use crate::{DefaultTFlags, EnabledTFlags, ForcedTFlags, MkvmergeArg, ToMkvmergeArg};
 use enum_map::Enum;
 use strum_macros::EnumIter;
 
@@ -18,9 +18,9 @@ impl TFlagType {
 impl ToMkvmergeArg for TFlagType {
     fn to_mkvmerge_arg(&self) -> String {
         let s = match self {
-            Self::Default => "--default-track-flag",
-            Self::Forced => "--forced-display-flag",
-            Self::Enabled => "--track-enabled-flag",
+            Self::Default => DefaultTFlags::MKVMERGE_ARG,
+            Self::Forced => ForcedTFlags::MKVMERGE_ARG,
+            Self::Enabled => EnabledTFlags::MKVMERGE_ARG,
         };
         s.to_string()
     }

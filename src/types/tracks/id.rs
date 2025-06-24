@@ -1,10 +1,16 @@
 use crate::{LangCode, MuxError, Range};
 
-#[derive(Copy, Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Eq, Hash, PartialEq)]
 pub enum TrackID {
     Num(u64),
     Lang(LangCode),
     Range(Range<u64>),
+}
+
+impl Default for TrackID {
+    fn default() -> Self {
+        Self::Num(0)
+    }
 }
 
 impl TrackID {

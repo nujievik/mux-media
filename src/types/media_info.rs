@@ -6,7 +6,7 @@ mod mkvmerge_args;
 pub(crate) mod set_get_field;
 
 use crate::{MCInput, MCOffOnPro, MCTools, MIAttachsInfo, MuxConfig, MuxError, OffOnPro, Tools};
-use cache::{CacheMI, CacheMICommon, CacheState};
+use cache::{CacheMI, CacheState};
 use log::warn;
 use set_get_field::{MIMkvmergeI, MISavedTracks};
 use std::ffi::OsString;
@@ -37,8 +37,7 @@ impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
 
 impl MediaInfo<'_> {
     pub fn clear(&mut self) {
-        self.cache.common = CacheMICommon::default();
-        self.cache.of_files.clear();
+        self.cache = CacheMI::default();
     }
 
     pub fn len(&self) -> usize {

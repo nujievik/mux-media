@@ -12,7 +12,6 @@ impl CacheMIOfFileTrack {
         let track_type = Self::init_track_type(&mkvmerge_id_line)?;
         let mkvinfo_cutted = Self::init_mkvinfo_cutted(num, mkvinfo);
         Ok(Self {
-            num,
             track_type,
             mkvmerge_id_line,
             mkvinfo_cutted,
@@ -30,6 +29,7 @@ impl CacheMIOfFileTrack {
         Err("Unrecognized track type".into())
     }
 
+    #[inline(always)]
     fn init_mkvinfo_cutted(num: u64, mkvinfo: Option<&Mkvinfo>) -> Option<Mkvinfo> {
         let mkvinfo = mkvinfo?;
         // mkvinfo uses 1-based indexing (add 1 to num for mkvmerge)

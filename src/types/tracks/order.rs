@@ -1,18 +1,20 @@
 use crate::{
     LangCode, MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale, MISavedTracks, MITILang,
     MITargetGroup, MITargets, MediaInfo, MuxError, TargetGroup, ToMkvmergeArgs, TrackID, TrackType,
-    to_mkvmerge_args, unmut_get,
+    to_mkvmerge_args, unmut_get, MkvmergeArg, mkvmerge_arg
 };
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub struct TrackOrder {
     pub paths: Vec<PathBuf>,
     pub i_num_type: Vec<(usize, u64, TrackType)>,
 }
 
+mkvmerge_arg!(TrackOrder, "--track-order");
+
 impl ToMkvmergeArgs for TrackOrder {
-    fn to_mkvmerge_args(&self, _mi: &mut MediaInfo, _path: &std::path::Path) -> Vec<String> {
+    fn to_mkvmerge_args(&self, _mi: &mut MediaInfo, _path: &Path) -> Vec<String> {
         let mut i_to_fid: HashMap<usize, usize> = HashMap::new();
         let mut max_fid: usize = 0;
 
@@ -34,7 +36,7 @@ impl ToMkvmergeArgs for TrackOrder {
             .collect::<Vec<_>>()
             .join(",");
 
-        vec!["--track-order".into(), order_arg]
+        vec![Self::MKVMERGE_ARG.into(), order_arg]
     }
 
     to_mkvmerge_args!(@fn_os);

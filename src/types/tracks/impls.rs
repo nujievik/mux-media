@@ -25,10 +25,10 @@ impl Tracks {
             return true;
         }
 
-        let contains = |&id| match id {
-            TrackID::Num(_) => self.contains(&id),
-            TrackID::Lang(_) => self.ids_hashed_contains(&id),
-            TrackID::Range(_) => self.ids_unhashed_contains(&id),
+        let contains = |id: &TrackID| match id {
+            TrackID::Num(_) => self.contains(id),
+            TrackID::Lang(_) => self.ids_hashed_contains(id),
+            TrackID::Range(_) => self.ids_unhashed_contains(id),
         };
 
         if contains(tid) {

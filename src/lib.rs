@@ -25,8 +25,8 @@ pub use types::{
         // Get Field MediaInfo markers
         set_get_field::{
             MIAttachsInfo, MICharEncoding, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail,
-            MIRelativeUpmost, MISavedTracks, MITILang, MITIName, MITargetGroup, MITargets,
-            MITracksInfo,
+            MIRelativeUpmost, MISavedTracks, MITILang, MITIName, MITITrackIDs, MITargetGroup,
+            MITargets, MITracksInfo,
         },
     },
     media_number::MediaNumber,

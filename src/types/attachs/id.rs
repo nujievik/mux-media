@@ -1,7 +1,7 @@
 use crate::{MuxError, Range};
 use std::str::FromStr;
 
-#[derive(Copy, Clone, Hash, Eq, PartialEq)]
+#[derive(Clone, Hash, Eq, PartialEq)]
 pub enum AttachID {
     Num(u64),
     Range(Range<u64>),

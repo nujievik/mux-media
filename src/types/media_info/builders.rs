@@ -4,8 +4,8 @@ use super::MediaInfo;
 use super::cache::{CacheMIOfFileAttach, CacheMIOfFileTrack};
 use super::mkvinfo::{MKVILang, MKVIName, Mkvinfo};
 use crate::{
-    AttachID, EXTENSIONS, LangCode, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail,
-    MIRelativeUpmost, MITIName, MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool,
+    EXTENSIONS, LangCode, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
+    MITILang, MITIName, MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool, TrackID,
     TrackType, os_helpers,
 };
 use std::collections::HashMap;
@@ -151,17 +151,17 @@ impl MediaInfo<'_> {
     pub(super) fn build_attachs_info(
         &mut self,
         path: &Path,
-    ) -> Result<HashMap<AttachID, CacheMIOfFileAttach>, MuxError> {
+    ) -> Result<HashMap<u64, CacheMIOfFileAttach>, MuxError> {
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
         let re = regex::Regex::new(r"Attachment ID (\d+):")?;
 
-        let ai: HashMap<AttachID, CacheMIOfFileAttach> = mkvmerge_i
+        let ai: HashMap<u64, CacheMIOfFileAttach> = mkvmerge_i
             .into_iter()
             .filter_map(|line| {
                 re.captures(line).and_then(|caps| {
                     let num = caps.get(1)?.as_str().parse::<u64>().ok()?;
                     let cache = CacheMIOfFileAttach::try_init(num, line.to_string()).ok()?;
-                    Some((AttachID::Num(num), cache))
+                    Some((num, cache))
                 })
             })
             .collect();
@@ -226,6 +226,15 @@ impl MediaInfo<'_> {
                 )
             });
         Ok(lang)
+    }
+
+    pub(super) fn build_ti_track_ids(
+        &mut self,
+        path: &Path,
+        num: u64,
+    ) -> Result<[TrackID; 2], MuxError> {
+        let lang = self.try_get_ti::<MITILang>(path, num)?;
+        Ok([TrackID::Num(num), TrackID::Lang(*lang)])
     }
 }
 
