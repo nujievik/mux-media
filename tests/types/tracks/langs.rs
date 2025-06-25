@@ -125,17 +125,17 @@ fn build_test_x8_to_mkvmerge_args(file: &str) {
             vec!["--pro", "--langs", "2:en,4:ru"],
         ),
         (
-            repeat_track_arg("--language", "eng", "0-7"),
+            repeat_track_arg("--language", ":eng", "0-7"),
             vec!["--langs", "eng"],
         ),
         (
-            repeat_track_arg("--language", "rus", "0-7"),
+            repeat_track_arg("--language", ":rus", "0-7"),
             vec!["--langs", "rus"],
         ),
         (
             append_str_vecs([
-                repeat_track_arg("--language", "eng", "0-2"),
-                repeat_track_arg("--language", "rus", "3-7"),
+                repeat_track_arg("--language", ":eng", "0-2"),
+                repeat_track_arg("--language", ":rus", "3-7"),
             ]),
             vec!["--langs", "0-2:en,und:rus"],
         ),

@@ -1,7 +1,7 @@
 #[path = "tracks/flags.rs"]
 mod flags;
 #[path = "tracks/langs.rs"]
-mod lagns;
+mod langs;
 #[path = "tracks/names.rs"]
 mod names;
 

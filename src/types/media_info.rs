@@ -69,8 +69,14 @@ impl MediaInfo<'_> {
     }
 
     pub fn try_insert(&mut self, path: impl AsRef<Path>) -> Result<(), MuxError> {
-        let _ = self.try_get::<MIMkvmergeI>(path.as_ref())?;
-        Ok(())
+        let path = path.as_ref();
+        match self.try_get::<MIMkvmergeI>(path) {
+            Ok(_) => Ok(()),
+            Err(e) => {
+                self.cache.of_files.remove(path);
+                Err(e)
+            }
+        }
     }
 
     pub fn try_insert_paths_with_filter(
@@ -100,7 +106,7 @@ impl MediaInfo<'_> {
     #[inline(always)]
     fn save_any_track_or_attach(&mut self, path: &Path) -> bool {
         self.get::<MISavedTracks>(path)
-            .map_or(false, |saved| saved.values().next().is_some())
+            .map_or(false, |saved| saved.values().flatten().next().is_some())
             || self
                 .get::<MIAttachsInfo>(path)
                 .map_or(false, |ai| !ai.is_empty())

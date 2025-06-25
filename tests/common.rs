@@ -58,7 +58,7 @@ pub fn repeat_track_arg(arg: &str, val: &str, range: &str) -> Vec<String> {
         .parse::<Range<u8>>()
         .unwrap()
         .iter()
-        .map(|n| [arg.to_string(), format!("{}:{}", n, val)])
+        .map(|n| [arg.to_string(), format!("{}{}", n, val)])
         .flatten()
         .collect()
 }

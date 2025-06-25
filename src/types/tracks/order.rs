@@ -1,7 +1,7 @@
 use crate::{
     LangCode, MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale, MISavedTracks, MITILang,
-    MITargetGroup, MITargets, MediaInfo, MuxError, TargetGroup, ToMkvmergeArgs, TrackID, TrackType,
-    to_mkvmerge_args, unmut_get, MkvmergeArg, mkvmerge_arg
+    MITargetGroup, MITargets, MediaInfo, MkvmergeArg, MuxError, TargetGroup, ToMkvmergeArgs,
+    TrackID, TrackType, mkvmerge_arg, to_mkvmerge_args, unmut_get,
 };
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};

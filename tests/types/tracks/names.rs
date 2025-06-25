@@ -119,17 +119,17 @@ fn build_test_x8_to_mkvmerge_args(file: &str) {
             vec!["--pro", "--names", "2:a,4:b"],
         ),
         (
-            repeat_track_arg("--track-name", "a", "0-7"),
+            repeat_track_arg("--track-name", ":a", "0-7"),
             vec!["--names", "a"],
         ),
         (
-            repeat_track_arg("--track-name", "bc", "0-7"),
+            repeat_track_arg("--track-name", ":bc", "0-7"),
             vec!["--names", "bc"],
         ),
         (
             append_str_vecs([
-                repeat_track_arg("--track-name", "a", "0-2"),
-                repeat_track_arg("--track-name", "b", "3-7"),
+                repeat_track_arg("--track-name", ":a", "0-2"),
+                repeat_track_arg("--track-name", ":b", "3-7"),
             ]),
             vec!["--names", "0-2:a,und:b"],
         ),

@@ -1,5 +1,6 @@
 pub(crate) mod attachs;
 pub(crate) mod chapters;
+pub(crate) mod char_encoding;
 pub(crate) mod extensions;
 pub(crate) mod input;
 pub(crate) mod lang_code;

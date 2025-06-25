@@ -43,7 +43,7 @@ impl MediaInfo<'_> {
             .keys()
             .filter_map(|path| path.file_stem().filter(|s| !s.is_empty()))
             .min_by_key(|s| s.len())
-            .ok_or("Not found any file_strm()")?;
+            .ok_or("Not found any file_stem()")?;
 
         Ok(shortest.to_os_string())
     }

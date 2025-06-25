@@ -16,6 +16,7 @@ pub use traits::{
 pub use types::{
     attachs::{Attachs, FontAttachs, OtherAttachs, attach_type::AttachType, id::AttachID},
     chapters::Chapters,
+    char_encoding::CharEncoding,
     extensions::EXTENSIONS,
     input::Input,
     lang_code::LangCode,

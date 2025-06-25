@@ -11,6 +11,8 @@ mod extensions;
 mod input;
 #[path = "types/lang_code.rs"]
 mod lang_code;
+#[path = "types/media_info.rs"]
+mod media_info;
 #[path = "types/media_number.rs"]
 mod media_number;
 #[path = "types/mux.rs"]
