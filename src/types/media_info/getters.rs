@@ -59,21 +59,25 @@ impl MediaInfo<'_> {
         <Self as SetGetField<F>>::try_get(self)
     }
 
-    pub fn get_mut_tracks_info(
+    pub(super) fn get_mut_tracks_info(
         &mut self,
         path: &Path,
     ) -> Option<&mut HashMap<u64, CacheMIOfFileTrack>> {
         let _ = self.get::<MITracksInfo>(path)?;
-        match self.cache.of_files.get_mut(path) {
-            Some(entry) => match &mut entry.tracks_info {
+        self.cache
+            .of_files
+            .get_mut(path)
+            .and_then(|entry| match &mut entry.tracks_info {
                 CacheState::Cached(val) => Some(val),
                 _ => None,
-            },
-            None => None,
-        }
+            })
     }
 
-    pub fn get_mut_ti_cache(&mut self, path: &Path, num: u64) -> Option<&mut CacheMIOfFileTrack> {
+    pub(super) fn get_mut_track_cache(
+        &mut self,
+        path: &Path,
+        num: u64,
+    ) -> Option<&mut CacheMIOfFileTrack> {
         let ti = self.get_mut_tracks_info(path)?;
         ti.get_mut(&num)
     }

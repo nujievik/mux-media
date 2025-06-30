@@ -10,6 +10,7 @@ OUT_PATHS = {
     "fonts": MODULE / "fonts.rs",
     "matroska": MODULE / "matroska.rs",
     "media": MODULE / "media.rs",
+    "subs": MODULE / "subs.rs",
 }
 
 EXTS = {

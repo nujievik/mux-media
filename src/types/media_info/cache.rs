@@ -2,7 +2,9 @@ mod attach;
 mod track;
 
 use super::mkvinfo::Mkvinfo;
-use crate::{AttachID, AttachType, IsDefault, LangCode, Target, TargetGroup, TrackID, TrackType};
+use crate::{
+    AttachID, AttachType, IsDefault, LangCode, SubCharset, Target, TargetGroup, TrackID, TrackType,
+};
 use enum_map::EnumMap;
 use std::collections::{BTreeSet, HashMap};
 use std::ffi::OsString;
@@ -35,12 +37,12 @@ pub struct CacheMICommon {
 
 #[derive(Clone, Default)]
 pub struct CacheMIOfFile {
-    pub char_encoding: CacheState<String>,
     pub mkvinfo: CacheState<Mkvinfo>,
     pub mkvmerge_i: CacheState<Vec<String>>,
     pub path_tail: CacheState<String>,
     pub relative_upmost: CacheState<String>,
     pub saved_tracks: CacheState<EnumMap<TrackType, BTreeSet<u64>>>,
+    pub sub_charset: CacheState<SubCharset>,
     pub target_group: CacheState<TargetGroup>,
     pub targets: CacheState<[Target; 3]>,
 

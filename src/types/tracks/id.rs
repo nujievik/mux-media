@@ -1,6 +1,6 @@
 use crate::{LangCode, MuxError, Range};
 
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum TrackID {
     Num(u64),
     Lang(LangCode),

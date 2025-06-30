@@ -16,7 +16,7 @@ pub use traits::{
 pub use types::{
     attachs::{Attachs, FontAttachs, OtherAttachs, attach_type::AttachType, id::AttachID},
     chapters::Chapters,
-    char_encoding::CharEncoding,
+    char_encoding::{CharEncoding, SubCharset},
     extensions::EXTENSIONS,
     input::Input,
     lang_code::LangCode,
@@ -25,8 +25,8 @@ pub use types::{
         cache::{CacheMI, CacheState},
         // Get Field MediaInfo markers
         set_get_field::{
-            MIAttachsInfo, MICharEncoding, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail,
-            MIRelativeUpmost, MISavedTracks, MITILang, MITIName, MITITrackIDs, MITargetGroup,
+            MIAttachsInfo, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
+            MISavedTracks, MISubCharset, MITILang, MITIName, MITITrackIDs, MITargetGroup,
             MITargets, MITracksInfo,
         },
     },

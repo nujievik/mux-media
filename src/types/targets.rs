@@ -1,7 +1,7 @@
 use crate::{MuxError, TrackType};
 use std::path::PathBuf;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TargetGroup {
     Audio,
     Video,
@@ -11,7 +11,7 @@ pub enum TargetGroup {
     Buttons,
 }
 
-#[derive(Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Target {
     Group(TargetGroup),
     Path(PathBuf),

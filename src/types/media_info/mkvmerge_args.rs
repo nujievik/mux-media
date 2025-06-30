@@ -1,8 +1,8 @@
 use super::MediaInfo;
 use crate::{
     MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags, MCFontAttachs,
-    MCForcedTFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames, MCVideoTracks, MITargets,
-    MuxError, TFlags, ToMkvmergeArgs, TrackOrder,
+    MCForcedTFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames, MCVideoTracks,
+    MISubCharset, MITargets, MuxError, TFlags, ToMkvmergeArgs, TrackOrder,
 };
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
@@ -71,6 +71,10 @@ fn append_target_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, path: &Path)
         MCChapters, MCFontAttachs, MCTrackNames, MCTrackLangs,
         MCSpecials
     );
+
+    if let Ok(charset) = mi.try_get::<MISubCharset>(path).map(|c| c.clone()) {
+        args.append(&mut charset.clone().to_os_mkvmerge_args(mi, path))
+    }
 }
 
 #[inline(always)]

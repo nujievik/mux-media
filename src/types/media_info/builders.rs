@@ -5,31 +5,24 @@ use super::cache::{CacheMIOfFileAttach, CacheMIOfFileTrack};
 use super::mkvinfo::{MKVILang, MKVIName, Mkvinfo};
 use crate::{
     EXTENSIONS, LangCode, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
-    MITILang, MITIName, MITargetGroup, MITracksInfo, MuxError, Target, TargetGroup, Tool, TrackID,
-    TrackType, os_helpers,
+    MITILang, MITIName, MITargetGroup, MITracksInfo, MuxError, SubCharset, Target, TargetGroup,
+    Tool, TrackID, TrackType, os_helpers,
 };
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
-use std::fs::File;
-use std::io::{self, Read};
 use std::path::Path;
 
-const READ_LIMIT: usize = 32 * 1024; // 32 KiB
-
 macro_rules! from_name_tail_relative_or_fallback {
-    ($mi:ident, $path:ident, $num:expr, $typ:ident, $try_str:ident, $try_slice_string:ident, $fall:ident) => {
+    ($mi:ident, $path:ident, $num:expr, $typ:ident, $try_from_words:ident, $fall:ident) => {
         $mi.try_get_ti::<MITIName>($path, $num)
-            .ok()
-            .and_then(|name| $typ::$try_str(name.to_lowercase().as_ref()).ok())
-            .or_else(|| {
+            .and_then(|name| $typ::$try_from_words(str_to_words(name).as_slice()))
+            .or_else(|_| {
                 $mi.try_get::<MIPathTail>($path)
-                    .ok()
-                    .and_then(|s| $typ::$try_slice_string(str_to_words(&s).as_slice()).ok())
+                    .and_then(|s| $typ::$try_from_words(str_to_words(&s).as_slice()))
             })
-            .or_else(|| {
+            .or_else(|_| {
                 $mi.try_get::<MIRelativeUpmost>($path)
-                    .ok()
-                    .and_then(|s| $typ::$try_slice_string(str_to_words(&s).as_slice()).ok())
+                    .and_then(|s| $typ::$try_from_words(str_to_words(&s).as_slice()))
             })
             .unwrap_or($typ::$fall)
     };
@@ -48,18 +41,8 @@ impl MediaInfo<'_> {
         Ok(shortest.to_os_string())
     }
 
-    pub(super) fn build_char_encoding(&mut self, path: &Path) -> Result<String, MuxError> {
-        let enc = if path.extension().map_or(false, |ext| {
-            EXTENSIONS.matroska.contains(ext.as_encoded_bytes())
-        }) {
-            // All text in a Matroska(tm) file is encoded in UTF-8
-            "utf-8".to_string()
-        } else {
-            let bytes = read_limited(path, READ_LIMIT)?;
-            let detected = chardet::detect(&bytes);
-            detected.0
-        };
-        Ok(enc)
+    pub(super) fn build_sub_charset(&mut self, path: &Path) -> Result<SubCharset, MuxError> {
+        path.try_into()
     }
 
     pub(super) fn build_target_group(&mut self, path: &Path) -> Result<TargetGroup, MuxError> {
@@ -79,7 +62,6 @@ impl MediaInfo<'_> {
                         path,
                         num,
                         TargetGroup,
-                        try_signs_from_str,
                         try_signs_from_slice_string,
                         Subs
                     )
@@ -187,45 +169,40 @@ impl MediaInfo<'_> {
     }
 
     pub(super) fn build_ti_name(&mut self, path: &Path, num: u64) -> Result<String, MuxError> {
-        let tic = self
-            .get_mut_ti_cache(path, num)
-            .ok_or_else(|| "Unexpected None CacheMIOfFileTrack")?;
-
-        let name = tic
-            .mkvinfo_cutted
-            .as_ref()
-            .and_then(|mkvi| mkvi.get::<MKVIName>().cloned())
+        Ok(self
+            .get_mut_track_cache(path, num)
+            .and_then(|cache| {
+                cache
+                    .mkvinfo_cutted
+                    .as_mut()
+                    .and_then(|mkvi| mkvi.get::<MKVIName>().cloned())
+            })
             .or_else(|| {
-                self.try_get::<MIPathTail>(path)
-                    .ok()
-                    .filter(|s| s.len() > 2)
-                    .cloned()
+                self.try_get::<MIPathTail>(path).ok().and_then(|s| {
+                    let s = s.trim_matches(&['.', ' ']);
+                    (s.len() > 2).then(|| s.to_string())
+                })
             })
             .or_else(|| {
                 path.parent()
                     .and_then(|p| p.file_name())
                     .map(|p| p.to_string_lossy().into_owned())
             })
-            .unwrap_or_default();
-
-        Ok(name.clone())
+            .unwrap_or_default())
     }
 
     pub(super) fn build_ti_lang(&mut self, path: &Path, num: u64) -> Result<LangCode, MuxError> {
-        let tic = self
-            .get_mut_ti_cache(path, num)
-            .ok_or_else(|| "Unexpected None CacheMIOfFileTrack")?;
-        let lang = tic
-            .mkvinfo_cutted
-            .as_ref()
-            .and_then(|mkvi| mkvi.get::<MKVILang>().copied())
+        Ok(self
+            .get_mut_track_cache(path, num)
+            .and_then(|cache| {
+                cache
+                    .mkvinfo_cutted
+                    .as_mut()
+                    .and_then(|mkvi| mkvi.get::<MKVILang>().copied())
+            })
             .unwrap_or_else(|| {
-                use std::str::FromStr;
-                from_name_tail_relative_or_fallback!(
-                    self, path, num, LangCode, from_str, try_from, Und
-                )
-            });
-        Ok(lang)
+                from_name_tail_relative_or_fallback!(self, path, num, LangCode, try_from, Und)
+            }))
     }
 
     pub(super) fn build_ti_track_ids(
@@ -236,15 +213,6 @@ impl MediaInfo<'_> {
         let lang = self.try_get_ti::<MITILang>(path, num)?;
         Ok([TrackID::Num(num), TrackID::Lang(*lang)])
     }
-}
-
-#[inline]
-fn read_limited(path: &Path, max_bytes: usize) -> io::Result<Vec<u8>> {
-    let mut file = File::open(path)?;
-    let mut buffer = vec![0u8; max_bytes];
-    let bytes_read = file.read(&mut buffer)?;
-    buffer.truncate(bytes_read);
-    Ok(buffer)
 }
 
 #[inline]

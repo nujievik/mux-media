@@ -5,6 +5,7 @@ pub(super) fn eng(msg: Msg) -> &'static str {
     match msg {
         Msg::ErrUpdLangCode => "LangCode update failed",
         Msg::ErrWriteJson => "Write command to JSON failed",
+        Msg::FileTypeNotSup => "File type is not supported",
         Msg::FromPackage => "From package",
         Msg::InstallTool => "Please install it, add to system PATH and re-run",
         Msg::MayFailIfCommandLong => "May fail if command long",

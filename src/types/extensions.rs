@@ -3,6 +3,7 @@
 mod fonts;
 mod matroska;
 mod media;
+mod subs;
 
 use phf::Set;
 
@@ -10,10 +11,12 @@ pub struct Extensions {
     pub fonts: &'static Set<&'static [u8]>,
     pub matroska: &'static Set<&'static [u8]>,
     pub media: &'static Set<&'static [u8]>,
+    pub subs: &'static Set<&'static [u8]>,
 }
 
 pub static EXTENSIONS: Extensions = Extensions {
     fonts: &fonts::FONTS,
     matroska: &matroska::MATROSKA,
     media: &media::MEDIA,
+    subs: &subs::SUBS,
 };

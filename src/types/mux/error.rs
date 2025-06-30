@@ -21,31 +21,31 @@ pub enum MuxErrorKind {
 
 #[derive(Debug)]
 enum MuxErrorMessage {
+    Localized(MuxErrorMessageLocalized),
+    Msg(Msg),
     String(String),
-    I18n(MuxErrorMessageI18n),
 }
 
 impl MuxErrorMessage {
-    fn as_str(&self) -> &str {
+    fn to_str(&self) -> &str {
         match self {
+            Self::Localized(loc) => &loc.eng,
+            Self::Msg(msg) => msg.to_str_eng(),
             Self::String(s) => s,
-            Self::I18n(i18n) => &i18n.eng,
         }
     }
 
-    fn as_str_localized(&self) -> &str {
+    fn to_str_localized(&self) -> &str {
         match self {
+            Self::Localized(loc) => loc.localized.as_ref().unwrap_or_else(|| &loc.eng),
+            Self::Msg(msg) => msg.to_str(),
             Self::String(s) => s,
-            Self::I18n(i18n) => match &i18n.localized {
-                Some(s) => s,
-                None => &i18n.eng,
-            },
         }
     }
 }
 
 #[derive(Debug)]
-struct MuxErrorMessageI18n {
+struct MuxErrorMessageLocalized {
     eng: String,
     localized: Option<String>,
 }
@@ -54,7 +54,8 @@ impl fmt::Display for MuxErrorMessage {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::String(s) => write!(f, "{}", s),
-            Self::I18n(i18n) => write!(f, "{}", i18n.eng),
+            Self::Msg(msg) => write!(f, "{}", msg.to_str_eng()),
+            Self::Localized(loc) => write!(f, "{}", loc.eng),
         }
     }
 }
@@ -108,6 +109,12 @@ impl MuxError {
         self
     }
 
+    pub fn to_str_localized(&self) -> &str {
+        self.message
+            .as_ref()
+            .map_or_else(|| "", |msg| msg.to_str_localized())
+    }
+
     pub fn use_stderr(&self) -> bool {
         self.code != 0
     }
@@ -123,13 +130,13 @@ impl MuxError {
 
     pub fn print(&self) {
         if let Some(msg) = &self.message {
-            self.print_in_stderr_or_stdout(msg.as_str())
+            self.print_in_stderr_or_stdout(msg.to_str())
         }
     }
 
     pub fn print_localized(&self) {
         if let Some(msg) = &self.message {
-            self.print_in_stderr_or_stdout(msg.as_str_localized())
+            self.print_in_stderr_or_stdout(msg.to_str_localized())
         }
     }
 }
@@ -146,9 +153,18 @@ impl From<&str> for MuxError {
     }
 }
 
+impl From<Msg> for MuxError {
+    fn from(msg: Msg) -> Self {
+        Self {
+            message: Some(MuxErrorMessage::Msg(msg)),
+            ..Default::default()
+        }
+    }
+}
+
 macro_rules! from_slice_msg_opt {
     ($ty_opt:ty) => {
-        impl From<&[(Msg, $ty_opt)]> for MuxErrorMessageI18n {
+        impl From<&[(Msg, $ty_opt)]> for MuxErrorMessageLocalized {
             fn from(slice: &[(Msg, $ty_opt)]) -> Self {
                 let build = |is_eng: bool| {
                     slice
@@ -177,10 +193,9 @@ macro_rules! from_slice_msg_opt {
 
         impl From<&[(Msg, $ty_opt)]> for MuxError {
             fn from(slice: &[(Msg, $ty_opt)]) -> Self {
-                let i18n: MuxErrorMessageI18n = slice.into();
+                let loc: MuxErrorMessageLocalized = slice.into();
                 Self {
-                    message: Some(MuxErrorMessage::I18n(i18n)),
-                    code: 1,
+                    message: Some(MuxErrorMessage::Localized(loc)),
                     ..Default::default()
                 }
             }

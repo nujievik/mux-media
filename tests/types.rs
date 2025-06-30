@@ -5,6 +5,8 @@ mod macros;
 mod attachs;
 #[path = "types/chapters.rs"]
 mod chapters;
+#[path = "types/char_encoding.rs"]
+mod char_encoding;
 #[path = "types/extensions.rs"]
 mod extensions;
 #[path = "types/input.rs"]

@@ -12,6 +12,7 @@ static LANG_CODE: Lazy<Mutex<LangCode>> = Lazy::new(|| Mutex::new(LangCode::init
 pub enum Msg {
     ErrUpdLangCode,
     ErrWriteJson,
+    FileTypeNotSup,
     FromPackage,
     InstallTool,
     MayFailIfCommandLong,

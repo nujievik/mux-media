@@ -52,7 +52,7 @@ mod set_multiple_priority;
 
 use strum_macros::AsRefStr;
 
-#[derive(Copy, Clone, Eq, Hash, PartialEq, AsRefStr)]
+#[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, AsRefStr)]
 #[strum(serialize_all = "kebab-case")]
 """
     rust_enum += (
