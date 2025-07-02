@@ -1,5 +1,5 @@
 use super::id::TrackID;
-use crate::{IsDefault, MuxError, cli_args, from_arg_matches, mkvmerge_arg, to_mkvmerge_args};
+use crate::{IsDefault, MuxError, from_arg_matches, mkvmerge_arg, to_mkvmerge_args};
 use std::collections::HashMap;
 
 #[derive(Clone, Default)]
@@ -9,7 +9,6 @@ pub struct TrackNames {
     map_unhashed: Option<Vec<(TrackID, String)>>,
 }
 
-cli_args!(TrackNames, TrackNamesArg; Names => "names");
 mkvmerge_arg!(TrackNames, "--track-name");
 to_mkvmerge_args!(@names_or_langs, TrackNames, Names, add_names, MITIName);
 

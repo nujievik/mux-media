@@ -4,11 +4,6 @@ use crate::*;
 use mux_media::*;
 
 #[test]
-fn test_cli_args() {
-    test_cli_args!(TrackNames; Names => "names");
-}
-
-#[test]
 fn test_is_default() {
     assert!(TrackNames::default().is_default());
     assert!(from_cfg::<MCTrackNames>(vec![]).is_default());

@@ -1,5 +1,5 @@
 use super::common::data_file;
-use crate::{compare_arg_cases, fn_variants_of_args, test_cli_args};
+use crate::{compare_arg_cases, fn_variants_of_args};
 use mux_media::*;
 
 fn new(file: &str) -> Chapters {
@@ -10,11 +10,6 @@ fn new(file: &str) -> Chapters {
 fn try_new(file: &str) -> Result<Chapters, MuxError> {
     let file = data_file(file);
     Chapters::try_from_path(file)
-}
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(Chapters; Chapters => "chapters", NoChapters => "no-chapters");
 }
 
 #[test]

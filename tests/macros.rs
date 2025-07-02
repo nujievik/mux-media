@@ -1,14 +1,4 @@
 #[macro_export]
-macro_rules! test_cli_args {
-    ($type:ident;
-    $( $arg:ident => $long:expr ),* $(,)?) => {{
-        $(
-            assert_eq!($long, <$type as mux_media::CLIArgs>::Arg::$arg.as_long());
-        )*
-    }};
-}
-
-#[macro_export]
 macro_rules! take_mi_cache {
     ($path:expr, $( $field:ident ),* $(,)?) => {{
         let mc = $crate::common::cfg::<[&str; 0], &str>([]);

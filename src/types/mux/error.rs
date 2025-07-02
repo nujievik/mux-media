@@ -3,23 +3,24 @@ use crate::{LangCode, Msg};
 use clap::parser::MatchesError;
 use std::fmt;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct MuxError {
     message: Option<MuxErrorMessage>,
     pub code: i32,
     pub kind: MuxErrorKind,
 }
 
-#[derive(Debug, Default)]
+#[derive(Default, Debug, PartialEq)]
 pub enum MuxErrorKind {
     InvalidValue,
     MatchesErrorDowncast,
     MatchesErrorUnknownArgument,
+    Ok,
     #[default]
     Unknown,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 enum MuxErrorMessage {
     Localized(MuxErrorMessageLocalized),
     Msg(Msg),
@@ -30,7 +31,7 @@ impl MuxErrorMessage {
     fn to_str(&self) -> &str {
         match self {
             Self::Localized(loc) => &loc.eng,
-            Self::Msg(msg) => msg.to_str_eng(),
+            Self::Msg(msg) => msg.to_str(),
             Self::String(s) => s,
         }
     }
@@ -38,13 +39,13 @@ impl MuxErrorMessage {
     fn to_str_localized(&self) -> &str {
         match self {
             Self::Localized(loc) => loc.localized.as_ref().unwrap_or_else(|| &loc.eng),
-            Self::Msg(msg) => msg.to_str(),
+            Self::Msg(msg) => msg.to_str_localized(),
             Self::String(s) => s,
         }
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 struct MuxErrorMessageLocalized {
     eng: String,
     localized: Option<String>,
@@ -54,7 +55,7 @@ impl fmt::Display for MuxErrorMessage {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::String(s) => write!(f, "{}", s),
-            Self::Msg(msg) => write!(f, "{}", msg.to_str_eng()),
+            Self::Msg(msg) => write!(f, "{}", msg.to_str()),
             Self::Localized(loc) => write!(f, "{}", loc.eng),
         }
     }
@@ -87,11 +88,7 @@ impl MuxError {
     }
 
     pub fn new_ok() -> Self {
-        Self::new().code(0)
-    }
-
-    pub fn from_any<E: std::error::Error>(err: E) -> Self {
-        Self::new().message(err)
+        Self::new().code(0).kind(MuxErrorKind::Ok)
     }
 
     pub fn message(mut self, msg: impl ToString) -> Self {
@@ -104,9 +101,13 @@ impl MuxError {
         self
     }
 
-    fn kind(mut self, kind: MuxErrorKind) -> Self {
+    pub fn kind(mut self, kind: MuxErrorKind) -> Self {
         self.kind = kind;
         self
+    }
+
+    pub fn from_any<E: std::error::Error>(err: E) -> Self {
+        Self::new().message(err)
     }
 
     pub fn to_str_localized(&self) -> &str {
@@ -141,17 +142,18 @@ impl MuxError {
     }
 }
 
-impl From<String> for MuxError {
-    fn from(s: String) -> Self {
-        Self::new().message(s)
-    }
+macro_rules! from_any_to_string {
+    ($ty:ty) => {
+        impl From<$ty> for MuxError {
+            fn from(s: $ty) -> Self {
+                Self::new().message(s)
+            }
+        }
+    };
 }
 
-impl From<&str> for MuxError {
-    fn from(s: &str) -> Self {
-        Self::new().message(s)
-    }
-}
+from_any_to_string!(String);
+from_any_to_string!(&str);
 
 impl From<Msg> for MuxError {
     fn from(msg: Msg) -> Self {
@@ -171,9 +173,9 @@ macro_rules! from_slice_msg_opt {
                         .iter()
                         .map(|(msg, opt)| {
                             let msg = if is_eng {
-                                msg.to_str_eng()
-                            } else {
                                 msg.to_str()
+                            } else {
+                                msg.to_str_localized()
                             };
                             format!("{}{}", msg, opt)
                         })
@@ -208,6 +210,8 @@ from_slice_msg_opt!(&str);
 
 impl From<clap::Error> for MuxError {
     fn from(err: clap::Error) -> Self {
+        // Immediately prints a message, sets None to Self.message.
+        // It's allows prints a colorized message if possible.
         let _ = err.print();
         Self::new().code(err.exit_code())
     }

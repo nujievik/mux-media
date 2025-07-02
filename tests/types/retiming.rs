@@ -1,12 +1,5 @@
 use super::common::cfg;
-use crate::test_cli_args;
-use mux_media::{CLIArg, IsDefault, MCRetiming, Retiming};
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(Retiming; RmSegments => "rm-segments", NoLinked => "no-linked",
-                   LessRetiming => "less-retiming");
-}
+use mux_media::{IsDefault, MCRetiming, Retiming};
 
 fn new(args: &[&str]) -> Retiming {
     cfg::<_, &&str>(args).get::<MCRetiming>().clone()

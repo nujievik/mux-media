@@ -1,6 +1,5 @@
 use crate::{
-    MuxError, ToMkvmergeArgs, cli_args, from_arg_matches, mkvmerge_arg, mkvmerge_no_arg,
-    to_mkvmerge_args,
+    MuxError, ToMkvmergeArgs, from_arg_matches, mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args,
 };
 use std::path::{Path, PathBuf};
 
@@ -30,14 +29,10 @@ impl Chapters {
     }
 }
 
-cli_args!(Chapters, ChaptersArg; Chapters => "chapters", NoChapters => "no-chapters");
+from_arg_matches!(@impl, Chapters, Chapters, NoChapters);
+
 mkvmerge_arg!(Chapters, "--chapters");
 mkvmerge_no_arg!(Chapters, "--no-chapters");
-
-impl clap::FromArgMatches for Chapters {
-    from_arg_matches!(@unrealized_fns);
-    from_arg_matches!(@fn_mut, Chapters, NoChapters);
-}
 
 impl ToMkvmergeArgs for Chapters {
     to_mkvmerge_args!(@fn);

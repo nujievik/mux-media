@@ -1,30 +1,31 @@
+use super::super::cli_args::MuxConfigArg;
 use super::{Blocks, val_parsers::patterns_parser};
-use crate::{CLIArg, CLIArgs, Retiming};
+use crate::{CLIArg, Msg};
 use clap::{Arg, ArgAction, builder::ValueParser};
 
 impl Blocks {
     pub fn retiming(mut self) -> Self {
         self.0 = self
             .0
-            .next_help_heading("Retiming options")
+            .next_help_heading(Msg::HelpRetimingOptions.to_str_localized())
             .arg(
-                Arg::new(<Retiming as CLIArgs>::Arg::RmSegments.as_long())
-                    .long(<Retiming as CLIArgs>::Arg::RmSegments.as_long())
+                Arg::new(MuxConfigArg::RmSegments.as_long())
+                    .long(MuxConfigArg::RmSegments.as_long())
                     .alias("remove-segments")
                     .value_name("n[,m]...")
-                    .help("Remove segments with name patterns")
+                    .help(Msg::HelpRmSegments.to_str_localized())
                     .value_parser(ValueParser::new(patterns_parser)),
             )
             .arg(
-                Arg::new(<Retiming as CLIArgs>::Arg::NoLinked.as_long())
-                    .long(<Retiming as CLIArgs>::Arg::NoLinked.as_long())
-                    .help("Remove linked segments")
+                Arg::new(MuxConfigArg::NoLinked.as_long())
+                    .long(MuxConfigArg::NoLinked.as_long())
+                    .help(Msg::HelpNoLinked.to_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(<Retiming as CLIArgs>::Arg::LessRetiming.as_long())
-                    .long(<Retiming as CLIArgs>::Arg::LessRetiming.as_long())
-                    .help("No retiming if linked segments outside main")
+                Arg::new(MuxConfigArg::LessRetiming.as_long())
+                    .long(MuxConfigArg::LessRetiming.as_long())
+                    .help(Msg::HelpLessRetiming.to_str_localized())
                     .action(ArgAction::SetTrue),
             );
 

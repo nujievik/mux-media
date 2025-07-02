@@ -25,8 +25,6 @@ crate::test_from_str!(
         (TargetGroup::Subs, "s"),
         (TargetGroup::Subs, "subs"),
         (TargetGroup::Subs, "subtitles"),
-        (TargetGroup::Fonts, "f"),
-        (TargetGroup::Fonts, "fonts"),
         (TargetGroup::Buttons, "buttons"),
     ],
     ["missing"],

@@ -1,12 +1,9 @@
 use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
-    Input, IsDefault, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks,
-    Tool, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, cli_args, from_arg_matches,
+    Input, IsDefault, Msg, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks, Tool,
+    Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
 };
-
-cli_args!(MuxConfig, MuxConfigArg; Output => "output", Locale => "locale",
-          ExitOnErr => "exit-on-err");
 
 impl clap::FromArgMatches for MuxConfig {
     from_arg_matches!(@unrealized_fns);
@@ -35,7 +32,7 @@ impl clap::FromArgMatches for MuxConfig {
             input,
             output,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
-            locale: from_arg_matches!(matches, LangCode, Locale, LangCode::init),
+            locale: Msg::get_lang_code(),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
             off_on_pro: OffOnPro::from_arg_matches_mut(matches)?,
             retiming,
@@ -44,8 +41,8 @@ impl clap::FromArgMatches for MuxConfig {
             video_tracks: VideoTracks::from_arg_matches_mut(matches)?,
             button_tracks: ButtonTracks::from_arg_matches_mut(matches)?,
             chapters: Chapters::from_arg_matches_mut(matches)?,
-            other_attachs: OtherAttachs::from_arg_matches_mut(matches)?,
             font_attachs: FontAttachs::from_arg_matches_mut(matches)?,
+            other_attachs: OtherAttachs::from_arg_matches_mut(matches)?,
             default_t_flags: DefaultTFlags::from_arg_matches_mut(matches)?,
             forced_t_flags: ForcedTFlags::from_arg_matches_mut(matches)?,
             enabled_t_flags: EnabledTFlags::from_arg_matches_mut(matches)?,
@@ -68,8 +65,8 @@ impl clap::FromArgMatches for MuxConfigTarget {
             video_tracks: from_arg_matches!(matches, VideoTracks, @target),
             button_tracks: from_arg_matches!(matches, ButtonTracks, @target),
             chapters: from_arg_matches!(matches, Chapters, @target),
-            other_attachs: from_arg_matches!(matches, OtherAttachs, @target),
             font_attachs: from_arg_matches!(matches, FontAttachs, @target),
+            other_attachs: from_arg_matches!(matches, OtherAttachs, @target),
             default_t_flags: from_arg_matches!(matches, DefaultTFlags, @target),
             forced_t_flags: from_arg_matches!(matches, ForcedTFlags, @target),
             enabled_t_flags: from_arg_matches!(matches, EnabledTFlags, @target),

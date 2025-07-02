@@ -1,23 +1,5 @@
 use super::common::cfg;
-use crate::test_cli_args;
-use mux_media::{CLIArg, MCOffOnPro, OffOnPro, TFlagType};
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(
-        OffOnPro;
-        Pro => "pro", HelpAddDefaults => "add-defaults / --no-add-defaults",
-        AddDefaults => "add-defaults", NoAddDefaults => "no-add-defaults",
-        HelpAddForceds => "add-forceds / --no-add-forceds", AddForceds => "add-forceds",
-        NoAddForceds => "no-add-forceds", HelpAddEnableds => "add-enableds / --no-add-enableds",
-        AddEnableds => "add-enableds", NoAddEnableds => "no-add-enableds",
-        HelpAddNames => "add-names / --no-add-names", AddNames => "add-names",
-        NoAddNames => "no-add-names", HelpAddLangs => "add-langs / --no-add-langs",
-        AddLangs => "add-langs", NoAddLangs => "no-add-langs",
-        HelpSortFonts => "sort-fonts / --no-sort-fonts", SortFonts => "sort-fonts",
-        NoSortFonts => "no-sort-fonts"
-    );
-}
+use mux_media::{MCOffOnPro, OffOnPro, TFlagType};
 
 fn new(args: &[&str]) -> OffOnPro {
     *cfg::<_, &&str>(args).get::<MCOffOnPro>()

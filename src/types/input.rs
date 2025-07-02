@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 
 pub struct Input {
     dir: PathBuf,
-    range: Option<Range<u32>>,
+    range: Option<Range<u64>>,
     skip: Option<GlobSet>,
     up: u8,
     check: u16,

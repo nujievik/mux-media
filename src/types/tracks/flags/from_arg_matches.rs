@@ -1,10 +1,6 @@
 use super::{DefaultTFlags, EnabledTFlags, ForcedTFlags};
-use crate::{cli_args, from_arg_matches};
+use crate::from_arg_matches;
 use clap::{ArgMatches, Error, FromArgMatches};
-
-cli_args!(DefaultTFlags, DefaultTFlagsArg; Defaults => "defaults", LimDefaults => "lim-defaults");
-cli_args!(ForcedTFlags, ForcedTFlagsArg; Forceds => "forceds", LimForceds => "lim-forceds");
-cli_args!(EnabledTFlags, EnabledTFlagsArg; Enableds => "enableds", LimEnableds => "lim-enableds");
 
 macro_rules! flags_from_arg_matches {
     ($type:ident, $arg:ident, $lim_arg:ident) => {

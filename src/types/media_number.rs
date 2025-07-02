@@ -33,8 +33,8 @@ impl MediaNumber {
         &self.raw
     }
 
-    pub fn to_u32(&self) -> u32 {
-        self.raw.parse::<u32>().unwrap_or(0)
+    pub fn to_u64(&self) -> u64 {
+        self.raw.parse::<u64>().unwrap_or(0)
     }
 
     pub fn upd(&mut self, value: &OsStr) {

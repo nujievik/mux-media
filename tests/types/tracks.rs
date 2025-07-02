@@ -6,16 +6,8 @@ mod langs;
 mod names;
 
 use crate::common::{MAX_U64_STR, from_cfg};
-use crate::{compare_arg_cases, fn_variants_of_args, range, test_cli_args, test_from_str};
+use crate::{compare_arg_cases, fn_variants_of_args, range, test_from_str};
 use mux_media::*;
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(AudioTracks; Audio => "audio", NoAudio => "no-audio");
-    test_cli_args!(SubTracks; Subs => "subs", NoSubs => "no-subs");
-    test_cli_args!(VideoTracks; Video => "video", NoVideo => "no-video");
-    test_cli_args!(ButtonTracks; Buttons => "buttons", NoButtons => "no-buttons");
-}
 
 #[test]
 fn test_mkvmerge_args() {

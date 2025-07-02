@@ -1,4 +1,4 @@
-use crate::{TFlagType, cli_args, from_arg_matches};
+use crate::{TFlagType, from_arg_matches};
 use enum_map::{EnumMap, enum_map};
 
 #[derive(Copy, Clone)]
@@ -15,20 +15,6 @@ impl OffOnPro {
         self.t_flags[ft]
     }
 }
-
-cli_args!(
-    OffOnPro, OffOnProArg;
-    Pro => "pro", HelpAddDefaults => "add-defaults / --no-add-defaults",
-    AddDefaults => "add-defaults", NoAddDefaults => "no-add-defaults",
-    HelpAddForceds => "add-forceds / --no-add-forceds", AddForceds => "add-forceds",
-    NoAddForceds => "no-add-forceds", HelpAddEnableds => "add-enableds / --no-add-enableds",
-    AddEnableds => "add-enableds", NoAddEnableds => "no-add-enableds",
-    HelpAddNames => "add-names / --no-add-names", AddNames => "add-names",
-    NoAddNames => "no-add-names", HelpAddLangs => "add-langs / --no-add-langs",
-    AddLangs => "add-langs", NoAddLangs => "no-add-langs",
-    HelpSortFonts => "sort-fonts / --no-sort-fonts", SortFonts => "sort-fonts",
-    NoSortFonts => "no-sort-fonts"
-);
 
 impl clap::FromArgMatches for OffOnPro {
     from_arg_matches!(@unrealized_fns);

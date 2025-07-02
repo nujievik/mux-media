@@ -78,7 +78,7 @@ impl Input {
                 if let Some(ref mut num) = media_number {
                     num.upd(up_stem);
                     if let Some(range) = self.range {
-                        if !range.contains(num.to_u32()) {
+                        if !range.contains(num.to_u64()) {
                             return None;
                         }
                     }

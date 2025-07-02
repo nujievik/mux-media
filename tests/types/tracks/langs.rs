@@ -4,11 +4,6 @@ use crate::*;
 use mux_media::*;
 
 #[test]
-fn test_cli_args() {
-    test_cli_args!(TrackLangs; Langs => "langs");
-}
-
-#[test]
 fn test_is_default() {
     assert!(TrackLangs::default().is_default());
     assert!(from_cfg::<MCTrackLangs>(vec![]).is_default());

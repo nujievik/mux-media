@@ -1,7 +1,10 @@
 use super::RawMuxConfig;
-use crate::{LangCode, MuxError, Target, TargetGroup, Tool, Tools, TryInit};
+use crate::{
+    LangCode, Msg, MuxError, Target, TargetGroup, Tool, Tools, TryInit, os_helpers::os_str_tail,
+    types::mux::logger::get_stderr_color_prefix,
+};
 use std::collections::HashMap;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
 impl TryInit for RawMuxConfig {
@@ -9,13 +12,26 @@ impl TryInit for RawMuxConfig {
         let args: Vec<OsString> = std::env::args_os().skip(1).collect();
         let cfg = Self::try_from(args)?;
 
+        if let Some(lang) = cfg.locale {
+            Msg::try_upd_lang(lang).unwrap_or_else(|e| {
+                eprintln!(
+                    "{}{}: {}. {} '{}'",
+                    get_stderr_color_prefix(log::Level::Warn),
+                    Msg::ErrUpdLangCode,
+                    e,
+                    Msg::Using,
+                    Msg::get_lang_code()
+                );
+            });
+        }
+
         if cfg.list_langs {
             LangCode::print_list_langs();
             return Err(MuxError::new_ok());
         }
 
         if cfg.list_targets {
-            // add fn print_list_targets()
+            Target::print_list_targets();
             return Err(MuxError::new_ok());
         }
 
@@ -54,8 +70,10 @@ impl RawMuxConfig {
 
     #[inline]
     fn try_from_args(in_args: Vec<OsString>) -> Result<Self, MuxError> {
+        let mut locale: Option<LangCode> = None;
         let mut list_langs = false;
         let mut list_targets = false;
+
         let mut call_tool: Option<(Tool, Vec<OsString>)> = None;
         let mut args: Vec<OsString> = Vec::new();
         let mut trg_args: Option<HashMap<Target, Vec<OsString>>> = None;
@@ -64,29 +82,37 @@ impl RawMuxConfig {
         let mut iter = in_args.into_iter();
 
         while let Some(arg) = iter.next() {
-            let s = arg.to_string_lossy();
+            if arg == "--locale" {
+                let lang = iter
+                    .next()
+                    .ok_or_else(|| {
+                        "a value is required for '--locale <lng>' but none was supplied".into()
+                    })
+                    .and_then(|arg| arg.to_string_lossy().parse::<LangCode>())?;
+                locale = Some(lang);
+                continue;
+            }
 
-            if s == "--list-langs" || s == "--list-languages" {
+            if arg == "--list-langs" || arg == "--list-languages" {
                 list_langs = true;
                 break;
             }
 
-            if s == "--list-targets" {
+            if arg == "--list-targets" {
                 list_targets = true;
                 break;
             }
 
-            if s.starts_with("--") {
-                let maybe_tool = &s[2..];
-                if let Ok(tool) = maybe_tool.parse::<Tool>() {
+            if let Ok(maybe_tool) = os_str_tail(OsStr::new("--"), arg.as_ref()) {
+                if let Some(tool) = Tool::iter().find(|tool| maybe_tool == tool.as_ref()) {
                     let remaining_args: Vec<OsString> = iter.collect();
                     call_tool = Some((tool, remaining_args));
                     break;
                 }
             }
 
-            match s.as_ref() {
-                "--target" | "-t" => {
+            match arg {
+                arg if arg == OsStr::new("--target") => {
                     if let Some(trg_arg) = iter.next() {
                         let trg_str = trg_arg.to_string_lossy();
                         if trg_str == "global" || trg_str == "g" {
@@ -115,6 +141,7 @@ impl RawMuxConfig {
         }
 
         Ok(Self {
+            locale,
             list_langs,
             list_targets,
             call_tool,

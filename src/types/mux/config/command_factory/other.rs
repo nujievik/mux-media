@@ -1,40 +1,42 @@
+use super::super::cli_args::MuxConfigArg;
 use super::Blocks;
+use crate::{CLIArg, Msg};
 use clap::{Arg, ArgAction};
 
 impl Blocks {
     pub fn other(mut self) -> Self {
-        // Help Only. This args processing in crate::types::app::config::raw
+        // Help Only. This args processing in raw
         self.0 = self
             .0
-            .next_help_heading("Other options")
+            .next_help_heading(Msg::HelpOtherOptions.to_str_localized())
             .arg(
-                Arg::new("list_langs")
-                    .long("list-langs")
-                    .help("Show supported language codes")
+                Arg::new(MuxConfigArg::ListLangs.as_long())
+                    .long(MuxConfigArg::ListLangs.as_long())
+                    .help(Msg::HelpListLangs.to_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("ffprobe_help")
-                    .long("ffprobe [options]")
-                    .help("Call ffprobe")
+                Arg::new(MuxConfigArg::FfprobeHelp.as_long())
+                    .long(MuxConfigArg::FfprobeHelp.as_long())
+                    .help(Msg::HelpFfprobeHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("mkvextract")
-                    .long("mkvextract [options]")
-                    .help("Call mkvextract")
+                Arg::new(MuxConfigArg::MkvextractHelp.as_long())
+                    .long(MuxConfigArg::MkvextractHelp.as_long())
+                    .help(Msg::HelpMkvextractHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("mkvinfo_help")
-                    .long("mkvinfo [options]")
-                    .help("Call mkvinfo")
+                Arg::new(MuxConfigArg::MkvinfoHelp.as_long())
+                    .long(MuxConfigArg::MkvinfoHelp.as_long())
+                    .help(Msg::HelpMkvinfoHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new("mkvmerge_help")
-                    .long("mkvmerge [options]")
-                    .help("Call mkvmerge")
+                Arg::new(MuxConfigArg::MkvmergeHelp.as_long())
+                    .long(MuxConfigArg::MkvmergeHelp.as_long())
+                    .help(Msg::HelpMkvmergeHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             );
 
@@ -43,11 +45,11 @@ impl Blocks {
 
     pub fn version(mut self) -> Self {
         self.0 = self.0.arg(
-            Arg::new("version")
+            Arg::new(MuxConfigArg::Version.as_long())
                 .short('V')
-                .long("version")
-                .help_heading("Other options")
-                .help("Show version")
+                .long(MuxConfigArg::Version.as_long())
+                .help_heading(Msg::HelpOtherOptions.to_str_localized())
+                .help(Msg::HelpVersion.to_str_localized())
                 .action(ArgAction::Version),
         );
 
@@ -56,11 +58,11 @@ impl Blocks {
 
     pub fn help(mut self) -> Self {
         self.0 = self.0.arg(
-            Arg::new("help")
+            Arg::new(MuxConfigArg::Help.as_long())
                 .short('h')
-                .long("help")
-                .help_heading("Other options")
-                .help("Show help")
+                .long(MuxConfigArg::Help.as_long())
+                .help_heading(Msg::HelpOtherOptions.to_str_localized())
+                .help(Msg::HelpHelp.to_str_localized())
                 .action(ArgAction::Help),
         );
 

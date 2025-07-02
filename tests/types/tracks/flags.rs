@@ -3,13 +3,6 @@ use crate::*;
 use mux_media::*;
 
 #[test]
-fn test_cli_args() {
-    test_cli_args!(DefaultTFlags; Defaults => "defaults", LimDefaults => "lim-defaults");
-    test_cli_args!(ForcedTFlags; Forceds => "forceds", LimForceds => "lim-forceds");
-    test_cli_args!(EnabledTFlags; Enableds => "enableds", LimEnableds => "lim-enableds");
-}
-
-#[test]
 fn test_mkvmerge_args() {
     assert_eq!("--default-track-flag", DefaultTFlags::MKVMERGE_ARG);
     assert_eq!("--forced-display-flag", ForcedTFlags::MKVMERGE_ARG);

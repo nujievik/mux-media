@@ -1,3 +1,4 @@
+mod cli_args;
 mod command_factory;
 mod from_arg_matches;
 pub(crate) mod getters;
@@ -13,6 +14,7 @@ use std::collections::HashMap;
 use std::ffi::OsString;
 
 pub struct RawMuxConfig {
+    pub locale: Option<LangCode>,
     pub list_langs: bool,
     pub list_targets: bool,
     pub call_tool: Option<(Tool, Vec<OsString>)>,

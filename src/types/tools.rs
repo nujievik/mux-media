@@ -46,6 +46,16 @@ impl fmt::Display for Tool {
     }
 }
 
+/*
+impl TryFrom<&OsStr> for Tool {
+    type Error = MuxError;
+
+    fn try_from(os_str: &OsStr) -> Result<Self, Self::Error> {
+
+    }
+}
+*/
+
 #[derive(Clone, Default)]
 pub struct Tools {
     paths: EnumMap<Tool, Option<PathBuf>>,
@@ -137,7 +147,7 @@ impl Tools {
             Ok(output) => Err(MuxError::from(
                 String::from_utf8_lossy(&output.stdout).to_string(),
             )),
-            Err(e) => Err(MuxError::from(format!("Execution error: {}", e))),
+            Err(e) => Err(MuxError::from(format!("Running error: {}", e))),
         }
     }
 }
@@ -161,7 +171,7 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
         [
             (Msg::NotFound, format!(" '{}' (", tool_str)),
             (Msg::FromPackage, format!(" '{}'). ", tool.as_str_package())),
-            (Msg::InstallTool, String::new()),
+            (Msg::InstallIt, String::new()),
         ]
         .as_slice()
         .into()

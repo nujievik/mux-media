@@ -1,15 +1,9 @@
 use crate::common::cfg;
-use crate::test_cli_args;
-use mux_media::{CLIArg, IsDefault, MCSpecials, MediaInfo, Specials, ToMkvmergeArgs};
+use mux_media::{IsDefault, MCSpecials, MediaInfo, Specials, ToMkvmergeArgs};
 use std::path::Path;
 
 fn new(args: &[&str]) -> Specials {
     cfg::<_, &&str>(args).get::<MCSpecials>().clone()
-}
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(Specials; Specials => "specials");
 }
 
 #[test]

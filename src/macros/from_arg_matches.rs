@@ -5,7 +5,7 @@ macro_rules! from_arg_matches {
         use $crate::CLIArg;
 
         $matches
-            .try_remove_one::<$typ>(<Self as $crate::CLIArgs>::Arg::$arg.as_long())
+            .try_remove_one::<$typ>(<$crate::MuxConfig as $crate::CLIArgs>::Arg::$arg.as_long())
             .map_err($crate::MuxError::from)?
     }};
 
@@ -85,5 +85,12 @@ macro_rules! from_arg_matches {
                 Ok($crate::from_arg_matches!(matches, Self, $arg, Self::default))
             }
         }
-    }
+    };
+
+    (@impl, $ty:ty, $arg:ident, $no_arg:ident) => {
+        impl clap::FromArgMatches for $ty {
+            $crate::from_arg_matches!(@fn_mut, $arg, $no_arg);
+            $crate::from_arg_matches!(@unrealized_fns);
+        }
+    };
 }

@@ -1,6 +1,7 @@
+use super::super::cli_args::MuxConfigArg;
 use super::Blocks;
 use super::val_parsers::{InputDirParser, OutputParser, patterns_parser};
-use crate::{CLIArg, CLIArgs, Input, MuxConfig, Range};
+use crate::{CLIArg, Msg, Range};
 use clap::{Arg, builder::ValueParser};
 use std::str::FromStr;
 
@@ -8,57 +9,57 @@ impl Blocks {
     pub fn io(mut self) -> Self {
         self.0 = self
             .0
-            .next_help_heading("I/O options")
+            .next_help_heading(Msg::HelpIOOptions.to_str_localized())
             .arg(
-                Arg::new(<Input as CLIArgs>::Arg::Input.as_long())
+                Arg::new(MuxConfigArg::Input.as_long())
                     .short('i')
-                    .long(<Input as CLIArgs>::Arg::Input.as_long())
+                    .long(MuxConfigArg::Input.as_long())
                     .value_name("dir")
-                    .help("File search start directory")
+                    .help(Msg::HelpInput.to_str_localized())
                     .value_parser(ValueParser::new(InputDirParser)),
             )
             .arg(
-                Arg::new(<MuxConfig as CLIArgs>::Arg::Output.as_long())
+                Arg::new(MuxConfigArg::Output.as_long())
                     .short('o')
-                    .long(<MuxConfig as CLIArgs>::Arg::Output.as_long())
+                    .long(MuxConfigArg::Output.as_long())
                     .value_name("out[,put]")
-                    .help("Output paths pattern: out{num}[put]")
+                    .help(Msg::HelpOutput.to_str_localized())
                     .value_parser(ValueParser::new(OutputParser)),
             )
             .arg(
-                Arg::new(<Input as CLIArgs>::Arg::Range.as_long())
+                Arg::new(MuxConfigArg::Range.as_long())
                     .short('r')
-                    .long(<Input as CLIArgs>::Arg::Range.as_long())
+                    .long(MuxConfigArg::Range.as_long())
                     .value_name("n[-m]")
-                    .help("Number range of file names to mux")
-                    .value_parser(ValueParser::new(Range::<u32>::from_str)),
+                    .help(Msg::HelpRange.to_str_localized())
+                    .value_parser(ValueParser::new(Range::<u64>::from_str)),
             )
             .arg(
-                Arg::new(<Input as CLIArgs>::Arg::Skip.as_long())
-                    .long(<Input as CLIArgs>::Arg::Skip.as_long())
+                Arg::new(MuxConfigArg::Skip.as_long())
+                    .long(MuxConfigArg::Skip.as_long())
                     .value_name("n[,m]...")
-                    .help("Skip files with path patterns")
+                    .help(Msg::HelpSkip.to_str_localized())
                     .value_parser(ValueParser::new(patterns_parser)),
             )
             .arg(
-                Arg::new(<Input as CLIArgs>::Arg::Up.as_long())
-                    .long(<Input as CLIArgs>::Arg::Up.as_long())
+                Arg::new(MuxConfigArg::Up.as_long())
+                    .long(MuxConfigArg::Up.as_long())
                     .value_name("n")
-                    .help("Max directory levels to search up")
+                    .help(Msg::HelpUp.to_str_localized())
                     .value_parser(clap::value_parser!(u8)),
             )
             .arg(
-                Arg::new(<Input as CLIArgs>::Arg::Check.as_long())
-                    .long(<Input as CLIArgs>::Arg::Check.as_long())
+                Arg::new(MuxConfigArg::Check.as_long())
+                    .long(MuxConfigArg::Check.as_long())
                     .value_name("n")
-                    .help("Max files to check per level while up search")
+                    .help(Msg::HelpCheck.to_str_localized())
                     .value_parser(clap::value_parser!(u16).range(1..)),
             )
             .arg(
-                Arg::new(<Input as CLIArgs>::Arg::Down.as_long())
-                    .long(<Input as CLIArgs>::Arg::Down.as_long())
+                Arg::new(MuxConfigArg::Down.as_long())
+                    .long(MuxConfigArg::Down.as_long())
                     .value_name("n")
-                    .help("Max directory levels to search down")
+                    .help(Msg::HelpDown.to_str_localized())
                     .value_parser(clap::value_parser!(u8)),
             );
 

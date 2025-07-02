@@ -1,4 +1,4 @@
-use crate::{MuxError, TrackType};
+use crate::{Msg, MuxError, TrackType};
 use std::path::PathBuf;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -7,7 +7,6 @@ pub enum TargetGroup {
     Video,
     Signs,
     Subs,
-    Fonts,
     Buttons,
 }
 
@@ -15,6 +14,12 @@ pub enum TargetGroup {
 pub enum Target {
     Group(TargetGroup),
     Path(PathBuf),
+}
+
+impl Target {
+    pub fn print_list_targets() {
+        println!("{}", Msg::ListTargets.to_str_localized());
+    }
 }
 
 impl TargetGroup {
@@ -58,8 +63,6 @@ impl std::str::FromStr for TargetGroup {
             "s" => Self::Subs,
             "subs" => Self::Subs,
             "subtitles" => Self::Subs,
-            "f" => Self::Fonts,
-            "fonts" => Self::Fonts,
             "buttons" => Self::Buttons,
             _ => return Err(format!("Unrecognized target group: '{}'", s).into()),
         })

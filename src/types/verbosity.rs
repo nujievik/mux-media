@@ -1,4 +1,4 @@
-use crate::{cli_args, from_arg_matches};
+use crate::from_arg_matches;
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub enum Verbosity {
@@ -29,8 +29,6 @@ impl Verbosity {
         }
     }
 }
-
-cli_args!(Verbosity, VerbosityArg; Verbose => "verbose", Quiet => "quiet");
 
 impl clap::FromArgMatches for Verbosity {
     from_arg_matches!(@unrealized_fns);

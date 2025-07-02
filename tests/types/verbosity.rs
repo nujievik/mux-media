@@ -1,14 +1,8 @@
 use super::common::cfg;
-use crate::test_cli_args;
-use mux_media::{CLIArg, IsDefault, MCVerbosity, Verbosity};
+use mux_media::{IsDefault, MCVerbosity, Verbosity};
 
 fn new(args: &[&str]) -> Verbosity {
     cfg::<_, &&str>(args).get::<MCVerbosity>().clone()
-}
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(Verbosity; Verbose => "verbose", Quiet => "quiet");
 }
 
 #[test]

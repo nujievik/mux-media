@@ -1,5 +1,5 @@
 use crate::common::cfg;
-use crate::{compare_arg_cases, fn_variants_of_args, range, test_cli_args, test_from_str};
+use crate::{compare_arg_cases, fn_variants_of_args, range, test_from_str};
 use mux_media::*;
 
 fn new_fonts(args: &[&str]) -> FontAttachs {
@@ -10,12 +10,6 @@ fn new_fonts(args: &[&str]) -> FontAttachs {
 fn new_other(args: &[&str]) -> OtherAttachs {
     let mc = cfg::<_, &str>(args.iter().copied());
     mc.get::<MCOtherAttachs>().clone()
-}
-
-#[test]
-fn test_cli_args() {
-    test_cli_args!(FontAttachs; Fonts => "fonts", NoFonts => "no-fonts");
-    test_cli_args!(OtherAttachs; Attachs => "attachs", NoAttachs => "no-attachs");
 }
 
 #[test]

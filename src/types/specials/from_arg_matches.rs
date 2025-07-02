@@ -1,7 +1,5 @@
 use super::Specials;
-use crate::{cli_args, from_arg_matches};
-
-cli_args!(Specials, SpecialsArg; Specials => "specials");
+use crate::from_arg_matches;
 
 impl clap::FromArgMatches for Specials {
     from_arg_matches!(@unrealized_fns);

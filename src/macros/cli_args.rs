@@ -29,19 +29,6 @@ macro_rules! cli_args {
         }
     };
 
-    ($type:ident, $enum_arg:ident;
-    $( $arg:ident => $long:expr, $mkvmerge:expr ),* $(,)?) => {
-        $crate::cli_args!($type, $enum_arg; $( $arg ),*);
-
-        impl $crate::CLIArg for $enum_arg {
-            fn as_long(self) -> &'static str {
-                match self {
-                    $( Self::$arg => $long ),*
-                }
-            }
-        }
-    };
-
     ($type:ident, $enum_arg:ident; $( $arg:ident => $long:expr ),* $(,)?) => {
         $crate::cli_args!($type, $enum_arg; $( $arg ),*);
 

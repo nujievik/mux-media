@@ -1,4 +1,4 @@
-use crate::{IsDefault, cli_args, from_arg_matches};
+use crate::{IsDefault, from_arg_matches};
 use globset::GlobSet;
 
 #[derive(Clone)]
@@ -13,9 +13,6 @@ impl IsDefault for Retiming {
         self.rm_segments.is_none() && !self.no_linked && !self.less
     }
 }
-
-cli_args!(Retiming, RetimingArg; RmSegments => "rm-segments", NoLinked => "no-linked",
-          LessRetiming => "less-retiming");
 
 impl clap::FromArgMatches for Retiming {
     from_arg_matches!(@unrealized_fns);
