@@ -1,5 +1,5 @@
 use super::id::TrackID;
-use crate::{IsDefault, MuxError, from_arg_matches, mkvmerge_arg, to_mkvmerge_args};
+use crate::{IsDefault, MuxError, from_arg_matches, mkvmerge_arg, to_json_args, to_mkvmerge_args};
 use std::collections::HashMap;
 
 #[derive(Clone, Default)]
@@ -11,6 +11,8 @@ pub struct TrackNames {
 
 mkvmerge_arg!(TrackNames, "--track-name");
 to_mkvmerge_args!(@names_or_langs, TrackNames, Names, add_names, MITIName);
+
+to_json_args!(@names_or_langs, TrackNames, Names);
 
 impl clap::FromArgMatches for TrackNames {
     from_arg_matches!(@unrealized_fns);

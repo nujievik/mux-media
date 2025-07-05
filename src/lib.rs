@@ -39,7 +39,7 @@ pub use types::{
             MCOtherAttachs, MCOutput, MCRetiming, MCSpecials, MCSubTracks, MCTools, MCTrackLangs,
             MCTrackNames, MCVerbosity, MCVideoTracks,
         },
-        config::{MuxConfig, RawMuxConfig},
+        config::{MuxConfig, RawMuxConfig, cli_args::MuxConfigArg},
         error::{MuxError, MuxErrorKind},
         logger::MuxLogger,
     },

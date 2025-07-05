@@ -21,15 +21,6 @@ pub trait ToMkvmergeArg {
     fn to_mkvmerge_arg(&self) -> String;
 }
 
-impl<T> ToMkvmergeArg for T
-where
-    T: ToString,
-{
-    fn to_mkvmerge_arg(&self) -> String {
-        self.to_string()
-    }
-}
-
 pub trait ToJsonArgs {
     fn to_json_args(&self) -> Vec<String>;
 }

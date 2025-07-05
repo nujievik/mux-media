@@ -1,32 +1,32 @@
 use super::Input;
-use crate::ToJsonArgs;
+use crate::{ToJsonArgs, json_arg};
 
 impl ToJsonArgs for Input {
     fn to_json_args(&self) -> Vec<String> {
         let mut args: Vec<String> = Vec::new();
 
         if let Some(dir) = self.dir.to_str() {
-            args.push("-i".into());
+            args.push(json_arg!(Input));
             args.push(dir.into());
         }
 
         if let Some(range) = &self.range {
-            args.push("--range".into());
-            args.push(format!("{}-{}", range.start, range.end));
+            args.push(json_arg!(Range));
+            args.push(range.to_string());
         }
 
-        if self.up != Self::default_up() {
-            args.push("--up".into());
+        if self.up != Self::DEFAULT_UP {
+            args.push(json_arg!(Up));
             args.push(self.up.to_string());
         }
 
-        if self.check != Self::default_check() {
-            args.push("--check".into());
+        if self.check != Self::DEFAULT_CHECK {
+            args.push(json_arg!(Check));
             args.push(self.check.to_string());
         }
 
-        if self.down != Self::default_down() {
-            args.push("--down".into());
+        if self.down != Self::DEFAULT_DOWN {
+            args.push(json_arg!(Down));
             args.push(self.down.to_string());
         }
 

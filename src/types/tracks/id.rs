@@ -1,4 +1,5 @@
 use crate::{LangCode, MuxError, Range};
+use std::fmt;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum TrackID {
@@ -63,6 +64,16 @@ impl std::str::FromStr for TrackID {
                 )
                 .into()),
             }
+        }
+    }
+}
+
+impl fmt::Display for TrackID {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Num(num) => write!(f, "{}", num),
+            Self::Lang(lang) => write!(f, "{}", lang),
+            Self::Range(rng) => write!(f, "{}", rng),
         }
     }
 }

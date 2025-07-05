@@ -63,7 +63,7 @@ impl TryFinalizeInit for MuxConfig {
 }
 
 impl MuxConfig {
-    pub const JSON_NAME: &'static str = "mux-config.json";
+    pub const JSON_NAME: &'static str = "mux-media.json";
 
     pub fn try_from_args<I, T>(args: I) -> Result<Self, MuxError>
     where

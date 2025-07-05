@@ -17,9 +17,9 @@ impl FromArgMatches for Input {
             dir: dir.clone(),
             range,
             skip: from_arg_matches!(matches, GlobSet, Skip, @no_default),
-            up: from_arg_matches!(matches, u8, Up, Self::default_up),
-            check: from_arg_matches!(matches, u16, Check, Self::default_check),
-            down: from_arg_matches!(matches, u8, Down, Self::default_down),
+            up: from_arg_matches!(matches, u8, Up, || Self::DEFAULT_UP),
+            check: from_arg_matches!(matches, u16, Check, || Self::DEFAULT_CHECK),
+            down: from_arg_matches!(matches, u8, Down, || Self::DEFAULT_DOWN),
             need_num,
             upmost: dir,
             ..Default::default()

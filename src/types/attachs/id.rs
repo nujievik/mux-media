@@ -1,5 +1,5 @@
 use crate::{MuxError, Range};
-use std::str::FromStr;
+use std::{fmt, str::FromStr};
 
 #[derive(Clone, Hash, Eq, PartialEq)]
 pub enum AttachID {
@@ -37,6 +37,15 @@ impl FromStr for AttachID {
             }
         } else {
             Err(format!("Attach ID '{}' must be num or range (n-m) of num", s).into())
+        }
+    }
+}
+
+impl fmt::Display for AttachID {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Num(num) => write!(f, "{}", num),
+            Self::Range(rng) => write!(f, "{}", rng),
         }
     }
 }

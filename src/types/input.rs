@@ -27,9 +27,9 @@ impl Default for Input {
             dir: PathBuf::from("."),
             range: None,
             skip: None,
-            up: Self::default_up(),
-            check: Self::default_check(),
-            down: Self::default_down(),
+            up: Self::DEFAULT_UP,
+            check: Self::DEFAULT_CHECK,
+            down: Self::DEFAULT_DOWN,
             need_num: false,
             out_need_num: false,
             is_upmost_higher: false,
@@ -40,6 +40,10 @@ impl Default for Input {
 }
 
 impl Input {
+    const DEFAULT_UP: u8 = 8;
+    const DEFAULT_CHECK: u16 = 128;
+    const DEFAULT_DOWN: u8 = 16;
+
     pub fn normalize_dir(dir: impl Into<PathBuf>) -> Result<PathBuf, std::io::Error> {
         let dir = std::fs::canonicalize(dir.into())?;
         std::fs::read_dir(&dir)?;
@@ -63,17 +67,5 @@ impl Input {
 
     fn try_default_dir() -> Result<PathBuf, std::io::Error> {
         Self::normalize_dir(".")
-    }
-
-    fn default_up() -> u8 {
-        8
-    }
-
-    fn default_check() -> u16 {
-        128
-    }
-
-    fn default_down() -> u8 {
-        16
     }
 }

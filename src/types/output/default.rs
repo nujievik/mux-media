@@ -1,6 +1,5 @@
 use super::Output;
-use std::ffi::OsString;
-use std::path::PathBuf;
+use std::{ffi::OsString, path::PathBuf};
 
 impl Default for Output {
     fn default() -> Self {
@@ -17,6 +16,8 @@ impl Default for Output {
 }
 
 impl Output {
+    pub(super) const DEFAULT_EXT: &'static str = "mkv";
+
     #[inline]
     fn make_any_dir(dir: impl Into<PathBuf>, subdir: &str) -> PathBuf {
         let mut dir = dir.into();
@@ -36,6 +37,6 @@ impl Output {
 
     #[inline]
     pub(super) fn default_ext() -> OsString {
-        OsString::from("mkv")
+        Self::DEFAULT_EXT.into()
     }
 }

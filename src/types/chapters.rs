@@ -1,6 +1,6 @@
 use crate::{
-    MuxError, ToMkvmergeArgs, from_arg_matches, mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args,
-    types::helpers::try_canonicalize_and_open,
+    MuxError, ToJsonArgs, ToMkvmergeArgs, from_arg_matches, json_arg, mkvmerge_arg,
+    mkvmerge_no_arg, to_mkvmerge_args, types::helpers::try_canonicalize_and_open,
 };
 use std::path::{Path, PathBuf};
 
@@ -48,5 +48,19 @@ impl ToMkvmergeArgs for Chapters {
             eprintln!("Unexpected None file. Return empty");
             Vec::new()
         }
+    }
+}
+
+impl ToJsonArgs for Chapters {
+    fn to_json_args(&self) -> Vec<String> {
+        if self.no_flag {
+            return vec![json_arg!(NoChapters)];
+        }
+
+        if let Some(s) = self.file.as_ref().map(|f| f.to_str()).flatten() {
+            return vec![json_arg!(Chapters), s.into()];
+        }
+
+        Vec::new()
     }
 }

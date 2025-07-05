@@ -2,10 +2,7 @@ mod iter;
 mod max_value;
 
 use crate::{MaxValue, MuxError, ToMkvmergeArg};
-use std::fmt;
-use std::hash::Hash;
-use std::ops::Add;
-use std::str::FromStr;
+use std::{fmt, hash::Hash, ops::Add, str::FromStr};
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Range<T> {
@@ -35,6 +32,15 @@ where
             .map(|x| x.to_string())
             .collect::<Vec<_>>()
             .join(",")
+    }
+}
+
+impl<T> fmt::Display for Range<T>
+where
+    T: fmt::Display,
+{
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}..={}", self.start, self.end)
     }
 }
 
@@ -71,7 +77,7 @@ where
 }
 
 fn detect_delimiter(s: &str) -> Option<(&str, usize)> {
-    for delimiter in &["-", "..", ","] {
+    for delimiter in &["-", ",", "..="] {
         if s.contains(delimiter) {
             return Some((delimiter, s.matches(delimiter).count()));
         }

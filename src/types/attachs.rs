@@ -3,6 +3,7 @@ mod from_arg_matches;
 mod from_str;
 pub(crate) mod id;
 mod save;
+mod to_json_args;
 mod to_mkvmerge_args;
 
 use crate::deref_tuple_fields;

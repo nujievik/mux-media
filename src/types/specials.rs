@@ -1,5 +1,6 @@
 mod from_arg_matches;
 mod special_opt;
+mod to_json_args;
 mod to_mkvmerge_args;
 
 use crate::MuxError;

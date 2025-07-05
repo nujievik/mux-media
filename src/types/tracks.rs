@@ -5,6 +5,7 @@ mod impls;
 pub(crate) mod langs;
 pub(crate) mod names;
 pub(crate) mod order;
+mod to_json_args;
 mod to_mkvmerge_args;
 pub(crate) mod track_type;
 

@@ -60,6 +60,7 @@ cli_args!(
     RmSegments => "rm-segments",
     NoLinked => "no-linked",
     LessRetiming => "less-retiming",
+    Target => "target",
     TargetHelp => "target <trg> [options]",
     ListTargets => "list-targets",
     Audio => "audio",

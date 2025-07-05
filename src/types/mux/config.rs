@@ -1,4 +1,4 @@
-mod cli_args;
+pub(crate) mod cli_args;
 mod command_factory;
 mod from_arg_matches;
 pub(crate) mod getters;

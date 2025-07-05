@@ -1,4 +1,4 @@
-use crate::from_arg_matches;
+use crate::{from_arg_matches, json_arg};
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub enum Verbosity {
@@ -43,5 +43,16 @@ impl clap::FromArgMatches for Verbosity {
                 Self::default()
             },
         )
+    }
+}
+
+impl crate::ToJsonArgs for Verbosity {
+    fn to_json_args(&self) -> Vec<String> {
+        match self {
+            Self::Quiet => vec![json_arg!(Quiet)],
+            Self::Normal => Vec::new(),
+            Self::Verbose => vec!["-v".to_string()],
+            Self::Debug => vec!["-vv".to_string()],
+        }
     }
 }

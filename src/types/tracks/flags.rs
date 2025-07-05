@@ -2,6 +2,7 @@ pub(crate) mod counts;
 pub(crate) mod flag_type;
 mod from_arg_matches;
 mod from_str;
+mod to_json_args;
 mod to_mkvmerge_args;
 
 use crate::{IsDefault, TrackID, deref_tuple_fields};

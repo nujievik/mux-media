@@ -1,5 +1,7 @@
 use super::id::TrackID;
-use crate::{IsDefault, LangCode, MuxError, from_arg_matches, mkvmerge_arg, to_mkvmerge_args};
+use crate::{
+    IsDefault, LangCode, MuxError, from_arg_matches, mkvmerge_arg, to_json_args, to_mkvmerge_args,
+};
 use std::collections::HashMap;
 
 #[derive(Clone, Default)]
@@ -11,6 +13,8 @@ pub struct TrackLangs {
 
 mkvmerge_arg!(TrackLangs, "--language");
 to_mkvmerge_args!(@names_or_langs, TrackLangs, Langs, add_langs, MITILang);
+
+to_json_args!(@names_or_langs, TrackLangs, Langs);
 
 impl clap::FromArgMatches for TrackLangs {
     from_arg_matches!(@unrealized_fns);

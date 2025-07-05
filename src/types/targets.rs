@@ -1,7 +1,8 @@
 use crate::{Msg, MuxError, TrackType};
-use std::path::PathBuf;
+use std::{fmt, path::PathBuf, str::FromStr};
+use strum_macros::AsRefStr;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AsRefStr)]
 pub enum TargetGroup {
     Audio,
     Video,
@@ -50,7 +51,7 @@ impl From<TrackType> for TargetGroup {
     }
 }
 
-impl std::str::FromStr for TargetGroup {
+impl FromStr for TargetGroup {
     type Err = crate::MuxError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -66,5 +67,11 @@ impl std::str::FromStr for TargetGroup {
             "buttons" => Self::Buttons,
             _ => return Err(format!("Unrecognized target group: '{}'", s).into()),
         })
+    }
+}
+
+impl fmt::Display for TargetGroup {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.as_ref())
     }
 }

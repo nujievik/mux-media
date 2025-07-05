@@ -1,7 +1,7 @@
 use super::{AudioTracks, ButtonTracks, SubTracks, VideoTracks};
 use crate::{
-    IsDefault, MISavedTracks, MediaInfo, MkvmergeArg, MkvmergeNoArg, ToMkvmergeArg, ToMkvmergeArgs,
-    TrackType, mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args, unwrap_or_return_vec,
+    IsDefault, MISavedTracks, MediaInfo, MkvmergeArg, MkvmergeNoArg, ToMkvmergeArgs, TrackType,
+    mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args, unwrap_or_return_vec,
 };
 use std::path::Path;
 
@@ -28,7 +28,7 @@ macro_rules! tracks_to_mkvmerge_args {
                             mi.get::<MISavedTracks>(path)
                         )[$track_type]
                             .iter()
-                            .map(|num| num.to_mkvmerge_arg())
+                            .map(|num| num.to_string())
                             .collect::<Vec<_>>()
                             .join(",");
 

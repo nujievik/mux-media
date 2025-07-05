@@ -1,10 +1,13 @@
 mod default;
+mod to_json_args;
 mod try_finalize_init;
 mod try_from;
 
-use std::ffi::{OsStr, OsString};
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::{OsStr, OsString},
+    fs,
+    path::{Path, PathBuf},
+};
 
 #[derive(Clone)]
 pub struct Output {
@@ -45,7 +48,7 @@ impl Output {
 }
 
 fn remove_empty_chain_dirs(dirs: &[PathBuf]) {
-    let norm_order = match dirs.len() >= 2 {
+    let norm_order = match dirs.len() > 1 {
         true => dirs[1].components().count() > dirs[0].components().count(),
         false => false,
     };
