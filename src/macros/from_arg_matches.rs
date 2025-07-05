@@ -54,12 +54,14 @@ macro_rules! from_arg_matches {
         }
     }};
 
-    (@unrealized_fns) => {
+    (@fn) => {
         fn from_arg_matches(matches: &clap::ArgMatches) -> Result<Self, clap::Error> {
             let mut matches = matches.clone();
             Self::from_arg_matches_mut(&mut matches)
         }
+    };
 
+    (@fn_update) => {
         fn update_from_arg_matches(
             &mut self,
             matches: &clap::ArgMatches,
@@ -67,7 +69,9 @@ macro_rules! from_arg_matches {
             let mut matches = matches.clone();
             self.update_from_arg_matches_mut(&mut matches)
         }
+    };
 
+    (@fn_update_mut) => {
         fn update_from_arg_matches_mut(
             &mut self,
             matches: &mut clap::ArgMatches,
@@ -75,6 +79,12 @@ macro_rules! from_arg_matches {
             *self = Self::from_arg_matches_mut(matches)?;
             Ok(())
         }
+    };
+
+    (@unrealized_fns) => {
+        $crate::from_arg_matches!(@fn);
+        $crate::from_arg_matches!(@fn_update);
+        $crate::from_arg_matches!(@fn_update_mut);
     };
 
     (@fn_mut, $arg:ident, $no_arg:ident) => {
@@ -93,4 +103,22 @@ macro_rules! from_arg_matches {
             $crate::from_arg_matches!(@unrealized_fns);
         }
     };
+
+    // Update case 1: field is not Option
+    (@upd, $self:ident, $matches:ident; $( $field:ident, $ty:ty, $arg:ident ),* ) => {{
+        $(
+            if let Some(val) = from_arg_matches!($matches, $ty, $arg, @no_default) {
+                $self.$field = val;
+            }
+        )*
+    }};
+
+    // Update case 2: field is Option
+    (@upd, $self:ident, $matches:ident, @opt_field; $( $field:ident, $ty:ty, $arg:ident ),* ) => {{
+        $(
+            if let Some(val) = from_arg_matches!($matches, $ty, $arg, @no_default) {
+                $self.$field = Some(val);
+            }
+        )*
+    }};
 }

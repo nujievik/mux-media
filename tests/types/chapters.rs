@@ -40,22 +40,22 @@ fn test_err_messages() {
     assert!(err_msg("missing").contains("No such file or directory"));
 }
 
-fn_variants_of_args!("-c" => vec!["--chapters"], "-C" => vec!["--no-chapters"]);
+fn_variants_of_args!();
 
 #[test]
 fn test_to_mvkmerge_args() {
-    for file in ["srt.srt", "audio_x1.mka", "sub_x8.mks"] {
-        let path = data_file(file);
-        let path = path.to_str().unwrap();
+    ["srt.srt", "audio_x1.mka", "sub_x8.mks"]
+        .iter()
+        .for_each(|file| {
+            let path = data_file(file);
+            let path = path.to_str().unwrap();
 
-        let cases = [
-            (vec![], vec![]),
-            (vec!["--no-chapters"], vec!["-C"]),
-            (vec!["--no-chapters"], vec!["--no-chapters"]),
-            (vec!["--chapters", path], vec!["-c", path]),
-            (vec!["--chapters", path], vec!["--chapters", path]),
-        ];
+            let cases = [
+                (vec![], vec![]),
+                (vec!["--no-chapters"], vec!["--no-chapters"]),
+                (vec!["--chapters", path], vec!["--chapters", path]),
+            ];
 
-        compare_arg_cases!(cases, variants_of_args, file, MCChapters,);
-    }
+            compare_arg_cases!(cases, variants_of_args, file, MCChapters,);
+        })
 }

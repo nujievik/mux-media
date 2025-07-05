@@ -1,103 +1,55 @@
-use crate::{Chapters, Input, Output};
-use clap::builder::TypedValueParser;
-use clap::error::{ContextKind, ContextValue, ErrorKind};
-use clap::{Arg, Command, Error};
+use crate::{Chapters, Input, Output, types::helpers::try_canonicalize_and_open};
+use clap::{
+    Arg, Command, Error,
+    builder::TypedValueParser,
+    error::{ContextKind, ContextValue, ErrorKind},
+};
 use globset::{Glob, GlobSet, GlobSetBuilder};
-use std::ffi::OsStr;
-use std::path::PathBuf;
+use std::{ffi::OsStr, path::PathBuf};
 
-#[derive(Clone)]
-pub(super) struct InputDirParser;
+macro_rules! typed_value_parser {
+    ($parser:ident, $val_ty:ty, $try_from_os_str:path) => {
+        #[derive(Clone)]
+        pub(super) struct $parser;
 
-impl TypedValueParser for InputDirParser {
-    type Value = PathBuf;
+        impl TypedValueParser for $parser {
+            type Value = $val_ty;
 
-    fn parse_ref(
-        &self,
-        cmd: &Command,
-        arg: Option<&Arg>,
-        value: &OsStr,
-    ) -> Result<Self::Value, Error> {
-        Input::normalize_dir(value).map_err(|e| {
-            let mut err = Error::new(ErrorKind::InvalidValue).with_cmd(&cmd);
+            fn parse_ref(
+                &self,
+                cmd: &Command,
+                arg: Option<&Arg>,
+                value: &OsStr,
+            ) -> Result<Self::Value, Error> {
+                $try_from_os_str(value).map_err(|e| {
+                    let mut err = Error::new(ErrorKind::InvalidValue).with_cmd(&cmd);
 
-            if let Some(arg) = arg {
-                err.insert(
-                    ContextKind::InvalidArg,
-                    ContextValue::String(arg.to_string()),
-                );
+                    if let Some(arg) = arg {
+                        err.insert(
+                            ContextKind::InvalidArg,
+                            ContextValue::String(arg.to_string()),
+                        );
+                    }
+                    err.insert(
+                        ContextKind::InvalidValue,
+                        ContextValue::String(format!(
+                            "'{}' (reason: {})",
+                            value.to_string_lossy(),
+                            e
+                        )),
+                    );
+
+                    err
+                })
             }
-            err.insert(
-                ContextKind::InvalidValue,
-                ContextValue::String(format!("{} (reason: {})", value.to_string_lossy(), e)),
-            );
-
-            err
-        })
-    }
+        }
+    };
 }
 
-#[derive(Clone)]
-pub(super) struct OutputParser;
-
-impl TypedValueParser for OutputParser {
-    type Value = Output;
-
-    fn parse_ref(
-        &self,
-        cmd: &Command,
-        arg: Option<&Arg>,
-        value: &OsStr,
-    ) -> Result<Self::Value, Error> {
-        Output::try_from_path(value).map_err(|e| {
-            let mut err = Error::new(ErrorKind::InvalidValue).with_cmd(&cmd);
-
-            if let Some(arg) = arg {
-                err.insert(
-                    ContextKind::InvalidArg,
-                    ContextValue::String(arg.to_string()),
-                );
-            }
-            err.insert(
-                ContextKind::InvalidValue,
-                ContextValue::String(format!("{} (reason: {})", value.to_string_lossy(), e)),
-            );
-
-            err
-        })
-    }
-}
-
-#[derive(Clone)]
-pub(super) struct ChaptersParser;
-
-impl TypedValueParser for ChaptersParser {
-    type Value = Chapters;
-
-    fn parse_ref(
-        &self,
-        cmd: &Command,
-        arg: Option<&Arg>,
-        value: &OsStr,
-    ) -> Result<Self::Value, Error> {
-        Chapters::try_from_path(value).map_err(|e| {
-            let mut err = Error::new(ErrorKind::InvalidValue).with_cmd(&cmd);
-
-            if let Some(arg) = arg {
-                err.insert(
-                    ContextKind::InvalidArg,
-                    ContextValue::String(arg.to_string()),
-                );
-            }
-            err.insert(
-                ContextKind::InvalidValue,
-                ContextValue::String(format!("{} (reason: {})", value.to_string_lossy(), e)),
-            );
-
-            err
-        })
-    }
-}
+typed_value_parser!(InputDirParser, PathBuf, Input::normalize_dir);
+typed_value_parser!(OutputParser, Output, Output::try_from_path);
+typed_value_parser!(ConfigParser, PathBuf, try_canonicalize_and_open);
+typed_value_parser!(ChaptersParser, Chapters, Chapters::try_from_path);
 
 pub(super) fn patterns_parser(s: &str) -> Result<GlobSet, String> {
     let mut builder = GlobSetBuilder::new();

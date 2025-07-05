@@ -1,5 +1,5 @@
 use super::Input;
-use crate::{EXTENSIONS, MediaNumber, os_helpers::os_str_starts_with};
+use crate::{EXTENSIONS, MediaNumber, types::helpers::os_str_starts_with};
 use globset::GlobSet;
 use log::{debug, trace, warn};
 use rayon::prelude::*;

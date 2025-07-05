@@ -20,10 +20,9 @@ pub fn data_file(file: &str) -> PathBuf {
 pub fn cfg<I, T>(args: I) -> MuxConfig
 where
     I: IntoIterator<Item = T>,
-    T: Into<OsString>,
+    T: Into<OsString> + Clone,
 {
-    let args: Vec<OsString> = args.into_iter().map(|x| x.into()).collect();
-    RawMuxConfig::try_from(args).unwrap().try_into().unwrap()
+    MuxConfig::try_from_args(args).unwrap()
 }
 
 pub fn from_cfg<F>(args: Vec<&str>) -> <MuxConfig as GetField<F>>::FieldType

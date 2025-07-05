@@ -9,7 +9,7 @@ pub use run::run;
 
 pub use traits::{
     CLIArg, CLIArgs, GetField, GetOptField, IsDefault, MaxValue, MkvmergeArg, MkvmergeNoArg,
-    SetGetField, SetGetPathField, SetGetPathTrackField, ToMkvmergeArg, ToMkvmergeArgs,
+    SetGetField, SetGetPathField, SetGetPathTrackField, ToJsonArgs, ToMkvmergeArg, ToMkvmergeArgs,
     TryFinalizeInit, TryInit,
 };
 
@@ -35,7 +35,7 @@ pub use types::{
         // Get Field MuxConfig markers
         config::getters::{
             MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags,
-            MCExitOnErr, MCFontAttachs, MCForcedTFlags, MCInput, MCLocale, MCOffOnPro,
+            MCExitOnErr, MCFontAttachs, MCForcedTFlags, MCInput, MCLocale, MCNoJson, MCOffOnPro,
             MCOtherAttachs, MCOutput, MCRetiming, MCSpecials, MCSubTracks, MCTools, MCTrackLangs,
             MCTrackNames, MCVerbosity, MCVideoTracks,
         },
@@ -44,7 +44,6 @@ pub use types::{
         logger::MuxLogger,
     },
     off_on_pro::OffOnPro,
-    os_helpers,
     output::Output,
     range::Range,
     retiming::Retiming,

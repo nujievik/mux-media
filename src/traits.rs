@@ -30,6 +30,10 @@ where
     }
 }
 
+pub trait ToJsonArgs {
+    fn to_json_args(&self) -> Vec<String>;
+}
+
 pub trait ToMkvmergeArgs {
     fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String>;
     fn to_os_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<std::ffi::OsString>;

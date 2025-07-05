@@ -3,6 +3,7 @@ mod command_factory;
 mod from_arg_matches;
 pub(crate) mod getters;
 mod raw;
+mod to_json_args;
 mod try_init;
 
 use crate::{
@@ -10,8 +11,7 @@ use crate::{
     Input, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks, Target, Tool,
     Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
-use std::collections::HashMap;
-use std::ffi::OsString;
+use std::{collections::HashMap, ffi::OsString};
 
 pub struct RawMuxConfig {
     pub locale: Option<LangCode>,
@@ -25,8 +25,9 @@ pub struct RawMuxConfig {
 pub struct MuxConfig {
     input: Input,
     output: Output,
-    verbosity: Verbosity,
     locale: LangCode,
+    verbosity: Verbosity,
+    no_json: bool,
     exit_on_err: bool,
     off_on_pro: OffOnPro,
     retiming: Retiming,

@@ -17,32 +17,6 @@ macro_rules! mkvmerge_no_arg {
 }
 
 #[macro_export]
-macro_rules! cli_args {
-    ($type:ident, $enum_arg:ident; $( $arg:ident ),* $(,)?) => {
-        impl $crate::CLIArgs for $type {
-            type Arg = $enum_arg;
-        }
-
-        #[derive(Copy, Clone)]
-        pub enum $enum_arg {
-            $( $arg ),*
-        }
-    };
-
-    ($type:ident, $enum_arg:ident; $( $arg:ident => $long:expr ),* $(,)?) => {
-        $crate::cli_args!($type, $enum_arg; $( $arg ),*);
-
-        impl $crate::CLIArg for $enum_arg {
-            fn as_long(self) -> &'static str {
-                match self {
-                    $( Self::$arg => $long ),*
-                }
-            }
-        }
-    };
-}
-
-#[macro_export]
 macro_rules! unwrap_or_return_vec {
     ($x:expr) => {
         match $x {

@@ -4,35 +4,41 @@ use crate::{
     Input, IsDefault, Msg, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks, Tool,
     Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
 };
+use clap::{ArgMatches, Error, FromArgMatches};
 
-impl clap::FromArgMatches for MuxConfig {
-    from_arg_matches!(@unrealized_fns);
+macro_rules! upd_fields {
+    ($self:ident, $matches:ident; $( $field:ident, $ty:ty ),* ) => {{
+        $(
+            let val = <$ty>::from_arg_matches_mut($matches)?;
+            if !val.is_default() {
+                $self.$field = val;
+            }
+        )*
+    }};
 
-    fn from_arg_matches_mut(matches: &mut clap::ArgMatches) -> Result<Self, clap::Error> {
-        let retiming = Retiming::from_arg_matches_mut(matches)?;
+    ($self:ident, $matches:ident, @target; $( $field:ident, $ty:ty ),* ) => {{
+        $(
+            let val = <$ty>::from_arg_matches_mut($matches)?;
+            if !val.is_default() {
+                $self.$field = Some(val);
+            }
+        )*
+    }};
+}
 
-        let mut tools = Tools::try_from(Tool::iter_mkvtoolnix())?;
-        if !retiming.is_default() {
-            tools.try_upd_tool_path(Tool::Ffprobe)?;
-        }
+impl FromArgMatches for MuxConfig {
+    from_arg_matches!(@fn);
+    from_arg_matches!(@fn_update);
 
-        let mut input = Input::from_arg_matches_mut(matches)?;
-        let output = from_arg_matches!(
-            matches,
-            Output,
-            Output,
-            || Output::try_from(&input), @try_default);
-        if output.need_num() {
-            input.upd_out_need_num(true);
-        }
-
-        tools.upd_json(Tools::make_json(output.get_temp_dir()));
+    fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
+        let (input, output, retiming, tools) = try_io_rtm_tools(matches)?;
 
         Ok(Self {
             input,
             output,
-            verbosity: Verbosity::from_arg_matches_mut(matches)?,
             locale: Msg::get_lang_code(),
+            verbosity: Verbosity::from_arg_matches_mut(matches)?,
+            no_json: from_arg_matches!(matches, bool, NoConfig, || false),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
             off_on_pro: OffOnPro::from_arg_matches_mut(matches)?,
             retiming,
@@ -53,12 +59,72 @@ impl clap::FromArgMatches for MuxConfig {
             tools,
         })
     }
+
+    fn update_from_arg_matches_mut(&mut self, matches: &mut ArgMatches) -> Result<(), Error> {
+        self.input.update_from_arg_matches_mut(matches)?;
+
+        if let Some(output) = from_arg_matches!(matches, Output, Output, @no_default) {
+            self.input.upd_out_need_num(output.need_num());
+            self.tools.upd_json(Tools::make_json(output.get_temp_dir()));
+            self.output = output;
+        }
+
+        self.locale = Msg::get_lang_code();
+
+        self.retiming.update_from_arg_matches_mut(matches)?;
+
+        if !self.retiming.is_default() {
+            self.tools.try_upd_tool_path_if_none(Tool::Ffprobe)?;
+        }
+
+        upd_fields!(
+            self, matches;
+            verbosity, Verbosity,
+            audio_tracks, AudioTracks,
+            sub_tracks, SubTracks,
+            video_tracks, VideoTracks,
+            button_tracks, ButtonTracks,
+            chapters, Chapters,
+            font_attachs, FontAttachs,
+            other_attachs, OtherAttachs,
+            default_t_flags, DefaultTFlags,
+            forced_t_flags, ForcedTFlags,
+            enabled_t_flags, EnabledTFlags,
+            track_names, TrackNames,
+            track_langs, TrackLangs,
+            specials, Specials
+        );
+
+        Ok(())
+    }
 }
 
-impl clap::FromArgMatches for MuxConfigTarget {
-    from_arg_matches!(@unrealized_fns);
+fn try_io_rtm_tools(matches: &mut ArgMatches) -> Result<(Input, Output, Retiming, Tools), Error> {
+    let mut input = Input::from_arg_matches_mut(matches)?;
+    let output = from_arg_matches!(
+        matches,
+        Output,
+        Output,
+        || Output::try_from(&input), @try_default);
+    let retiming = Retiming::from_arg_matches_mut(matches)?;
+    let mut tools = Tools::try_from(Tool::iter_mkvtoolnix())?;
 
-    fn from_arg_matches_mut(matches: &mut clap::ArgMatches) -> Result<Self, clap::Error> {
+    input.upd_out_need_num(output.need_num());
+
+    if !retiming.is_default() {
+        tools.try_upd_tool_path(Tool::Ffprobe)?;
+    }
+
+    tools.upd_json(Tools::make_json(output.get_temp_dir()));
+
+    Ok((input, output, retiming, tools))
+}
+
+impl FromArgMatches for MuxConfigTarget {
+    from_arg_matches!(@fn);
+    from_arg_matches!(@fn_update);
+
+    fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
         Ok(Self {
             audio_tracks: from_arg_matches!(matches, AudioTracks, @target),
             sub_tracks: from_arg_matches!(matches, SubTracks, @target),
@@ -74,5 +140,26 @@ impl clap::FromArgMatches for MuxConfigTarget {
             track_langs: from_arg_matches!(matches, TrackLangs, @target),
             specials: from_arg_matches!(matches, Specials, @target),
         })
+    }
+
+    fn update_from_arg_matches_mut(&mut self, matches: &mut ArgMatches) -> Result<(), Error> {
+        upd_fields!(
+            self, matches, @target;
+            audio_tracks, AudioTracks,
+            sub_tracks, SubTracks,
+            video_tracks, VideoTracks,
+            button_tracks, ButtonTracks,
+            chapters, Chapters,
+            font_attachs, FontAttachs,
+            other_attachs, OtherAttachs,
+            default_t_flags, DefaultTFlags,
+            forced_t_flags, ForcedTFlags,
+            enabled_t_flags, EnabledTFlags,
+            track_names, TrackNames,
+            track_langs, TrackLangs,
+            specials, Specials
+        );
+
+        Ok(())
     }
 }

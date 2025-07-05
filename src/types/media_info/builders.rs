@@ -6,7 +6,7 @@ use super::mkvinfo::{MKVILang, MKVIName, Mkvinfo};
 use crate::{
     EXTENSIONS, LangCode, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
     MITILang, MITIName, MITargetGroup, MITracksInfo, MuxError, SubCharset, Target, TargetGroup,
-    Tool, TrackID, TrackType, os_helpers,
+    Tool, TrackID, TrackType, types::helpers::os_str_tail,
 };
 use std::collections::HashMap;
 use std::ffi::{OsStr, OsString};
@@ -156,14 +156,14 @@ impl MediaInfo<'_> {
         let stem = path
             .file_stem()
             .ok_or_else(|| format!("Path '{}' has not file_stem()", path.display()))?;
-        os_helpers::os_str_tail(cmn_stem, stem).map(|os| os.to_string_lossy().into_owned())
+        os_str_tail(cmn_stem, stem).map(|os| os.to_string_lossy().into_owned())
     }
 
     pub(super) fn build_relative_upmost(&mut self, path: &Path) -> Result<String, MuxError> {
         path.parent()
             .ok_or_else(|| format!("Path '{}' has not parent()", path.display()).into())
             .and_then(|parent| {
-                os_helpers::os_str_tail(self.upmost.as_os_str(), parent.as_os_str())
+                os_str_tail(self.upmost.as_os_str(), parent.as_os_str())
                     .map(|os| os.to_string_lossy().into_owned())
             })
     }

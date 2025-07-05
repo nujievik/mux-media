@@ -123,7 +123,7 @@ impl MuxError {
     #[inline(always)]
     fn print_in_stderr_or_stdout(&self, msg: &str) {
         if self.use_stderr() {
-            eprintln!("{}{}", get_stderr_color_prefix(log::Level::Error), msg);
+            eprintln!("{} {}", get_stderr_color_prefix(log::Level::Error), msg);
         } else {
             println!("{}", msg);
         }

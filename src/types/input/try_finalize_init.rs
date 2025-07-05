@@ -1,5 +1,5 @@
 use super::{Input, iters::DirIter};
-use crate::{Msg, MuxError, TryFinalizeInit, os_helpers::os_str_starts_with};
+use crate::{Msg, MuxError, TryFinalizeInit, types::helpers::os_str_starts_with};
 use rayon::prelude::*;
 use std::ffi::OsStr;
 use std::path::{Path, PathBuf};

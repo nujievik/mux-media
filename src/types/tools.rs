@@ -1,12 +1,12 @@
-use crate::{Msg, MuxError};
+use crate::{Msg, MuxError, types::helpers::try_write_args_to_json};
 use enum_map::{Enum, EnumMap};
 use log::{debug, warn};
-use std::ffi::{OsStr, OsString};
-use std::fmt;
-use std::fs::File;
-use std::io::BufWriter;
-use std::path::{Path, PathBuf};
-use std::process::Command;
+use std::{
+    ffi::{OsStr, OsString},
+    fmt,
+    path::{Path, PathBuf},
+    process::Command,
+};
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, AsRefStr, Enum, EnumIter, EnumString)]
@@ -46,16 +46,6 @@ impl fmt::Display for Tool {
     }
 }
 
-/*
-impl TryFrom<&OsStr> for Tool {
-    type Error = MuxError;
-
-    fn try_from(os_str: &OsStr) -> Result<Self, Self::Error> {
-
-    }
-}
-*/
-
 #[derive(Clone, Default)]
 pub struct Tools {
     paths: EnumMap<Tool, Option<PathBuf>>,
@@ -75,6 +65,13 @@ impl Tools {
     pub fn try_upd_tool_path(&mut self, tool: Tool) -> Result<(), MuxError> {
         self.paths[tool] = Some(get_tool_path(tool)?);
         Ok(())
+    }
+
+    pub fn try_upd_tool_path_if_none(&mut self, tool: Tool) -> Result<(), MuxError> {
+        self.paths[tool]
+            .is_none()
+            .then(|| self.try_upd_tool_path(tool))
+            .unwrap_or(Ok(()))
     }
 
     pub fn make_json(dir: impl Into<PathBuf>) -> PathBuf {
@@ -109,25 +106,27 @@ impl Tools {
         );
 
         let args_json = match &self.json {
-            Some(json) if tool.is_mkvtoolnix() => match write_args_to_json(args.clone(), json) {
-                Ok(vec) => {
-                    let mut json_with_at = OsString::from("@");
-                    json_with_at.push(json);
-                    command.arg(json_with_at);
-                    Some(vec)
+            Some(json) if tool.is_mkvtoolnix() => {
+                match try_write_args_to_json(args.clone(), json) {
+                    Ok(args) => {
+                        let mut json_with_at = OsString::from("@");
+                        json_with_at.push(json);
+                        command.arg(json_with_at);
+                        Some(args)
+                    }
+                    Err(e) => {
+                        warn!(
+                            "{}: {}. {} CLI ({})",
+                            Msg::ErrWriteJson,
+                            e,
+                            Msg::Using,
+                            Msg::MayFailIfCommandLong
+                        );
+                        command.args(args);
+                        None
+                    }
                 }
-                Err(e) => {
-                    warn!(
-                        "{}: {}. {} CLI ({})",
-                        Msg::ErrWriteJson,
-                        e,
-                        Msg::Using,
-                        Msg::MayFailIfCommandLong
-                    );
-                    command.args(args);
-                    None
-                }
-            },
+            }
 
             _ => {
                 command.args(args);
@@ -216,27 +215,4 @@ fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
             None => Err(err()),
         }
     }
-}
-
-#[inline(always)]
-fn write_args_to_json<I, T>(args: I, json: &Path) -> Result<Vec<String>, String>
-where
-    I: IntoIterator<Item = T> + Clone,
-    T: AsRef<OsStr>,
-{
-    let args = args
-        .into_iter()
-        .map(|arg| {
-            arg.as_ref()
-                .to_str()
-                .ok_or("Unsupported UTF-8 symbol.".to_string())
-                .map(|s| s.to_string())
-        })
-        .collect::<Result<Vec<_>, _>>()?;
-
-    let file = File::create(json).map_err(|e| format!("Create error: {}", e))?;
-    let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &args).map_err(|e| format!("JSON write error: {}", e))?;
-
-    Ok(args)
 }

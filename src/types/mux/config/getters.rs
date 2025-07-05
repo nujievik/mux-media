@@ -10,8 +10,9 @@ get_fields! {
     MuxConfig;
     input, Input => MCInput,
     output, Output => MCOutput,
-    verbosity, Verbosity => MCVerbosity,
     locale, LangCode => MCLocale,
+    verbosity, Verbosity => MCVerbosity,
+    no_json, bool => MCNoJson,
     exit_on_err, bool => MCExitOnErr,
     off_on_pro, OffOnPro => MCOffOnPro,
     retiming, Retiming => MCRetiming,

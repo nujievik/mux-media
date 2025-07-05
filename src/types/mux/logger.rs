@@ -36,7 +36,7 @@ impl Log for MuxLogger {
 
         match level {
             Level::Error | Level::Warn => {
-                let msg = format!("{}{}\n", get_stderr_color_prefix(level), record.args());
+                let msg = format!("{} {}\n", get_stderr_color_prefix(level), record.args());
                 let msg = msg.as_bytes();
                 let _ = io::stderr()
                     .write_all(msg)
@@ -58,10 +58,10 @@ impl Log for MuxLogger {
 /// are applied if stderr supports them.
 pub(crate) fn get_stderr_color_prefix(level: log::Level) -> &'static str {
     match level {
-        Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",
-        Level::Error => "Error: ",
-        Level::Warn if *STDERR_ON_COLOR => "\x1b[33mWarning\x1b[0m: ",
-        Level::Warn => "Warning: ",
+        Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m:",
+        Level::Error => "Error:",
+        Level::Warn if *STDERR_ON_COLOR => "\x1b[33mWarning\x1b[0m:",
+        Level::Warn => "Warning:",
         _ => "",
     }
 }

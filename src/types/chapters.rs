@@ -1,5 +1,6 @@
 use crate::{
     MuxError, ToMkvmergeArgs, from_arg_matches, mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args,
+    types::helpers::try_canonicalize_and_open,
 };
 use std::path::{Path, PathBuf};
 
@@ -10,13 +11,8 @@ pub struct Chapters {
 }
 
 impl Chapters {
-    pub fn try_from_path(path: impl Into<PathBuf>) -> Result<Self, MuxError> {
-        let path = std::fs::canonicalize(path.into())?;
-        if !path.is_file() {
-            return Err("Is not a file".into());
-        }
-        std::fs::File::open(&path)?;
-
+    pub fn try_from_path(path: impl AsRef<Path>) -> Result<Self, MuxError> {
+        let path = try_canonicalize_and_open(path)?;
         Ok(Self {
             file: Some(path),
             ..Default::default()

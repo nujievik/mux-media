@@ -81,7 +81,7 @@ impl ToMkvmergeArgs for Attachs {
     to_mkvmerge_args!(@fn_os);
 }
 
-#[inline]
+#[inline(always)]
 fn shortest_track_nums(mut nums: BTreeSet<u64>, cnt: usize, cnt_init: usize) -> String {
     let inverse = cnt > (cnt_init / 2);
 

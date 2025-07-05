@@ -1,13 +1,17 @@
 use crate::{
     MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity, MediaInfo, Msg, MuxConfig, MuxError,
-    MuxLogger, Output, Tool, TryInit,
+    MuxLogger, Output, Tool, TryFinalizeInit, TryInit,
 };
 use log::{info, warn};
 use std::ffi::OsString;
 use std::path::PathBuf;
 
 pub fn run() -> Result<(), MuxError> {
-    let mc = MuxConfig::try_init()?;
+    let mc = {
+        let mut mc = MuxConfig::try_init()?;
+        mc.try_finalize_init()?;
+        mc
+    };
 
     MuxLogger::init_with_filter(mc.get::<MCVerbosity>().to_level_filter());
 
@@ -17,7 +21,10 @@ pub fn run() -> Result<(), MuxError> {
 
     result.map(|cnt| match cnt {
         0 => warn!("{}", Msg::NotMuxedAny),
-        _ => info!("{} {} media", Msg::SuccessMuxed, cnt),
+        _ => {
+            info!("{} {} media", Msg::SuccessMuxed, cnt);
+            mc.write_args_to_json_or_log();
+        }
     })
 }
 
