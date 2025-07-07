@@ -1,18 +1,13 @@
 use super::Input;
-use crate::{EXTENSIONS, MediaNumber, types::helpers::os_str_starts_with};
-use globset::GlobSet;
+use crate::{EXTENSIONS, GlobSetPattern, MediaNumber, types::helpers::os_str_starts_with};
 use log::{debug, trace, warn};
 use rayon::prelude::*;
-use std::collections::HashSet;
-use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::{
+    collections::HashSet,
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 use walkdir::{IntoIter, WalkDir};
-
-pub(super) struct DirIter<'a> {
-    seen: HashSet<PathBuf>,
-    walker: IntoIter,
-    skip: Option<&'a GlobSet>,
-}
 
 macro_rules! iter_any_files_in_dir {
     ($id_fn:ident, $exts:ident) => {
@@ -36,8 +31,8 @@ macro_rules! iter_any_files_in_dir {
                         return false;
                     }
 
-                    if let Some(globs) = &self.skip {
-                        if globs.is_match(path) {
+                    if let Some(pat) = &self.skip {
+                        if pat.glob_set.is_match(path) {
                             return false;
                         }
                     }
@@ -170,8 +165,14 @@ pub struct MediaGroupedByStem {
     pub stem: OsString,
 }
 
+pub(super) struct DirIter<'a> {
+    seen: HashSet<PathBuf>,
+    walker: IntoIter,
+    skip: Option<&'a GlobSetPattern>,
+}
+
 impl<'a> DirIter<'a> {
-    pub fn new(root: impl Into<PathBuf>, down: u8, skip: Option<&'a GlobSet>) -> Self {
+    pub fn new(root: impl Into<PathBuf>, down: u8, skip: Option<&'a GlobSetPattern>) -> Self {
         let walker = WalkDir::new(&root.into())
             .follow_links(true)
             .max_depth((down as usize) + 1)
@@ -187,7 +188,7 @@ impl<'a> DirIter<'a> {
     #[inline]
     fn should_skip(&self, path: &Path) -> bool {
         match self.skip {
-            Some(globset) => globset.is_match(path),
+            Some(pat) => pat.glob_set.is_match(path),
             None => false,
         }
     }

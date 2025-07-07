@@ -1,4 +1,5 @@
 use crate::{TFlagType, ToJsonArgs, from_arg_matches, json_arg};
+use clap::{ArgMatches, Error, FromArgMatches};
 use enum_map::{EnumMap, enum_map};
 
 #[derive(Copy, Clone)]
@@ -16,10 +17,26 @@ impl OffOnPro {
     }
 }
 
-impl clap::FromArgMatches for OffOnPro {
-    from_arg_matches!(@unrealized_fns);
+macro_rules! upd_val {
+    ($matches:ident, $old_pro:expr, $new_pro:expr, $old:expr, $add:ident, $no_add:ident) => {{
+        if let Some(true) = from_arg_matches!($matches, bool, $add, @no_default) {
+            true
+        } else if let Some(true) = from_arg_matches!($matches, bool, $no_add, @no_default) {
+            false
+        } // Is manual value
+        else if $old != $old_pro {
+            $old
+        } else {
+            !$new_pro
+        }
+    }};
+}
 
-    fn from_arg_matches_mut(matches: &mut clap::ArgMatches) -> Result<Self, clap::Error> {
+impl FromArgMatches for OffOnPro {
+    from_arg_matches!(@fn);
+    from_arg_matches!(@fn_update);
+
+    fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
         let pro = from_arg_matches!(matches, bool, Pro, || false);
 
         let t_flags: EnumMap<TFlagType, bool> = enum_map! {
@@ -39,6 +56,64 @@ impl clap::FromArgMatches for OffOnPro {
             add_langs,
             sort_fonts,
         })
+    }
+
+    fn update_from_arg_matches_mut(&mut self, matches: &mut ArgMatches) -> Result<(), Error> {
+        let old_pro = self.pro;
+        let new_pro = from_arg_matches!(matches, bool, Pro, || old_pro);
+
+        self.pro = new_pro;
+
+        self.t_flags[TFlagType::Default] = upd_val!(
+            matches,
+            old_pro,
+            new_pro,
+            self.t_flags[TFlagType::Default],
+            AddDefaults,
+            NoAddDefaults
+        );
+        self.t_flags[TFlagType::Forced] = upd_val!(
+            matches,
+            old_pro,
+            new_pro,
+            self.t_flags[TFlagType::Forced],
+            AddForceds,
+            NoAddForceds
+        );
+        self.t_flags[TFlagType::Enabled] = upd_val!(
+            matches,
+            old_pro,
+            new_pro,
+            self.t_flags[TFlagType::Enabled],
+            AddEnableds,
+            NoAddEnableds
+        );
+        self.add_names = upd_val!(
+            matches,
+            old_pro,
+            new_pro,
+            self.add_names,
+            AddNames,
+            NoAddNames
+        );
+        self.add_langs = upd_val!(
+            matches,
+            old_pro,
+            new_pro,
+            self.add_langs,
+            AddLangs,
+            NoAddLangs
+        );
+        self.sort_fonts = upd_val!(
+            matches,
+            old_pro,
+            new_pro,
+            self.sort_fonts,
+            SortFonts,
+            NoSortFonts
+        );
+
+        Ok(())
     }
 }
 

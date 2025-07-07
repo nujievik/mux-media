@@ -89,3 +89,49 @@ macro_rules! test_from_str {
         }
     };
 }
+
+#[macro_export]
+macro_rules! build_test_to_json_args {
+    (@body, $field:ident, $json_dir:expr; $( $left:expr, $right:expr ),* ) => {{
+        let dir = format!("output/to_json_args/{}", $json_dir);
+        let dir = $crate::common::data_file(&dir);
+        let s_dir = dir.to_str().unwrap();
+
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+
+        let add_args = vec!["--input", s_dir, "--locale", "eng"];
+        let json = dir.clone().join(mux_media::MuxConfig::JSON_NAME);
+
+        $(
+            let mc_args = $crate::common::append_str_vecs([add_args.clone(), $right]);
+            let mc = $crate::common::cfg(mc_args);
+
+            let left = $crate::common::to_args::<Vec<&str>, _>($left.clone());
+            let right = mc.get::<$field>().to_json_args();
+            assert_eq!(left, right);
+
+            let left = $crate::common::append_str_vecs([add_args.clone(), $left]);
+            mc.write_args_to_json_or_log();
+            let right = $crate::common::read_json_args(&json);
+
+            assert_eq!(left, right, "from json err");
+        )*
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }};
+
+    ( $fn:ident, $field:ident, $json_dir:expr; $( $args:expr ),* $(,)? ) => {
+        #[test]
+        fn $fn() {
+            $crate::build_test_to_json_args!(@body, $field, $json_dir; $( $args.clone(), $args ),* );
+        }
+    };
+
+    ( $fn:ident, $field:ident, $json_dir:expr, @diff_in_out; $( $left:expr, $right:expr ),* $(,)? ) => {
+        #[test]
+        fn $fn() {
+            $crate::build_test_to_json_args!(@body, $field, $json_dir; $( $left, $right ),* );
+        }
+    };
+}

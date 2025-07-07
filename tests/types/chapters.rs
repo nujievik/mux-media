@@ -1,5 +1,5 @@
 use super::common::data_file;
-use crate::{compare_arg_cases, fn_variants_of_args};
+use crate::*;
 use mux_media::*;
 
 fn new(file: &str) -> Chapters {
@@ -59,3 +59,12 @@ fn test_to_mvkmerge_args() {
             compare_arg_cases!(cases, variants_of_args, file, MCChapters,);
         })
 }
+
+build_test_to_json_args!(
+    test_to_json_args, MCChapters, "chapters";
+    vec!["--no-chapters"],
+    vec!["--chapters", data_file("srt.srt").to_str().unwrap()],
+    vec!["--chapters", data_file("cp1251.srt").to_str().unwrap()],
+    vec!["--chapters", data_file("audio_x1.mka").to_str().unwrap()],
+    vec!["--chapters", data_file("video_x1.mkv").to_str().unwrap()]
+);

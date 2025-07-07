@@ -4,7 +4,6 @@ use clap::{
     builder::TypedValueParser,
     error::{ContextKind, ContextValue, ErrorKind},
 };
-use globset::{Glob, GlobSet, GlobSetBuilder};
 use std::{ffi::OsStr, path::PathBuf};
 
 macro_rules! typed_value_parser {
@@ -50,17 +49,3 @@ typed_value_parser!(InputDirParser, PathBuf, Input::normalize_dir);
 typed_value_parser!(OutputParser, Output, Output::try_from_path);
 typed_value_parser!(ConfigParser, PathBuf, try_canonicalize_and_open);
 typed_value_parser!(ChaptersParser, Chapters, Chapters::try_from_path);
-
-pub(super) fn patterns_parser(s: &str) -> Result<GlobSet, String> {
-    let mut builder = GlobSetBuilder::new();
-
-    for pattern in s.split(',') {
-        let glob =
-            Glob::new(pattern).map_err(|e| format!("Invalid pattern '{}': {}", pattern, e))?;
-        builder.add(glob);
-    }
-
-    builder
-        .build()
-        .map_err(|e| format!("Failed to build patterns: {}", e))
-}

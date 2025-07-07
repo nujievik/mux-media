@@ -1,7 +1,6 @@
 use super::Input;
-use crate::{Range, from_arg_matches};
+use crate::{GlobSetPattern, Range, from_arg_matches};
 use clap::{ArgMatches, Error, FromArgMatches};
-use globset::GlobSet;
 use std::path::PathBuf;
 
 impl FromArgMatches for Input {
@@ -16,7 +15,7 @@ impl FromArgMatches for Input {
         Ok(Self {
             dir: dir.clone(),
             range,
-            skip: from_arg_matches!(matches, GlobSet, Skip, @no_default),
+            skip: from_arg_matches!(matches, GlobSetPattern, Skip, @no_default),
             up: from_arg_matches!(matches, u8, Up, || Self::DEFAULT_UP),
             check: from_arg_matches!(matches, u16, Check, || Self::DEFAULT_CHECK),
             down: from_arg_matches!(matches, u8, Down, || Self::DEFAULT_DOWN),
@@ -38,7 +37,7 @@ impl FromArgMatches for Input {
         from_arg_matches!(
             @upd, self, matches, @opt_field;
             range, Range<u64>, Range,
-            skip, GlobSet, Skip
+            skip, GlobSetPattern, Skip
         );
 
         self.need_num = self.range.is_some();

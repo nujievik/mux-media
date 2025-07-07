@@ -5,8 +5,8 @@ mod langs;
 #[path = "tracks/names.rs"]
 mod names;
 
-use crate::common::{MAX_U64_STR, from_cfg};
-use crate::{compare_arg_cases, fn_variants_of_args, range, test_from_str};
+use crate::common::*;
+use crate::*;
 use mux_media::*;
 
 #[test]
@@ -145,9 +145,20 @@ test_from_str!(
 );
 
 macro_rules! test_save_track {
-    ($type:ident, $test_fn:ident) => {
+    ($type:ident, $test_fn:ident, $field:ident, $no_arg:expr) => {
         #[test]
         fn $test_fn() {
+            let no_tracks = from_cfg::<$field>(vec![$no_arg]);
+
+            let save = |left: bool, tracks: &$type, s_ids: &[&str]| {
+                s_ids.into_iter().for_each(|s_id| {
+                    let tid = TrackID::Num(s_id.parse::<u64>().unwrap_or(99));
+                    let l_tid = TrackID::Lang(s_id.parse::<LangCode>().unwrap_or(LangCode::Und));
+
+                    assert_eq!(left, tracks.save_track(&tid, &l_tid), "err on '{}'", s_id);
+                })
+            };
+
             let cases = [
                 (vec!["0"], "0"),
                 (vec!["8"], "8"),
@@ -160,20 +171,11 @@ macro_rules! test_save_track {
                 (vec!["eng", "rus", "0", "4"], "!1-3"),
             ];
 
-            for (s_ids, s) in cases {
+            cases.iter().for_each(|(s_ids, s)| {
                 let tracks = s.parse::<$type>().unwrap();
-                for s_id in s_ids {
-                    let tid = TrackID::Num(s_id.parse::<u64>().unwrap_or(99));
-                    let l_tid = TrackID::Lang(s_id.parse::<LangCode>().unwrap_or(LangCode::Und));
-
-                    assert!(
-                        tracks.save_track(&tid, &l_tid),
-                        "Tracks '{}' not save track '{}'",
-                        s,
-                        s_id,
-                    );
-                }
-            }
+                save(true, &tracks, s_ids);
+                save(false, &no_tracks, s_ids);
+            });
 
             let bad_cases = [
                 (vec!["1", "8", "eng"], "0"),
@@ -186,28 +188,19 @@ macro_rules! test_save_track {
                 (vec!["1", "2", "3"], "!1-3"),
             ];
 
-            for (s_ids, s) in bad_cases {
+            bad_cases.iter().for_each(|(s_ids, s)| {
                 let tracks = s.parse::<$type>().unwrap();
-                for s_id in s_ids {
-                    let tid = TrackID::Num(s_id.parse::<u64>().unwrap_or(99));
-                    let l_tid = TrackID::Lang(s_id.parse::<LangCode>().unwrap_or(LangCode::Und));
-
-                    assert!(
-                        !tracks.save_track(&tid, &l_tid),
-                        "Tracks '{}' save track '{}'",
-                        s,
-                        s_id
-                    );
-                }
-            }
+                save(false, &tracks, s_ids);
+                save(false, &no_tracks, s_ids);
+            });
         }
     };
 }
 
-test_save_track!(AudioTracks, test_audio_save_track);
-test_save_track!(SubTracks, test_sub_save_track);
-test_save_track!(VideoTracks, test_video_save_track);
-test_save_track!(ButtonTracks, test_button_save_track);
+test_save_track!(AudioTracks, test_audio_save_track, MCAudioTracks, "-A");
+test_save_track!(SubTracks, test_subs_save_track, MCSubTracks, "-S");
+test_save_track!(VideoTracks, test_video_save_track, MCVideoTracks, "-D");
+test_save_track!(ButtonTracks, test_buttons_save_track, MCButtonTracks, "-B");
 
 #[test]
 fn test_id_to_mkvmerge_arg() {
@@ -236,7 +229,7 @@ fn_variants_of_args!(
 );
 
 macro_rules! test_x8_file_to_mkvmerge_arg {
-    ( $( $type:ident, $test_fn:ident, $file:expr, $field:ident, $arg:expr, $no_arg:expr );* $(;)?) => {
+    ( $( $test_fn:ident, $file:expr, $field:ident, $arg:expr, $no_arg:expr );* ) => {
         $(
         #[test]
         fn $test_fn() {
@@ -263,13 +256,13 @@ macro_rules! test_x8_file_to_mkvmerge_arg {
 }
 
 test_x8_file_to_mkvmerge_arg!(
-    AudioTracks, test_x8_audio_to_mkvmerge_args, "audio_x8.mka", MCAudioTracks, "-a", "-A";
-    SubTracks, test_x8_sub_to_mkvmerge_args, "sub_x8.mks", MCSubTracks, "-s", "-S";
-    VideoTracks, test_x8_video_to_mkvmerge_args, "video_x8.mkv", MCVideoTracks, "-d", "-D";
+    test_x8_audio_to_mkvmerge_args, "audio_x8.mka", MCAudioTracks, "-a", "-A";
+    test_x8_sub_to_mkvmerge_args, "sub_x8.mks", MCSubTracks, "-s", "-S";
+    test_x8_video_to_mkvmerge_args, "video_x8.mkv", MCVideoTracks, "-d", "-D"
 );
 
 macro_rules! test_x1_file_to_mkvmerge_arg {
-    ( $( $type:ident, $test_fn:ident, $file:expr, $field:ident, $arg:expr, $no_arg:expr );* $(;)?) => {
+    ( $( $test_fn:ident, $file:expr, $field:ident, $arg:expr, $no_arg:expr );* ) => {
         $(
         #[test]
         fn $test_fn() {
@@ -296,7 +289,36 @@ macro_rules! test_x1_file_to_mkvmerge_arg {
 }
 
 test_x1_file_to_mkvmerge_arg!(
-    AudioTracks, test_x1_audio_to_mkvmerge_args, "audio_x1.mka", MCAudioTracks, "-a", "-A";
-    SubTracks, test_x1_sub_to_mkvmerge_args, "sub_x1.mks", MCSubTracks, "-s", "-S";
-    VideoTracks, test_x1_video_to_mkvmerge_args, "video_x1.mkv", MCVideoTracks, "-d", "-D";
+    test_x1_audio_to_mkvmerge_args, "audio_x1.mka", MCAudioTracks, "-a", "-A";
+    test_x1_sub_to_mkvmerge_args, "sub_x1.mks", MCSubTracks, "-s", "-S";
+    test_x1_video_to_mkvmerge_args, "video_x1.mkv", MCVideoTracks, "-d", "-D"
+);
+
+macro_rules! build_test_tracks_to_json_args {
+    ( $( $fn:ident, $field:ident, $json_dir:expr, $arg:expr, $no_arg:expr );* ) => {
+        $(
+            build_test_to_json_args!(
+                $fn, $field, $json_dir, @diff_in_out;
+                vec![], vec![],
+                vec![$no_arg], vec![$no_arg],
+                vec![$arg, "0"], vec![$arg, "0"],
+                vec![$arg, "0,1,2,3"], vec![$arg, "0,1,2,3"],
+                vec![$arg, "eng,rus"], vec![$arg, "eng,rus"],
+                vec![$arg, "1,eng,rus"], vec![$arg, "1,eng,rus"],
+                vec![$arg, "1..=5,eng,rus"], vec![$arg, "1..=5,eng,rus"],
+                vec![$arg, "0,1,2,3"], vec![$arg, "3,0,2,1"],
+                vec![$arg, "eng,rus"], vec![$arg, "rus,eng"],
+                vec![$arg, "1,eng,rus"], vec![$arg, "eng,1,rus"],
+                vec![$arg, "1..=5,eng,rus"], vec![$arg, "rus,1..=5,eng"],
+                vec![$arg, "1..=5"], vec![$arg, "1-5"],
+            );
+        )*
+    };
+}
+
+build_test_tracks_to_json_args!(
+    test_audio_to_json_args, MCAudioTracks, "audio_tracks", "--audio", "--no-audio";
+    test_subs_to_json_args, MCSubTracks, "sub_tracks", "--subs", "--no-subs";
+    test_video_to_json_args, MCVideoTracks, "video_tracks", "--video", "--no-video";
+    test_buttons_to_json_args, MCButtonTracks, "button_tracks", "--buttons", "--no-buttons"
 );

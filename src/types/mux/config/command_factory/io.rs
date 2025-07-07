@@ -1,7 +1,6 @@
-use super::super::cli_args::MuxConfigArg;
 use super::Blocks;
-use super::val_parsers::{InputDirParser, OutputParser, patterns_parser};
-use crate::{CLIArg, Msg, Range};
+use super::val_parsers::{InputDirParser, OutputParser};
+use crate::{CLIArg, GlobSetPattern, Msg, MuxConfigArg, Range};
 use clap::{Arg, builder::ValueParser};
 use std::str::FromStr;
 
@@ -39,7 +38,7 @@ impl Blocks {
                     .long(MuxConfigArg::Skip.as_long())
                     .value_name("n[,m]...")
                     .help(Msg::HelpSkip.to_str_localized())
-                    .value_parser(ValueParser::new(patterns_parser)),
+                    .value_parser(ValueParser::new(GlobSetPattern::from_str)),
             )
             .arg(
                 Arg::new(MuxConfigArg::Up.as_long())

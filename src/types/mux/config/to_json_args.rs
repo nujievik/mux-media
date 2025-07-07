@@ -4,7 +4,11 @@ use crate::{
 };
 
 impl MuxConfig {
-    pub(crate) fn write_args_to_json_or_log(&self) {
+    pub fn write_args_to_json_or_log(&self) {
+        if self.no_json {
+            return;
+        }
+
         let args = self.to_json_args();
 
         if args.is_empty() {

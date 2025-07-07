@@ -1,3 +1,4 @@
 /target/
 /tests/test_data/output/*
 !/tests/test_data/output/.gitkeep
+/tests/test_data/muxed/*

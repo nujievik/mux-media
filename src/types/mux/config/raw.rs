@@ -1,7 +1,6 @@
 use super::RawMuxConfig;
 use crate::{
     LangCode, Msg, MuxError, Target, TargetGroup, Tool, Tools, types::helpers::os_str_tail,
-    types::mux::logger::get_stderr_color_prefix,
 };
 use std::{
     collections::HashMap,
@@ -18,16 +17,7 @@ impl RawMuxConfig {
         let raw = Self::parse_args(args)?;
 
         if let Some(lang) = raw.locale {
-            Msg::try_upd_lang(lang).unwrap_or_else(|e| {
-                eprintln!(
-                    "{} {}: {}. {} '{}'",
-                    get_stderr_color_prefix(log::Level::Warn),
-                    Msg::ErrUpdLangCode,
-                    e,
-                    Msg::Using,
-                    Msg::get_lang_code()
-                );
-            });
+            Msg::upd_lang_or_warn(lang);
         }
 
         if raw.list_langs {
@@ -70,13 +60,14 @@ impl RawMuxConfig {
 
         while let Some(arg) = iter.next() {
             if arg == "--locale" {
-                let lang = iter
-                    .next()
-                    .ok_or_else(|| {
-                        "a value is required for '--locale <lng>' but none was supplied".into()
-                    })
-                    .and_then(|arg| arg.to_string_lossy().parse::<LangCode>())?;
+                let next_arg = iter.next().ok_or_else(|| {
+                    MuxError::from("a value is required for '--locale <lng>' but none was supplied")
+                })?;
+                let lang = next_arg.to_string_lossy().parse::<LangCode>()?;
+
                 locale = Some(lang);
+                args.push(arg);
+                args.push(next_arg);
                 continue;
             }
 

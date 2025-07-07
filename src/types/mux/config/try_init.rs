@@ -32,25 +32,27 @@ impl TryInit for MuxConfig {
         };
 
         if let Some(json) = json {
-            if let Some(cfg_val) = &mut cfg {
-                cfg_val.try_upd_from_json(json)?;
+            if let Some(cfg) = &mut cfg {
+                cfg.try_upd_from_json(json)?;
             } else {
                 cfg = Some(Self::try_from_json(json)?);
             }
         }
 
-        match cfg {
+        let cfg = match cfg {
             Some(mut cfg) => {
                 cfg.update_from_arg_matches_mut(&mut matches)?;
                 cfg.try_upd_from_trg_args(raw.trg_args)?;
-                Ok(cfg)
+                cfg
             }
             None => {
                 let mut cfg = Self::from_arg_matches_mut(&mut matches)?;
                 cfg.try_upd_from_trg_args(raw.trg_args)?;
-                Ok(cfg)
+                cfg
             }
-        }
+        };
+
+        Ok(cfg)
     }
 }
 

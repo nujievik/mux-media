@@ -100,10 +100,9 @@ macro_rules! to_json_args {
                     return Vec::new();
                 }
 
-                id_map
-                    .into_iter()
-                    .flat_map(|val| [$crate::json_arg!($arg), val])
-                    .collect()
+                let id_map = id_map.into_iter().collect::<Vec<_>>().join(",");
+
+                vec![$crate::json_arg!($arg), id_map]
             }
         }
     };

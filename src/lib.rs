@@ -18,6 +18,7 @@ pub use types::{
     chapters::Chapters,
     char_encoding::{CharEncoding, SubCharset},
     extensions::EXTENSIONS,
+    globset_pattern::GlobSetPattern,
     input::Input,
     lang_code::LangCode,
     media_info::{

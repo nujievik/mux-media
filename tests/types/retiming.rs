@@ -1,5 +1,5 @@
-use super::common::cfg;
-use mux_media::{IsDefault, MCRetiming, Retiming};
+use crate::common::*;
+use mux_media::*;
 
 fn new(args: &[&str]) -> Retiming {
     cfg::<_, &&str>(args).get::<MCRetiming>().clone()
@@ -25,3 +25,11 @@ fn test_args() {
     assert!(new(&["--no-linked"]).no_linked);
     assert!(new(&["--less-retiming"]).less);
 }
+
+crate::build_test_to_json_args!(
+    test_to_json_args, MCRetiming, "retiming";
+    vec!["--no-linked"],
+    vec!["--less-retiming"],
+    vec!["--rm-segments", "*.srt"],
+    vec!["--no-linked", "--less-retiming"]
+);

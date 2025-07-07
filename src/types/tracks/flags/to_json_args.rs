@@ -9,17 +9,15 @@ macro_rules! flags_to_json_args {
                     return Vec::new();
                 }
 
+                if let Some(unmapped) = self.unmapped {
+                    return vec![json_arg!($arg), unmapped.to_string()];
+                }
+
                 let mut args: Vec<String> = Vec::new();
 
                 if let Some(lim) = self.lim_for_unset {
                     args.push(json_arg!($lim_arg));
                     args.push(lim.to_string());
-                }
-
-                if let Some(unmapped) = self.unmapped {
-                    args.push(json_arg!($arg));
-                    args.push(unmapped.to_string());
-                    return args;
                 }
 
                 let id_map = to_json_args!(@collect_id_map, self);

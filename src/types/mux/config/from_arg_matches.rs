@@ -1,8 +1,8 @@
 use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
-    Input, IsDefault, Msg, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks, Tool,
-    Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
+    Input, IsDefault, LangCode, Msg, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks,
+    Tool, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
 };
 use clap::{ArgMatches, Error, FromArgMatches};
 
@@ -15,15 +15,6 @@ macro_rules! upd_fields {
             }
         )*
     }};
-
-    ($self:ident, $matches:ident, @target; $( $field:ident, $ty:ty ),* ) => {{
-        $(
-            let val = <$ty>::from_arg_matches_mut($matches)?;
-            if !val.is_default() {
-                $self.$field = Some(val);
-            }
-        )*
-    }};
 }
 
 impl FromArgMatches for MuxConfig {
@@ -33,10 +24,18 @@ impl FromArgMatches for MuxConfig {
     fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
         let (input, output, retiming, tools) = try_io_rtm_tools(matches)?;
 
+        let locale = match from_arg_matches!(matches, LangCode, Locale, @no_default) {
+            Some(lang) => {
+                let _ = Msg::try_upd_lang(lang);
+                lang
+            }
+            None => Msg::get_lang(),
+        };
+
         Ok(Self {
             input,
             output,
-            locale: Msg::get_lang_code(),
+            locale,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
             no_json: from_arg_matches!(matches, bool, NoConfig, || false),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
@@ -69,8 +68,14 @@ impl FromArgMatches for MuxConfig {
             self.output = output;
         }
 
-        self.locale = Msg::get_lang_code();
+        if let Some(lang) = from_arg_matches!(matches, LangCode, Locale, @no_default) {
+            let _ = Msg::try_upd_lang(lang);
+            self.locale = lang;
+        }
 
+        from_arg_matches!(@upd, self, matches; locale, LangCode, Locale);
+
+        self.off_on_pro.update_from_arg_matches_mut(matches)?;
         self.retiming.update_from_arg_matches_mut(matches)?;
 
         if !self.retiming.is_default() {
@@ -120,6 +125,17 @@ fn try_io_rtm_tools(matches: &mut ArgMatches) -> Result<(Input, Output, Retiming
     Ok((input, output, retiming, tools))
 }
 
+macro_rules! upd_target_fields {
+    ($self:ident, $matches:ident; $( $field:ident, $ty:ty ),* ) => {{
+        $(
+            let val = <$ty>::from_arg_matches_mut($matches)?;
+            if !val.is_default() {
+                $self.$field = Some(val);
+            }
+        )*
+    }};
+}
+
 impl FromArgMatches for MuxConfigTarget {
     from_arg_matches!(@fn);
     from_arg_matches!(@fn_update);
@@ -143,8 +159,8 @@ impl FromArgMatches for MuxConfigTarget {
     }
 
     fn update_from_arg_matches_mut(&mut self, matches: &mut ArgMatches) -> Result<(), Error> {
-        upd_fields!(
-            self, matches, @target;
+        upd_target_fields!(
+            self, matches;
             audio_tracks, AudioTracks,
             sub_tracks, SubTracks,
             video_tracks, VideoTracks,

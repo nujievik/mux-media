@@ -1,5 +1,4 @@
-use super::logger::get_stderr_color_prefix;
-use crate::{LangCode, Msg};
+use crate::{LangCode, Msg, MuxLogger};
 use clap::parser::MatchesError;
 use std::fmt;
 
@@ -123,7 +122,8 @@ impl MuxError {
     #[inline(always)]
     fn print_in_stderr_or_stdout(&self, msg: &str) {
         if self.use_stderr() {
-            eprintln!("{} {}", get_stderr_color_prefix(log::Level::Error), msg);
+            let prefix = MuxLogger::get_stderr_color_prefix(log::Level::Error);
+            eprintln!("{}{}", prefix, msg);
         } else {
             println!("{}", msg);
         }
@@ -184,7 +184,7 @@ macro_rules! from_slice_msg_opt {
 
                 let eng = build(true);
 
-                let localized = match Msg::get_lang_code() {
+                let localized = match Msg::get_lang() {
                     LangCode::Eng => None,
                     _ => Some(build(false)),
                 };

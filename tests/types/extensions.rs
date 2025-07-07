@@ -44,30 +44,36 @@ fn assert_all_permutations_absent(set: &'static Set<&'static [u8]>, ext: &str) {
 
 #[test]
 fn test_fonts_contains() {
-    for ext in ["otf", "ttf"] {
-        assert_all_permutations_present(EXTENSIONS.fonts, ext);
-    }
+    ["otf", "ttf"]
+        .iter()
+        .for_each(|ext| assert_all_permutations_present(EXTENSIONS.fonts, ext))
 }
 
 #[test]
 fn test_matroska_contains() {
-    for ext in ["mka", "mks", "mkv", "webm"] {
-        assert_all_permutations_present(EXTENSIONS.matroska, ext);
-    }
+    ["mka", "mks", "mkv", "webm"]
+        .iter()
+        .for_each(|ext| assert_all_permutations_present(EXTENSIONS.matroska, ext))
 }
 
 #[test]
 fn test_media_contains() {
-    let expected = &[
+    [
         "264", "265", "3gp", "aac", "ac3", "ass", "avi", "avc", "av1", "caf", "dts", "dtshd",
         "eac3", "ec3", "f4v", "flac", "flv", "h264", "h265", "hevc", "ivf", "m2ts", "m2v", "m4a",
         "m4v", "mka", "mks", "mlp", "mov", "mp2", "mp3", "mp4", "mpa", "mpg", "mpv", "mpeg", "ogg",
         "ogm", "ogv", "obu", "opus", "ra", "srt", "ssa", "sub", "sup", "thd", "truehd", "tta",
         "ts", "vc1", "wav", "weba", "webm", "webma", "wma", "wmv", "x264", "x265",
-    ];
-    for ext in expected {
-        assert_all_permutations_present(EXTENSIONS.media, ext);
-    }
+    ]
+    .iter()
+    .for_each(|ext| assert_all_permutations_present(EXTENSIONS.media, ext))
+}
+
+#[test]
+fn test_subs_contain() {
+    ["ass", "mks", "srt", "ssa", "sub", "sup"]
+        .iter()
+        .for_each(|ext| assert_all_permutations_present(EXTENSIONS.subs, ext))
 }
 
 #[test]
@@ -83,7 +89,12 @@ fn test_extensions_absent() {
         "fake", "none", "xyz", "audiox", "v1deo", "123", "supper", "trackin", "ext", "subtitle",
     ];
 
-    for set in [EXTENSIONS.fonts, EXTENSIONS.matroska, EXTENSIONS.media] {
+    for set in [
+        EXTENSIONS.fonts,
+        EXTENSIONS.matroska,
+        EXTENSIONS.subs,
+        EXTENSIONS.media,
+    ] {
         for ext in fake_exts {
             assert_all_permutations_absent(set, ext);
         }
@@ -123,7 +134,12 @@ fn test_extensions_auto_absent() {
 
     let fake_exts = generate_fake_exts(all_known, 100);
 
-    for set in [EXTENSIONS.fonts, EXTENSIONS.matroska, EXTENSIONS.media] {
+    for set in [
+        EXTENSIONS.fonts,
+        EXTENSIONS.matroska,
+        EXTENSIONS.subs,
+        EXTENSIONS.media,
+    ] {
         for ext in &fake_exts {
             assert_all_permutations_absent(set, &ext);
         }

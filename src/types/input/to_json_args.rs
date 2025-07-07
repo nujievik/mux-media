@@ -15,6 +15,13 @@ impl ToJsonArgs for Input {
             args.push(range.to_string());
         }
 
+        if let Some(pat) = &self.skip {
+            if !pat.raw.is_empty() {
+                args.push(json_arg!(Skip));
+                args.push(pat.raw.to_string());
+            }
+        }
+
         if self.up != Self::DEFAULT_UP {
             args.push(json_arg!(Up));
             args.push(self.up.to_string());

@@ -69,3 +69,9 @@ where
 {
     vecs.into_iter().flatten().map(|s| s.to_string()).collect()
 }
+
+pub fn read_json_args(path: &std::path::Path) -> Vec<String> {
+    let file = std::fs::File::open(path).unwrap();
+    let reader = std::io::BufReader::new(file);
+    serde_json::from_reader(reader).unwrap()
+}

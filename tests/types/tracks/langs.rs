@@ -153,3 +153,13 @@ fn test_x8_sub_to_mkvmerge_args() {
 fn test_x8_video_to_mkvmerge_args() {
     build_test_x8_to_mkvmerge_args("video_x8.mkv");
 }
+
+build_test_to_json_args!(
+    test_langs_to_json_args, MCTrackLangs, "track_langs", @diff_in_out;
+    vec![], vec![],
+    vec!["--langs", "eng"], vec!["--langs", "eng"],
+    vec!["--langs", "rus"], vec!["--langs", "rus"],
+    vec!["--langs", "0:eng,1:rus"], vec!["--langs", "0:eng,1:rus"],
+    vec!["--langs", "0:eng,1:rus"], vec!["--langs", "1:rus,0:eng"],
+    vec!["--langs", "0:jpn,1..=5:rus,eng:eng"], vec!["--langs", "eng:eng,0:jpn,1-5:rus"],
+);

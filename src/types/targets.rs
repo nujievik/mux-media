@@ -3,6 +3,7 @@ use std::{fmt, path::PathBuf, str::FromStr};
 use strum_macros::AsRefStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, AsRefStr)]
+#[strum(serialize_all = "kebab-case")]
 pub enum TargetGroup {
     Audio,
     Video,

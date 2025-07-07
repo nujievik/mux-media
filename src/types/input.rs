@@ -3,14 +3,13 @@ mod iters;
 mod to_json_args;
 mod try_finalize_init;
 
-use crate::Range;
-use globset::GlobSet;
+use crate::{GlobSetPattern, Range};
 use std::path::{Path, PathBuf};
 
 pub struct Input {
     dir: PathBuf,
     range: Option<Range<u64>>,
-    skip: Option<GlobSet>,
+    skip: Option<GlobSetPattern>,
     up: u8,
     check: u16,
     down: u8,

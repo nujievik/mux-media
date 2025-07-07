@@ -1,5 +1,5 @@
-use super::common::cfg;
-use mux_media::{MCOffOnPro, OffOnPro, TFlagType};
+use crate::common::*;
+use mux_media::*;
 
 fn new(args: &[&str]) -> OffOnPro {
     *cfg::<_, &&str>(args).get::<MCOffOnPro>()
@@ -58,3 +58,20 @@ fn test_manual_on_with_pro() {
     assert!(new(&["--pro", "--add-langs"]).add_langs);
     assert!(new(&["--pro", "--sort-fonts"]).sort_fonts);
 }
+
+crate::build_test_to_json_args!(
+    test_to_json_args, MCOffOnPro, "off_on_pro";
+    vec![],
+    vec!["--no-add-defaults"],
+    vec!["--no-add-forceds"],
+    vec!["--no-add-enableds"],
+    vec!["--no-add-names"],
+    vec!["--no-add-langs"],
+    vec!["--no-sort-fonts"],
+    vec!["--pro", "--add-defaults"],
+    vec!["--pro", "--add-forceds"],
+    vec!["--pro", "--add-enableds"],
+    vec!["--pro", "--add-names"],
+    vec!["--pro", "--add-langs"],
+    vec!["--pro", "--sort-fonts"]
+);

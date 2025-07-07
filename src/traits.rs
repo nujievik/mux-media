@@ -1,5 +1,5 @@
 use crate::{MediaInfo, MuxError};
-use std::path::Path;
+use std::{ffi::OsString, path::Path};
 
 pub trait CLIArgs {
     type Arg: CLIArg;
@@ -7,6 +7,10 @@ pub trait CLIArgs {
 
 pub trait CLIArg {
     fn as_long(self) -> &'static str;
+}
+
+pub trait ToJsonArgs {
+    fn to_json_args(&self) -> Vec<String>;
 }
 
 pub trait MkvmergeArg {
@@ -21,13 +25,9 @@ pub trait ToMkvmergeArg {
     fn to_mkvmerge_arg(&self) -> String;
 }
 
-pub trait ToJsonArgs {
-    fn to_json_args(&self) -> Vec<String>;
-}
-
 pub trait ToMkvmergeArgs {
     fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String>;
-    fn to_os_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<std::ffi::OsString>;
+    fn to_os_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<OsString>;
 }
 
 pub trait GetField<F> {

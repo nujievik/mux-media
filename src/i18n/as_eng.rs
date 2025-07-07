@@ -1,4 +1,4 @@
-crate::msg!(
+crate::impl_msg_as_localized_str!(
     as_eng,
     ErrUpdLangCode => "LangCode update failed",
     ErrWriteJson => "Write command to JSON failed",

@@ -1,5 +1,5 @@
 use crate::common::cfg;
-use crate::{compare_arg_cases, fn_variants_of_args, range, test_from_str};
+use crate::*;
 use mux_media::*;
 
 fn new_fonts(args: &[&str]) -> FontAttachs {
@@ -258,3 +258,24 @@ fn test_mix_fonts_to_mkvmerge_args() {
 fn test_mix_other_to_mkvmerge_args() {
     build_test_mix_to_mvkmerge_args("other_x8_font_x8.mks", AttachType::Other);
 }
+
+macro_rules! build_test_attachs_to_json_args {
+    ( $( $fn:ident, $field:ident, $json_dir:expr, $arg:expr, $no_arg:expr );* ) => {
+        $(
+            build_test_to_json_args!(
+                $fn, $field, $json_dir, @diff_in_out;
+                vec![], vec![],
+                vec![$no_arg], vec![$no_arg],
+                vec![$arg, "1"], vec![$arg, "1"],
+                vec![$arg, "1,2,3"], vec![$arg, "1,2,3"],
+                vec![$arg, "1,2,3"], vec![$arg, "2,3,1"],
+                vec![$arg, "1..=5"], vec![$arg, "1-5"],
+            );
+        )*
+    };
+}
+
+build_test_attachs_to_json_args!(
+    test_fonts_to_json_args, MCFontAttachs, "font_attachs", "--fonts", "--no-fonts";
+    test_others_to_json_args, MCOtherAttachs, "other_tracks", "--attachs", "--no-attachs"
+);

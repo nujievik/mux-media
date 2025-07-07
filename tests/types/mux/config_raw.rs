@@ -1,5 +1,5 @@
-use mux_media::{RawMuxConfig, Target, TargetGroup, Tool};
-use std::ffi::OsString;
+use mux_media::*;
+use std::{ffi::OsString, path::Path};
 
 pub fn parse(args: &[&str]) -> RawMuxConfig {
     RawMuxConfig::parse_args(args).expect("Should parse args without error")
@@ -12,6 +12,10 @@ fn oss(args: &[&str]) -> Vec<OsString> {
 #[test]
 fn test_basic_split() {
     let raw = parse(&[
+        "--locale",
+        "eng",
+        "--list-langs",
+        "--list-targets",
         "arg1",
         "arg2",
         "--target",
@@ -30,7 +34,17 @@ fn test_basic_split() {
         "out.mkv",
     ]);
 
-    assert_eq!(raw.args, oss(&["arg1", "arg2", "--g1", "--g2"]));
+    assert_eq!(Some(LangCode::Eng), raw.locale);
+    assert_eq!(true, raw.list_langs);
+    assert_eq!(true, raw.list_targets);
+    assert_eq!(
+        Some((Tool::Mkvmerge, oss(&["-o", "out.mkv"]))),
+        raw.call_tool
+    );
+    assert_eq!(
+        raw.args,
+        oss(&["--locale", "eng", "arg1", "arg2", "--g1", "--g2"])
+    );
 
     let map = raw.trg_args.unwrap();
     assert_eq!(
@@ -41,18 +55,11 @@ fn test_basic_split() {
         map.get(&Target::Group(TargetGroup::Audio)).unwrap(),
         &oss(&["--opt3"])
     );
-
-    match &raw.call_tool {
-        Some((Tool::Mkvmerge, args)) => {
-            assert_eq!(args, &oss(&["-o", "out.mkv"]));
-        }
-        _ => panic!("Expected Tool::Mkvmerge"),
-    }
 }
 
 #[test]
 fn test_path_target() {
-    let current_dir = std::path::Path::new(file!())
+    let current_dir = Path::new(file!())
         .parent()
         .expect("Should get parent directory")
         .to_path_buf();
@@ -93,39 +100,59 @@ fn test_subs_alias() {
 }
 
 #[test]
+fn test_locale() {
+    [
+        (LangCode::Eng, "eng"),
+        (LangCode::Rus, "rus"),
+        (LangCode::Jpn, "jpn"),
+    ]
+    .into_iter()
+    .for_each(|(lang, lng)| {
+        let raw = parse(&["--locale", lng]);
+        assert_eq!(Some(lang), raw.locale);
+        assert_eq!(false, raw.list_langs);
+        assert_eq!(false, raw.list_targets);
+        assert_eq!(None, raw.call_tool);
+        assert_eq!(oss(&["--locale", lng]), raw.args);
+        assert_eq!(None, raw.trg_args);
+    })
+}
+
+#[test]
 fn test_only_tool() {
     let raw = parse(&["--mkvextract", "file.mkv"]);
-
-    assert!(raw.args.is_empty());
-    assert!(raw.trg_args.is_none());
-    assert_eq!(raw.call_tool, Some((Tool::Mkvextract, oss(&["file.mkv"]))));
+    assert_eq!(None, raw.locale);
+    assert_eq!(false, raw.list_langs);
+    assert_eq!(false, raw.list_targets);
+    assert_eq!(Some((Tool::Mkvextract, oss(&["file.mkv"]))), raw.call_tool);
+    assert_eq!(oss(&[]), raw.args);
+    assert_eq!(None, raw.trg_args);
 }
 
 #[test]
 fn test_list_langs_flags() {
-    let raw1 = parse(&["--list-langs"]);
-    assert!(raw1.list_langs);
-    assert!(!raw1.list_targets);
-    assert!(raw1.call_tool.is_none());
-    assert!(raw1.args.is_empty());
-    assert!(raw1.trg_args.is_none());
-
-    let raw2 = parse(&["--list-languages"]);
-    assert!(raw2.list_langs);
-    assert!(!raw2.list_targets);
-    assert!(raw2.call_tool.is_none());
-    assert!(raw2.args.is_empty());
-    assert!(raw2.trg_args.is_none());
+    [["--list-langs"], ["--list-languages"]]
+        .iter()
+        .for_each(|args| {
+            let raw = parse(args);
+            assert_eq!(None, raw.locale);
+            assert_eq!(true, raw.list_langs);
+            assert_eq!(false, raw.list_targets);
+            assert_eq!(None, raw.call_tool);
+            assert_eq!(oss(&[]), raw.args);
+            assert_eq!(None, raw.trg_args);
+        })
 }
 
 #[test]
 fn test_list_targets_flag() {
     let raw = parse(&["--list-targets"]);
-    assert!(!raw.list_langs);
-    assert!(raw.list_targets);
-    assert!(raw.call_tool.is_none());
-    assert!(raw.args.is_empty());
-    assert!(raw.trg_args.is_none());
+    assert_eq!(None, raw.locale);
+    assert_eq!(false, raw.list_langs);
+    assert_eq!(true, raw.list_targets);
+    assert_eq!(None, raw.call_tool);
+    assert_eq!(oss(&[]), raw.args);
+    assert_eq!(None, raw.trg_args);
 }
 
 #[test]
@@ -178,9 +205,10 @@ fn test_multiple_target_switching() {
 #[test]
 fn test_empty_input() {
     let raw = parse(&[]);
-    assert!(!raw.list_langs);
-    assert!(!raw.list_targets);
-    assert!(raw.call_tool.is_none());
-    assert!(raw.args.is_empty());
-    assert!(raw.trg_args.is_none());
+    assert_eq!(None, raw.locale);
+    assert_eq!(false, raw.list_langs);
+    assert_eq!(false, raw.list_targets);
+    assert_eq!(None, raw.call_tool);
+    assert_eq!(oss(&[]), raw.args);
+    assert_eq!(None, raw.trg_args);
 }

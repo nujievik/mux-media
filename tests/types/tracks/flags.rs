@@ -122,10 +122,11 @@ fn_variants_of_args!(
     "off" => vec!["0", "false"],
 );
 
-macro_rules! test_to_mvkmerge_args_fallback {
-    ($fn_ident:ident, $mkvmerge_arg:expr, $arg:expr, $mc_field:ident) => {
+macro_rules! build_test_to_mvkmerge_args_fallback {
+    ( $( $fn:ident, $mkvmerge_arg:expr, $arg:expr, $mc_field:ident );* ) => {
+        $(
         #[test]
-        fn $fn_ident() {
+        fn $fn() {
             let cases = [
                 (vec![], vec![]),
                 (vec![], vec!["--pro"]),
@@ -151,46 +152,44 @@ macro_rules! test_to_mvkmerge_args_fallback {
                 MITracksInfo
             );
         }
+        )*
     };
 }
 
-test_to_mvkmerge_args_fallback!(
-    test_defaults_to_mvkmerge_args_fallback,
-    "--default-track-flag",
-    "--defaults",
-    MCDefaultTFlags
+build_test_to_mvkmerge_args_fallback!(
+    test_defaults_to_mvkmerge_args_fallback, "--default-track-flag", "--defaults", MCDefaultTFlags;
+    test_forceds_to_mvkmerge_args_fallback, "--forced-display-flag", "--forceds", MCForcedTFlags;
+    test_enableds_to_mvkmerge_args_fallback, "--track-enabled-flag", "--enableds", MCEnabledTFlags
 );
 
-test_to_mvkmerge_args_fallback!(
-    test_forceds_to_mvkmerge_args_fallback,
-    "--forced-display-flag",
-    "--forceds",
-    MCForcedTFlags
-);
-
-test_to_mvkmerge_args_fallback!(
-    test_enableds_to_mvkmerge_args_fallback,
-    "--track-enabled-flag",
-    "--enableds",
-    MCEnabledTFlags
-);
-
-/*
-#[test]
-fn test_to_mvkmerge_args_fallback() {
-    let cases = [
-        (vec![], vec![]),
-        (vec![], vec!["--pro"]),
-        (vec!["--default-track-flag", "0:0"], vec!["--defaults", "off"]),
-    ];
-
-    compare_arg_cases!(
-        cases,
-        variants_of_args,
-        "srt.srt",
-        MCDefaultTFlags,
-        MITargets,
-        MITracksInfo
-    );
+macro_rules! build_test_flags_to_json_args {
+    ( $( $fn:ident, $field:ident, $json_dir:expr, $arg:expr, $lim_arg:expr );* ) => {
+        $(
+            build_test_to_json_args!(
+                $fn, $field, $json_dir, @diff_in_out;
+                vec![], vec![],
+                vec![$lim_arg, "0"], vec![$lim_arg, "0"],
+                vec![$lim_arg, "8"], vec![$lim_arg, "8"],
+                vec![$lim_arg, MAX_U64_STR], vec![$lim_arg, MAX_U64_STR],
+                vec![$arg, "true"], vec![$arg, "true"],
+                vec![$arg, "true"], vec![$arg, "1"],
+                vec![$arg, "true"], vec![$arg, "on"],
+                vec![$arg, "false"], vec![$arg, "false"],
+                vec![$arg, "false"], vec![$arg, "0"],
+                vec![$arg, "false"], vec![$arg, "off"],
+                vec![$arg, "0:true,1:false"], vec![$arg, "0:true,1:false"],
+                vec![$arg, "0:true,1:false"], vec![$arg, "1:0,0:1"],
+                vec![$arg, "0:false,eng:true"], vec![$arg, "0:false,eng:true"],
+                vec![$arg, "0:true,1..=8:false"], vec![$arg, "0:true,1-8:false"],
+                vec![$arg, "false"], vec![$lim_arg, "8", $arg, "false"],
+                vec![$lim_arg, "8", $arg, "0:false,1:true"], vec![$lim_arg, "8", $arg, "0:0,1:1"],
+            );
+        )*
+    };
 }
-*/
+
+build_test_flags_to_json_args!(
+    test_defaults_to_json_args, MCDefaultTFlags, "default_t_flags", "--defaults", "--lim-defaults";
+    test_forceds_to_json_args, MCForcedTFlags, "forced_t_flags", "--forceds", "--lim-forceds";
+    test_enableds_to_json_args, MCEnabledTFlags, "enabled_t_flags", "--enableds", "--lim-enableds"
+);

@@ -1,5 +1,5 @@
-crate::msg!(
-    as_rus, @inline,
+crate::impl_msg_as_localized_str!(
+    as_rus,
     ErrUpdLangCode => "Не удалось обновить код языка",
     ErrWriteJson => "Ошибка записи команды в JSON",
     File => "Файл",

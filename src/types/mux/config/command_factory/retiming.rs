@@ -1,7 +1,7 @@
-use super::super::cli_args::MuxConfigArg;
-use super::{Blocks, val_parsers::patterns_parser};
-use crate::{CLIArg, Msg};
+use super::Blocks;
+use crate::{CLIArg, GlobSetPattern, Msg, MuxConfigArg};
 use clap::{Arg, ArgAction, builder::ValueParser};
+use std::str::FromStr;
 
 impl Blocks {
     pub fn retiming(mut self) -> Self {
@@ -14,7 +14,7 @@ impl Blocks {
                     .alias("remove-segments")
                     .value_name("n[,m]...")
                     .help(Msg::HelpRmSegments.to_str_localized())
-                    .value_parser(ValueParser::new(patterns_parser)),
+                    .value_parser(ValueParser::new(GlobSetPattern::from_str)),
             )
             .arg(
                 Arg::new(MuxConfigArg::NoLinked.as_long())

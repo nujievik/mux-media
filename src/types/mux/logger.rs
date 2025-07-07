@@ -20,6 +20,20 @@ impl MuxLogger {
                 .unwrap_or_else(|_| eprintln!("Unexpected repeat set_logger()"));
         });
     }
+
+    /// Returns a colored or plain log level prefix for stderr output.
+    ///
+    /// Only `Error` and `Warn` levels return a non-empty string. ANSI color codes
+    /// are applied if stderr supports them.
+    pub(crate) fn get_stderr_color_prefix(level: log::Level) -> &'static str {
+        match level {
+            Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",
+            Level::Error => "Error: ",
+            Level::Warn if *STDERR_ON_COLOR => "\x1b[33mWarning\x1b[0m: ",
+            Level::Warn => "Warning: ",
+            _ => "",
+        }
+    }
 }
 
 impl Log for MuxLogger {
@@ -36,7 +50,11 @@ impl Log for MuxLogger {
 
         match level {
             Level::Error | Level::Warn => {
-                let msg = format!("{} {}\n", get_stderr_color_prefix(level), record.args());
+                let msg = format!(
+                    "{}{}\n",
+                    Self::get_stderr_color_prefix(level),
+                    record.args()
+                );
                 let msg = msg.as_bytes();
                 let _ = io::stderr()
                     .write_all(msg)
@@ -50,18 +68,4 @@ impl Log for MuxLogger {
     }
 
     fn flush(&self) {}
-}
-
-/// Returns a colored or plain log level prefix for stderr output.
-///
-/// Only `Error` and `Warn` levels return a non-empty string. ANSI color codes
-/// are applied if stderr supports them.
-pub(crate) fn get_stderr_color_prefix(level: log::Level) -> &'static str {
-    match level {
-        Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m:",
-        Level::Error => "Error:",
-        Level::Warn if *STDERR_ON_COLOR => "\x1b[33mWarning\x1b[0m:",
-        Level::Warn => "Warning:",
-        _ => "",
-    }
 }

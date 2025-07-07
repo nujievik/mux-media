@@ -1,5 +1,6 @@
+use crate::build_test_to_json_args;
 use crate::common::cfg;
-use mux_media::{IsDefault, MCSpecials, MediaInfo, Specials, ToMkvmergeArgs};
+use mux_media::*;
 use std::path::Path;
 
 fn new(args: &[&str]) -> Specials {
@@ -31,3 +32,12 @@ fn test_to_mkvmerge_args() {
             .is_empty()
     );
 }
+
+build_test_to_json_args!(
+    test_to_json_args, MCSpecials, "specials";
+    vec![],
+    vec!["--specials", "--original-flag 0:1"],
+    vec!["--specials", "--commentary-flag 0:1"],
+    vec!["--specials", "--audio-tracks 0 --video-tracks 1 --subtitle-tracks 2"],
+    vec!["--specials", "--subtitle-tracks 2 --audio-tracks 0 --video-tracks 1"]
+);
