@@ -25,7 +25,7 @@ impl Output {
     pub fn try_from_path(path: impl AsRef<Path>) -> Result<Self, MuxError> {
         let path = path.as_ref();
 
-        let dir = Self::extract_dir(path)?;
+        let dir = Self::try_extract_dir(path)?;
 
         let name = match path.file_name() {
             Some(name) if Some(name) != dir.file_name() => name,
@@ -54,7 +54,7 @@ impl Output {
     }
 
     #[inline(always)]
-    fn extract_dir(path: &Path) -> Result<PathBuf, MuxError> {
+    fn try_extract_dir(path: &Path) -> Result<PathBuf, MuxError> {
         let res = |dir: PathBuf| -> Result<PathBuf, MuxError> {
             let dir = try_absolutize(dir)?;
             Ok(dir.components().collect())

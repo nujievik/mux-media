@@ -1,5 +1,6 @@
 use super::Output;
-use crate::ToJsonArgs;
+use crate::{ToJsonArgs, json_arg};
+use std::path::MAIN_SEPARATOR;
 
 macro_rules! push_or_return_new {
     ($out:ident, $( $as_os_str:expr ),*) => {{
@@ -14,13 +15,17 @@ macro_rules! push_or_return_new {
 
 impl ToJsonArgs for Output {
     fn to_json_args(&self) -> Vec<String> {
-        if !self.need_num() && self.ext == Self::DEFAULT_EXT {
-            return Vec::new();
+        let mut out = String::new();
+
+        push_or_return_new!(out, self.dir);
+        out.push(MAIN_SEPARATOR);
+        push_or_return_new!(out, self.name_begin, self.name_tail);
+
+        if self.ext != Self::DEFAULT_EXT {
+            out.push('.');
+            push_or_return_new!(out, self.ext);
         }
 
-        let mut out = String::new();
-        push_or_return_new!(out, self.dir, self.name_begin, self.name_tail, self.ext);
-
-        vec!["-o".to_string(), out]
+        vec![json_arg!(Output), out]
     }
 }
