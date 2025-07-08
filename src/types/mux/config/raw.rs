@@ -31,7 +31,7 @@ impl RawMuxConfig {
         }
 
         if let Some((tool, args)) = raw.call_tool {
-            let tools = Tools::try_from([tool])?;
+            let tools = Tools::try_from_tools([tool])?;
             let msg = tools.run(tool, args, None)?;
             return Err(MuxError::new_ok().message(msg));
         }

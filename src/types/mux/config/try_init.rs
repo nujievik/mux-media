@@ -1,5 +1,5 @@
 use super::{MuxConfig, MuxConfigTarget, RawMuxConfig, cli_args::MuxConfigArg};
-use crate::{CLIArg, MuxError, Target, TryFinalizeInit, TryInit};
+use crate::{CLIArg, IsDefault, MuxError, Target, Tool, Tools, TryFinalizeInit, TryInit};
 use clap::{CommandFactory, FromArgMatches};
 use std::{
     collections::HashMap,
@@ -58,8 +58,19 @@ impl TryInit for MuxConfig {
 
 impl TryFinalizeInit for MuxConfig {
     fn try_finalize_init(&mut self) -> Result<(), MuxError> {
+        self.input.upd_out_need_num(self.output.need_num());
+
         self.input.try_finalize_init()?;
         self.output.try_finalize_init()?;
+
+        self.tools.try_upd_tools_paths(Tool::iter_mkvtoolnix())?;
+        if !self.retiming.is_default() {
+            self.tools.try_upd_tool_path(Tool::Ffprobe)?;
+        }
+
+        let json = Tools::make_json(self.output.get_temp_dir());
+        self.tools.upd_json(json);
+
         Ok(())
     }
 }

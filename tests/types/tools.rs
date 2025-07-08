@@ -6,7 +6,7 @@ use std::fs::{self, File};
 use std::io::BufReader;
 
 fn init() -> Tools {
-    Tools::try_from(Tool::iter()).unwrap()
+    Tools::try_from_tools(Tool::iter()).unwrap()
 }
 
 fn init_with_json(name: &str) -> Tools {

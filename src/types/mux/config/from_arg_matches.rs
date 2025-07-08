@@ -2,7 +2,7 @@ use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
     Input, IsDefault, LangCode, Msg, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks,
-    Tool, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
+    Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
 };
 use clap::{ArgMatches, Error, FromArgMatches};
 
@@ -22,7 +22,7 @@ impl FromArgMatches for MuxConfig {
     from_arg_matches!(@fn_update);
 
     fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
-        let (input, output, retiming, tools) = try_io_rtm_tools(matches)?;
+        let input = Input::from_arg_matches_mut(matches)?;
 
         let locale = match from_arg_matches!(matches, LangCode, Locale, @no_default) {
             Some(lang) => {
@@ -33,14 +33,14 @@ impl FromArgMatches for MuxConfig {
         };
 
         Ok(Self {
+            output: from_arg_matches!(matches, Output, Output, || Output::try_from(&input), @try_default),
             input,
-            output,
             locale,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
             no_json: from_arg_matches!(matches, bool, NoConfig, || false),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
             off_on_pro: OffOnPro::from_arg_matches_mut(matches)?,
-            retiming,
+            retiming: Retiming::from_arg_matches_mut(matches)?,
             audio_tracks: AudioTracks::from_arg_matches_mut(matches)?,
             sub_tracks: SubTracks::from_arg_matches_mut(matches)?,
             video_tracks: VideoTracks::from_arg_matches_mut(matches)?,
@@ -55,7 +55,7 @@ impl FromArgMatches for MuxConfig {
             track_langs: TrackLangs::from_arg_matches_mut(matches)?,
             specials: Specials::from_arg_matches_mut(matches)?,
             targets: None,
-            tools,
+            tools: Tools::default(),
         })
     }
 
@@ -63,8 +63,6 @@ impl FromArgMatches for MuxConfig {
         self.input.update_from_arg_matches_mut(matches)?;
 
         if let Some(output) = from_arg_matches!(matches, Output, Output, @no_default) {
-            self.input.upd_out_need_num(output.need_num());
-            self.tools.upd_json(Tools::make_json(output.get_temp_dir()));
             self.output = output;
         }
 
@@ -73,14 +71,8 @@ impl FromArgMatches for MuxConfig {
             self.locale = lang;
         }
 
-        from_arg_matches!(@upd, self, matches; locale, LangCode, Locale);
-
         self.off_on_pro.update_from_arg_matches_mut(matches)?;
         self.retiming.update_from_arg_matches_mut(matches)?;
-
-        if !self.retiming.is_default() {
-            self.tools.try_upd_tool_path_if_none(Tool::Ffprobe)?;
-        }
 
         upd_fields!(
             self, matches;
@@ -102,27 +94,6 @@ impl FromArgMatches for MuxConfig {
 
         Ok(())
     }
-}
-
-fn try_io_rtm_tools(matches: &mut ArgMatches) -> Result<(Input, Output, Retiming, Tools), Error> {
-    let mut input = Input::from_arg_matches_mut(matches)?;
-    let output = from_arg_matches!(
-        matches,
-        Output,
-        Output,
-        || Output::try_from(&input), @try_default);
-    let retiming = Retiming::from_arg_matches_mut(matches)?;
-    let mut tools = Tools::try_from(Tool::iter_mkvtoolnix())?;
-
-    input.upd_out_need_num(output.need_num());
-
-    if !retiming.is_default() {
-        tools.try_upd_tool_path(Tool::Ffprobe)?;
-    }
-
-    tools.upd_json(Tools::make_json(output.get_temp_dir()));
-
-    Ok((input, output, retiming, tools))
 }
 
 macro_rules! upd_target_fields {

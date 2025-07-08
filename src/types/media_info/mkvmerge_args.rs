@@ -4,17 +4,19 @@ use crate::{
     MCForcedTFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames, MCVideoTracks,
     MISubCharset, MITargets, MuxError, TFlags, ToMkvmergeArgs, TrackOrder,
 };
-use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 
 impl MediaInfo<'_> {
     pub fn collect_os_mkvmerge_args(&mut self) -> Vec<OsString> {
-        let mut args: Vec<OsString> = Vec::new();
-        self.append_vec_os_mkvmerge_args(&mut args);
+        let mut args = Vec::<OsString>::new();
+        self.append_os_mkvmerge_args(&mut args);
         args
     }
 
-    pub fn append_vec_os_mkvmerge_args(&mut self, args: &mut Vec<OsString>) {
+    pub fn append_os_mkvmerge_args(&mut self, args: &mut Vec<OsString>) {
         match self.init_track_order() {
             Ok(order) => {
                 // self and Path unused, just trait requirements

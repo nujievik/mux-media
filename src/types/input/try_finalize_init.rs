@@ -50,7 +50,7 @@ impl Input {
 
         if let Some(upmost) = upmost {
             self.upmost = upmost;
-            self.is_upmost_higher = true;
+            self.dir_not_upmost = true;
         }
 
         Ok(())

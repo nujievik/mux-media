@@ -1,5 +1,7 @@
+pub(crate) mod tool;
+
 use crate::{Msg, MuxError, types::helpers::try_write_args_to_json};
-use enum_map::{Enum, EnumMap};
+use enum_map::EnumMap;
 use log::{debug, warn};
 use std::{
     ffi::{OsStr, OsString},
@@ -7,44 +9,7 @@ use std::{
     path::{Path, PathBuf},
     process::Command,
 };
-use strum_macros::{AsRefStr, EnumIter, EnumString};
-
-#[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, AsRefStr, Enum, EnumIter, EnumString)]
-#[strum(serialize_all = "kebab-case")]
-pub enum Tool {
-    Ffprobe,
-    Mkvextract,
-    Mkvinfo,
-    Mkvmerge,
-}
-
-impl Tool {
-    pub fn iter() -> impl Iterator<Item = Self> {
-        <Self as strum::IntoEnumIterator>::iter()
-    }
-
-    pub fn iter_mkvtoolnix() -> impl Iterator<Item = Self> {
-        Self::iter().filter(|tool| tool.is_mkvtoolnix())
-    }
-
-    fn is_mkvtoolnix(self) -> bool {
-        self != Self::Ffprobe
-    }
-
-    fn as_str_package(self) -> &'static str {
-        if self.is_mkvtoolnix() {
-            "mkvtoolnix"
-        } else {
-            "ffmpeg"
-        }
-    }
-}
-
-impl fmt::Display for Tool {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.as_ref())
-    }
-}
+use tool::Tool;
 
 #[derive(Clone, Default)]
 pub struct Tools {
@@ -53,25 +18,28 @@ pub struct Tools {
 }
 
 impl Tools {
-    pub fn try_from(iter: impl IntoIterator<Item = Tool>) -> Result<Self, MuxError> {
-        let mut paths: EnumMap<Tool, Option<PathBuf>> = EnumMap::default();
-        for tool in iter.into_iter() {
-            paths[tool] = Some(get_tool_path(tool)?);
-        }
-
-        Ok(Self { paths, json: None })
+    pub fn try_from_tools(tools: impl IntoIterator<Item = Tool>) -> Result<Self, MuxError> {
+        let mut new = Self::default();
+        new.try_upd_tools_paths(tools)?;
+        Ok(new)
     }
 
     pub fn try_upd_tool_path(&mut self, tool: Tool) -> Result<(), MuxError> {
-        self.paths[tool] = Some(get_tool_path(tool)?);
+        if let None = self.paths[tool] {
+            let path = try_get_tool_path(tool)?;
+            self.paths[tool] = Some(path);
+        }
         Ok(())
     }
 
-    pub fn try_upd_tool_path_if_none(&mut self, tool: Tool) -> Result<(), MuxError> {
-        self.paths[tool]
-            .is_none()
-            .then(|| self.try_upd_tool_path(tool))
-            .unwrap_or(Ok(()))
+    pub fn try_upd_tools_paths(
+        &mut self,
+        tools: impl IntoIterator<Item = Tool>,
+    ) -> Result<(), MuxError> {
+        for tool in tools {
+            self.try_upd_tool_path(tool)?;
+        }
+        Ok(())
     }
 
     pub fn make_json(dir: impl Into<PathBuf>) -> PathBuf {
@@ -155,15 +123,22 @@ struct CommandDisplay<'a>(&'a Command);
 
 impl<'a> fmt::Display for CommandDisplay<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "\"{}\"", self.0.get_program().to_string_lossy())?;
+        let mut try_write = |oss: &OsStr| -> fmt::Result {
+            let p: &Path = oss.as_ref();
+            write!(f, "\"{}\" ", p.display())
+        };
+
+        try_write(self.0.get_program())?;
+
         for arg in self.0.get_args() {
-            write!(f, " \"{}\"", arg.to_string_lossy())?;
+            try_write(arg)?;
         }
+
         Ok(())
     }
 }
 
-fn get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
+fn try_get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
     let tool_str: &str = tool.as_ref();
 
     let err = || -> MuxError {

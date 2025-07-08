@@ -42,7 +42,7 @@ impl FromArgMatches for Input {
 
         self.need_num = self.range.is_some();
         self.out_need_num = false;
-        self.is_upmost_higher = false;
+        self.dir_not_upmost = false;
 
         if !(self.upmost == self.dir) {
             self.upmost = self.dir.clone();

@@ -6,6 +6,7 @@ use std::{
     collections::HashSet,
     ffi::OsString,
     path::{Path, PathBuf},
+    sync::Arc,
 };
 use walkdir::{IntoIter, WalkDir};
 
@@ -56,26 +57,30 @@ impl Input {
 
     pub fn iter_media_grouped_by_stem<'a>(&'a self) -> impl Iterator<Item = MediaGroupedByStem> {
         let mut media_number = self.init_media_number();
-        let mut repeats: HashSet<OsString> = HashSet::new();
+        let mut repeats: HashSet<Arc<OsString>> = HashSet::new();
 
         self.iter_media_in_dir(&self.upmost)
             .filter_map(move |path| {
                 let up_stem = path.file_stem()?;
+                let up_stem = Arc::new(up_stem.to_os_string());
 
-                if repeats.contains(up_stem) {
+                if repeats.contains(&up_stem) {
                     trace!(
                         "Found repeat stem '{}'. Skip this",
-                        up_stem.to_string_lossy()
+                        AsRef::<Path>::as_ref(up_stem.as_ref()).display()
                     );
                     return None;
                 }
 
                 if let Some(ref mut num) = media_number {
-                    num.upd(up_stem);
-                    if let Some(range) = self.range {
-                        if !range.contains(num.to_u64()) {
-                            return None;
-                        }
+                    num.upd(&up_stem);
+
+                    if self
+                        .range
+                        .as_ref()
+                        .map_or(false, |range| !range.contains(num.to_u64()))
+                    {
+                        return None;
                     }
                 }
 
@@ -85,15 +90,14 @@ impl Input {
                     .flat_map_iter(|dir| self.iter_media_in_dir(dir))
                     .filter(|p| {
                         p.file_stem()
-                            .map(|file_stem| os_str_starts_with(&up_stem, file_stem))
-                            .unwrap_or(false)
+                            .map_or(false, |file_stem| os_str_starts_with(&up_stem, file_stem))
                     })
                     .collect();
 
                 if matched.len() < 2 {
                     debug!(
                         "No external file found for stem '{}'. Skip this",
-                        up_stem.to_string_lossy()
+                        AsRef::<Path>::as_ref(up_stem.as_ref()).display()
                     );
                     return None;
                 }
@@ -101,45 +105,49 @@ impl Input {
                 let mut cnt_upmost = 0;
                 let mut cnt_dir = 0;
                 let mut inserted_repeat = false;
-                for path in &matched {
-                    if let Some(parent) = path.parent() {
+
+                matched.iter().for_each(|path| {
+                    path.parent().map_or({}, |parent| {
                         if parent == self.upmost {
                             cnt_upmost += 1;
+
                             if !inserted_repeat && cnt_upmost > 1 {
-                                repeats.insert(up_stem.to_os_string());
+                                repeats.insert(up_stem.clone());
                                 inserted_repeat = true;
                             }
-                        } else if self.is_upmost_higher && parent == self.dir {
+
+                            // The second if-block will *never* execute under any condition.
+                            return;
+                        }
+
+                        if self.dir_not_upmost && parent == self.dir {
                             cnt_dir += 1;
                         }
-                    }
-                }
+                    })
+                });
 
-                if self.is_upmost_higher && cnt_dir == 0 {
+                if self.dir_not_upmost && cnt_dir == 0 {
                     warn!(
                         "No track file found for stem '{}' in the input directory '{}'. Skip this",
-                        up_stem.to_string_lossy(),
+                        AsRef::<Path>::as_ref(up_stem.as_ref()).display(),
                         self.dir.display()
                     );
                     return None;
                 }
 
-                let out_name_middle = if self.out_need_num {
-                    match &media_number {
-                        Some(num) => OsString::from(num.as_str()),
-                        None => {
-                            trace!("Unexpected None file_number. Use default out_name_middle");
-                            up_stem.to_os_string()
-                        }
+                let out_name_middle: Arc<OsString> = match &media_number {
+                    Some(num) if self.out_need_num => OsString::from(num.as_str()).into(),
+                    None if self.out_need_num => {
+                        trace!("Unexpected None file_number. Use default out_name_middle");
+                        up_stem.clone()
                     }
-                } else {
-                    up_stem.to_os_string()
+                    _ => up_stem.clone(),
                 };
 
                 Some(MediaGroupedByStem {
                     files: matched,
                     out_name_middle,
-                    stem: up_stem.to_os_string(),
+                    stem: up_stem,
                 })
             })
     }
@@ -161,8 +169,8 @@ impl Input {
 
 pub struct MediaGroupedByStem {
     pub files: Vec<PathBuf>,
-    pub out_name_middle: OsString,
-    pub stem: OsString,
+    pub out_name_middle: Arc<OsString>,
+    pub stem: Arc<OsString>,
 }
 
 pub(super) struct DirIter<'a> {

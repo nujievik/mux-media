@@ -1,40 +1,71 @@
-/*
-use super::common::{cfg_empty, cfg};
-use mux_media::{MCOutput, Output};
-use std::path::PathBuf;
+use crate::common::*;
+use mux_media::*;
+use std::{
+    env,
+    path::{Path, PathBuf},
+};
 
 fn new(args: &[&str]) -> Output {
-    cfg(args).get::<MCOutput>().clone()
-}
-
-fn new_empty() -> Output {
-    cfg_empty().get::<MCOutput>().clone()
+    cfg::<_, &&str>(args).get::<MCOutput>().clone()
 }
 
 fn dir_empty() -> PathBuf {
-    let mut dir = std::env::current_dir().unwrap();
+    let mut dir = env::current_dir().unwrap();
     dir.push("muxed/");
     dir
 }
 
+fn build_test_empty_args(out: &Output, dir: PathBuf) {
+    assert_eq!(false, out.need_num());
+    assert_eq!(Path::new(""), out.get_temp_dir());
+
+    ["1", "2", "abc", "n.am.e."].iter().for_each(|name| {
+        let builded = out.build_out(name);
+        assert_eq!(&dir, builded.parent().unwrap());
+        assert_eq!(dir.join(format!("{}.mkv", name)), builded);
+    })
+}
+
+#[test]
+fn test_default() {
+    let out = Output::default();
+    build_test_empty_args(&out, PathBuf::from("./muxed/"));
+}
+
 #[test]
 fn test_empty() {
-    let dir_empty = dir_empty();
-    let out = new_empty();
-    assert_eq!(&dir_empty, out.build_out("1").parent().unwrap());
+    let out = new(&[]);
+    build_test_empty_args(&out, dir_empty());
+}
+
+#[test]
+fn test_try_finalize_init() {
+    let dir = data_file("output/");
+    let mut out = new(&["-o", &dir.to_str().unwrap()]);
+    out.try_finalize_init().unwrap();
+
+    assert_eq!(false, out.need_num());
+    assert_eq!(&dir.join(".temp-mux-media"), out.get_temp_dir());
+
+    ["1", "2", "abc", "n.am.e."].iter().for_each(|name| {
+        let builded = out.build_out(name);
+        assert_eq!(&dir, builded.parent().unwrap());
+        assert_eq!(dir.join(format!("{}.mkv", name)), builded);
+    })
+}
+
+/*
+#[test]
+fn test_try_finalize_init() {
+    let mut out = new(&[""]);
+    out.try_finalize_init();
 }
 */
 
 /*
-#[test]
-fn test_build_from_empty_cfg() {
-    let cfg = cfg_empty();
-    let output = cfg.get::<MCOutput>();
-    let result = output.build_out("01");
-    let expected = data_file("muxed/01.mkv");
-
-    assert_eq!(result, expected);
-}
+use super::common::{cfg_empty, cfg};
+use mux_media::{MCOutput, Output};
+use std::path::PathBuf;
 
 #[test]
 fn test_build_out() {

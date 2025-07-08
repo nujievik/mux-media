@@ -15,7 +15,7 @@ pub struct Input {
     down: u8,
     need_num: bool,
     out_need_num: bool,
-    is_upmost_higher: bool,
+    dir_not_upmost: bool,
     upmost: PathBuf,
     dirs: Vec<PathBuf>,
 }
@@ -31,7 +31,7 @@ impl Default for Input {
             down: Self::DEFAULT_DOWN,
             need_num: false,
             out_need_num: false,
-            is_upmost_higher: false,
+            dir_not_upmost: false,
             upmost: PathBuf::from("."),
             dirs: Vec::new(),
         }

@@ -25,10 +25,11 @@ impl Output {
         name.push(&self.name_begin);
         name.push(name_middle);
         name.push(&self.name_tail);
+        name.push(".");
+        name.push(&self.ext);
 
         let mut path = self.dir.clone();
         path.push(name);
-        path.set_extension(&self.ext);
 
         path
     }
@@ -48,12 +49,12 @@ impl Output {
 }
 
 fn remove_empty_chain_dirs(dirs: &[PathBuf]) {
-    let norm_order = match dirs.len() > 1 {
-        true => dirs[1].components().count() > dirs[0].components().count(),
+    let ascending_order = match dirs.len() > 1 {
+        true => dirs[1].as_os_str().len() > dirs[0].as_os_str().len(),
         false => false,
     };
 
-    match norm_order {
+    match ascending_order {
         true => dirs.into_iter().rev().for_each(|dir| {
             let _ = fs::remove_dir(dir);
         }),

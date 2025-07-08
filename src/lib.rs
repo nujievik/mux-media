@@ -50,7 +50,7 @@ pub use types::{
     retiming::Retiming,
     specials::Specials,
     targets::{Target, TargetGroup},
-    tools::{Tool, Tools},
+    tools::{Tools, tool::Tool},
     tracks::{
         AudioTracks, ButtonTracks, SubTracks, Tracks, VideoTracks,
         flags::counts::TFlagsCounts,
