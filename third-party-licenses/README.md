@@ -5,12 +5,103 @@ project.
 
 ## List:
 
+- **Rust Standard Library**
+  License: MIT OR Apache-2.0
+  Source: https://github.com/rust-lang/rust
+  
+  
+### Rust crates  
+
+- **atty**
+  License: MIT OR Apache-2.0 
+  Source: https://crates.io/crates/atty
+  
+- **chardet**
+  License: LGPL-3.0
+  Source: https://crates.io/crates/chardet
+  
+- **clap**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/clap
+
+- **enum-map**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/enum-map
+  
+- **globset**
+  License: Unlicense OR MIT
+  Source: https://crates.io/crates/globset
+  
+- **log**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/log
+  
+- **once-cell**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/once_cell
+  
+- **phf**
+  License: MIT
+  Source: https://crates.io/crates/phf
+  
+- **rayon**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/rayon
+  
+- **regex**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/regex
+  
+- **serde_json**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/serde_json
+  
+- **strum**
+  License: MIT
+  Source: https://crates.io/crates/strum
+
+- **strum-macros**
+  License: MIT
+  Source: https://crates.io/crates/strum-macros
+  
+- **supports-color**
+  License: Apache-2.0
+  Source: https://crates.io/crates/supports-color
+  
+- **walkdir**
+  License: Unlicense OR MIT
+  Source: https://crates.io/crates/walkdir
+  
+### Other
+
+Following components is not include in Release but uses in the project: 
+
+#### Resources
+
+- **mkvtoolnix** resources
+  License: GPL v2
+  Source: https://codeberg.org/mbunkus/mkvtoolnix
+  
+#### Scripts
+
+- **Python**
+  License: PSF
+  Source: https://www.python.org/
+  
+- **wcwidth**
+  License: MIT
+  Source: https://pypi.org/project/wcwidth/
+  
+#### Tests
+
+- **rand**
+  License: MIT OR Apache-2.0 
+  Source: https://crates.io/crates/rand
+
 - **Montserrat**
   License: SIL Open Font License v1.10
-  Used in: `tests/test_data/*`
   Source: https://www.fontsquirrel.com/fonts/montserrat
 
 - **Roboto**
   License: SIL Open Font License 1.1
-  Used in: `tests/test_data/*`
   Source: https://fonts.google.com/specimen/Roboto

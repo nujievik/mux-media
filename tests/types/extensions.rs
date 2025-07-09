@@ -105,12 +105,12 @@ fn generate_fake_exts(existing: HashSet<String>, count: usize) -> Vec<String> {
     use rand::{Rng, seq::IteratorRandom};
     use std::collections::HashSet;
 
-    let mut rng = rand::thread_rng();
+    let mut rng = rand::rng();
     let charset = b"abcdefghijklmnopqrstuvwxyz0123456789";
     let mut fake_exts = HashSet::new();
 
     while fake_exts.len() < count {
-        let len = rng.gen_range(3..6);
+        let len = rng.random_range(3..6);
         let candidate: String = (0..len)
             .map(|_| *charset.iter().choose(&mut rng).unwrap() as char)
             .collect();
