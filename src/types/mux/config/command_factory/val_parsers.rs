@@ -45,7 +45,7 @@ macro_rules! typed_value_parser {
     };
 }
 
-typed_value_parser!(InputDirParser, PathBuf, Input::normalize_dir);
+typed_value_parser!(InputDirParser, PathBuf, Input::try_normalize_dir);
 typed_value_parser!(OutputParser, Output, Output::try_from_path);
 typed_value_parser!(ConfigParser, PathBuf, try_canonicalize_and_open);
 typed_value_parser!(ChaptersParser, Chapters, Chapters::try_from_path);

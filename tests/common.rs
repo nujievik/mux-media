@@ -5,6 +5,12 @@ use std::path::{Path, PathBuf};
 pub const MAX_U64_STR: &str = "18446744073709551615";
 const TEST_DATA: &str = "tests/test_data";
 
+pub fn new_dir(s: &str) -> PathBuf {
+    let mut dir = std::env::current_dir().unwrap();
+    dir.push(s);
+    dir
+}
+
 pub fn data_dir() -> PathBuf {
     let mut dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     dir.push(TEST_DATA);

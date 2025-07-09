@@ -28,6 +28,7 @@ impl Input {
             .iter_media_in_dir(&self.dir)
             .take(self.check as usize)
             .collect();
+
         let stems: Vec<&OsStr> = files.iter().filter_map(|path| path.file_stem()).collect();
 
         if stems.is_empty() {

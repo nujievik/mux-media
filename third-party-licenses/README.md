@@ -5,6 +5,12 @@ project.
 
 ## List:
 
-- **Roboto** — Licensed under the SIL Open Font License 1.1
-  Files used in `tests/test_data/*`
+- **Montserrat**
+  License: SIL Open Font License v1.10
+  Used in: `tests/test_data/*`
+  Source: https://www.fontsquirrel.com/fonts/montserrat
+
+- **Roboto**
+  License: SIL Open Font License 1.1
+  Used in: `tests/test_data/*`
   Source: https://fonts.google.com/specimen/Roboto

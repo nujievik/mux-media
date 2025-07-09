@@ -72,7 +72,7 @@ impl Input {
                     return None;
                 }
 
-                if let Some(ref mut num) = media_number {
+                if let Some(num) = media_number.as_mut() {
                     num.upd(&up_stem);
 
                     if self
@@ -152,18 +152,12 @@ impl Input {
             })
     }
 
-    #[inline]
+    #[inline(always)]
     fn init_media_number(&self) -> Option<MediaNumber> {
-        if self.need_num || self.out_need_num {
-            let path = self.iter_media_in_dir(&self.upmost).skip(1).next();
-            if let Some(path) = path {
-                if let Some(stem) = path.file_stem() {
-                    return Some(MediaNumber::from(stem));
-                }
-            }
-        };
-
-        None
+        (self.need_num || self.out_need_num)
+            .then(|| self.iter_media_in_dir(&self.upmost).skip(1).next())
+            .flatten()
+            .and_then(|path| path.file_stem().map(MediaNumber::from))
     }
 }
 
@@ -180,10 +174,10 @@ pub(super) struct DirIter<'a> {
 }
 
 impl<'a> DirIter<'a> {
-    pub fn new(root: impl Into<PathBuf>, down: u8, skip: Option<&'a GlobSetPattern>) -> Self {
-        let walker = WalkDir::new(&root.into())
+    pub fn new(root: impl AsRef<Path>, down: u8, skip: Option<&'a GlobSetPattern>) -> Self {
+        let walker = WalkDir::new(root)
             .follow_links(true)
-            .max_depth((down as usize) + 1)
+            .max_depth(down as usize)
             .into_iter();
 
         Self {
@@ -193,7 +187,7 @@ impl<'a> DirIter<'a> {
         }
     }
 
-    #[inline]
+    #[inline(always)]
     fn should_skip(&self, path: &Path) -> bool {
         match self.skip {
             Some(pat) => pat.glob_set.is_match(path),

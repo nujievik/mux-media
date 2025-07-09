@@ -95,12 +95,14 @@ macro_rules! build_test_to_json_args {
     (@body, $field:ident, $json_dir:expr; $( $left:expr, $right:expr ),* ) => {{
         let dir = format!("output/to_json_args/{}", $json_dir);
         let dir = $crate::common::data_file(&dir);
-        let s_dir = dir.to_str().unwrap();
+
+        let in_dir = dir.to_str().unwrap();
+        let out_dir = format!("{}/muxed", in_dir);
 
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
 
-        let add_args = vec!["--input", s_dir, "--locale", "eng"];
+        let add_args = vec!["--input", in_dir, "--output", &out_dir, "--locale", "eng"];
         let json = dir.clone().join(mux_media::MuxConfig::JSON_NAME);
 
         $(

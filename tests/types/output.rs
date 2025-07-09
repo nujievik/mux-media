@@ -1,27 +1,8 @@
 use crate::common::*;
 use mux_media::*;
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
-fn new(args: &[&str]) -> Output {
-    cfg::<_, &&str>(args).get::<MCOutput>().clone()
-}
-
-fn new_fin(args: &[&str]) -> Output {
-    let mut out = new(args);
-    out.try_finalize_init().unwrap();
-    out
-}
-
-fn dir(s: &str) -> PathBuf {
-    let mut dir = env::current_dir().unwrap();
-    dir.push(s);
-    dir
-}
-
-fn build_test_empty_args(out: &Output, dir: PathBuf) {
+fn body_test_empty(out: &Output, dir: PathBuf) {
     assert_eq!(false, out.need_num());
     assert_eq!(Path::new(""), out.get_temp_dir());
 
@@ -35,13 +16,30 @@ fn build_test_empty_args(out: &Output, dir: PathBuf) {
 #[test]
 fn test_default() {
     let out = Output::default();
-    build_test_empty_args(&out, PathBuf::from("./muxed/"));
+    body_test_empty(&out, PathBuf::from("./muxed/"));
 }
 
 #[test]
 fn test_empty() {
-    let out = new(&[]);
-    build_test_empty_args(&out, dir("muxed/"));
+    let out = from_cfg::<MCOutput>(vec![]);
+    body_test_empty(&out, new_dir("muxed/"));
+}
+
+fn new(args: &[&str]) -> Output {
+    let mut out = cfg::<_, &&str>(args).get::<MCOutput>().clone();
+    out.try_finalize_init().unwrap();
+    out
+}
+
+fn body_test_dir_only(dir: &Path, out: &Output) {
+    assert_eq!(false, out.need_num());
+    assert_eq!(&dir.join(".temp-mux-media"), out.get_temp_dir());
+
+    ["1", "2", "abc", "n.am.e."].iter().for_each(|x| {
+        let builded = out.build_out(x);
+        assert_eq!(dir, builded.parent().unwrap());
+        assert_eq!(dir.join(format!("{}.mkv", x)), builded);
+    })
 }
 
 #[test]
@@ -50,25 +48,49 @@ fn test_dir_only() {
         .iter()
         .for_each(|dir| {
             let dir = data_file(dir);
-            let out = new_fin(&["-o", &dir.to_str().unwrap()]);
+            let out = new(&["-o", &dir.to_str().unwrap()]);
+            body_test_dir_only(&dir, &out);
+        })
+}
 
-            assert_eq!(false, out.need_num());
-            assert_eq!(&dir.join(".temp-mux-media"), out.get_temp_dir());
+#[test]
+fn test_from_input() {
+    ["output", "output/", "output/dir/", "output/ot her/"]
+        .iter()
+        .for_each(|dir| {
+            let dir = data_file(dir);
+            let in_dir = dir.to_str().unwrap();
+            let out_dir = PathBuf::from(format!("{}/muxed", in_dir));
 
-            ["1", "2", "abc", "n.am.e."].iter().for_each(|x| {
-                let builded = out.build_out(x);
-                assert_eq!(&dir, builded.parent().unwrap());
-                assert_eq!(dir.join(format!("{}.mkv", x)), builded);
-            })
+            let input = from_cfg::<MCInput>(vec!["-i", in_dir]);
+            let mut out = Output::try_from(&input).unwrap();
+            out.try_finalize_init().unwrap();
+
+            body_test_dir_only(&out_dir, &out);
+        })
+}
+
+#[test]
+fn test_remove_created_dirs() {
+    ["1/", "2/", "abc/", "a b/", "a/b/c/"]
+        .iter()
+        .for_each(|subdir| {
+            let dir = data_file(&format!("output/remove/{}", subdir));
+            let _ = std::fs::remove_dir_all(&dir);
+
+            let out = new(&["-o", &dir.to_str().unwrap()]);
+            assert!(dir.exists());
+            out.remove_created_dirs();
+            assert!(!dir.exists());
         })
 }
 
 #[test]
 fn test_name_begin_only() {
-    let dir = dir("");
+    let dir = new_dir("");
 
     ["name", "other", "a b c"].iter().for_each(|x| {
-        let out = new_fin(&["-o", x]);
+        let out = new(&["-o", x]);
 
         assert_eq!(true, out.need_num());
         assert_eq!(&dir.join(".temp-mux-media"), out.get_temp_dir());
@@ -83,10 +105,10 @@ fn test_name_begin_only() {
 
 #[test]
 fn test_name_tail_only() {
-    let dir = dir("");
+    let dir = new_dir("");
 
     [",name", ",other", ",a b c", ",ab,c"].iter().for_each(|x| {
-        let out = new_fin(&["-o", x]);
+        let out = new(&["-o", x]);
         let x = x.strip_prefix(',').unwrap();
 
         assert_eq!(true, out.need_num());
@@ -102,10 +124,10 @@ fn test_name_tail_only() {
 
 #[test]
 fn test_ext_only() {
-    let dir = dir("");
+    let dir = new_dir("");
 
     [",.mp4", ",.webm", ",.other"].iter().for_each(|x| {
-        let out = new_fin(&["-o", x]);
+        let out = new(&["-o", x]);
         let x = x.strip_prefix(",.").unwrap();
 
         assert_eq!(false, out.need_num());
@@ -126,10 +148,10 @@ fn to_begin_tail(arg: &str) -> (String, String) {
 
 #[test]
 fn test_name_begin_tail() {
-    let dir = dir("");
+    let dir = new_dir("");
 
     ["ab,c", "ot,her", "s tart,en d"].iter().for_each(|x| {
-        let out = new_fin(&["-o", x]);
+        let out = new(&["-o", x]);
         let (begin, tail) = to_begin_tail(x);
 
         assert_eq!(true, out.need_num());
@@ -156,12 +178,12 @@ fn to_begin_tail_ext(arg: &str) -> (String, String, String) {
 
 #[test]
 fn test_name_ext() {
-    let dir = dir("");
+    let dir = new_dir("");
 
     ["ab,c .mp4", "ot,her.webm", "s tart,en d.other"]
         .iter()
         .for_each(|x| {
-            let out = new_fin(&["-o", x]);
+            let out = new(&["-o", x]);
             let (begin, tail, ext) = to_begin_tail_ext(x);
 
             assert_eq!(true, out.need_num());
@@ -189,7 +211,7 @@ fn test_full() {
                 .for_each(|x| {
                     let x = dir.join(x).to_str().unwrap().to_string();
 
-                    let out = new_fin(&["-o", &x]);
+                    let out = new(&["-o", &x]);
                     let (begin, tail, ext) = to_begin_tail_ext(&x);
 
                     assert_eq!(true, out.need_num());
@@ -223,7 +245,7 @@ fn test_to_json_args() {
     ]
     .into_iter()
     .for_each(|(arg, right)| {
-        let arg = dir(arg);
+        let arg = new_dir(arg);
         let arg = arg.to_str().unwrap();
 
         let left = vec!["--output", arg];

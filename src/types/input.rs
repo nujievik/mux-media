@@ -4,8 +4,12 @@ mod to_json_args;
 mod try_finalize_init;
 
 use crate::{GlobSetPattern, Range};
-use std::path::{Path, PathBuf};
+use std::{
+    fs, io,
+    path::{Path, PathBuf},
+};
 
+#[derive(Clone)]
 pub struct Input {
     dir: PathBuf,
     range: Option<Range<u64>>,
@@ -13,9 +17,9 @@ pub struct Input {
     up: u8,
     check: u16,
     down: u8,
+    dir_not_upmost: bool,
     need_num: bool,
     out_need_num: bool,
-    dir_not_upmost: bool,
     upmost: PathBuf,
     dirs: Vec<PathBuf>,
 }
@@ -29,9 +33,9 @@ impl Default for Input {
             up: Self::DEFAULT_UP,
             check: Self::DEFAULT_CHECK,
             down: Self::DEFAULT_DOWN,
+            dir_not_upmost: false,
             need_num: false,
             out_need_num: false,
-            dir_not_upmost: false,
             upmost: PathBuf::from("."),
             dirs: Vec::new(),
         }
@@ -43,9 +47,9 @@ impl Input {
     const DEFAULT_CHECK: u16 = 128;
     const DEFAULT_DOWN: u8 = 16;
 
-    pub fn normalize_dir(dir: impl Into<PathBuf>) -> Result<PathBuf, std::io::Error> {
-        let dir = std::fs::canonicalize(dir.into())?;
-        std::fs::read_dir(&dir)?;
+    pub fn try_normalize_dir(dir: impl Into<PathBuf>) -> Result<PathBuf, io::Error> {
+        let dir = fs::canonicalize(dir.into())?;
+        fs::read_dir(&dir)?;
         Ok(dir)
     }
 
@@ -64,7 +68,7 @@ impl Input {
         }
     }
 
-    fn try_default_dir() -> Result<PathBuf, std::io::Error> {
-        Self::normalize_dir(".")
+    fn try_default_dir() -> Result<PathBuf, io::Error> {
+        Self::try_normalize_dir(".")
     }
 }
