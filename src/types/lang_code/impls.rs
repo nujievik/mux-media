@@ -80,7 +80,6 @@ fn get_system_locale_fallback() -> Option<String> {
     {
         use std::ffi::OsString;
         use std::os::windows::ffi::OsStringExt;
-        use std::ptr;
         use winapi::um::winnls::GetUserDefaultLocaleName;
 
         const LOCALE_NAME_MAX_LENGTH: usize = 85;

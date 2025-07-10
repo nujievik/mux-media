@@ -98,6 +98,7 @@ impl Blocks {
             )
             .arg(
                 Arg::new(MuxConfigArg::Chapters.as_long())
+                    .short('c')
                     .long(MuxConfigArg::Chapters.as_long())
                     .value_name("chp")
                     .help(Msg::HelpChapters.to_str_localized())
@@ -105,6 +106,7 @@ impl Blocks {
             )
             .arg(
                 Arg::new(MuxConfigArg::NoChapters.as_long())
+                    .short('C')
                     .long(MuxConfigArg::NoChapters.as_long())
                     .help(Msg::HelpNoChapters.to_str_localized())
                     .action(ArgAction::SetTrue)

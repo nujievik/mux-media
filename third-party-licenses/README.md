@@ -9,7 +9,6 @@ project.
   License: MIT OR Apache-2.0
   Source: https://github.com/rust-lang/rust
   
-  
 ### Rust crates  
 
 - **atty**
@@ -71,6 +70,20 @@ project.
 - **walkdir**
   License: Unlicense OR MIT
   Source: https://crates.io/crates/walkdir
+  
+### Windows build only
+
+- **mkvinfo**
+  License: GPL v2
+  Source: https://mkvtoolnix.download/downloads.html#windows
+  
+- **mkvmerge**
+  License: GPL v2
+  Source: https://mkvtoolnix.download/downloads.html#windows
+  
+- **winapi**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/winapi
   
 ### Other
 

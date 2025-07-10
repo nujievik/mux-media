@@ -1,5 +1,5 @@
 use super::{MuxConfig, MuxConfigTarget, RawMuxConfig, cli_args::MuxConfigArg};
-use crate::{CLIArg, IsDefault, MuxError, Target, Tool, Tools, TryFinalizeInit, TryInit};
+use crate::{CLIArg, MuxError, Target, Tool, Tools, TryFinalizeInit, TryInit};
 use clap::{CommandFactory, FromArgMatches};
 use std::{
     collections::HashMap,
@@ -16,9 +16,9 @@ impl TryInit for MuxConfig {
         let raw = RawMuxConfig::try_from_args(args_os().skip(1))?;
         let mut matches = Self::command().try_get_matches_from(raw.args)?;
 
-        let json = matches.try_remove_one::<PathBuf>(MuxConfigArg::Config.as_long())?;
+        let json = matches.try_remove_one::<PathBuf>(MuxConfigArg::Json.as_long())?;
         let no_json = *matches
-            .try_get_one::<bool>(MuxConfigArg::NoConfig.as_long())?
+            .try_get_one::<bool>(MuxConfigArg::NoJson.as_long())?
             .unwrap_or(&false);
 
         let mut cfg = if no_json {
@@ -63,13 +63,32 @@ impl TryFinalizeInit for MuxConfig {
         self.input.try_finalize_init()?;
         self.output.try_finalize_init()?;
 
-        self.tools.try_upd_tools_paths(Tool::iter_mkvtoolnix())?;
+        let temp_dir = self.output.get_temp_dir();
 
-        if !self.retiming.is_default() {
-            self.tools.try_upd_tool_path(Tool::Ffprobe)?;
+        #[cfg(unix)]
+        {
+            self.tools.try_upd_tools_paths(Tool::iter_mkvtoolnix())?;
         }
 
-        let json = Tools::make_json(self.output.get_temp_dir());
+        #[cfg(windows)]
+        {
+            match self.user_tools {
+                true => self
+                    .tools
+                    .try_upd_tools_paths(Tool::iter_mkvtoolnix())
+                    .or_else(|e| {
+                        self.tools
+                            .try_upd_tools_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
+                            .map_err(|_| e)
+                    }),
+                false => self
+                    .tools
+                    .try_upd_tools_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
+                    .or_else(|_| self.tools.try_upd_tools_paths(Tool::iter_mkvtoolnix())),
+            }?
+        }
+
+        let json = Tools::make_json(temp_dir);
         self.tools.upd_json(json);
 
         Ok(())

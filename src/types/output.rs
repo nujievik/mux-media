@@ -28,10 +28,7 @@ impl Output {
         name.push(".");
         name.push(&self.ext);
 
-        let mut path = self.dir.clone();
-        path.push(name);
-
-        path
+        self.dir.as_path().join(name)
     }
 
     pub fn need_num(&self) -> bool {

@@ -37,7 +37,7 @@ impl FromArgMatches for MuxConfig {
             input,
             locale,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
-            no_json: from_arg_matches!(matches, bool, NoConfig, || false),
+            no_json: from_arg_matches!(matches, bool, NoJson, || false),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
             off_on_pro: OffOnPro::from_arg_matches_mut(matches)?,
             retiming: Retiming::from_arg_matches_mut(matches)?,
@@ -55,6 +55,7 @@ impl FromArgMatches for MuxConfig {
             track_langs: TrackLangs::from_arg_matches_mut(matches)?,
             specials: Specials::from_arg_matches_mut(matches)?,
             targets: None,
+            user_tools: from_arg_matches!(matches, bool, UserTools, || false),
             tools: Tools::default(),
         })
     }
@@ -70,6 +71,13 @@ impl FromArgMatches for MuxConfig {
             let _ = Msg::try_upd_lang(lang);
             self.locale = lang;
         }
+
+        from_arg_matches!(
+            @upd, self, matches;
+            no_json, bool, NoJson,
+            exit_on_err, bool, ExitOnErr,
+            user_tools, bool, UserTools
+        );
 
         self.off_on_pro.update_from_arg_matches_mut(matches)?;
         self.retiming.update_from_arg_matches_mut(matches)?;

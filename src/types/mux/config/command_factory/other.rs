@@ -14,7 +14,32 @@ impl Blocks {
                     .long(MuxConfigArg::ListLangs.as_long())
                     .help(Msg::HelpListLangs.to_str_localized())
                     .action(ArgAction::SetTrue),
-            )
+            );
+
+        #[cfg(unix)]
+        {
+            // Hide in Unix, visible in Windows only
+            self.0 = self.0.arg(
+                Arg::new(MuxConfigArg::UserTools.as_long())
+                    .long(MuxConfigArg::UserTools.as_long())
+                    .action(ArgAction::SetTrue)
+                    .hide(true),
+            );
+        }
+
+        #[cfg(windows)]
+        {
+            self.0 = self.0.arg(
+                Arg::new(MuxConfigArg::UserTools.as_long())
+                    .long(MuxConfigArg::UserTools.as_long())
+                    .help(Msg::HelpUserTools.to_str_localized())
+                    .action(ArgAction::SetTrue),
+            );
+        }
+
+        self.0 = self
+            .0
+            /*
             .arg(
                 Arg::new(MuxConfigArg::FfprobeHelp.as_long())
                     .long(MuxConfigArg::FfprobeHelp.as_long())
@@ -27,6 +52,7 @@ impl Blocks {
                     .help(Msg::HelpMkvextractHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             )
+            */
             .arg(
                 Arg::new(MuxConfigArg::MkvinfoHelp.as_long())
                     .long(MuxConfigArg::MkvinfoHelp.as_long())

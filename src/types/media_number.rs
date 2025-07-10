@@ -92,7 +92,7 @@ fn get_bytes(os_str: &OsStr) -> &[u8] {
 
 #[cfg(windows)]
 fn get_bytes(os_str: &OsStr) -> Vec<u16> {
-    use std::os::unix::ffi::OsStrExt;
+    use std::os::windows::ffi::OsStrExt;
     os_str.encode_wide().collect()
 }
 
@@ -159,7 +159,7 @@ fn get_ascii_digits(utf16: Vec<u16>) -> (Vec<String>, Vec<(usize, usize)>) {
     let mut start = 0;
     let mut count = 0;
 
-    for &u in utf16 {
+    for u in utf16 {
         if (u as u8).is_ascii_digit() && u <= 0x7F {
             current.push(u as u8);
             if start == 0 {

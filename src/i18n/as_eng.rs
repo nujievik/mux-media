@@ -63,6 +63,7 @@ crate::impl_msg_as_localized_str!(
     HelpTargetHelp => "Set next options for target",
     HelpTargetOptions => "Target options",
     HelpUp => "Max directory levels to search up",
+    HelpUserTools => "Priority use of user-installed tools",
     HelpVerbosity => "Increase logging",
     HelpVersion => "Show version",
     HelpVideo => "[!]Copy video tracks n,m etc.",
@@ -82,6 +83,6 @@ crate::impl_msg_as_localized_str!(
     ListTargets => r#"Supported targets (in order of priority):
  1. Path to a file
  2. Path to the parent directory of the file
- 3. File group: video, audio, subs, buttons (file must contain the corresponding track type),
+ 3. File group: video, audio, subs (file must contain the corresponding track type),
     or global (default)"#,
 );

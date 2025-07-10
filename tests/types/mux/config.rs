@@ -10,9 +10,11 @@ macro_rules! cli_args_list {
             Up => "up",
             Check => "check",
             Down => "down",
+            Locale => "locale",
             Verbose => "verbose",
             Quiet => "quiet",
-            Locale => "locale",
+            Json => "json",
+            NoJson => "no-json",
             ExitOnErr => "exit-on-err",
             Pro => "pro",
             HelpAddDefaults => "add-defaults / --no-add-defaults",
@@ -63,6 +65,7 @@ macro_rules! cli_args_list {
             Langs => "langs",
             Specials => "specials",
             ListLangs => "list-langs",
+            UserTools => "user-tools",
             FfprobeHelp => "ffprobe [options]",
             MkvextractHelp => "mkvextract [options]",
             MkvinfoHelp => "mkvinfo [options]",
@@ -73,7 +76,7 @@ macro_rules! cli_args_list {
     };
 }
 
-macro_rules! gen_cli_args_test {
+macro_rules! build_test_cli_args {
     ( $( $arg:ident => $long:expr ),* ) => {
         #[test]
         fn test_cli_args() {
@@ -84,7 +87,7 @@ macro_rules! gen_cli_args_test {
     };
 }
 
-macro_rules! gen_json_args_test {
+macro_rules! build_test_json_args {
     ( $( $arg:ident => $json_arg:expr ),* ) => {
         #[test]
         fn test_json_args() {
@@ -95,5 +98,5 @@ macro_rules! gen_json_args_test {
     };
 }
 
-cli_args_list!(gen_cli_args_test);
-cli_args_list!(gen_json_args_test);
+cli_args_list!(build_test_cli_args);
+cli_args_list!(build_test_json_args);

@@ -1,10 +1,12 @@
 mod displays;
 pub(crate) mod output;
+mod paths;
 pub(crate) mod tool;
 
-use crate::{Msg, MuxError, Tool, ToolOutput, types::helpers::try_write_args_to_json};
+use crate::{MuxError, Tool, ToolOutput, types::helpers::try_write_args_to_json};
 use displays::{debug_running_command, warn_err_write_json};
 use enum_map::EnumMap;
+use paths::try_get_tool_path;
 use std::{
     ffi::{OsStr, OsString},
     path::PathBuf,
@@ -92,61 +94,6 @@ impl Tools {
         match command.output() {
             Ok(out) => ToolOutput::from((tool, out)).ok_or_err(),
             Err(e) => Err(format!("Running error: {}", e).into()),
-        }
-    }
-}
-
-#[inline(always)]
-fn try_get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
-    let tool_str: &str = tool.as_ref();
-
-    let err = || -> MuxError {
-        [
-            (Msg::NotFound, format!(" '{}' (", tool_str)),
-            (Msg::FromPackage, format!(" '{}'). ", tool.as_str_package())),
-            (Msg::InstallIt, String::new()),
-        ]
-        .as_slice()
-        .into()
-    };
-
-    #[cfg(unix)]
-    {
-        Command::new(tool_str)
-            .arg("-h")
-            .output()
-            .ok()
-            .filter(|o| o.status.success())
-            .map(|_| PathBuf::from(tool_str))
-            .ok_or_else(err)
-    }
-
-    #[cfg(windows)]
-    {
-        let mut potential_paths: Vec<PathBuf> = Vec::with_capacity(3);
-        potential_paths.push(PathBuf::from(tool_str));
-
-        if tool.is_mkvtoolnix() {
-            for dir in &[
-                "C:\\Program Files\\MkvToolNix",
-                "C:\\Program Files (x86)\\MkvToolNix",
-            ] {
-                let mut path = PathBuf::from(dir);
-                path.push(tool_str);
-                path.set_extension("exe");
-                potential_paths.push(path);
-            }
-        }
-
-        match potential_paths.into_iter().find(|path| {
-            Command::new(path)
-                .arg("-h")
-                .output()
-                .map(|o| o.status.success())
-                .unwrap_or_default()
-        }) {
-            Some(valid_path) => Ok(valid_path),
-            None => Err(err()),
         }
     }
 }

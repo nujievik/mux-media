@@ -105,7 +105,7 @@ macro_rules! from_arg_matches {
     };
 
     // Update case 1: field is not Option
-    (@upd, $self:ident, $matches:ident; $( $field:ident, $ty:ty, $arg:ident ),* ) => {{
+    (@upd, $self:ident, $matches:ident; $( $field:ident, $ty:ty, $arg:ident ),* $(,)?) => {{
         $(
             if let Some(val) = from_arg_matches!($matches, $ty, $arg, @no_default) {
                 $self.$field = val;
@@ -114,7 +114,7 @@ macro_rules! from_arg_matches {
     }};
 
     // Update case 2: field is Option
-    (@upd, $self:ident, $matches:ident, @opt_field; $( $field:ident, $ty:ty, $arg:ident ),* ) => {{
+    (@upd, $self:ident, $matches:ident, @opt_field; $( $field:ident, $ty:ty, $arg:ident ),* $(,)?) => {{
         $(
             if let Some(val) = from_arg_matches!($matches, $ty, $arg, @no_default) {
                 $self.$field = Some(val);

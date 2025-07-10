@@ -45,6 +45,7 @@ pub struct MuxConfig {
     track_langs: TrackLangs,
     specials: Specials,
     targets: Option<HashMap<Target, MuxConfigTarget>>,
+    user_tools: bool,
     tools: Tools,
 }
 

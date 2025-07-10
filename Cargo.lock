@@ -286,6 +286,7 @@ dependencies = [
  "strum_macros",
  "supports-color",
  "walkdir",
+ "winapi",
 ]
 
 [[package]]

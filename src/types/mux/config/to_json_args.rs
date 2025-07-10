@@ -41,7 +41,7 @@ impl ToJsonArgs for MuxConfig {
         args.push(self.locale.to_string());
 
         append_args_from_fields!(args, self; verbosity);
-        push_true_json_args!(args, self; no_json, NoConfig, exit_on_err, ExitOnErr);
+        push_true_json_args!(args, self; no_json, NoJson, exit_on_err, ExitOnErr);
 
         append_args_from_fields!(
             args, self;

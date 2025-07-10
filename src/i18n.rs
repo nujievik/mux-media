@@ -68,6 +68,7 @@ pub enum Msg {
     HelpTargetHelp,
     HelpTargetOptions,
     HelpUp,
+    HelpUserTools,
     HelpVerbosity,
     HelpVersion,
     HelpVideo,
