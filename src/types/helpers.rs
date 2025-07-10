@@ -7,24 +7,25 @@ use std::{
 };
 
 #[inline]
-pub(crate) fn try_write_args_to_json<I, T>(args: I, json: &Path) -> Result<Vec<String>, String>
+pub(crate) fn try_write_args_to_json<I, T>(args: I, json: &Path) -> Result<Vec<String>, MuxError>
 where
-    I: IntoIterator<Item = T> + Clone,
+    I: IntoIterator<Item = T>,
     T: AsRef<OsStr>,
 {
-    let args: Vec<String> = args
+    let args = args
         .into_iter()
         .map(|arg| {
-            arg.as_ref()
-                .to_str()
-                .ok_or("Unsupported UTF-8 symbol.".to_string())
-                .map(|s| s.to_string())
+            arg.as_ref().to_str().map(|s| s.to_string()).ok_or_else(|| {
+                let path = Path::new(arg.as_ref());
+                format!("Unsupported UTF-8 symbol in '{}'", path.display()).into()
+            })
         })
-        .collect::<Result<Vec<_>, _>>()?;
+        .collect::<Result<Vec<String>, MuxError>>()?;
 
-    let file = File::create(json).map_err(|e| format!("Create error: {}", e))?;
+    let file = File::create(json)?;
     let writer = BufWriter::new(file);
-    serde_json::to_writer_pretty(writer, &args).map_err(|e| format!("JSON write error: {}", e))?;
+
+    serde_json::to_writer_pretty(writer, &args)?;
 
     Ok(args)
 }

@@ -1,4 +1,5 @@
 use crate::{from_arg_matches, json_arg};
+use log::LevelFilter;
 
 #[derive(Debug, Default, Copy, Clone, PartialEq)]
 pub enum Verbosity {
@@ -20,12 +21,12 @@ impl From<u8> for Verbosity {
 }
 
 impl Verbosity {
-    pub fn to_level_filter(&self) -> log::LevelFilter {
+    pub fn to_level_filter(&self) -> LevelFilter {
         match self {
-            Verbosity::Quiet => log::LevelFilter::Error,
-            Verbosity::Normal => log::LevelFilter::Info,
-            Verbosity::Verbose => log::LevelFilter::Debug,
-            Verbosity::Debug => log::LevelFilter::Trace,
+            Verbosity::Quiet => LevelFilter::Error,
+            Verbosity::Normal => LevelFilter::Info,
+            Verbosity::Verbose => LevelFilter::Debug,
+            Verbosity::Debug => LevelFilter::Trace,
         }
     }
 }

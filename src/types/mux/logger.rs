@@ -6,7 +6,9 @@ use supports_color::Stream;
 
 static LOGGER: MuxLogger = MuxLogger;
 static INIT: Once = Once::new();
+
 static STDERR_ON_COLOR: Lazy<bool> = Lazy::new(|| supports_color::on(Stream::Stderr).is_some());
+static STDOUT_ON_COLOR: Lazy<bool> = Lazy::new(|| supports_color::on(Stream::Stdout).is_some());
 
 pub struct MuxLogger;
 
@@ -21,16 +23,21 @@ impl MuxLogger {
         });
     }
 
-    /// Returns a colored or plain log level prefix for stderr output.
+    /// Returns a colored or plain log level prefix for stderr or stdout output.
     ///
-    /// Only `Error` and `Warn` levels return a non-empty string. ANSI color codes
-    /// are applied if stderr supports them.
-    pub(crate) fn get_stderr_color_prefix(level: log::Level) -> &'static str {
+    /// Only `Error`, `Warn`, `Debug`, and `Trace` levels return a non-empty string.
+    /// ANSI color codes for `Error` and `Warn` are applied if stderr supports them.
+    /// ANSI color codes for `Debug` and `Trace` are applied if stdout supports them.
+    pub(crate) fn get_color_prefix(level: Level) -> &'static str {
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",
             Level::Error => "Error: ",
             Level::Warn if *STDERR_ON_COLOR => "\x1b[33mWarning\x1b[0m: ",
             Level::Warn => "Warning: ",
+            Level::Debug if *STDOUT_ON_COLOR => "\x1b[34mDebug\x1b[0m: ",
+            Level::Debug => "Debug: ",
+            Level::Trace if *STDOUT_ON_COLOR => "\x1b[35mTrace\x1b[0m: ",
+            Level::Trace => "Trace: ",
             _ => "",
         }
     }
@@ -48,21 +55,17 @@ impl Log for MuxLogger {
 
         let level = record.level();
 
+        let msg = format!("{}{}\n", Self::get_color_prefix(level), record.args());
+        let msg = msg.as_bytes();
+
         match level {
             Level::Error | Level::Warn => {
-                let msg = format!(
-                    "{}{}\n",
-                    Self::get_stderr_color_prefix(level),
-                    record.args()
-                );
-                let msg = msg.as_bytes();
                 let _ = io::stderr()
                     .write_all(msg)
                     .or_else(|_| io::stdout().write_all(msg));
             }
             _ => {
-                let msg = format!("{}\n", record.args());
-                let _ = io::stdout().write_all(msg.as_bytes());
+                let _ = io::stdout().write_all(msg);
             }
         }
     }

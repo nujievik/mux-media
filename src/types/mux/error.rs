@@ -122,7 +122,7 @@ impl MuxError {
     #[inline(always)]
     fn print_in_stderr_or_stdout(&self, msg: &str) {
         if self.use_stderr() {
-            let prefix = MuxLogger::get_stderr_color_prefix(log::Level::Error);
+            let prefix = MuxLogger::get_color_prefix(log::Level::Error);
             eprintln!("{}{}", prefix, msg);
         } else {
             println!("{}", msg);
@@ -245,6 +245,12 @@ impl From<std::io::Error> for MuxError {
 
 impl From<regex::Error> for MuxError {
     fn from(err: regex::Error) -> Self {
+        Self::from_any(err)
+    }
+}
+
+impl From<serde_json::Error> for MuxError {
+    fn from(err: serde_json::Error) -> Self {
         Self::from_any(err)
     }
 }

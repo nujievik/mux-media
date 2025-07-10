@@ -48,7 +48,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
             continue;
         }
 
-        mi.upd_cmn_stem(media.stem.as_ref().into());
+        mi.upd_cmn_stem(media.stem.to_os_string());
         mi.try_insert_paths_with_filter(&media.files, exit_on_err)?;
 
         if mi.is_no_files() {
@@ -69,7 +69,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
         args[0] = json_arg!(Output).into();
         args[1] = out.into();
 
-        tools.run(Tool::Mkvmerge, args, None)?;
+        tools.run(Tool::Mkvmerge, &args)?;
 
         mi.clear();
         cnt += 1;

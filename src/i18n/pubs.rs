@@ -39,12 +39,15 @@ impl Msg {
         }
 
         if !Self::is_supported_lang(lang) {
-            return Err(format!("Language '{}' is not supported for logging", lang).into());
+            return Err([(Self::LangNotSupLog, format!(": '{}'", lang))]
+                .as_slice()
+                .into());
         }
 
         let mut code = LANG_CODE
             .lock()
             .map_err(|_| MuxError::from("Fail LANG_CODE.lock()"))?;
+
         *code = lang;
 
         Ok(())
@@ -54,9 +57,9 @@ impl Msg {
         Self::try_upd_lang(lang).unwrap_or_else(|e| {
             eprintln!(
                 "{}{}: {}. {} '{}'",
-                MuxLogger::get_stderr_color_prefix(log::Level::Warn),
-                Self::ErrUpdLangCode,
-                e,
+                MuxLogger::get_color_prefix(log::Level::Warn),
+                Self::ErrUpdLang,
+                e.to_str_localized(),
                 Self::Using,
                 Self::get_lang()
             );

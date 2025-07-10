@@ -1,6 +1,6 @@
 crate::impl_msg_as_localized_str!(
     as_eng,
-    ErrUpdLangCode => "LangCode update failed",
+    ErrUpdLang => "Update language failed",
     ErrWriteJson => "Write command to JSON failed",
     File => "File",
     FileTypeNotSup => "File type is not supported",
@@ -68,6 +68,7 @@ crate::impl_msg_as_localized_str!(
     HelpVideo => "[!]Copy video tracks n,m etc.",
     InstallIt => "Please install it, add to system PATH and re-run",
     IsAlreadyExists => "Is already exists",
+    LangNotSupLog => "Language is not supported for logging",
     MayFailIfCommandLong => "May fail if command long",
     NoInputMedia => "No media found in the input directory",
     NotFound => "Not found",

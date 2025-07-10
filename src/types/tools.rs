@@ -1,15 +1,15 @@
+mod displays;
+pub(crate) mod output;
 pub(crate) mod tool;
 
-use crate::{Msg, MuxError, types::helpers::try_write_args_to_json};
+use crate::{Msg, MuxError, Tool, ToolOutput, types::helpers::try_write_args_to_json};
+use displays::{debug_running_command, warn_err_write_json};
 use enum_map::EnumMap;
-use log::{debug, warn};
 use std::{
     ffi::{OsStr, OsString},
-    fmt,
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::Command,
 };
-use tool::Tool;
 
 #[derive(Clone, Default)]
 pub struct Tools {
@@ -44,7 +44,7 @@ impl Tools {
 
     pub fn make_json(dir: impl Into<PathBuf>) -> PathBuf {
         let mut json = dir.into();
-        json.push(".command_args.json");
+        json.push(".command-args.json");
         json
     }
 
@@ -57,87 +57,46 @@ impl Tools {
         self
     }
 
-    pub fn run<I, T>(&self, tool: Tool, args: I, msg: Option<&str>) -> Result<String, MuxError>
+    pub fn run<I, T>(&self, tool: Tool, args: I) -> Result<ToolOutput, MuxError>
     where
         I: IntoIterator<Item = T> + Clone,
         T: AsRef<OsStr>,
     {
-        if let Some(msg) = msg {
-            debug!("{}", msg);
-        }
-
-        let mut command = Command::new(
-            self.paths[tool]
-                .as_ref()
-                .map(|p| p.as_path())
-                .unwrap_or(Path::new(tool.as_ref())),
-        );
-
-        let args_json = match &self.json {
-            Some(json) if tool.is_mkvtoolnix() => {
-                match try_write_args_to_json(args.clone(), json) {
-                    Ok(args) => {
-                        let mut json_with_at = OsString::from("@");
-                        json_with_at.push(json);
-                        command.arg(json_with_at);
-                        Some(args)
-                    }
-                    Err(e) => {
-                        warn!(
-                            "{}: {}. {} CLI ({})",
-                            Msg::ErrWriteJson,
-                            e,
-                            Msg::Using,
-                            Msg::MayFailIfCommandLong
-                        );
-                        command.args(args);
-                        None
-                    }
-                }
-            }
-
-            _ => {
-                command.args(args);
-                None
-            }
+        let mut command = match self.paths[tool].as_ref() {
+            Some(p) => Command::new(p),
+            None => Command::new(tool.as_ref()),
         };
 
-        debug!("{}:\n{}", Msg::RunningCommand, CommandDisplay(&command));
-        if let Some(args) = args_json {
-            debug!("Args in JSON:\n{:?}", args);
+        let mut json_args: Option<Vec<String>> = None;
+
+        match self.json.as_ref().filter(|_| tool.is_mkvtoolnix()) {
+            Some(json) => match try_write_args_to_json(args.clone(), json) {
+                Ok(args) => {
+                    let mut json_with_at = OsString::from("@");
+                    json_with_at.push(json);
+                    command.arg(json_with_at);
+                    json_args = Some(args);
+                }
+                Err(e) => {
+                    warn_err_write_json(e);
+                    command.args(args);
+                }
+            },
+            None => {
+                command.args(args);
+            }
         }
+
+        debug_running_command(&command, json_args);
 
         match command.output() {
-            Ok(output) if output.status.success() => {
-                Ok(String::from_utf8_lossy(&output.stdout).to_string())
-            }
-            Ok(output) => Err(MuxError::from(
-                String::from_utf8_lossy(&output.stdout).to_string(),
-            )),
-            Err(e) => Err(MuxError::from(format!("Running error: {}", e))),
+            Ok(out) => ToolOutput::from((tool, out)).ok_or_err(),
+            Err(e) => Err(format!("Running error: {}", e).into()),
         }
     }
 }
 
-struct CommandDisplay<'a>(&'a Command);
-
-impl<'a> fmt::Display for CommandDisplay<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut try_write = |oss: &OsStr| -> fmt::Result {
-            let p: &Path = oss.as_ref();
-            write!(f, "\"{}\" ", p.display())
-        };
-
-        try_write(self.0.get_program())?;
-
-        for arg in self.0.get_args() {
-            try_write(arg)?;
-        }
-
-        Ok(())
-    }
-}
-
+#[inline(always)]
 fn try_get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
     let tool_str: &str = tool.as_ref();
 

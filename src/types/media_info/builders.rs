@@ -79,17 +79,17 @@ impl MediaInfo<'_> {
             return Err(format!("File '{}' not has Matroska extension", path.display()).into());
         }
 
-        let stdout = self.tools.run(Tool::Mkvinfo, &[path], None)?;
-        let mkvinfo: Mkvinfo = stdout.lines().map(String::from).collect::<Vec<_>>().into();
+        let out = self.tools.run(Tool::Mkvinfo, &[path])?;
+        let s: Vec<String> = out.as_str_stdout().lines().map(String::from).collect();
 
-        Ok(mkvinfo)
+        Ok(s.into())
     }
 
     pub(super) fn build_mkvmerge_i(&mut self, path: &Path) -> Result<Vec<String>, MuxError> {
         let args = &[OsStr::new("-i"), path.as_os_str()];
-        let stdout = self.tools.run(Tool::Mkvmerge, args, None)?;
-        let stdout = stdout.lines().map(String::from).collect();
-        Ok(stdout)
+        let out = self.tools.run(Tool::Mkvmerge, args)?;
+        let out = out.as_str_stdout().lines().map(String::from).collect();
+        Ok(out)
     }
 
     pub(super) fn build_targets(&mut self, path: &Path) -> Result<[Target; 3], MuxError> {

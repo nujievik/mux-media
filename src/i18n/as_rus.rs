@@ -1,6 +1,6 @@
 crate::impl_msg_as_localized_str!(
     as_rus,
-    ErrUpdLangCode => "Не удалось обновить код языка",
+    ErrUpdLang => "Не удалось обновить язык",
     ErrWriteJson => "Ошибка записи команды в JSON",
     File => "Файл",
     FileTypeNotSup => "Тип файла не поддерживается",
@@ -68,6 +68,7 @@ crate::impl_msg_as_localized_str!(
     HelpVideo => "[!]Копировать видео дорожки n,m и т.д.",
     InstallIt => "Пожалуйста, установите его, добавьте в системный PATH и перезапустите",
     IsAlreadyExists => "Уже существует",
+    LangNotSupLog => "Язык не поддерживается для ведения журнала",
     MayFailIfCommandLong => "Может привести к ошибке если команда длинная",
     NoInputMedia => "Не найдены медиа во входной директории",
     NotFound => "Не найден",

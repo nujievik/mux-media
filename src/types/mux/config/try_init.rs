@@ -64,6 +64,7 @@ impl TryFinalizeInit for MuxConfig {
         self.output.try_finalize_init()?;
 
         self.tools.try_upd_tools_paths(Tool::iter_mkvtoolnix())?;
+
         if !self.retiming.is_default() {
             self.tools.try_upd_tool_path(Tool::Ffprobe)?;
         }
@@ -174,7 +175,7 @@ impl TryFrom<RawMuxConfig> for MuxConfig {
 }
 
 fn try_read_json_args(path: &Path) -> Result<Vec<String>, MuxError> {
-    let file = File::open(path).map_err(|e| MuxError::from(format!("Open error: {}", e)))?;
+    let file = File::open(path)?;
     let reader = BufReader::new(file);
-    serde_json::from_reader(reader).map_err(|e| MuxError::from(format!("JSON parse error: {}", e)))
+    serde_json::from_reader(reader).map_err(|e| MuxError::from_any(e))
 }

@@ -29,7 +29,7 @@ fn test_write_json() {
     let srt = common::data_file("srt.srt");
     let args = ["-i".to_string(), srt.to_string_lossy().into_owned()];
 
-    assert!(tools.run(Tool::Mkvmerge, &args, None).is_ok());
+    assert!(tools.run(Tool::Mkvmerge, &args).is_ok());
 
     let file = File::open(&json).expect("Failed to open JSON file");
     let reader = BufReader::new(file);
@@ -47,7 +47,7 @@ fn test_not_panic_on_bad_utf8() {
         let tools = init_with_json("output/bad_utf8.json");
         let bad_bytes = &[0x66, 0x6f, 0x6f, 0xFF];
         let args = [OsStr::from_bytes(bad_bytes)];
-        assert!(tools.run(Tool::Mkvmerge, &args, None).is_err());
+        assert!(tools.run(Tool::Mkvmerge, &args).is_err());
     }
 
     #[cfg(windows)]
@@ -58,7 +58,7 @@ fn test_not_panic_on_bad_utf8() {
         let tools = init_with_json("output/bad_utf8.json");
         let bad_bytes = [0x0066, 0x006F, 0x006F, 0xD800];
         let args = [OsString::from_wide(&bad_bytes)];
-        assert!(tools.run(Tool::Mkvmerge, &args, None).is_err());
+        assert!(tools.run(Tool::Mkvmerge, &args).is_err());
     }
 }
 
@@ -67,14 +67,14 @@ fn test_tool_helps() {
     let tools = init();
     let args = ["-h"];
     for tool in Tool::iter() {
-        assert!(tools.run(tool, &args, None).is_ok());
+        assert!(tools.run(tool, &args).is_ok());
     }
 }
 
 #[test]
 fn test_err_incorrect_cmd() {
     let tools = init();
-    assert!(tools.run(Tool::Mkvmerge, &["incorrect"], None).is_err());
+    assert!(tools.run(Tool::Mkvmerge, &["incorrect"]).is_err());
 }
 
 #[test]
@@ -82,7 +82,7 @@ fn test_mkvmerge_i() {
     let tools = init();
     let path = common::data_file("srt.srt");
     let args = [OsStr::new("-i"), path.as_os_str()];
-    assert!(tools.run(Tool::Mkvmerge, &args, None).is_ok());
+    assert!(tools.run(Tool::Mkvmerge, &args).is_ok());
 }
 
 #[test]
@@ -90,5 +90,5 @@ fn test_err_missing_file() {
     let tools = init();
     let path = common::data_file("missing_file.srt");
     let args = [OsStr::new("-i"), path.as_os_str()];
-    assert!(tools.run(Tool::Mkvmerge, &args, None).is_err());
+    assert!(tools.run(Tool::Mkvmerge, &args).is_err());
 }

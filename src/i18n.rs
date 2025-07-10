@@ -5,7 +5,7 @@ mod pubs;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Msg {
-    ErrUpdLangCode,
+    ErrUpdLang,
     ErrWriteJson,
     File,
     FileTypeNotSup,
@@ -73,6 +73,8 @@ pub enum Msg {
     HelpVideo,
     InstallIt,
     IsAlreadyExists,
+    LangNotSupLog,
+    ListTargets,
     MayFailIfCommandLong,
     NoInputMedia,
     NotFound,
@@ -83,5 +85,4 @@ pub enum Msg {
     Skipping,
     SuccessMuxed,
     Using,
-    ListTargets,
 }
