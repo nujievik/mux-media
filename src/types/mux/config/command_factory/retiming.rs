@@ -14,18 +14,21 @@ impl Blocks {
                     .alias("remove-segments")
                     .value_name("n[,m]...")
                     .help(Msg::HelpRmSegments.to_str_localized())
+                    .hide(true)
                     .value_parser(ValueParser::new(GlobSetPattern::from_str)),
             )
             .arg(
                 Arg::new(MuxConfigArg::NoLinked.as_long())
                     .long(MuxConfigArg::NoLinked.as_long())
                     .help(Msg::HelpNoLinked.to_str_localized())
+                    .hide(true)
                     .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new(MuxConfigArg::LessRetiming.as_long())
                     .long(MuxConfigArg::LessRetiming.as_long())
                     .help(Msg::HelpLessRetiming.to_str_localized())
+                    .hide(true)
                     .action(ArgAction::SetTrue),
             );
 

@@ -50,7 +50,7 @@ enum OffFlag {
     AddEnableds,
     AddNames,
     AddLangs,
-    SortFonts,
+    //SortFonts,
 }
 
 impl OffFlag {
@@ -61,7 +61,7 @@ impl OffFlag {
             Self::AddEnableds => MuxConfigArg::HelpAddEnableds,
             Self::AddNames => MuxConfigArg::HelpAddNames,
             Self::AddLangs => MuxConfigArg::HelpAddLangs,
-            Self::SortFonts => MuxConfigArg::HelpSortFonts,
+            //Self::SortFonts => MuxConfigArg::HelpSortFonts,
         }
     }
 
@@ -72,7 +72,7 @@ impl OffFlag {
             Self::AddEnableds => MuxConfigArg::AddEnableds,
             Self::AddNames => MuxConfigArg::AddNames,
             Self::AddLangs => MuxConfigArg::AddLangs,
-            Self::SortFonts => MuxConfigArg::SortFonts,
+            //Self::SortFonts => MuxConfigArg::SortFonts,
         }
     }
 
@@ -83,7 +83,7 @@ impl OffFlag {
             Self::AddEnableds => MuxConfigArg::NoAddEnableds,
             Self::AddNames => MuxConfigArg::NoAddNames,
             Self::AddLangs => MuxConfigArg::NoAddLangs,
-            Self::SortFonts => MuxConfigArg::NoSortFonts,
+            //Self::SortFonts => MuxConfigArg::NoSortFonts,
         }
     }
 }
@@ -96,7 +96,7 @@ impl MuxConfigArg {
             Self::HelpAddEnableds => Msg::HelpAddEnableds,
             Self::HelpAddNames => Msg::HelpAddNames,
             Self::HelpAddLangs => Msg::HelpAddLangs,
-            Self::HelpSortFonts => Msg::HelpSortFonts,
+            //Self::HelpSortFonts => Msg::HelpSortFonts,
             _ => panic!("Received unsupported fn help() arg"),
         }
         .to_str_localized()

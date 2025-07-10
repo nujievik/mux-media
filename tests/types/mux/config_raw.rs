@@ -120,11 +120,11 @@ fn test_locale() {
 
 #[test]
 fn test_only_tool() {
-    let raw = parse(&["--mkvextract", "file.mkv"]);
+    let raw = parse(&["--mkvinfo", "-h"]);
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);
-    assert_eq!(Some((Tool::Mkvextract, oss(&["file.mkv"]))), raw.call_tool);
+    assert_eq!(Some((Tool::Mkvinfo, oss(&["-h"]))), raw.call_tool);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);
 }

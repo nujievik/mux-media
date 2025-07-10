@@ -92,3 +92,11 @@ fn test_err_missing_file() {
     let args = [OsStr::new("-i"), path.as_os_str()];
     assert!(tools.run(Tool::Mkvmerge, &args).is_err());
 }
+
+#[test]
+fn test_tool_output() {
+    let tools = init();
+    let out = tools.run(Tool::Mkvmerge, ["-h"]).unwrap();
+    assert!(out.as_str_stdout().contains("Global options:"));
+    assert!(out.as_str_stderr().is_empty());
+}
