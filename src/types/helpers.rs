@@ -40,45 +40,33 @@ pub(crate) fn try_canonicalize_and_open(path: impl AsRef<Path>) -> Result<PathBu
     Ok(path)
 }
 
-#[inline]
+#[inline(always)]
 pub(crate) fn os_str_starts_with(prefix: &OsStr, longer: &OsStr) -> bool {
-    #[cfg(unix)]
-    {
-        use std::os::unix::ffi::OsStrExt;
-        longer.as_bytes().starts_with(prefix.as_bytes())
-    }
-
-    #[cfg(windows)]
-    {
-        use std::os::windows::ffi::OsStrExt;
-        longer
-            .encode_wide()
-            .zip(prefix.encode_wide())
-            .all(|(a, b)| a == b)
-    }
+    longer
+        .as_encoded_bytes()
+        .starts_with(prefix.as_encoded_bytes())
 }
 
 #[inline]
 pub(crate) fn os_str_tail(prefix: &OsStr, longer: &OsStr) -> Result<OsString, MuxError> {
-    if !os_str_starts_with(prefix, longer) {
+    let prefix_b = prefix.as_encoded_bytes();
+    let longer_b = longer.as_encoded_bytes();
+
+    if !longer_b.starts_with(prefix_b) {
         return Err(format!("Longer {:?} is not starts with {:?}", longer, prefix).into());
     }
 
-    #[cfg(unix)]
-    {
-        use std::os::unix::ffi::{OsStrExt, OsStringExt};
-        let full_bytes = longer.as_bytes();
-        let prefix_bytes = prefix.as_bytes();
-        Ok(OsString::from_vec(
-            full_bytes[prefix_bytes.len()..].to_vec(),
-        ))
+    let prefix_len = prefix_b.len();
+
+    if longer_b.len() == prefix_len {
+        return Ok(OsString::new());
     }
 
-    #[cfg(windows)]
-    {
-        use std::os::windows::ffi::{OsStrExt, OsStringExt};
-        let full_wide: Vec<u16> = longer.encode_wide().collect();
-        let prefix_wide: Vec<u16> = prefix.encode_wide().collect();
-        Ok(OsString::from_wide(&full_wide[prefix_wide.len()..]))
+    // Safety: `bytes` is a suffix of `longer_b`, which was originally obtained from a valid `OsStr`.
+    // Since `prefix_b` is a valid prefix, the remaining bytes (`bytes`) are also guaranteed
+    // to form a valid `OsStr` on this platform.
+    unsafe {
+        let bytes = &longer_b[prefix_len..];
+        Ok(OsStr::from_encoded_bytes_unchecked(bytes).into())
     }
 }

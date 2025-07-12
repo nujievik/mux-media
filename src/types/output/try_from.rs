@@ -7,17 +7,17 @@ use std::{
 };
 
 #[cfg(unix)]
-const MAIN_SEPARATOR_BYTES: &[u8] = b"/";
+static MAIN_SEPARATOR_BYTES: &[u8] = b"/";
 
 #[cfg(windows)]
-const MAIN_SEPARATOR_BYTES: &[u8] = b"\\";
+static MAIN_SEPARATOR_BYTES: &[u8] = b"\\";
 
 impl TryFrom<&Input> for Output {
     type Error = MuxError;
 
     fn try_from(input: &Input) -> Result<Self, Self::Error> {
         let dir = Self::make_dir(input.get_dir());
-        Ok(Self::try_from_path(dir)?)
+        Self::try_from_path(dir)
     }
 }
 
@@ -57,7 +57,8 @@ impl Output {
     fn try_extract_dir(path: &Path) -> Result<PathBuf, MuxError> {
         let res = |dir: PathBuf| -> Result<PathBuf, MuxError> {
             let dir = try_absolutize(dir)?;
-            Ok(dir.components().collect())
+            let dir = dir.components().collect();
+            Ok(Self::ensure_long_path_prefix(dir))
         };
 
         let fallback = || -> Result<PathBuf, MuxError> {
@@ -81,8 +82,8 @@ impl Output {
             return res(path.to_path_buf());
         }
 
-        if let Some(p) = path.parent() {
-            return res(p.to_path_buf());
+        if let Some(path) = path.parent() {
+            return res(path.to_path_buf());
         }
 
         fallback()
@@ -124,6 +125,10 @@ fn try_absolutize(path: PathBuf) -> Result<PathBuf, MuxError> {
 
     match path.is_absolute() {
         true => Ok(path),
-        false => Ok(current_dir()?.join(path)),
+        false => {
+            let mut new = current_dir()?;
+            new.push(path);
+            Ok(new)
+        }
     }
 }

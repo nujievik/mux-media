@@ -37,7 +37,7 @@ fn err_msg(file: &str) -> String {
 #[test]
 fn test_err_messages() {
     assert_eq!("Is not a file", err_msg(""));
-    assert!(err_msg("missing").contains("No such file or directory"));
+    assert!(try_new("missing").is_err());
 }
 
 fn_variants_of_args!();

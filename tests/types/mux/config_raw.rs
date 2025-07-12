@@ -156,8 +156,8 @@ fn test_list_targets_flag() {
 }
 
 #[test]
-fn test_fail_nonexistent_path() {
-    let result = RawMuxConfig::parse_args(&["--target", "nonexistent/path", "--opt"]);
+fn test_fail_missing_path() {
+    let result = RawMuxConfig::parse_args(&["--target", "missing_path", "--opt"]);
     assert!(result.is_err());
 
     if let Err(err) = result {

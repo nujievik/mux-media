@@ -1,25 +1,63 @@
 use mux_media::*;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 
-pub const MAX_U64_STR: &str = "18446744073709551615";
-const TEST_DATA: &str = "tests/test_data";
+pub const MAX_U64_STR: &'static str = "18446744073709551615";
 
-pub fn new_dir(s: &str) -> PathBuf {
+#[cfg(unix)]
+static SEP_B: &[u8] = b"/";
+#[cfg(windows)]
+static SEP_B: &[u8] = b"\\";
+
+pub fn s_sep(s: impl AsRef<str>) -> String {
+    #[cfg(unix)]
+    {
+        s.as_ref().replace('\\', "/")
+    }
+    #[cfg(windows)]
+    {
+        s.as_ref().replace('/', "\\")
+    }
+}
+
+pub fn new_dir(subdir: impl AsRef<OsStr>) -> PathBuf {
+    let sep_end = subdir.as_ref().as_encoded_bytes().ends_with(SEP_B);
+
     let mut dir = std::env::current_dir().unwrap();
-    dir.push(s);
+    dir.push(subdir.as_ref());
+
+    if sep_end {
+        dir = ensure_ends_sep(dir);
+    }
+
+    #[cfg(windows)]
+    {
+        let mut prf_dir = OsString::from(r"\\?\");
+        prf_dir.push(dir.as_os_str());
+        dir = prf_dir.into();
+    }
+
     dir
 }
 
 pub fn data_dir() -> PathBuf {
-    let mut dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    dir.push(TEST_DATA);
-    dir
+    let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("test_data");
+
+    new_dir(dir)
 }
 
-pub fn data_file(file: &str) -> PathBuf {
+pub fn data_file(file: impl AsRef<OsStr>) -> PathBuf {
+    let sep_end = file.as_ref().as_encoded_bytes().ends_with(SEP_B);
+
     let mut path = data_dir();
-    path.push(file);
+    path.push(file.as_ref());
+
+    if sep_end {
+        path = ensure_ends_sep(path);
+    }
+
     path
 }
 
@@ -42,9 +80,9 @@ where
 pub fn to_args<I, S>(args: I) -> Vec<String>
 where
     I: IntoIterator<Item = S>,
-    S: ToString,
+    S: AsRef<str>,
 {
-    args.into_iter().map(|s| s.to_string()).collect()
+    args.into_iter().map(|s| s_sep(s)).collect()
 }
 
 pub fn cfg_args<F>(args: Vec<String>, path: &Path, cache: CacheMI) -> Vec<String>
@@ -71,13 +109,24 @@ pub fn repeat_track_arg(arg: &str, val: &str, range: &str) -> Vec<String> {
 pub fn append_str_vecs<I, S>(vecs: I) -> Vec<String>
 where
     I: IntoIterator<Item = Vec<S>>,
-    S: ToString,
+    S: AsRef<str>,
 {
-    vecs.into_iter().flatten().map(|s| s.to_string()).collect()
+    vecs.into_iter().flatten().map(|s| s_sep(s)).collect()
 }
 
-pub fn read_json_args(path: &std::path::Path) -> Vec<String> {
+pub fn read_json_args(path: &Path) -> Vec<String> {
     let file = std::fs::File::open(path).unwrap();
     let reader = std::io::BufReader::new(file);
     serde_json::from_reader(reader).unwrap()
+}
+
+fn ensure_ends_sep(path: PathBuf) -> PathBuf {
+    match path.as_os_str().as_encoded_bytes().ends_with(SEP_B) {
+        true => path,
+        false => {
+            let mut path_sep = path.into_os_string();
+            path_sep.push(s_sep("/"));
+            path_sep.into()
+        }
+    }
 }

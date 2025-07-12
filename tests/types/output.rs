@@ -1,6 +1,9 @@
 use crate::common::*;
 use mux_media::*;
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 
 fn body_test_empty(out: &Output, dir: PathBuf) {
     assert_eq!(false, out.need_num());
@@ -16,13 +19,15 @@ fn body_test_empty(out: &Output, dir: PathBuf) {
 #[test]
 fn test_default() {
     let out = Output::default();
-    body_test_empty(&out, PathBuf::from("./muxed/"));
+    let dir = s_sep("");
+    body_test_empty(&out, PathBuf::from(dir));
 }
 
 #[test]
 fn test_empty() {
     let out = from_cfg::<MCOutput>(vec![]);
-    body_test_empty(&out, new_dir("muxed/"));
+    let dir = s_sep("muxed/");
+    body_test_empty(&out, new_dir(&dir));
 }
 
 fn new(args: &[&str]) -> Output {
@@ -60,7 +65,8 @@ fn test_from_input() {
         .for_each(|dir| {
             let dir = data_file(dir);
             let in_dir = dir.to_str().unwrap();
-            let out_dir = PathBuf::from(format!("{}/muxed", in_dir));
+            let out_dir = format!("{}/muxed", in_dir);
+            let out_dir = PathBuf::from(s_sep(out_dir));
 
             let input = from_cfg::<MCInput>(vec!["-i", in_dir]);
             let mut out = Output::try_from(&input).unwrap();
@@ -72,13 +78,23 @@ fn test_from_input() {
 
 #[test]
 fn test_remove_created_dirs() {
+    let base = data_dir();
+
+    let new_dir = |s: &str| -> PathBuf {
+        let s = s_sep(format!("output/remove/{}", s));
+        let mut oss = OsString::from(&base);
+        oss.push(s_sep("/"));
+        oss.push(s);
+        oss.into()
+    };
+
     ["1/", "2/", "abc/", "a b/", "a/b/c/"]
         .iter()
         .for_each(|subdir| {
-            let dir = data_file(&format!("output/remove/{}", subdir));
+            let dir = new_dir(subdir);
             let _ = std::fs::remove_dir_all(&dir);
-
             let out = new(&["-o", &dir.to_str().unwrap()]);
+
             assert!(dir.exists());
             out.remove_created_dirs();
             assert!(!dir.exists());

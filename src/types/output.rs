@@ -9,7 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Output {
     dir: PathBuf,
     temp_dir: PathBuf,
@@ -46,10 +46,8 @@ impl Output {
 }
 
 fn remove_empty_chain_dirs(dirs: &[PathBuf]) {
-    let ascending_order = match dirs.len() > 1 {
-        true => dirs[1].as_os_str().len() > dirs[0].as_os_str().len(),
-        false => false,
-    };
+    let ascending_order =
+        (dirs.len() > 1) && (dirs[1].as_os_str().len() > dirs[0].as_os_str().len());
 
     match ascending_order {
         true => dirs.into_iter().rev().for_each(|dir| {

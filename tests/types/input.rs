@@ -29,6 +29,7 @@ fn new(args: &[&str]) -> Input {
 fn test_collect_fonts() {
     let data_file = |s: &str| -> PathBuf {
         let s = format!("input/fonts/{}", s);
+        let s = s_sep(s);
         data_file(&s)
     };
 
@@ -81,6 +82,7 @@ fn test_collect_fonts() {
 fn test_iter_media_grouped_by_stem() {
     let data_file = |s: &str| -> PathBuf {
         let s = format!("input/{}", s);
+        let s = s_sep(s);
         data_file(&s)
     };
 

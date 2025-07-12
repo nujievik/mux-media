@@ -121,12 +121,13 @@ fn test_cmn_stem() {
         });
 
     [
-        "x1_set/x1_set.mkv",
-        "x1_set/audio/x1_set.[audio].mka",
-        "x1_set/subs/x1_set.[subs].mks",
+        s_sep("x1_set/x1_set.mkv"),
+        s_sep("x1_set/audio/x1_set.[audio].mka"),
+        s_sep("x1_set/subs/x1_set.[subs].mks"),
     ]
-    .into_iter()
-    .for_each(|x| mi.try_insert(data_file(x)).unwrap());
+    .iter()
+    .for_each(|f| mi.try_insert(data_file(f)).unwrap());
+
     assert_eq!("x1_set", mi.try_get_cmn::<MICmnStem>().unwrap());
 }
 
@@ -325,16 +326,19 @@ fn test_relative_upmost() {
     let mut mi = MediaInfo::from(&mc);
 
     [
-        ("", "audio_x1.mka"),
-        ("", "sub_x1.mks"),
-        ("", "srt.srt"),
-        ("/x1_set", "x1_set/x1_set.mkv"),
-        ("/x1_set/subs", "x1_set/subs/x1_set.[subs].mks"),
+        (String::new(), s_sep("audio_x1.mka")),
+        (String::new(), s_sep("sub_x1.mks")),
+        (String::new(), s_sep("srt.srt")),
+        (s_sep("/x1_set"), s_sep("x1_set/x1_set.mkv")),
+        (
+            s_sep("/x1_set/subs"),
+            s_sep("x1_set/subs/x1_set.[subs].mks"),
+        ),
     ]
     .iter()
     .for_each(|(exp, f)| {
         let f = data_file(f);
-        assert_eq!(&exp.to_string(), mi.get::<MIRelativeUpmost>(&f).unwrap());
+        assert_eq!(exp, mi.get::<MIRelativeUpmost>(&f).unwrap());
     })
 }
 
@@ -367,16 +371,16 @@ fn test_ti_name() {
     let mut mi = new();
 
     [
-        ("a", "name/a_name.mks", ""),
-        ("bc", "name/bc_name.mks", ""),
-        ("abc", "name/begin.abc.mks", "begin"),
-        ("tail", "name/begin.tail.mks", "begin"),
-        ("abc", "name/begin  .abc ..mks", "begin"),
-        ("abc", "name/other_begin.abc.mks", "other_begin"),
-        ("a", "name/from_parent/a/begin.mks", "begin"),
-        ("bc", "name/from_parent/bc/begin.mks", "begin"),
+        ("a", s_sep("name/a_name.mks"), ""),
+        ("bc", s_sep("name/bc_name.mks"), ""),
+        ("abc", s_sep("name/begin.abc.mks"), "begin"),
+        ("tail", s_sep("name/begin.tail.mks"), "begin"),
+        ("abc", s_sep("name/begin  .abc ..mks"), "begin"),
+        ("abc", s_sep("name/other_begin.abc.mks"), "other_begin"),
+        ("a", s_sep("name/from_parent/a/begin.mks"), "begin"),
+        ("bc", s_sep("name/from_parent/bc/begin.mks"), "begin"),
     ]
-    .into_iter()
+    .iter()
     .for_each(|(name, file, cmn_stem)| {
         mi.upd_cmn_stem(OsString::from(cmn_stem));
         assert_eq!(
@@ -391,12 +395,12 @@ fn test_ti_lang() {
     let mut mi = new();
 
     [
-        (LangCode::Und, "audio_x1.mka", ""),
-        (LangCode::Und, "sub_x1.mks", "sub_x1"),
-        (LangCode::Eng, "lang/en_lang.mks", "en_lang"),
-        (LangCode::Rus, "lang/ru_lang.mks", "ru_lang"),
-        (LangCode::Eng, "lang/begin.en.srt", "begin"),
-        (LangCode::Rus, "lang/begin.ru.srt", "begin"),
+        (LangCode::Und, s_sep("audio_x1.mka"), ""),
+        (LangCode::Und, s_sep("sub_x1.mks"), "sub_x1"),
+        (LangCode::Eng, s_sep("lang/en_lang.mks"), "en_lang"),
+        (LangCode::Rus, s_sep("lang/ru_lang.mks"), "ru_lang"),
+        (LangCode::Eng, s_sep("lang/begin.en.srt"), "begin"),
+        (LangCode::Rus, s_sep("lang/begin.ru.srt"), "begin"),
     ]
     .into_iter()
     .for_each(|(lang, file, cmn_stem)| {
@@ -411,9 +415,9 @@ fn test_ti_lang() {
     let mut mi = MediaInfo::from(&mc);
 
     [
-        (LangCode::Und, "srt.srt"),
-        (LangCode::Eng, "lang/eng subs/srt.srt"),
-        (LangCode::Rus, "lang/rus subs/srt.srt"),
+        (LangCode::Und, s_sep("srt.srt")),
+        (LangCode::Eng, s_sep("lang/eng subs/srt.srt")),
+        (LangCode::Rus, s_sep("lang/rus subs/srt.srt")),
     ]
     .into_iter()
     .for_each(|(lang, file)| {
@@ -429,9 +433,9 @@ fn test_ti_track_ids() {
     let mut mi = new();
 
     [
-        (0, LangCode::Und, "audio_x1.mka"),
-        (0, LangCode::Eng, "lang/en_lang.mks"),
-        (0, LangCode::Rus, "lang/ru_lang.mks"),
+        (0, LangCode::Und, s_sep("audio_x1.mka")),
+        (0, LangCode::Eng, s_sep("lang/en_lang.mks")),
+        (0, LangCode::Rus, s_sep("lang/ru_lang.mks")),
     ]
     .into_iter()
     .for_each(|(num, lang, file)| {

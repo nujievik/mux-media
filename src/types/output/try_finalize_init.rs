@@ -7,7 +7,8 @@ use std::{
 
 impl TryFinalizeInit for Output {
     fn try_finalize_init(&mut self) -> Result<(), MuxError> {
-        let temp_dir = Self::make_any_dir(&self.dir, ".temp-mux-media/");
+        let temp_dir = Self::make_any_dir(&self.dir, ".temp-mux-media");
+
         let created_dirs = try_create_chain_dirs(&temp_dir)?;
 
         let try_write = |dir| {

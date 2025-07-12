@@ -7,27 +7,25 @@ use std::{
     process::Command,
 };
 
-#[cfg(all(windows, target_pointer_width = "64"))]
-static MKVINFO_BUNDLED: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/assets/win64/mkvinfo.exe"
-));
-#[cfg(all(windows, target_pointer_width = "64"))]
-static MKVMERGE_BUNDLED: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
-    "/assets/win64/mkvmerge.exe"
-));
+macro_rules! embed_tool_bin {
+    ($var:ident, $path64:expr, $path32:expr) => {
+        #[cfg(all(windows, target_pointer_width = "64"))]
+        static $var: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), $path64));
+        #[cfg(all(windows, target_pointer_width = "32"))]
+        static $var: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), $path32));
+    };
+}
 
-#[cfg(all(windows, target_pointer_width = "32"))]
-static MKVINFO_BUNDLED: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
+embed_tool_bin!(
+    MKVINFO_BUNDLED,
+    "/assets/win64/mkvinfo.exe",
     "/assets/win32/mkvinfo.exe"
-));
-#[cfg(all(windows, target_pointer_width = "32"))]
-static MKVMERGE_BUNDLED: &[u8] = include_bytes!(concat!(
-    env!("CARGO_MANIFEST_DIR"),
+);
+embed_tool_bin!(
+    MKVMERGE_BUNDLED,
+    "/assets/win64/mkvmerge.exe",
     "/assets/win32/mkvmerge.exe"
-));
+);
 
 #[cfg(windows)]
 impl Tools {
@@ -98,8 +96,8 @@ pub(super) fn try_get_tool_path(tool: Tool) -> Result<PathBuf, MuxError> {
 
         if tool.is_mkvtoolnix() {
             for dir in &[
-                "C:\\Program Files\\MkvToolNix",
-                "C:\\Program Files (x86)\\MkvToolNix",
+                r"\\?\C:\Program Files\MkvToolNix",
+                r"\\?\C:\Program Files (x86)\MkvToolNix",
             ] {
                 let mut path = PathBuf::from(dir);
                 path.push(tool_str);

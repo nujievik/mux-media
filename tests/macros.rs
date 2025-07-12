@@ -93,11 +93,11 @@ macro_rules! test_from_str {
 #[macro_export]
 macro_rules! build_test_to_json_args {
     (@body, $field:ident, $json_dir:expr; $( $left:expr, $right:expr ),* ) => {{
-        let dir = format!("output/to_json_args/{}", $json_dir);
+        let dir = std::path::Path::new("output").join("to_json_args").join($json_dir);
         let dir = $crate::common::data_file(&dir);
 
         let in_dir = dir.to_str().unwrap();
-        let out_dir = format!("{}/muxed", in_dir);
+        let out_dir = dir.join("muxed").to_str().unwrap().to_string();
 
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();

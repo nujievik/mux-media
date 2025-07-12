@@ -47,8 +47,8 @@ impl Input {
     const DEFAULT_CHECK: u16 = 128;
     const DEFAULT_DOWN: u8 = 16;
 
-    pub fn try_normalize_dir(dir: impl Into<PathBuf>) -> Result<PathBuf, io::Error> {
-        let dir = fs::canonicalize(dir.into())?;
+    pub fn try_normalize_dir(dir: impl AsRef<Path>) -> Result<PathBuf, io::Error> {
+        let dir = fs::canonicalize(dir)?;
         fs::read_dir(&dir)?;
         Ok(dir)
     }
