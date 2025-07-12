@@ -1,5 +1,6 @@
 use crate::{MuxError, Tool};
-use std::process::Output;
+use log::warn;
+use std::{fmt, process::Output};
 
 #[derive(Debug)]
 pub struct ToolOutput {
@@ -11,7 +12,7 @@ pub struct ToolOutput {
 }
 
 impl ToolOutput {
-    fn into_err(self) -> MuxError {
+    pub(crate) fn into_err(self) -> MuxError {
         let code = self.code.unwrap_or(1);
         let mut s = self.stdout;
         s.push_str(&self.stderr);
@@ -41,6 +42,31 @@ impl ToolOutput {
 
     pub fn as_str_stderr(&self) -> &str {
         &self.stderr
+    }
+
+    pub(crate) fn log_warns(&self) {
+        if !self.tool.is_mkvtoolnix() {
+            return;
+        }
+
+        // Mkvtoolnix always uses stdout and marks warning as `Warning: `
+        self.stdout.split("Warning: ").skip(1).for_each(|s| {
+            let s = s.split('\n').next().unwrap_or("");
+            if !s.is_empty() {
+                warn!("{}", s);
+            }
+        })
+    }
+}
+
+impl fmt::Display for ToolOutput {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.tool.is_mkvtoolnix() {
+            return write!(f, "{}", &self.stdout);
+        }
+
+        write!(f, "Stdout:\n{}", &self.stdout)?;
+        write!(f, "\nStderr:\n{}", &self.stdout)
     }
 }
 

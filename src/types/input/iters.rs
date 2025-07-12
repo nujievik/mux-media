@@ -1,6 +1,5 @@
 use super::Input;
-use crate::{EXTENSIONS, GlobSetPattern, MediaNumber, types::helpers::os_str_starts_with};
-use log::{debug, trace, warn};
+use crate::{EXTENSIONS, GlobSetPattern, MediaNumber, i18n::logs, types::helpers};
 use rayon::prelude::*;
 use std::{
     collections::HashSet,
@@ -65,10 +64,7 @@ impl Input {
                 let up_stem = Arc::new(up_stem.to_os_string());
 
                 if repeats.contains(&up_stem) {
-                    trace!(
-                        "Found repeat stem '{}'. Skip this",
-                        AsRef::<Path>::as_ref(up_stem.as_ref()).display()
-                    );
+                    logs::trace_found_repeat(&up_stem);
                     return None;
                 }
 
@@ -90,15 +86,12 @@ impl Input {
                     .flat_map_iter(|dir| self.iter_media_in_dir(dir))
                     .filter(|p| {
                         p.file_stem()
-                            .map_or(false, |file_stem| os_str_starts_with(&up_stem, file_stem))
+                            .map_or(false, |fs| helpers::os_str_starts_with(&up_stem, fs))
                     })
                     .collect();
 
                 if matched.len() < 2 {
-                    debug!(
-                        "No external file found for stem '{}'. Skip this",
-                        AsRef::<Path>::as_ref(up_stem.as_ref()).display()
-                    );
+                    logs::debug_no_ext_media(&up_stem);
                     return None;
                 }
 
@@ -127,18 +120,14 @@ impl Input {
                 });
 
                 if self.dir_not_upmost && cnt_dir == 0 {
-                    warn!(
-                        "No track file found for stem '{}' in the input directory '{}'. Skip this",
-                        AsRef::<Path>::as_ref(up_stem.as_ref()).display(),
-                        self.dir.display()
-                    );
+                    logs::warn_no_input_dir_media(&self.dir, &up_stem);
                     return None;
                 }
 
                 let out_name_middle: Arc<OsString> = match &media_number {
                     Some(num) if self.out_need_num => OsString::from(num.as_str()).into(),
                     None if self.out_need_num => {
-                        trace!("Unexpected None file_number. Use default out_name_middle");
+                        log::trace!("Unexpected None file_number. Use default out_name_middle");
                         up_stem.clone()
                     }
                     _ => up_stem.clone(),

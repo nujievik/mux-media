@@ -37,9 +37,9 @@ impl Blocks {
             );
         }
 
+        /*
         self.0 = self
             .0
-            /*
             .arg(
                 Arg::new(MuxConfigArg::FfprobeHelp.as_long())
                     .long(MuxConfigArg::FfprobeHelp.as_long())
@@ -52,7 +52,6 @@ impl Blocks {
                     .help(Msg::HelpMkvextractHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             )
-            */
             .arg(
                 Arg::new(MuxConfigArg::MkvinfoHelp.as_long())
                     .long(MuxConfigArg::MkvinfoHelp.as_long())
@@ -65,6 +64,7 @@ impl Blocks {
                     .help(Msg::HelpMkvmergeHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             );
+        */
 
         self
     }

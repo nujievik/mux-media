@@ -1,12 +1,9 @@
 use crate::{
     Input, MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity, MediaInfo, Msg, MuxConfig,
-    MuxError, MuxLogger, Output, Tool, TryFinalizeInit, TryInit, json_arg,
+    MuxError, MuxLogger, Output, Tool, TryFinalizeInit, TryInit, i18n::logs, json_arg,
 };
-use log::{info, warn};
-use std::{
-    ffi::OsString,
-    path::{Path, PathBuf},
-};
+use log::{error, info, trace, warn};
+use std::{ffi::OsString, path::PathBuf};
 
 pub fn run() -> Result<(), MuxError> {
     let mc = {
@@ -44,7 +41,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
         let out = output.build_out(media.out_name_middle.as_ref());
 
         if out.exists() {
-            warn_file_is_already_exists(&out);
+            logs::warn_file_is_already_exists(&out);
             continue;
         }
 
@@ -52,7 +49,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
         mi.try_insert_paths_with_filter(&media.files, exit_on_err)?;
 
         if mi.is_no_files() {
-            warn_not_out_save_any(&out);
+            logs::warn_not_out_save_any(&out);
             continue;
         }
 
@@ -62,17 +59,24 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
         push_fonts_to_args(&mut args, &mut fonts, input);
 
         if args.len() < 4 {
-            warn_not_out_change(&out);
+            logs::warn_not_out_change(&out);
             continue;
         }
 
         args[0] = json_arg!(Output).into();
         args[1] = out.into();
 
-        tools.run(Tool::Mkvmerge, &args)?;
+        match tools.run(Tool::Mkvmerge, &args) {
+            Ok(out) => {
+                trace!("{}", out);
+                out.log_warns();
+                cnt += 1;
+            }
+            Err(e) if exit_on_err => return Err(e),
+            Err(e) => error!("{}", e),
+        }
 
         mi.clear();
-        cnt += 1;
     }
 
     Ok(cnt)
@@ -87,35 +91,4 @@ fn push_fonts_to_args(args: &mut Vec<OsString>, fonts: &mut Option<Vec<PathBuf>>
             args.push("--attach-file".into());
             args.push(f.into());
         })
-}
-
-#[inline(always)]
-fn warn_file_is_already_exists(out: &Path) {
-    warn!(
-        "{} '{}' {}. {}",
-        Msg::File,
-        out.display(),
-        Msg::IsAlreadyExists,
-        Msg::Skipping
-    )
-}
-
-#[inline(always)]
-fn warn_not_out_save_any(out: &Path) {
-    warn!(
-        "{} '{}'. {}",
-        Msg::NotOutSaveAny,
-        out.display(),
-        Msg::Skipping
-    )
-}
-
-#[inline(always)]
-fn warn_not_out_change(out: &Path) {
-    warn!(
-        "{} '{}'. {}",
-        Msg::NotOutChange,
-        out.display(),
-        Msg::Skipping
-    )
 }

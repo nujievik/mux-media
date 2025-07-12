@@ -47,7 +47,7 @@ impl Tools {
             std::fs::write(&tool_path, bytes)?;
 
             if !is_tool_help_success(&tool_path) {
-                return Err("x".into());
+                return Err("Tool help error".into());
             }
 
             self.paths[tool] = Some(tool_path);

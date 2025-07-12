@@ -1,6 +1,7 @@
 mod as_eng;
 mod as_rus;
 
+pub(crate) mod logs;
 mod pubs;
 
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -9,6 +10,7 @@ pub enum Msg {
     ErrWriteJson,
     File,
     FileTypeNotSup,
+    FoundRepeat,
     FromPackage,
     HelpAddDefaults,
     HelpAddEnableds,
@@ -77,7 +79,9 @@ pub enum Msg {
     LangNotSupLog,
     ListTargets,
     MayFailIfCommandLong,
-    NoInputMedia,
+    NoExtMediaFound,
+    NoInputDirMedia,
+    NoStemMedia,
     NotFound,
     NotMuxedAny,
     NotOutChange,

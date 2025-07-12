@@ -32,9 +32,11 @@ impl Input {
         let stems: Vec<&OsStr> = files.iter().filter_map(|path| path.file_stem()).collect();
 
         if stems.is_empty() {
-            return Err([(Msg::NoInputMedia, format!(": {}", self.dir.display()))]
-                .as_slice()
-                .into());
+            return Err(
+                [(Msg::NoInputDirMedia, format!(": {}", self.dir.display()))]
+                    .as_slice()
+                    .into(),
+            );
         }
 
         let parent_dirs: Vec<PathBuf> = (1..=self.up)

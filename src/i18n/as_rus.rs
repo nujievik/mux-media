@@ -4,6 +4,7 @@ crate::impl_msg_as_localized_str!(
     ErrWriteJson => "Ошибка записи команды в JSON",
     File => "Файл",
     FileTypeNotSup => "Тип файла не поддерживается",
+    FoundRepeat => "Найден повтор",
     FromPackage => "Из пакета",
     HelpAddDefaults => "Вкл/Выкл автонастройку default флагов",
     HelpAddEnableds => "Вкл/Выкл автонастройку enabled флагов",
@@ -71,7 +72,9 @@ crate::impl_msg_as_localized_str!(
     IsAlreadyExists => "Уже существует",
     LangNotSupLog => "Язык не поддерживается для ведения журнала",
     MayFailIfCommandLong => "Может привести к ошибке если команда длинная",
-    NoInputMedia => "Не найдены медиа во входной директории",
+    NoExtMediaFound => "Не найдено внешних медиа",
+    NoInputDirMedia => "Не найдены медиа в стартовой директории",
+    NoStemMedia => "Не найдены медиа для stem",
     NotFound => "Не найден",
     NotMuxedAny => "Медиа не мультиплексированы",
     NotOutChange => "Не найдено изменений для выходного файла",
@@ -83,6 +86,6 @@ crate::impl_msg_as_localized_str!(
     ListTargets => r#"Поддерживаемые цели (в порядке приоритета):
  1. Путь к файлу
  2. Путь к родительской директории файла
- 3. Группа файла: video, audio, subs (файл должен содержать соответствующую дорожку),
+ 3. Группа файла: video, audio, subs (файл должен содержать соответствующую дорожку)
     или global (по умолчанию)"#,
 );
