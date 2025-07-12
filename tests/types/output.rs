@@ -253,15 +253,18 @@ fn test_to_json_args() {
         ("name", vec!["-o", "name"]),
         ("name", vec!["--output", "name"]),
         ("dir/", vec!["--output", "dir/"]),
-        ("ab.mp4", vec!["--output", "a,b.mp4"]),
+        ("a,b.mp4", vec!["--output", "a,b.mp4"]),
         (
-            "other/a bc de .webm",
+            "other/a b,c de .webm",
             vec!["--output", "other/a b,c de .webm"],
         ),
     ]
     .into_iter()
     .for_each(|(arg, right)| {
-        let arg = new_dir(arg);
+        let arg = match arg.contains('.') {
+            true => new_dir(arg),
+            false => new_dir(format!("{}.mkv", arg)),
+        };
         let arg = arg.to_str().unwrap();
 
         let left = vec!["--output", arg];

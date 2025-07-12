@@ -1,5 +1,5 @@
 use super::Output;
-use crate::{Input, MuxError};
+use crate::{Input, MuxError, types::helpers};
 use std::{
     env::current_dir,
     ffi::{OsStr, OsString},
@@ -58,7 +58,7 @@ impl Output {
         let res = |dir: PathBuf| -> Result<PathBuf, MuxError> {
             let dir = try_absolutize(dir)?;
             let dir = dir.components().collect();
-            Ok(Self::ensure_long_path_prefix(dir))
+            Ok(helpers::ensure_long_path_prefix(dir))
         };
 
         let fallback = || -> Result<PathBuf, MuxError> {

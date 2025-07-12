@@ -97,7 +97,8 @@ macro_rules! build_test_to_json_args {
         let dir = $crate::common::data_file(&dir);
 
         let in_dir = dir.to_str().unwrap();
-        let out_dir = dir.join("muxed").to_str().unwrap().to_string();
+        let mut out_dir = dir.join("muxed").to_str().unwrap().to_string();
+        out_dir.push_str(".mkv");
 
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
