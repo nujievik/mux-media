@@ -10,11 +10,15 @@ use crate::deref_tuple_fields;
 use id::AttachID;
 use std::collections::HashSet;
 
+/// Settings for saving font attachments from media.
 #[derive(Clone)]
 pub struct FontAttachs(Attachs);
+
+/// Settings for saving non-font attachments from media.
 #[derive(Clone)]
 pub struct OtherAttachs(Attachs);
 
+/// Settings for saving media attachments.
 #[derive(Clone, Default, PartialEq)]
 pub struct Attachs {
     no_flag: bool,

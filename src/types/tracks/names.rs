@@ -2,6 +2,7 @@ use super::id::TrackID;
 use crate::{IsDefault, MuxError, from_arg_matches, mkvmerge_arg, to_json_args, to_mkvmerge_args};
 use std::collections::HashMap;
 
+/// Settings for track names.
 #[derive(Clone, Default)]
 pub struct TrackNames {
     unmapped: Option<String>,
@@ -29,6 +30,7 @@ impl IsDefault for TrackNames {
 }
 
 impl TrackNames {
+    /// Returns `Some` if `self` contains a name for the given `TrackID`.
     pub fn get(&self, tid: &TrackID) -> Option<&String> {
         if let Some(name) = &self.unmapped {
             return Some(name);
@@ -58,7 +60,7 @@ impl TrackNames {
 }
 
 impl TrackNames {
-    pub fn new() -> Self {
+    fn new() -> Self {
         Self::default()
     }
 

@@ -3,8 +3,80 @@ use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
     GetField, GetOptField, Input, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials,
     SubTracks, TFlagType, TFlags, Target, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
-    get_fields,
 };
+
+impl MuxConfig {
+    /// Returns a value reference from a field of `Self`.
+    pub fn get<F>(&self) -> &<Self as GetField<F>>::FieldType
+    where
+        Self: GetField<F>,
+    {
+        <Self as GetField<F>>::get(self)
+    }
+
+    /// Returns a value reference from a target field if present;
+    /// otherwise, returns a value reference from a field of `Self`.
+    pub fn get_trg<F>(&self, targets: &[Target]) -> &<Self as GetField<F>>::FieldType
+    where
+        Self: GetField<F>,
+        MuxConfigTarget: GetOptField<F, FieldType = <Self as GetField<F>>::FieldType>,
+    {
+        if let Some(map) = self.targets.as_ref() {
+            for target in targets {
+                if let Some(tgt_cfg) = map.get(target) {
+                    if let Some(value) = <MuxConfigTarget as GetOptField<F>>::get(tgt_cfg) {
+                        return value;
+                    }
+                }
+            }
+        }
+
+        self.get::<F>()
+    }
+
+    pub(crate) fn get_trg_t_flags(&self, targets: &[Target], ft: TFlagType) -> &TFlags {
+        match ft {
+            TFlagType::Default => self.get_trg::<MCDefaultTFlags>(targets).inner(),
+            TFlagType::Forced => self.get_trg::<MCForcedTFlags>(targets).inner(),
+            TFlagType::Enabled => self.get_trg::<MCEnabledTFlags>(targets).inner(),
+        }
+    }
+}
+
+macro_rules! get_fields {
+    // trait GetField only
+    ($type:ident;
+    $( $field:ident, $ty:ty => $marker:ident ),* $(,)?
+    ) => {
+        $(
+            #[doc = concat!("Marker of `MuxConfig` fields, that stores `", stringify!($ty), "`.")]
+            pub struct $marker;
+
+            impl $crate::GetField<$marker> for $type {
+                type FieldType = $ty;
+                fn get(&self) -> &Self::FieldType {
+                    &self.$field
+                }
+            }
+        )*
+    };
+
+    // trait GetField + trait GetOptField
+    ($type:ident, $opt_type:ident;
+    $( $field:ident, $ty:ty => $marker:ident ),* $(,)?
+    ) => {
+        get_fields!($type; $( $field, $ty => $marker ),*);
+
+        $(
+            impl $crate::GetOptField<$marker> for $opt_type {
+                type FieldType = $ty;
+                fn get(&self) -> Option<&Self::FieldType> {
+                    self.$field.as_ref()
+                }
+            }
+        )*
+    };
+}
 
 get_fields! {
     MuxConfig;
@@ -34,39 +106,4 @@ get_fields! {
     track_names, TrackNames => MCTrackNames,
     track_langs, TrackLangs => MCTrackLangs,
     specials, Specials => MCSpecials,
-}
-
-impl MuxConfig {
-    pub fn get<F>(&self) -> &<Self as GetField<F>>::FieldType
-    where
-        Self: GetField<F>,
-    {
-        <Self as GetField<F>>::get(self)
-    }
-
-    pub fn get_trg<F>(&self, targets: &[Target]) -> &<Self as GetField<F>>::FieldType
-    where
-        Self: GetField<F>,
-        MuxConfigTarget: GetOptField<F, FieldType = <Self as GetField<F>>::FieldType>,
-    {
-        if let Some(map) = self.targets.as_ref() {
-            for target in targets {
-                if let Some(tgt_cfg) = map.get(target) {
-                    if let Some(value) = <MuxConfigTarget as GetOptField<F>>::get(tgt_cfg) {
-                        return value;
-                    }
-                }
-            }
-        }
-
-        self.get::<F>()
-    }
-
-    pub fn get_trg_t_flags(&self, targets: &[Target], ft: TFlagType) -> &TFlags {
-        match ft {
-            TFlagType::Default => self.get_trg::<MCDefaultTFlags>(targets).inner(),
-            TFlagType::Forced => self.get_trg::<MCForcedTFlags>(targets).inner(),
-            TFlagType::Enabled => self.get_trg::<MCEnabledTFlags>(targets).inner(),
-        }
-    }
 }

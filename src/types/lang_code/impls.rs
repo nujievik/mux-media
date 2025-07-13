@@ -6,10 +6,13 @@ use crate::MuxError;
 use std::{env, fmt, str::FromStr};
 
 impl LangCode {
+    /// Returns `Self` parsed from the system locale if successful;
+    /// otherwise, returns `Self::Und`.
     pub fn init() -> Self {
         Self::try_from_system_locale().unwrap_or(Self::default())
     }
 
+    /// Prints the list of supported language codes to stdout.
     pub fn print_list_langs() {
         println!("{}", LIST_LANGS)
     }

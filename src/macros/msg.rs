@@ -1,3 +1,4 @@
+#[doc(hidden)]
 #[macro_export]
 macro_rules! impl_msg_as_localized_str {
     ($as_lang:ident, $( $enum_var:ident => $text:expr ),* $(,)?) => {

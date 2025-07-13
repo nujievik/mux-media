@@ -1,3 +1,4 @@
+#[doc(hidden)]
 #[macro_export]
 macro_rules! from_arg_matches {
     // Case 1: Return Option<T>

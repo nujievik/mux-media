@@ -1,6 +1,7 @@
 use crate::{MuxError, Range};
 use std::{fmt, str::FromStr};
 
+/// Media attachment identifier.
 #[derive(Clone, Hash, Eq, PartialEq)]
 pub enum AttachID {
     Num(u64),
@@ -8,6 +9,7 @@ pub enum AttachID {
 }
 
 impl AttachID {
+    /// Returns `true` if the given value is contained in the `self`.
     pub fn contains(&self, id: &Self) -> bool {
         match self {
             Self::Num(_) => self == id,

@@ -6,6 +6,15 @@ use std::{
 };
 
 impl TryFinalizeInit for Output {
+    /// Creates a temporary subdirectory inside `self.dir` and ensures the directory chain exists.
+    ///
+    /// Attempts to create `self.temp_dir` and all necessary parent directories. If any
+    /// directory creation fails, or if either `self.temp_dir` or `self.dir` is not writable,
+    /// returns an error and removes any created directories.
+    ///
+    /// On success, sets `self.temp_dir` and `self.created_dirs` accordingly.
+    ///
+    /// Guarantees that both `self.dir` and `self.temp_dir` are valid and writable.
     fn try_finalize_init(&mut self) -> Result<(), MuxError> {
         let temp_dir = Self::make_any_dir(&self.dir, ".temp-mux-media");
 

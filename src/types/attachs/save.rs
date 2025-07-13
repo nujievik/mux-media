@@ -2,8 +2,6 @@ use super::{Attachs, id::AttachID};
 use crate::IsDefault;
 
 impl Attachs {
-    // Every Attach has only 1 mkvmerge supported AttachID: AttachID::Num.
-    // Use this
     pub fn save_attach(&self, id: &AttachID) -> bool {
         if self.no_flag {
             return false;

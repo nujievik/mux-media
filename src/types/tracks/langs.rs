@@ -4,6 +4,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
+/// Settings for track languages.
 #[derive(Clone, Default)]
 pub struct TrackLangs {
     unmapped: Option<LangCode>,
@@ -31,6 +32,7 @@ impl IsDefault for TrackLangs {
 }
 
 impl TrackLangs {
+    /// Returns `Some` if `self` contains a language for the given `TrackID`.
     pub fn get(&self, tid: &TrackID) -> Option<LangCode> {
         if let Some(lang) = &self.unmapped {
             return Some(*lang);

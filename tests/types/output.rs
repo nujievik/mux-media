@@ -25,9 +25,13 @@ fn test_default() {
 
 #[test]
 fn test_empty() {
+    let dir = new_dir(s_sep("muxed/"));
+
+    let out = Output::try_from_path("").unwrap();
+    body_test_empty(&out, dir.clone());
+
     let out = from_cfg::<MCOutput>(vec![]);
-    let dir = s_sep("muxed/");
-    body_test_empty(&out, new_dir(&dir));
+    body_test_empty(&out, dir);
 }
 
 fn new(args: &[&str]) -> Output {
@@ -103,7 +107,7 @@ fn test_remove_created_dirs() {
 
 #[test]
 fn test_name_begin_only() {
-    let dir = new_dir("");
+    let dir = new_dir("muxed");
 
     ["name", "other", "a b c"].iter().for_each(|x| {
         let out = new(&["-o", x]);
@@ -121,7 +125,7 @@ fn test_name_begin_only() {
 
 #[test]
 fn test_name_tail_only() {
-    let dir = new_dir("");
+    let dir = new_dir("muxed");
 
     [",name", ",other", ",a b c", ",ab,c"].iter().for_each(|x| {
         let out = new(&["-o", x]);
@@ -140,7 +144,7 @@ fn test_name_tail_only() {
 
 #[test]
 fn test_ext_only() {
-    let dir = new_dir("");
+    let dir = new_dir("muxed");
 
     [",.mp4", ",.webm", ",.other"].iter().for_each(|x| {
         let out = new(&["-o", x]);
@@ -164,7 +168,7 @@ fn to_begin_tail(arg: &str) -> (String, String) {
 
 #[test]
 fn test_name_begin_tail() {
-    let dir = new_dir("");
+    let dir = new_dir("muxed");
 
     ["ab,c", "ot,her", "s tart,en d"].iter().for_each(|x| {
         let out = new(&["-o", x]);
@@ -194,7 +198,7 @@ fn to_begin_tail_ext(arg: &str) -> (String, String, String) {
 
 #[test]
 fn test_name_ext() {
-    let dir = new_dir("");
+    let dir = new_dir("muxed");
 
     ["ab,c .mp4", "ot,her.webm", "s tart,en d.other"]
         .iter()
@@ -250,10 +254,10 @@ fn test_to_json_args() {
     let s_dir = d.to_str().unwrap();
 
     [
-        ("name", vec!["-o", "name"]),
-        ("name", vec!["--output", "name"]),
-        ("dir/", vec!["--output", "dir/"]),
-        ("a,b.mp4", vec!["--output", "a,b.mp4"]),
+        ("muxed/name,.mkv", vec!["-o", "name"]),
+        ("muxed/name,.mkv", vec!["--output", "name"]),
+        ("dir/,.mkv", vec!["--output", "dir/"]),
+        ("muxed/a,b.mp4", vec!["--output", "a,b.mp4"]),
         (
             "other/a b,c de .webm",
             vec!["--output", "other/a b,c de .webm"],
@@ -261,13 +265,8 @@ fn test_to_json_args() {
     ]
     .into_iter()
     .for_each(|(arg, right)| {
-        let arg = match arg.contains('.') {
-            true => new_dir(arg),
-            false => new_dir(format!("{}.mkv", arg)),
-        };
-        let arg = arg.to_str().unwrap();
-
-        let left = vec!["--output", arg];
+        let arg = new_dir(arg).to_str().unwrap().to_string();
+        let left = vec!["--output", &arg];
 
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();

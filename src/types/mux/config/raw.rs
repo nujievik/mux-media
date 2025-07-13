@@ -9,12 +9,12 @@ use std::{
 };
 
 impl RawMuxConfig {
-    pub(super) fn try_from_args<I, T>(args: I) -> Result<Self, MuxError>
+    pub(super) fn try_parse<I, T>(args: I) -> Result<Self, MuxError>
     where
         I: IntoIterator<Item = T>,
         T: Into<OsString> + Clone,
     {
-        let raw = Self::parse_args(args)?;
+        let raw = Self::try_from_args(args)?;
 
         if let Some(lang) = raw.locale {
             Msg::upd_lang_or_warn(lang);
@@ -42,7 +42,7 @@ impl RawMuxConfig {
 
 impl RawMuxConfig {
     #[inline]
-    pub fn parse_args<I, T>(input_args: I) -> Result<Self, MuxError>
+    pub fn try_from_args<I, T>(input_args: I) -> Result<Self, MuxError>
     where
         I: IntoIterator<Item = T>,
         T: Into<OsString> + Clone,

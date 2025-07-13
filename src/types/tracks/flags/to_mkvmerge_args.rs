@@ -4,9 +4,11 @@ use crate::{
     MkvmergeArg, TFlagType, TFlagsCounts, ToMkvmergeArg, ToMkvmergeArgs, TrackID, TrackOrder,
     TrackType, mkvmerge_arg, to_mkvmerge_args, unwrap_or_return_vec,
 };
-use std::collections::HashSet;
-use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::{
+    collections::HashSet,
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 
 mkvmerge_arg!(DefaultTFlags, "--default-track-flag");
 mkvmerge_arg!(ForcedTFlags, "--forced-display-flag");
@@ -54,7 +56,7 @@ impl TFlags {
                             let mut val = flags.auto_val(cnt, ft);
                             if val && tt == TrackType::Sub && ft == TFlagType::Default {
                                 val = !default_audio_langs.contains(&lang)
-                                    || !default_audio_langs.contains(&locale_lang);
+                                    && !default_audio_langs.contains(&locale_lang);
                             }
                             val
                         })
@@ -96,7 +98,7 @@ impl TFlags {
     }
 }
 
-// Fallback if TrackOrder is not. Used only manual values
+// Fallback (on TrackOrder error). Uses manual values only
 macro_rules! flags_to_mkvmerge_args {
     ($flags:ident) => {
         impl ToMkvmergeArgs for $flags {

@@ -1,3 +1,4 @@
+#[doc(hidden)]
 #[macro_export]
 macro_rules! deref_tuple_fields {
     ($wrapper:ident, $inner:ty) => {

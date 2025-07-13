@@ -1,8 +1,8 @@
 use mux_media::*;
 use std::{ffi::OsString, path::Path};
 
-pub fn parse(args: &[&str]) -> RawMuxConfig {
-    RawMuxConfig::parse_args(args).expect("Should parse args without error")
+pub fn new(args: &[&str]) -> RawMuxConfig {
+    RawMuxConfig::try_from_args(args).expect("Error try_from_args()")
 }
 
 fn oss(args: &[&str]) -> Vec<OsString> {
@@ -11,7 +11,7 @@ fn oss(args: &[&str]) -> Vec<OsString> {
 
 #[test]
 fn test_basic_split() {
-    let raw = parse(&[
+    let raw = new(&[
         "--locale",
         "eng",
         "--list-langs",
@@ -66,7 +66,7 @@ fn test_path_target() {
 
     let dir_str = current_dir.to_str().unwrap();
 
-    let raw = parse(&["--target", dir_str, "--x", "--y", "--mkvinfo"]);
+    let raw = new(&["--target", dir_str, "--x", "--y", "--mkvinfo"]);
 
     match raw.call_tool {
         Some((Tool::Mkvinfo, _)) => {}
@@ -83,7 +83,7 @@ fn test_path_target() {
 
 #[test]
 fn test_subs_alias() {
-    let raw = parse(&[
+    let raw = new(&[
         "--target",
         "subtitles",
         "--opt_sub",
@@ -108,7 +108,7 @@ fn test_locale() {
     ]
     .into_iter()
     .for_each(|(lang, lng)| {
-        let raw = parse(&["--locale", lng]);
+        let raw = new(&["--locale", lng]);
         assert_eq!(Some(lang), raw.locale);
         assert_eq!(false, raw.list_langs);
         assert_eq!(false, raw.list_targets);
@@ -120,7 +120,7 @@ fn test_locale() {
 
 #[test]
 fn test_only_tool() {
-    let raw = parse(&["--mkvinfo", "-h"]);
+    let raw = new(&["--mkvinfo", "-h"]);
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);
@@ -134,7 +134,7 @@ fn test_list_langs_flags() {
     [["--list-langs"], ["--list-languages"]]
         .iter()
         .for_each(|args| {
-            let raw = parse(args);
+            let raw = new(args);
             assert_eq!(None, raw.locale);
             assert_eq!(true, raw.list_langs);
             assert_eq!(false, raw.list_targets);
@@ -146,7 +146,7 @@ fn test_list_langs_flags() {
 
 #[test]
 fn test_list_targets_flag() {
-    let raw = parse(&["--list-targets"]);
+    let raw = new(&["--list-targets"]);
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(true, raw.list_targets);
@@ -157,7 +157,7 @@ fn test_list_targets_flag() {
 
 #[test]
 fn test_fail_missing_path() {
-    let result = RawMuxConfig::parse_args(&["--target", "missing_path", "--opt"]);
+    let result = RawMuxConfig::try_from_args(&["--target", "missing_path", "--opt"]);
     assert!(result.is_err());
 
     if let Err(err) = result {
@@ -171,7 +171,7 @@ fn test_fail_missing_path() {
 
 #[test]
 fn test_args_before_target() {
-    let raw = parse(&["--arg1", "--target", "audio", "--opt"]);
+    let raw = new(&["--arg1", "--target", "audio", "--opt"]);
     let map = raw.trg_args.unwrap();
 
     assert_eq!(raw.args, oss(&["--arg1"]));
@@ -183,7 +183,7 @@ fn test_args_before_target() {
 
 #[test]
 fn test_multiple_target_switching() {
-    let raw = parse(&[
+    let raw = new(&[
         "init_arg", "--target", "audio", "--a1", "--target", "video", "--v1", "--target", "global",
         "--g1", "--target", "audio", "--a2", "--target", "video", "--v2",
     ]);
@@ -204,7 +204,7 @@ fn test_multiple_target_switching() {
 
 #[test]
 fn test_empty_input() {
-    let raw = parse(&[]);
+    let raw = new(&[]);
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);

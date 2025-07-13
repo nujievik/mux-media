@@ -7,6 +7,7 @@ use std::sync::Mutex;
 
 static LANG_CODE: Lazy<Mutex<LangCode>> = Lazy::new(|| Mutex::new(LangCode::init()));
 
+/// Uses a localized string if available; otherwise, uses the English string.
 impl fmt::Display for Msg {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.to_str_localized())
@@ -14,10 +15,12 @@ impl fmt::Display for Msg {
 }
 
 impl Msg {
+    /// Returns the English string.
     pub fn to_str(self) -> &'static str {
         self.as_eng()
     }
 
+    /// Returns the localized string if available; otherwise, returns the English string.
     pub fn to_str_localized(self) -> &'static str {
         match Self::get_lang() {
             LangCode::Eng => self.to_str(),
@@ -26,6 +29,7 @@ impl Msg {
         }
     }
 
+    /// Returns the current language.
     pub fn get_lang() -> LangCode {
         LANG_CODE
             .lock()
@@ -33,6 +37,12 @@ impl Msg {
             .unwrap_or(LangCode::Eng)
     }
 
+    /// Attempts to update the language.
+    ///
+    /// # Errors
+    ///
+    /// - Language is not supported
+    /// - Failed to acquire `Mutex` lock
     pub fn try_upd_lang(lang: LangCode) -> Result<(), MuxError> {
         if lang == Self::get_lang() {
             return Ok(());
@@ -53,6 +63,7 @@ impl Msg {
         Ok(())
     }
 
+    /// Attempts to update the language; logs a warning on failure.
     pub fn upd_lang_or_warn(lang: LangCode) {
         Self::try_upd_lang(lang).unwrap_or_else(|e| {
             eprintln!(

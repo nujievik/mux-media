@@ -51,7 +51,7 @@ fn test_multiple_ok_slice() {
 
 #[test]
 fn test_list_langs() {
-    let raw = config_raw::parse(&["--list-langs"]);
+    let raw = config_raw::new(&["--list-langs"]);
     assert_eq!(true, raw.list_langs);
     assert_eq!((), LangCode::print_list_langs());
 }

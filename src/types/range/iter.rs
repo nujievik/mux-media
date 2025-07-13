@@ -5,6 +5,7 @@ impl<T> Range<T>
 where
     T: Copy + PartialOrd + From<u8> + Add<Output = T>,
 {
+    /// Returns Iterator `self.start..=self.end`
     pub fn iter(&self) -> RangeIter<T> {
         RangeIter {
             current: self.start,

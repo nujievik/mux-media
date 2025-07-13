@@ -21,20 +21,19 @@ impl Default for Output {
 impl Output {
     pub(super) const DEFAULT_EXT: &'static str = "mkv";
 
-    #[inline]
-    pub(super) fn make_any_dir(dir: impl AsRef<Path>, subdir: &str) -> PathBuf {
-        let dir = dir.as_ref().join(subdir);
-        helpers::ensure_long_path_prefix(dir)
+    #[inline(always)]
+    pub(super) fn default_ext() -> OsString {
+        Self::DEFAULT_EXT.into()
     }
 
-    #[inline]
-    pub(super) fn make_dir(input_dir: impl AsRef<Path>) -> PathBuf {
-        let dir = Self::make_any_dir(input_dir, "muxed");
+    #[inline(always)]
+    pub(super) fn make_any_dir(dir: impl AsRef<Path>, subdir: &str) -> PathBuf {
+        let dir = dir.as_ref().join(subdir);
         helpers::ensure_ends_sep(dir)
     }
 
-    #[inline]
-    pub(super) fn default_ext() -> OsString {
-        Self::DEFAULT_EXT.into()
+    #[inline(always)]
+    pub(super) fn make_dir(input_dir: impl AsRef<Path>) -> PathBuf {
+        Self::make_any_dir(input_dir, "muxed")
     }
 }

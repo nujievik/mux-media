@@ -6,9 +6,11 @@ use crate::{
     AttachID, AttachType, IsDefault, LangCode, SubCharset, Target, TargetGroup, TrackID, TrackType,
 };
 use enum_map::EnumMap;
-use std::collections::{BTreeSet, HashMap};
-use std::ffi::OsString;
-use std::path::PathBuf;
+use std::{
+    collections::{BTreeSet, HashMap},
+    ffi::OsString,
+    path::PathBuf,
+};
 
 #[derive(Clone, Default, Debug, PartialEq)]
 pub enum CacheState<T> {
@@ -18,6 +20,7 @@ pub enum CacheState<T> {
     Failed,
 }
 
+/// Cache of `MediaInfo`.
 #[derive(Clone, Default)]
 pub struct CacheMI {
     pub common: CacheMICommon,
@@ -30,11 +33,13 @@ impl CacheMI {
     }
 }
 
+/// Cache of `MediaInfo` is common for all media.
 #[derive(Clone, Default, PartialEq)]
 pub struct CacheMICommon {
     pub stem: CacheState<OsString>,
 }
 
+/// Cache of `MediaInfo` is separate for each media.
 #[derive(Clone, Default)]
 pub struct CacheMIOfFile {
     pub mkvinfo: CacheState<Mkvinfo>,
@@ -50,6 +55,7 @@ pub struct CacheMIOfFile {
     pub attachs_info: CacheState<HashMap<u64, CacheMIOfFileAttach>>,
 }
 
+/// Cache of `MediaInfo` is separate for each track in media.
 #[derive(Clone, Default)]
 pub struct CacheMIOfFileTrack {
     pub mkvinfo_cutted: Option<Mkvinfo>,
@@ -60,6 +66,7 @@ pub struct CacheMIOfFileTrack {
     pub track_ids: CacheState<[TrackID; 2]>,
 }
 
+/// Cache of `MediaInfo` is separate for each attach in media.
 #[derive(Clone)]
 pub struct CacheMIOfFileAttach {
     pub id: AttachID,

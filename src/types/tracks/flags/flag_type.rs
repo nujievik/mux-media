@@ -2,6 +2,7 @@ use crate::{DefaultTFlags, EnabledTFlags, ForcedTFlags, MkvmergeArg, ToMkvmergeA
 use enum_map::Enum;
 use strum_macros::EnumIter;
 
+/// Flag type of media track.
 #[derive(Copy, Clone, PartialEq, Enum, EnumIter)]
 pub enum TFlagType {
     Default,

@@ -1,21 +1,24 @@
+#[doc(hidden)]
 #[macro_export]
 macro_rules! mkvmerge_arg {
-    ($type:ident, $arg:expr) => {
-        impl $crate::MkvmergeArg for $type {
+    ($ty:ty, $arg:expr) => {
+        impl $crate::MkvmergeArg for $ty {
             const MKVMERGE_ARG: &'static str = $arg;
         }
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! mkvmerge_no_arg {
-    ($type:ident, $no_arg:expr) => {
-        impl $crate::MkvmergeNoArg for $type {
+    ($ty:ty, $no_arg:expr) => {
+        impl $crate::MkvmergeNoArg for $ty {
             const MKVMERGE_NO_ARG: &'static str = $no_arg;
         }
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! unwrap_or_return_vec {
     ($x:expr) => {
@@ -29,6 +32,7 @@ macro_rules! unwrap_or_return_vec {
     };
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! to_mkvmerge_args {
     (@fn) => {

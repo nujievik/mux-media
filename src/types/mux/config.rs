@@ -13,6 +13,7 @@ use crate::{
 };
 use std::{collections::HashMap, ffi::OsString};
 
+/// Contains raw user-defined mux settings.
 pub struct RawMuxConfig {
     pub locale: Option<LangCode>,
     pub list_langs: bool,
@@ -22,6 +23,7 @@ pub struct RawMuxConfig {
     pub trg_args: Option<HashMap<Target, Vec<OsString>>>,
 }
 
+/// Contains mux settings.
 pub struct MuxConfig {
     input: Input,
     output: Output,
@@ -49,6 +51,7 @@ pub struct MuxConfig {
     tools: Tools,
 }
 
+/// Contains mux settings for target.
 pub struct MuxConfigTarget {
     audio_tracks: Option<AudioTracks>,
     sub_tracks: Option<SubTracks>,

@@ -1,6 +1,7 @@
 use crate::{LangCode, MuxError, Range};
 use std::fmt;
 
+/// Media track identifier.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum TrackID {
     Num(u64),
@@ -15,14 +16,16 @@ impl Default for TrackID {
 }
 
 impl TrackID {
+    /// Returns `true` if the `self` is `TrackID::Range(_)`.
     pub fn is_range(&self) -> bool {
         match self {
-            TrackID::Range(_) => true,
+            Self::Range(_) => true,
             _ => false,
         }
     }
 
-    pub fn contains(&self, id: &TrackID) -> bool {
+    /// Returns `true` if the given value is contained in the `self`.
+    pub fn contains(&self, id: &Self) -> bool {
         match self {
             Self::Num(_) => self == id,
             Self::Lang(_) => self == id,

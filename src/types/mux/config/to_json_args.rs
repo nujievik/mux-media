@@ -4,6 +4,7 @@ use crate::{
 };
 
 impl MuxConfig {
+    /// Attempts to write args to json in the input directory; logs a warning on failure.
     pub fn write_args_to_json_or_log(&self) {
         if self.no_json {
             return;

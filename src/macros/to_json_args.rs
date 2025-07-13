@@ -1,3 +1,4 @@
+#[doc(hidden)]
 #[macro_export]
 macro_rules! json_arg {
     ($arg:ident) => {{
@@ -8,6 +9,7 @@ macro_rules! json_arg {
     }};
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! push_true_json_args {
     ($args:ident, $self:ident; $( $field:ident, $arg:ident ),*) => {{
@@ -19,6 +21,7 @@ macro_rules! push_true_json_args {
     }};
 }
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! to_json_args {
     (@collect_id_map, $self:ident) => {{

@@ -5,6 +5,21 @@ use crate::{
 use log::{error, info, trace, warn};
 use std::{ffi::OsString, path::PathBuf};
 
+/// Runs the mux and invokes all other components.
+///
+/// # Errors
+///
+/// 1. Successful exit cases (e.g., `--help`, `--list-targets`, `--list-langs`, etc.)
+///    return an error with exit code `0`.
+///
+/// 2. CLI or JSON argument parsing failures
+///    return an error with exit code `2`.
+///
+/// 3. All other errors
+///    return exit code `1`.
+///    - Critical errors return immediately.
+///    - Errors while processing current media return an error if `--exit-on-err` is set;
+///      otherwise, muxing continues with the next media.
 pub fn run() -> Result<(), MuxError> {
     let mc = {
         let mut mc = MuxConfig::try_init()?;

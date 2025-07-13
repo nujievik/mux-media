@@ -4,6 +4,7 @@ mod max_value;
 use crate::{MaxValue, MuxError, ToMkvmergeArg};
 use std::{fmt, hash::Hash, ops::Add, str::FromStr};
 
+/// Range `start..=end`.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq)]
 pub struct Range<T> {
     pub start: T,
@@ -14,10 +15,12 @@ impl<T> Range<T>
 where
     T: Copy + PartialOrd,
 {
+    /// Returns `true` if the given value is contained in the range.
     pub fn contains(&self, value: T) -> bool {
         value >= self.start && value <= self.end
     }
 
+    /// Returns `true` if the given range is fully contained within `self`.
     pub fn contains_range(&self, rng: &Self) -> bool {
         rng.start >= self.start && rng.end <= self.end
     }

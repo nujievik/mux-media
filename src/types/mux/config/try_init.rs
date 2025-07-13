@@ -13,7 +13,7 @@ use std::{
 
 impl TryInit for MuxConfig {
     fn try_init() -> Result<Self, MuxError> {
-        let raw = RawMuxConfig::try_from_args(args_os().skip(1))?;
+        let raw = RawMuxConfig::try_parse(args_os().skip(1))?;
         let mut matches = Self::command().try_get_matches_from(raw.args)?;
 
         let json = matches.try_remove_one::<PathBuf>(MuxConfigArg::Json.as_long())?;
@@ -103,7 +103,7 @@ impl MuxConfig {
         I: IntoIterator<Item = T>,
         T: Into<OsString> + Clone,
     {
-        let raw = RawMuxConfig::try_from_args(args)?;
+        let raw = RawMuxConfig::try_parse(args)?;
         Self::try_from(raw)
     }
 
@@ -112,7 +112,7 @@ impl MuxConfig {
         I: IntoIterator<Item = T>,
         T: Into<OsString> + Clone,
     {
-        let raw = RawMuxConfig::try_from_args(args)?;
+        let raw = RawMuxConfig::try_parse(args)?;
         let mut matches = Self::command().try_get_matches_from(raw.args)?;
 
         self.update_from_arg_matches_mut(&mut matches)?;

@@ -14,8 +14,6 @@ impl IsDefault for Tracks {
 }
 
 impl Tracks {
-    // Every Media Track has 2 mkvmerge supported TrackID: TrackID::Num and TrackID::Lang.
-    // Use them both
     pub fn save_track(&self, tid: &TrackID, other_tid: &TrackID) -> bool {
         if self.no_flag {
             return false;

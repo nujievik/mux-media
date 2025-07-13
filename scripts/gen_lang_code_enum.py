@@ -52,6 +52,7 @@ mod set_multiple_priority;
 
 use strum_macros::AsRefStr;
 
+/// Three-letter ISO 639-3 language codes.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, AsRefStr)]
 #[strum(serialize_all = "kebab-case")]
 """
