@@ -138,6 +138,6 @@ impl RawMuxConfig {
             ))
         })?;
 
-        Ok(Target::Path(path))
+        Ok(path.into())
     }
 }

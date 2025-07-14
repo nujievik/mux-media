@@ -2,6 +2,7 @@ use crate::{TFlagType, ToJsonArgs, from_arg_matches, json_arg};
 use clap::{ArgMatches, Error, FromArgMatches};
 use enum_map::{EnumMap, enum_map};
 
+/// Settings for `Off on Pro` flags.
 #[derive(Copy, Clone)]
 pub struct OffOnPro {
     pub pro: bool,
@@ -12,6 +13,7 @@ pub struct OffOnPro {
 }
 
 impl OffOnPro {
+    /// Returns a value of add track flag by type.
     pub fn add_t_flags(&self, ft: TFlagType) -> bool {
         self.t_flags[ft]
     }

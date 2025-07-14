@@ -55,6 +55,10 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/serde_json
   
+- **smallvec**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/smallvec
+  
 - **strum**
   License: MIT
   Source: https://crates.io/crates/strum

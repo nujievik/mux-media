@@ -1,14 +1,18 @@
 use super::MediaInfo;
-use super::cache::{CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState};
+use super::cache::{CacheMIOfFile, CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState};
 use super::mkvinfo::Mkvinfo;
 use crate::{
-    LangCode, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField, SubCharset, Target,
-    TargetGroup, TrackID, TrackType,
+    ArcPathBuf, LangCode, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField, SubCharset,
+    Target, TargetGroup, TrackID, TrackType,
 };
 use enum_map::EnumMap;
-use std::collections::{BTreeSet, HashMap};
-use std::ffi::OsString;
-use std::path::Path;
+use smallvec::SmallVec;
+use std::{
+    collections::{BTreeSet, HashMap},
+    ffi::OsString,
+    path::Path,
+    sync::Arc,
+};
 
 macro_rules! set_get_fields {
     ($( $field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
@@ -74,9 +78,14 @@ macro_rules! set_get_path_fields {
                     Err(e) => (CacheState::Failed, Err(e)),
                 };
 
-                self.cache.of_files.entry(path.to_path_buf())
-                    .or_insert_with(Default::default)
-                    .$map_field = state;
+                match self.cache.of_files.get_mut(path) {
+                    Some(fields) => fields.$map_field = state,
+                    None => {
+                        let mut cache = CacheMIOfFile::default();
+                        cache.$map_field = state;
+                        self.cache.of_files.insert(ArcPathBuf::from(path), cache);
+                    }
+                }
 
                 result
             }
@@ -169,7 +178,7 @@ macro_rules! set_get_path_fields {
 }
 
 set_get_fields!(
-    stem, OsString, build_stem => MICmnStem;
+    stem, Arc<OsString>, build_stem => MICmnStem;
 );
 
 set_get_path_fields!(
@@ -180,7 +189,7 @@ set_get_path_fields!(
     saved_tracks, EnumMap<TrackType, BTreeSet<u64>>, build_saved_tracks => MISavedTracks;
     sub_charset, SubCharset, build_sub_charset => MISubCharset;
     target_group, TargetGroup, build_target_group => MITargetGroup;
-    targets, [Target; 3], build_targets => MITargets;
+    targets, SmallVec<[Target; 3]>, build_targets => MITargets;
     tracks_info, HashMap<u64, CacheMIOfFileTrack>, build_tracks_info => MITracksInfo;
     attachs_info, HashMap<u64, CacheMIOfFileAttach>, build_attachs_info => MIAttachsInfo;
 );

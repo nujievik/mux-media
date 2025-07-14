@@ -5,7 +5,7 @@ mod from_str;
 mod to_json_args;
 mod to_mkvmerge_args;
 
-use crate::{IsDefault, TrackID, deref_tuple_fields};
+use crate::{IsDefault, TrackID, deref_singleton_tuple_fields};
 use flag_type::TFlagType;
 use std::collections::HashMap;
 
@@ -30,9 +30,9 @@ pub struct TFlags {
     map_unhashed: Option<Vec<(TrackID, bool)>>,
 }
 
-deref_tuple_fields!(DefaultTFlags, TFlags, @all, lim_for_unset: Option<u64>);
-deref_tuple_fields!(ForcedTFlags, TFlags, @all, lim_for_unset: Option<u64>);
-deref_tuple_fields!(EnabledTFlags, TFlags, @all, lim_for_unset: Option<u64>);
+deref_singleton_tuple_fields!(DefaultTFlags, TFlags, @all, lim_for_unset: Option<u64>);
+deref_singleton_tuple_fields!(ForcedTFlags, TFlags, @all, lim_for_unset: Option<u64>);
+deref_singleton_tuple_fields!(EnabledTFlags, TFlags, @all, lim_for_unset: Option<u64>);
 
 impl TFlags {
     /// Returns auto-value of flag based on `true` limit.

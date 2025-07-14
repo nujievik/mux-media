@@ -4,9 +4,10 @@ use crate::{
     GetField, GetOptField, Input, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials,
     SubTracks, TFlagType, TFlags, Target, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
+use std::path::Path;
 
 impl MuxConfig {
-    /// Returns a value reference from a field of `Self`.
+    /// Returns a reference to the value associated with the marker type `F`.
     pub fn get<F>(&self) -> &<Self as GetField<F>>::FieldType
     where
         Self: GetField<F>,
@@ -14,8 +15,9 @@ impl MuxConfig {
         <Self as GetField<F>>::get(self)
     }
 
-    /// Returns a value reference from a target field if present;
-    /// otherwise, returns a value reference from a field of `Self`.
+    /// Returns a reference to the value associated with the marker type `F`
+    /// from the first matching `target` in the provided list, if available;
+    /// otherwise returns the common (global) value.
     pub fn get_trg<F>(&self, targets: &[Target]) -> &<Self as GetField<F>>::FieldType
     where
         Self: GetField<F>,
@@ -32,6 +34,16 @@ impl MuxConfig {
         }
 
         self.get::<F>()
+    }
+
+    /// Returns a cloned [`Target`] if it exists in [`MuxConfig`]; otherwise, returns `None`.
+    ///
+    /// This operation avoids heap allocation:
+    /// internally it either copies an enum variant or increments the `Arc` reference count.
+    pub fn get_clone_target(&self, path: impl AsRef<Path>) -> Option<Target> {
+        self.targets
+            .as_ref()
+            .and_then(|map| map.get_key_value(path.as_ref()).map(|(key, _)| key.clone()))
     }
 
     pub(crate) fn get_trg_t_flags(&self, targets: &[Target], ft: TFlagType) -> &TFlags {

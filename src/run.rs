@@ -1,6 +1,6 @@
 use crate::{
-    Input, MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity, MediaInfo, Msg, MuxConfig,
-    MuxError, MuxLogger, Output, Tool, TryFinalizeInit, TryInit, i18n::logs, json_arg,
+    ArcPathBuf, Input, MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity, MediaInfo, Msg,
+    MuxConfig, MuxError, MuxLogger, Output, Tool, TryFinalizeInit, TryInit, i18n::logs, json_arg,
 };
 use log::{LevelFilter, error, info, trace, warn};
 use std::{ffi::OsString, path::PathBuf};
@@ -36,7 +36,7 @@ pub fn run() -> Result<(), MuxError> {
     result.map(|cnt| match cnt {
         0 => warn!("{}", Msg::NotMuxedAny),
         _ => {
-            info!("{} {} media", Msg::SuccessMuxed, cnt);
+            info!("{} {} {}", Msg::SuccessMuxed, cnt, Msg::LMedia);
             mc.write_args_to_json_or_log();
         }
     })
@@ -60,8 +60,10 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
             continue;
         }
 
-        mi.upd_cmn_stem(media.stem.to_os_string());
-        mi.try_insert_paths_with_filter(&media.files, exit_on_err)?;
+        mi.upd_cmn_stem(media.stem);
+
+        let files = media.files.into_iter().map(|p| ArcPathBuf::from(p));
+        mi.try_insert_paths_with_filter(files, exit_on_err)?;
 
         if mi.is_no_files() {
             logs::warn_not_out_save_any(&out);

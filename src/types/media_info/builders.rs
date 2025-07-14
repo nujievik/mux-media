@@ -8,9 +8,13 @@ use crate::{
     MITILang, MITIName, MITargetGroup, MITracksInfo, MuxError, SubCharset, Target, TargetGroup,
     Tool, TrackID, TrackType, types::helpers::os_str_tail,
 };
-use std::collections::HashMap;
-use std::ffi::{OsStr, OsString};
-use std::path::Path;
+use smallvec::SmallVec;
+use std::{
+    collections::HashMap,
+    ffi::{OsStr, OsString},
+    path::Path,
+    sync::Arc,
+};
 
 macro_rules! from_name_tail_relative_or_fallback {
     ($mi:ident, $path:ident, $num:expr, $typ:ident, $try_from_words:ident, $fall:ident) => {
@@ -29,7 +33,7 @@ macro_rules! from_name_tail_relative_or_fallback {
 }
 
 impl MediaInfo<'_> {
-    pub(super) fn build_stem(&mut self) -> Result<OsString, MuxError> {
+    pub(super) fn build_stem(&mut self) -> Result<Arc<OsString>, MuxError> {
         let shortest: &OsStr = self
             .cache
             .of_files
@@ -38,7 +42,7 @@ impl MediaInfo<'_> {
             .min_by_key(|s| s.len())
             .ok_or("Not found any file_stem()")?;
 
-        Ok(shortest.to_os_string())
+        Ok(Arc::new(shortest.to_os_string()))
     }
 
     pub(super) fn build_sub_charset(&mut self, path: &Path) -> Result<SubCharset, MuxError> {
@@ -92,11 +96,24 @@ impl MediaInfo<'_> {
         Ok(out)
     }
 
-    pub(super) fn build_targets(&mut self, path: &Path) -> Result<[Target; 3], MuxError> {
-        let group = Target::Group(*self.try_get::<MITargetGroup>(path)?);
-        let parent = Target::Path(path.parent().unwrap_or(path).to_path_buf());
-        let path = Target::Path(path.to_path_buf());
-        Ok([path, parent, group])
+    pub(super) fn build_targets(&mut self, path: &Path) -> Result<SmallVec<[Target; 3]>, MuxError> {
+        let mut targets: SmallVec<[Target; 3]> = SmallVec::new();
+
+        if let Some(trg) = self.mc.get_clone_target(path) {
+            targets.push(trg);
+        }
+
+        if let Some(trg) = path.parent().and_then(|p| self.mc.get_clone_target(p)) {
+            targets.push(trg);
+        }
+
+        if let Ok(&group) = self.try_get::<MITargetGroup>(path) {
+            if let Some(trg) = self.mc.get_clone_target(group) {
+                targets.push(trg);
+            }
+        }
+
+        Ok(targets)
     }
 
     pub(super) fn build_tracks_info(

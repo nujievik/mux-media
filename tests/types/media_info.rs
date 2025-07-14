@@ -2,13 +2,25 @@ use super::char_encoding;
 use crate::common::*;
 use mux_media::*;
 use once_cell::sync::Lazy;
-use std::ffi::OsString;
-use std::path::PathBuf;
+use smallvec::SmallVec;
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 static MUX_CONFIG: Lazy<MuxConfig> = Lazy::new(|| cfg::<_, &str>([]));
 
 pub fn new() -> MediaInfo<'static> {
     MediaInfo::from(&*MUX_CONFIG)
+}
+
+fn new_path(s: &str) -> ArcPathBuf {
+    ArcPathBuf::from(data_file(s))
+}
+
+fn new_stem(s: &str) -> Arc<OsString> {
+    Arc::new(OsString::from(s))
 }
 
 #[test]
@@ -21,38 +33,46 @@ fn test_empty() {
 
 #[test]
 fn test_upd_cmn_stem() {
-    let mut mi = new();
-    mi.upd_cmn_stem(OsString::from("x"));
-    assert_eq!(0, mi.len());
-    assert!(!mi.is_empty());
-    assert!(mi.is_no_files());
-    assert_eq!("x", mi.try_get_cmn::<MICmnStem>().unwrap());
+    ["x", "a", "bc"].iter().for_each(|s| {
+        let mut mi = new();
+        let stem = new_stem(s);
+        mi.upd_cmn_stem(stem.clone());
+        assert_eq!(0, mi.len());
+        assert!(!mi.is_empty());
+        assert!(mi.is_no_files());
+        assert_eq!(&stem, mi.try_get_cmn::<MICmnStem>().unwrap());
+    })
 }
 
 #[test]
 fn test_try_insert() {
     let mut mi = new();
     let mut len = 0;
-    for x in ["srt.srt", "audio_x1.mka", "video_x8.mkv"] {
-        len += 1;
-        mi.try_insert(data_file(x)).unwrap();
-        assert_eq!(len, mi.len());
-        assert!(!mi.is_empty());
-        assert!(!mi.is_no_files());
-    }
+
+    ["srt.srt", "audio_x1.mka", "video_x8.mkv"]
+        .iter()
+        .for_each(|f| {
+            len += 1;
+            mi.try_insert_path(new_path(f)).unwrap();
+            assert_eq!(len, mi.len());
+            assert!(!mi.is_empty());
+            assert!(!mi.is_no_files());
+        });
 
     mi.clear();
-    for x in ["missing", "bad"] {
-        assert!(mi.try_insert(x).is_err());
-    }
+
+    ["missing", "bad"].iter().for_each(|f| {
+        assert!(mi.try_insert_path(new_path(f)).is_err());
+    });
+
     assert_eq!(0, mi.len());
 }
 
 #[test]
 fn test_clear() {
     let mut mi = new();
-    mi.upd_cmn_stem(OsString::from("x"));
-    mi.try_insert(data_file("srt.srt")).unwrap();
+    mi.upd_cmn_stem(new_stem("x"));
+    mi.try_insert_path(new_path("srt.srt")).unwrap();
     mi.clear();
 
     assert_eq!(0, mi.len());
@@ -65,9 +85,9 @@ fn test_get_take_upd_cache() {
     let mut mi = new();
     assert!(mi.get_cache().of_files.is_empty());
 
-    for x in ["srt.srt", "audio_x1.mka"] {
-        let file = data_file(x);
-        mi.try_insert(&file).unwrap();
+    ["srt.srt", "audio_x1.mka"].iter().for_each(|f| {
+        let file = new_path(f);
+        mi.try_insert_path(file.clone()).unwrap();
 
         let cache = mi.get_cache();
         assert_eq!(&file, cache.of_files.keys().next().unwrap());
@@ -82,26 +102,27 @@ fn test_get_take_upd_cache() {
         mi.unmut_get::<MIMkvmergeI>(&file).unwrap();
 
         mi.clear()
-    }
+    })
 }
 
 #[test]
 fn test_try_insert_with_filter() {
-    let paths = [data_file("srt.srt"), data_file("audio_x1.mka")];
+    let paths = [new_path("srt.srt"), new_path("audio_x1.mka")];
 
     for (arg, len) in [("-D", 2), ("-SA", 0)] {
         let mc = cfg([arg]);
         let mut mi = MediaInfo::from(&mc);
-        mi.try_insert_paths_with_filter(&paths, true).unwrap();
+        mi.try_insert_paths_with_filter(paths.clone(), true)
+            .unwrap();
         assert_eq!(len, mi.len());
     }
 
     let mut mi = new();
-    let bad_paths = [data_file("missing"), data_file("bad")];
+    let bad_paths = [new_path("missing"), new_path("bad")];
     for exit_on_err in [true, false] {
         assert_eq!(
             exit_on_err,
-            mi.try_insert_paths_with_filter(&bad_paths, exit_on_err)
+            mi.try_insert_paths_with_filter(bad_paths.clone(), exit_on_err)
                 .is_err()
         );
     }
@@ -115,8 +136,8 @@ fn test_cmn_stem() {
     [("srt", "srt.srt"), ("audio_x1", "audio_x1.mka")]
         .into_iter()
         .for_each(|(stem, file)| {
-            mi.try_insert(data_file(file)).unwrap();
-            assert_eq!(stem, mi.try_get_cmn::<MICmnStem>().unwrap());
+            mi.try_insert_path(new_path(file)).unwrap();
+            assert_eq!(&new_stem(stem), mi.try_get_cmn::<MICmnStem>().unwrap());
             mi.clear();
         });
 
@@ -126,9 +147,9 @@ fn test_cmn_stem() {
         s_sep("x1_set/subs/x1_set.[subs].mks"),
     ]
     .iter()
-    .for_each(|f| mi.try_insert(data_file(f)).unwrap());
+    .for_each(|f| mi.try_insert_path(new_path(f)).unwrap());
 
-    assert_eq!("x1_set", mi.try_get_cmn::<MICmnStem>().unwrap());
+    assert_eq!(&new_stem("x1_set"), mi.try_get_cmn::<MICmnStem>().unwrap());
 }
 
 #[test]
@@ -218,31 +239,111 @@ fn test_mkvmerge_i() {
     })
 }
 
-#[test]
-fn test_targets() {
-    let mut mi = new();
+static TEST_TARGETS: &[(TargetGroup, &[&str])] = &[
+    (
+        TargetGroup::Audio,
+        &["audio_x1.mka", "audio_x8.mka", "ogg.ogg"],
+    ),
+    (
+        TargetGroup::Subs,
+        &["srt.srt", "sub_x1.mks", "sub_x8.mks", "cp1251.srt"],
+    ),
+    (TargetGroup::Video, &["video_x1.mkv", "video_x8.mkv"]),
+];
 
-    [
-        (
-            TargetGroup::Audio,
-            vec!["audio_x1.mka", "audio_x8.mka", "ogg.ogg"],
-        ),
-        (
-            TargetGroup::Subs,
-            vec!["srt.srt", "sub_x1.mks", "sub_x8.mks", "cp1251.srt"],
-        ),
-        (TargetGroup::Video, vec!["video_x1.mkv", "video_x8.mkv"]),
-    ]
-    .iter()
-    .for_each(|(g, files)| {
+#[test]
+fn test_targets_empty_user_input() {
+    let mut mi = new();
+    let empty = SmallVec::<[Target; 3]>::new();
+
+    TEST_TARGETS
+        .iter()
+        .map(|(_, files)| files.iter())
+        .flatten()
+        .for_each(|f| {
+            let f = data_file(f);
+            assert_eq!(&empty, mi.try_get::<MITargets>(&f).unwrap());
+        });
+}
+
+fn build_targets(slice: &[Target]) -> SmallVec<[Target; 3]> {
+    slice.into_iter().map(|trg| trg.clone()).collect()
+}
+
+#[test]
+fn test_targets_group_only() {
+    TEST_TARGETS.iter().for_each(|(group, files)| {
+        let g_args = vec!["--target", group.as_ref(), "-B"];
         files.iter().for_each(|f| {
             let f = data_file(f);
-            let exp = [
-                Target::Path(f.clone()),
-                Target::Path(data_dir()),
-                Target::Group(*g),
+            let mc = cfg(&g_args);
+            let mut mi = MediaInfo::from(&mc);
+
+            let left = build_targets(&[Target::Group(*group)]);
+            assert_eq!(&left, mi.try_get::<MITargets>(&f).unwrap());
+        })
+    })
+}
+
+#[test]
+fn test_targets_path_only() {
+    TEST_TARGETS.iter().for_each(|(_, files)| {
+        files.iter().for_each(|f| {
+            let f = data_file(f);
+            let mc = cfg([Path::new("--target"), &f, Path::new("-B")]);
+            let mut mi = MediaInfo::from(&mc);
+            let left = build_targets(&[Target::Path(ArcPathBuf::from(&f))]);
+
+            assert_eq!(&left, mi.try_get::<MITargets>(&f).unwrap());
+        })
+    })
+}
+
+#[test]
+fn test_targets_parent_only() {
+    let parent = data_dir(); //common for all files
+
+    TEST_TARGETS.iter().for_each(|(_, files)| {
+        files.iter().for_each(|f| {
+            let f = data_file(f);
+            let mc = cfg([Path::new("--target"), &parent, Path::new("-B")]);
+            let mut mi = MediaInfo::from(&mc);
+            let left = build_targets(&[Target::Path(ArcPathBuf::from(&parent))]);
+
+            assert_eq!(&left, mi.try_get::<MITargets>(&f).unwrap());
+        })
+    })
+}
+
+#[test]
+fn test_targets_all() {
+    let parent = data_dir(); //common for all files
+
+    TEST_TARGETS.iter().for_each(|(group, files)| {
+        files.iter().for_each(|f| {
+            let f = data_file(f);
+            let args = [
+                Path::new("--target"),
+                group.as_path(),
+                Path::new("-B"),
+                Path::new("--target"),
+                &f,
+                Path::new("-B"),
+                Path::new("--target"),
+                &parent,
+                Path::new("-B"),
             ];
-            assert_eq!(&exp, mi.try_get::<MITargets>(&f).unwrap());
+
+            let mc = cfg(args);
+            let mut mi = MediaInfo::from(&mc);
+
+            let left = build_targets(&[
+                Target::Path(ArcPathBuf::from(&f)),
+                Target::Path(ArcPathBuf::from(&parent)),
+                Target::Group(*group),
+            ]);
+
+            assert_eq!(&left, mi.try_get::<MITargets>(&f).unwrap());
         })
     })
 }
@@ -296,7 +397,8 @@ fn test_attachs_info() {
 fn test_path_tail() {
     let mut mi = new();
 
-    mi.upd_cmn_stem(OsString::new());
+    mi.upd_cmn_stem(new_stem(""));
+
     [
         ("audio_x1", "audio_x1.mka"),
         ("sub_x1", "sub_x1.mks"),
@@ -309,7 +411,8 @@ fn test_path_tail() {
     });
 
     mi.clear();
-    mi.upd_cmn_stem(OsString::from("s"));
+    mi.upd_cmn_stem(new_stem("s"));
+
     [("ub_x1", "sub_x1.mks"), ("rt", "srt.srt")]
         .iter()
         .for_each(|(exp, f)| {
@@ -382,7 +485,7 @@ fn test_ti_name() {
     ]
     .iter()
     .for_each(|(name, file, cmn_stem)| {
-        mi.upd_cmn_stem(OsString::from(cmn_stem));
+        mi.upd_cmn_stem(new_stem(cmn_stem));
         assert_eq!(
             name,
             mi.try_get_ti::<MITIName>(&data_file(file), 0).unwrap()
@@ -404,7 +507,7 @@ fn test_ti_lang() {
     ]
     .into_iter()
     .for_each(|(lang, file, cmn_stem)| {
-        mi.upd_cmn_stem(OsString::from(cmn_stem));
+        mi.upd_cmn_stem(new_stem(cmn_stem));
         assert_eq!(
             lang,
             *mi.try_get_ti::<MITILang>(&data_file(file), 0).unwrap()

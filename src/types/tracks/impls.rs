@@ -1,11 +1,11 @@
 use super::{AudioTracks, ButtonTracks, SubTracks, Tracks, VideoTracks, id::TrackID};
-use crate::{IsDefault, MuxError, deref_tuple_fields};
+use crate::{IsDefault, MuxError, deref_singleton_tuple_fields};
 use std::collections::HashSet;
 
-deref_tuple_fields!(AudioTracks, Tracks, @all, no_flag: bool);
-deref_tuple_fields!(SubTracks, Tracks, @all, no_flag: bool);
-deref_tuple_fields!(VideoTracks, Tracks, @all, no_flag: bool);
-deref_tuple_fields!(ButtonTracks, Tracks, @all, no_flag: bool);
+deref_singleton_tuple_fields!(AudioTracks, Tracks, @all, no_flag: bool);
+deref_singleton_tuple_fields!(SubTracks, Tracks, @all, no_flag: bool);
+deref_singleton_tuple_fields!(VideoTracks, Tracks, @all, no_flag: bool);
+deref_singleton_tuple_fields!(ButtonTracks, Tracks, @all, no_flag: bool);
 
 impl IsDefault for Tracks {
     fn is_default(&self) -> bool {

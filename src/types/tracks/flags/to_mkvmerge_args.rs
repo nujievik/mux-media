@@ -1,14 +1,10 @@
 use super::{DefaultTFlags, EnabledTFlags, ForcedTFlags, TFlags};
 use crate::{
-    IsDefault, LangCode, MCLocale, MISavedTracks, MITILang, MITITrackIDs, MITargets, MediaInfo,
-    MkvmergeArg, TFlagType, TFlagsCounts, ToMkvmergeArg, ToMkvmergeArgs, TrackID, TrackOrder,
-    TrackType, mkvmerge_arg, to_mkvmerge_args, unwrap_or_return_vec,
+    ArcPathBuf, IsDefault, LangCode, MCLocale, MISavedTracks, MITILang, MITITrackIDs, MITargets,
+    MediaInfo, MkvmergeArg, TFlagType, TFlagsCounts, ToMkvmergeArg, ToMkvmergeArgs, TrackID,
+    TrackOrder, TrackType, mkvmerge_arg, to_mkvmerge_args, unwrap_or_return_vec,
 };
-use std::{
-    collections::HashSet,
-    ffi::OsString,
-    path::{Path, PathBuf},
-};
+use std::{collections::HashSet, ffi::OsString, path::Path};
 
 mkvmerge_arg!(DefaultTFlags, "--default-track-flag");
 mkvmerge_arg!(ForcedTFlags, "--forced-display-flag");
@@ -19,7 +15,7 @@ impl TFlags {
     pub fn track_order_to_os_mkvmerge_args(
         mi: &mut MediaInfo,
         order: TrackOrder,
-    ) -> (Vec<usize>, Vec<PathBuf>, Vec<Vec<OsString>>) {
+    ) -> (Vec<usize>, Vec<ArcPathBuf>, Vec<Vec<OsString>>) {
         let (paths, i_num_type) = (order.paths, order.i_num_type);
 
         let paths_len = paths.len();

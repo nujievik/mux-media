@@ -1,13 +1,10 @@
 use super::MediaInfo;
 use crate::{
-    MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags, MCFontAttachs,
-    MCForcedTFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames, MCVideoTracks,
-    MISubCharset, MITargets, MuxError, TFlags, ToMkvmergeArgs, TrackOrder,
+    ArcPathBuf, MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags,
+    MCFontAttachs, MCForcedTFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames,
+    MCVideoTracks, MISubCharset, MITargets, MuxError, TFlags, ToMkvmergeArgs, TrackOrder,
 };
-use std::{
-    ffi::OsString,
-    path::{Path, PathBuf},
-};
+use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
     pub fn collect_os_mkvmerge_args(&mut self) -> Vec<OsString> {
@@ -22,23 +19,23 @@ impl MediaInfo<'_> {
                 // self and Path unused, just trait requirements
                 args.append(&mut order.to_os_mkvmerge_args(self, Path::new("")));
 
-                let (i_route, mut paths, mut path_args) =
+                let (i_route, paths, mut path_args) =
                     TFlags::track_order_to_os_mkvmerge_args(self, order);
 
                 i_route.into_iter().for_each(|i| {
                     append_target_args(args, self, &paths[i]);
                     args.append(&mut std::mem::take(&mut path_args[i]));
-                    args.push(std::mem::take(&mut paths[i]).into_os_string());
+                    args.push(paths[i].as_ref().into());
                 })
             }
 
             Err(e) => {
                 log::warn!("{}", e);
-                let paths: Vec<PathBuf> = self.cache.of_files.keys().cloned().collect();
+                let paths: Vec<ArcPathBuf> = self.cache.of_files.keys().cloned().collect();
                 for path in paths {
                     append_target_args(args, self, &path);
                     fallback_append_target_flags(args, self, &path);
-                    args.push(path.into_os_string());
+                    args.push(path.as_ref().into());
                 }
             }
         };

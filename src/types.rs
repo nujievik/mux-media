@@ -1,3 +1,4 @@
+pub(crate) mod arc_path_buf;
 pub(crate) mod attachs;
 pub(crate) mod chapters;
 pub(crate) mod char_encoding;
@@ -14,7 +15,7 @@ pub(crate) mod output;
 pub(crate) mod range;
 pub(crate) mod retiming;
 pub(crate) mod specials;
-pub(crate) mod targets;
+pub(crate) mod target;
 pub(crate) mod tools;
 pub(crate) mod tracks;
 pub(crate) mod verbosity;

@@ -6,7 +6,7 @@ mod save;
 mod to_json_args;
 mod to_mkvmerge_args;
 
-use crate::deref_tuple_fields;
+use crate::deref_singleton_tuple_fields;
 use id::AttachID;
 use std::collections::HashSet;
 
@@ -27,5 +27,5 @@ pub struct Attachs {
     ids_unhashed: Option<Vec<AttachID>>,
 }
 
-deref_tuple_fields!(FontAttachs, Attachs, @all, no_flag: bool);
-deref_tuple_fields!(OtherAttachs, Attachs, @all, no_flag: bool);
+deref_singleton_tuple_fields!(FontAttachs, Attachs, @all, no_flag: bool);
+deref_singleton_tuple_fields!(OtherAttachs, Attachs, @all, no_flag: bool);

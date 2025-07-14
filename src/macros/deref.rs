@@ -1,6 +1,6 @@
 #[doc(hidden)]
 #[macro_export]
-macro_rules! deref_tuple_fields {
+macro_rules! deref_singleton_tuple_fields {
     ($wrapper:ident, $inner:ty) => {
         impl std::ops::Deref for $wrapper {
             type Target = $inner;
@@ -45,13 +45,13 @@ macro_rules! deref_tuple_fields {
     };
 
     ($wrapper:ident, $inner:ty, @all) => {
-        $crate::deref_tuple_fields!($wrapper, $inner);
-        $crate::deref_tuple_fields!($wrapper, @default);
-        $crate::deref_tuple_fields!($wrapper, $inner, @from_str);
+        $crate::deref_singleton_tuple_fields!($wrapper, $inner);
+        $crate::deref_singleton_tuple_fields!($wrapper, @default);
+        $crate::deref_singleton_tuple_fields!($wrapper, $inner, @from_str);
     };
 
     ($wrapper:ident, $inner:ty, @all, $( $field:ident : $ty:ty ),* $(,)?) => {
-        $crate::deref_tuple_fields!($wrapper, $inner, @all);
-        $crate::deref_tuple_fields!($wrapper, @builders, $( $field : $ty ),* );
+        $crate::deref_singleton_tuple_fields!($wrapper, $inner, @all);
+        $crate::deref_singleton_tuple_fields!($wrapper, @builders, $( $field : $ty ),* );
     };
 }

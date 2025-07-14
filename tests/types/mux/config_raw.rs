@@ -74,7 +74,7 @@ fn test_path_target() {
     }
 
     let canonical_dir = current_dir.canonicalize().unwrap();
-    let target_key = Target::Path(canonical_dir);
+    let target_key = Target::Path(canonical_dir.into());
 
     let map = raw.trg_args.unwrap();
     assert!(map.contains_key(&target_key));

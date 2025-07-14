@@ -3,15 +3,18 @@ mod track;
 
 use super::mkvinfo::Mkvinfo;
 use crate::{
-    AttachID, AttachType, IsDefault, LangCode, SubCharset, Target, TargetGroup, TrackID, TrackType,
+    ArcPathBuf, AttachID, AttachType, IsDefault, LangCode, SubCharset, Target, TargetGroup,
+    TrackID, TrackType,
 };
 use enum_map::EnumMap;
+use smallvec::SmallVec;
 use std::{
     collections::{BTreeSet, HashMap},
     ffi::OsString,
-    path::PathBuf,
+    sync::Arc,
 };
 
+/// A state of cache field.
 #[derive(Clone, Default, Debug, PartialEq)]
 pub enum CacheState<T> {
     #[default]
@@ -24,7 +27,7 @@ pub enum CacheState<T> {
 #[derive(Clone, Default)]
 pub struct CacheMI {
     pub common: CacheMICommon,
-    pub of_files: HashMap<PathBuf, CacheMIOfFile>,
+    pub of_files: HashMap<ArcPathBuf, CacheMIOfFile>,
 }
 
 impl CacheMI {
@@ -36,7 +39,7 @@ impl CacheMI {
 /// Cache of `MediaInfo` is common for all media.
 #[derive(Clone, Default, PartialEq)]
 pub struct CacheMICommon {
-    pub stem: CacheState<OsString>,
+    pub stem: CacheState<Arc<OsString>>,
 }
 
 /// Cache of `MediaInfo` is separate for each media.
@@ -49,7 +52,7 @@ pub struct CacheMIOfFile {
     pub saved_tracks: CacheState<EnumMap<TrackType, BTreeSet<u64>>>,
     pub sub_charset: CacheState<SubCharset>,
     pub target_group: CacheState<TargetGroup>,
-    pub targets: CacheState<[Target; 3]>,
+    pub targets: CacheState<SmallVec<[Target; 3]>>,
 
     pub tracks_info: CacheState<HashMap<u64, CacheMIOfFileTrack>>,
     pub attachs_info: CacheState<HashMap<u64, CacheMIOfFileAttach>>,

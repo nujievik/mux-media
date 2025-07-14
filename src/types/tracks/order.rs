@@ -1,13 +1,9 @@
 use crate::{
-    LangCode, MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale, MISavedTracks, MITILang,
-    MITargetGroup, MITargets, MediaInfo, MkvmergeArg, MuxError, TargetGroup, ToMkvmergeArgs,
-    TrackID, TrackType, mkvmerge_arg, to_mkvmerge_args, unmut_get,
+    ArcPathBuf, LangCode, MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale,
+    MISavedTracks, MITILang, MITargetGroup, MITargets, MediaInfo, MkvmergeArg, MuxError,
+    TargetGroup, ToMkvmergeArgs, TrackID, TrackType, mkvmerge_arg, to_mkvmerge_args, unmut_get,
 };
-use std::{
-    cmp::Ordering,
-    collections::HashMap,
-    path::{Path, PathBuf},
-};
+use std::{cmp::Ordering, collections::HashMap, path::Path};
 
 /// Sorts tracks of media files.
 ///
@@ -48,7 +44,7 @@ use std::{
 ///     - `Und` (undefined language)
 ///     - `Jpn` (Japanese)
 pub struct TrackOrder {
-    pub paths: Vec<PathBuf>,
+    pub paths: Vec<ArcPathBuf>,
     pub i_num_type: Vec<(usize, u64, TrackType)>,
 }
 
@@ -91,7 +87,7 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
             return Err("Not found any cached Media".into());
         }
 
-        let mut paths: Vec<PathBuf> = mi.get_cache().of_files.keys().cloned().collect();
+        let mut paths: Vec<ArcPathBuf> = mi.get_cache().of_files.keys().cloned().collect();
         paths.sort(); // First sort by names
 
         let i_num_type = {

@@ -5,12 +5,13 @@ mod mkvinfo;
 mod mkvmerge_args;
 pub(crate) mod set_get_field;
 
-use crate::{MCInput, MCOffOnPro, MCTools, MIAttachsInfo, MuxConfig, MuxError, OffOnPro, Tools};
-use cache::{CacheMI, CacheState};
-use log::warn;
+use crate::{
+    ArcPathBuf, MCInput, MCOffOnPro, MCTools, MIAttachsInfo, MuxConfig, MuxError, OffOnPro, Tools,
+    i18n::logs,
+};
+use cache::{CacheMI, CacheMIOfFile, CacheState};
 use set_get_field::{MIMkvmergeI, MISavedTracks};
-use std::ffi::OsString;
-use std::path::{Path, PathBuf};
+use std::{ffi::OsString, path::Path, sync::Arc};
 
 /// Extracts and caches media information.
 ///
@@ -69,45 +70,60 @@ impl MediaInfo<'_> {
         std::mem::take(&mut self.cache)
     }
 
-    /// Update cache.
+    /// Updates cache.
     pub fn upd_cache(&mut self, cache: CacheMI) {
         self.cache = cache;
     }
 
-    /// Update common stem.
-    pub fn upd_cmn_stem(&mut self, stem: OsString) {
+    /// Updates common stem.
+    pub fn upd_cmn_stem(&mut self, stem: Arc<OsString>) {
         self.cache.common.stem = CacheState::Cached(stem);
     }
 
-    pub fn try_insert(&mut self, path: impl AsRef<Path>) -> Result<(), MuxError> {
-        let path = path.as_ref();
-        match self.try_get::<MIMkvmergeI>(path) {
-            Ok(_) => Ok(()),
-            Err(e) => {
-                self.cache.of_files.remove(path);
-                Err(e)
-            }
+    /// Attempts to insert a single `path` into the cache.
+    ///
+    /// Returns an error if retrieving mkvmerge info fails.
+    pub fn try_insert_path(&mut self, path: ArcPathBuf) -> Result<(), MuxError> {
+        if let None = self.cache.of_files.get(&path) {
+            self.cache
+                .of_files
+                .insert(path.clone(), CacheMIOfFile::default());
         }
+
+        if let Err(e) = self.try_get::<MIMkvmergeI>(&path) {
+            self.cache.of_files.remove(&path);
+            return Err(e);
+        }
+
+        Ok(())
     }
 
+    /// Attempts to insert multiple `paths` into the cache.
+    /// Skips paths that contain no tracks or attachments marked for saving.
+    ///
+    /// Returns an error immediately if `exit_on_err` is `true` and retrieving mkvmerge info fails.
+    ///
+    /// # Logging
+    ///
+    /// Emits warnings to `stderr` **only if** `MuxLogger` is initialized with at least `LevelFilter::Warn`.
+    ///
+    /// Warnings are logged in the following cases:
+    ///
+    /// 1. No tracks or attachments marked for saving were found in the media.
+    /// 2. Retrieving mkvmerge info fails and `exit_on_err` is `false`.
     pub fn try_insert_paths_with_filter(
         &mut self,
-        paths: &[PathBuf],
+        paths: impl IntoIterator<Item = ArcPathBuf>,
         exit_on_err: bool,
     ) -> Result<(), MuxError> {
         for path in paths {
-            match self.try_insert(&path) {
-                Ok(()) if !self.save_any_track_or_attach(path) => {
-                    warn!(
-                        "Not found any save Track or Attach in media '{}'. Skipping",
-                        path.display()
-                    );
-                    self.cache.of_files.remove(path);
+            match self.try_insert_path(path.clone()) {
+                Ok(()) if !self.save_any_track_or_attach(&path) => {
+                    logs::warn_not_saved_track_or_attach(&path);
+                    self.cache.of_files.remove(&path);
                 }
                 Err(e) if exit_on_err => return Err(e),
-                Err(e) if !exit_on_err => {
-                    warn!("Unrecognized file '{}': {}. Skipping", path.display(), e);
-                }
+                Err(e) if !exit_on_err => logs::warn_not_recognized_media(&path, e),
                 _ => {}
             }
         }

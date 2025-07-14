@@ -8,6 +8,7 @@ macro_rules! cli_args {
             type Arg = $enum_arg;
         }
 
+        /// CLI Args recognizable of `MuxConfig`.
         #[derive(Copy, Clone)]
         pub enum $enum_arg {
             $( $arg ),*

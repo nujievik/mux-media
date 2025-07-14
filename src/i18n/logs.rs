@@ -1,4 +1,5 @@
 use super::Msg;
+use crate::MuxError;
 use log::{debug, trace, warn};
 use std::{ffi::OsStr, path::Path};
 
@@ -40,6 +41,27 @@ pub(crate) fn warn_not_out_change(out: &Path) {
         "{} '{}'. {}",
         Msg::NotOutChange,
         out.display(),
+        Msg::Skipping
+    )
+}
+
+#[inline(always)]
+pub(crate) fn warn_not_saved_track_or_attach(path: &Path) {
+    warn!(
+        "{}. {} '{}'",
+        Msg::NotSavedTrackOrAttach,
+        Msg::Skipping,
+        path.display()
+    )
+}
+
+#[inline(always)]
+pub(crate) fn warn_not_recognized_media(path: &Path, e: MuxError) {
+    warn!(
+        "{} '{}': {}. {}",
+        Msg::NotRecognizedMedia,
+        path.display(),
+        e.to_str_localized(),
         Msg::Skipping
     )
 }

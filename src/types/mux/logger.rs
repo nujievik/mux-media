@@ -10,13 +10,20 @@ static INIT: Once = Once::new();
 static STDERR_ON_COLOR: Lazy<bool> = Lazy::new(|| supports_color::on(Stream::Stderr).is_some());
 static STDOUT_ON_COLOR: Lazy<bool> = Lazy::new(|| supports_color::on(Stream::Stdout).is_some());
 
+/// Logger type used throughout the crate. Based on the [`log`] crate.
 pub struct MuxLogger;
 
 impl MuxLogger {
+    /// Initializes the global logger with the given [`LevelFilter`].
+    ///
+    /// This is safe to call multiple times; initialization will only occur once.
+    /// Internally uses [`log::set_logger`] wrapped in [`std::sync::Once`] to ensure
+    /// only the first call sets the logger.
+    ///
+    /// If logger initialization somehow fails (which should be impossible due to `Once`),
+    /// a fallback message is printed to stderr.
     pub fn init_with_filter(filter: LevelFilter) {
         INIT.call_once(|| {
-            // set_logger() returns Err if a logger has already been set.
-            // That means Err is excluded because used INIT.call_once()
             log::set_logger(&LOGGER)
                 .map(|()| log::set_max_level(filter))
                 .unwrap_or_else(|_| eprintln!("Unexpected repeat set_logger()"));
@@ -26,8 +33,10 @@ impl MuxLogger {
     /// Returns a colored or plain log level prefix for stderr or stdout output.
     ///
     /// Only `Error`, `Warn`, `Debug`, and `Trace` levels return a non-empty string.
-    /// ANSI color codes for `Error` and `Warn` are applied if stderr supports them.
-    /// ANSI color codes for `Debug` and `Trace` are applied if stdout supports them.
+    /// `Info` returns an empty string and logs as-is.
+    ///
+    /// - ANSI color codes are applied to `Error` and `Warn` if stderr supports color.
+    /// - ANSI color codes are applied to `Debug` and `Trace` if stdout supports color.
     pub(crate) fn get_color_prefix(level: Level) -> &'static str {
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",

@@ -8,9 +8,11 @@ use std::path::Path;
 const READ_LIMIT: usize = 32 * 1024; // 32 KiB
 const LIM_CONFIDENCE: f32 = 0.8;
 
+/// A wrapper of `CharEncoding` with mkvmerge impls.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SubCharset(pub CharEncoding);
 
+/// A charaster encoding of file.
 #[derive(Clone, Debug, PartialEq)]
 pub enum CharEncoding {
     MkvmergeNotRecognizable(String),

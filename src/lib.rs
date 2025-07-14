@@ -14,6 +14,7 @@ pub use traits::{
 };
 
 pub use types::{
+    arc_path_buf::ArcPathBuf,
     attachs::{Attachs, FontAttachs, OtherAttachs, attach_type::AttachType, id::AttachID},
     chapters::Chapters,
     char_encoding::{CharEncoding, SubCharset},
@@ -48,7 +49,7 @@ pub use types::{
     output::Output,
     range::Range,
     specials::Specials,
-    targets::{Target, TargetGroup},
+    target::{Target, group::TargetGroup},
     tools::{Tools, output::ToolOutput, tool::Tool},
     tracks::{
         AudioTracks, ButtonTracks, SubTracks, Tracks, VideoTracks,
