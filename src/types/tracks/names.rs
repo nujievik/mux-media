@@ -30,7 +30,7 @@ impl IsDefault for TrackNames {
 }
 
 impl TrackNames {
-    /// Returns `Some` if `self` contains a name for the given `TrackID`.
+    /// Returns reference of user-defined value if exists; otherwise, returns `None`.
     pub fn get(&self, tid: &TrackID) -> Option<&String> {
         if let Some(name) = &self.unmapped {
             return Some(name);

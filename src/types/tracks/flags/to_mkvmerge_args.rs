@@ -15,6 +15,7 @@ mkvmerge_arg!(ForcedTFlags, "--forced-display-flag");
 mkvmerge_arg!(EnabledTFlags, "--track-enabled-flag");
 
 impl TFlags {
+    /// Converts a values of all track flags to mkvmerge recognizable args.
     pub fn track_order_to_os_mkvmerge_args(
         mi: &mut MediaInfo,
         order: TrackOrder,
@@ -98,9 +99,11 @@ impl TFlags {
     }
 }
 
-// Fallback (on TrackOrder error). Uses manual values only
 macro_rules! flags_to_mkvmerge_args {
     ($flags:ident) => {
+        /// Returns arguments based on user-defined values only.
+        ///
+        /// If you need auto-values too, use `TFlags::track_order_to_os_mkvmerge_args()`.
         impl ToMkvmergeArgs for $flags {
             fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
                 if self.is_default() {

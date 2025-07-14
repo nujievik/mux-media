@@ -3,9 +3,50 @@ use crate::{
     MITargetGroup, MITargets, MediaInfo, MkvmergeArg, MuxError, TargetGroup, ToMkvmergeArgs,
     TrackID, TrackType, mkvmerge_arg, to_mkvmerge_args, unmut_get,
 };
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::{
+    cmp::Ordering,
+    collections::HashMap,
+    path::{Path, PathBuf},
+};
 
+/// Sorts tracks of media files.
+///
+/// Stores:
+/// - A vector of media file paths.
+/// - A list of tuples: `(media_index, track_number, track_type)`,
+///   where `media_index` refers to the index in the `paths` vector.
+///
+/// # Sorting Priority
+///
+/// Tracks are sorted by the following rules (from highest to lowest priority):
+///
+/// 1. `TrackType`:
+///     - `Video`
+///     - `Audio`
+///     - `Sub`
+///     - `Button`
+/// 2. `TFlagType::Default`:
+///     - User-defined `true`
+///     - Auto
+///     - User-defined `false`
+/// 3. `TFlagType::Forced`:
+///     - User-defined `true`
+///     - Auto
+///     - User-defined `false`
+/// 4. `TFlagType::Enabled`:
+///     - User-defined `true`
+///     - Auto
+///     - User-defined `false`
+/// 5. `TargetGroup`:
+///     - `Signs`
+///     - Other group.
+///
+///     Its affected only `Sub` tracks if they has same 1-4.
+/// 6. Track language `LangCode`:
+///     - `locale` language
+///     - Other languages (excluding `Und` and `Jpn`)
+///     - `Und` (undefined language)
+///     - `Jpn` (Japanese)
 pub struct TrackOrder {
     pub paths: Vec<PathBuf>,
     pub i_num_type: Vec<(usize, u64, TrackType)>,
@@ -142,20 +183,16 @@ impl OrderSortKey {
         let forced = flag_order(forced);
         let enabled = flag_order(enabled);
 
-        let target_group = if target_group == TargetGroup::Signs {
-            0
-        } else {
-            1
+        let target_group = match target_group {
+            TargetGroup::Signs => 0,
+            _ => 1,
         };
 
-        let lang = if lang == locale_lang {
-            0
-        } else if lang == LangCode::Jpn {
-            3
-        } else if lang == LangCode::Und {
-            2
-        } else {
-            1
+        let lang = match lang {
+            _ if lang == locale_lang => 0,
+            LangCode::Und => 2,
+            LangCode::Jpn => 3,
+            _ => 1,
         };
 
         Self {
@@ -183,13 +220,13 @@ impl PartialEq for OrderSortKey {
 impl Eq for OrderSortKey {}
 
 impl PartialOrd for OrderSortKey {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
     }
 }
 
 impl Ord for OrderSortKey {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+    fn cmp(&self, other: &Self) -> Ordering {
         (
             self.track_type,
             self.default,

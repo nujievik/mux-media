@@ -9,13 +9,19 @@ use crate::{IsDefault, TrackID, deref_tuple_fields};
 use flag_type::TFlagType;
 use std::collections::HashMap;
 
+/// Settings for `default` track flags.
 #[derive(Clone)]
 pub struct DefaultTFlags(TFlags);
+
+/// Settings for `forced` track flags.
 #[derive(Clone)]
 pub struct ForcedTFlags(TFlags);
+
+/// Settings for `enabled` track flags.
 #[derive(Clone)]
 pub struct EnabledTFlags(TFlags);
 
+/// Common interface for settings of track flags by type.
 #[derive(Clone, Default)]
 pub struct TFlags {
     lim_for_unset: Option<u64>,
@@ -29,10 +35,12 @@ deref_tuple_fields!(ForcedTFlags, TFlags, @all, lim_for_unset: Option<u64>);
 deref_tuple_fields!(EnabledTFlags, TFlags, @all, lim_for_unset: Option<u64>);
 
 impl TFlags {
+    /// Returns auto-value of flag based on `true` limit.
     pub fn auto_val(&self, cnt: u64, ft: TFlagType) -> bool {
         cnt < self.lim_for_unset.unwrap_or(Self::auto_lim_for_unset(ft))
     }
 
+    /// Returns user-defined value of flag if exists; otherwise, returns `None`.
     pub fn get(&self, tid: &TrackID) -> Option<bool> {
         if let Some(val) = &self.unmapped {
             return Some(*val);

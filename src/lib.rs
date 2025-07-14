@@ -37,8 +37,8 @@ pub use types::{
         config::getters::{
             MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags,
             MCExitOnErr, MCFontAttachs, MCForcedTFlags, MCInput, MCLocale, MCNoJson, MCOffOnPro,
-            MCOtherAttachs, MCOutput, MCRetiming, MCSpecials, MCSubTracks, MCTools, MCTrackLangs,
-            MCTrackNames, MCVerbosity, MCVideoTracks,
+            MCOtherAttachs, MCOutput, MCSpecials, MCSubTracks, MCTools, MCTrackLangs, MCTrackNames,
+            MCVerbosity, MCVideoTracks,
         },
         config::{MuxConfig, MuxConfigTarget, RawMuxConfig, cli_args::MuxConfigArg},
         error::{MuxError, MuxErrorKind},
@@ -47,7 +47,6 @@ pub use types::{
     off_on_pro::OffOnPro,
     output::Output,
     range::Range,
-    retiming::Retiming,
     specials::Specials,
     targets::{Target, TargetGroup},
     tools::{Tools, output::ToolOutput, tool::Tool},
@@ -64,3 +63,6 @@ pub use types::{
     },
     verbosity::Verbosity,
 };
+
+#[doc(hidden)]
+pub use types::{mux::config::getters::MCRetiming, retiming::Retiming};

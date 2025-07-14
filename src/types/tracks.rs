@@ -28,7 +28,7 @@ pub struct VideoTracks(Tracks);
 #[derive(Clone)]
 pub struct ButtonTracks(Tracks);
 
-/// Settings for saving media tracks.
+/// Common interface for savings of tracks by type.
 #[derive(Clone, Default)]
 pub struct Tracks {
     no_flag: bool,

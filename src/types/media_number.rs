@@ -1,5 +1,9 @@
 use std::{ffi::OsStr, mem::take};
 
+/// Stores a number extracted from `path.file_stem()`.
+///
+/// Internally tracks byte length and parsed numeric substrings to support
+/// accurate and efficient updates and reuse when possible.
 #[derive(Clone)]
 pub struct MediaNumber {
     len_raw_bytes: usize,
@@ -9,14 +13,21 @@ pub struct MediaNumber {
 }
 
 impl MediaNumber {
+    /// Returns the number string if present; otherwise, returns an empty string.
     pub fn as_str(&self) -> &str {
         &self.s
     }
 
+    /// Returns the number as `u64` if parsable; otherwise, returns `0`.
     pub fn to_u64(&self) -> u64 {
         self.s.parse::<u64>().unwrap_or(0)
     }
 
+    /// Updates the internal value based on the new `&OsStr`.
+    ///
+    /// - If the new value has a different byte length, recreates `Self` from scratch.
+    /// - If lengths match and the stored index is valid, only updates the number string.
+    /// - Otherwise, updates all fields, sets number string and index based on mismatched content.
     pub fn upd(&mut self, value: &OsStr) {
         let bytes = value.as_encoded_bytes();
         let len_raw_bytes = bytes.len();
@@ -58,12 +69,18 @@ impl MediaNumber {
 }
 
 impl From<&OsStr> for MediaNumber {
+    /// Constructs a new `MediaNumber` from `&OsStr`.
+    ///
+    /// Sets to number string the first number found (if any); otherwise, an empty string.
     fn from(value: &OsStr) -> Self {
         value.as_encoded_bytes().into()
     }
 }
 
 impl From<&[u8]> for MediaNumber {
+    /// Constructs a new `MediaNumber` from a byte slice.
+    ///
+    /// Sets to number string the first number found (if any); otherwise, an empty string.
     fn from(bytes: &[u8]) -> Self {
         let s_nums_borders = s_nums_borders_from_bytes(bytes);
 

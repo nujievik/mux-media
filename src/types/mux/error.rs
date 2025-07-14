@@ -2,6 +2,7 @@ use crate::{LangCode, Msg, MuxLogger};
 use clap::parser::MatchesError;
 use std::fmt;
 
+/// Error type used throughout the crate.
 #[derive(Debug, PartialEq)]
 pub struct MuxError {
     message: Option<MuxErrorMessage>,
@@ -9,6 +10,7 @@ pub struct MuxError {
     pub kind: MuxErrorKind,
 }
 
+/// Kind of `MuxError`.
 #[derive(Default, Debug, PartialEq)]
 pub enum MuxErrorKind {
     InvalidValue,
@@ -82,41 +84,64 @@ impl Default for MuxError {
 }
 
 impl MuxError {
+    /// Constructs a new `MuxError` with default values.
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Constructs a new `MuxError` with code `0` and kind `Ok`.
     pub fn new_ok() -> Self {
         Self::new().code(0).kind(MuxErrorKind::Ok)
     }
 
+    /// Sets the error message.
     pub fn message(mut self, msg: impl ToString) -> Self {
         self.message = Some(MuxErrorMessage::String(msg.to_string()));
         self
     }
 
+    /// Sets the error code.
     pub fn code(mut self, code: i32) -> Self {
         self.code = code;
         self
     }
 
+    /// Sets the error kind.
     pub fn kind(mut self, kind: MuxErrorKind) -> Self {
         self.kind = kind;
         self
     }
 
+    /// Constructs a new `MuxError` from any error.
     pub fn from_any<E: std::error::Error>(err: E) -> Self {
         Self::new().message(err)
     }
 
+    /// Returns the localized string if available; otherwise, returns the English string.
     pub fn to_str_localized(&self) -> &str {
         self.message
             .as_ref()
             .map_or_else(|| "", |msg| msg.to_str_localized())
     }
 
+    /// Returns `true` if the `code` is non-zero.
     pub fn use_stderr(&self) -> bool {
         self.code != 0
+    }
+
+    /// Prints the English message to `stderr` if `code` is non-zero; otherwise, to `stdout`.
+    pub fn print(&self) {
+        if let Some(msg) = &self.message {
+            self.print_in_stderr_or_stdout(msg.to_str())
+        }
+    }
+
+    /// Prints the localized message if available; otherwise, the English message.
+    /// Outputs to `stderr` if `code` is non-zero; otherwise, to `stdout`.
+    pub fn print_localized(&self) {
+        if let Some(msg) = &self.message {
+            self.print_in_stderr_or_stdout(msg.to_str_localized())
+        }
     }
 
     #[inline(always)]
@@ -126,18 +151,6 @@ impl MuxError {
             eprintln!("{}{}", prefix, msg);
         } else {
             println!("{}", msg);
-        }
-    }
-
-    pub fn print(&self) {
-        if let Some(msg) = &self.message {
-            self.print_in_stderr_or_stdout(msg.to_str())
-        }
-    }
-
-    pub fn print_localized(&self) {
-        if let Some(msg) = &self.message {
-            self.print_in_stderr_or_stdout(msg.to_str_localized())
         }
     }
 }
@@ -209,9 +222,8 @@ from_slice_msg_opt!(String);
 from_slice_msg_opt!(&str);
 
 impl From<clap::Error> for MuxError {
+    /// Prints the `clap` error (colorized if possible) and sets only the exit code.
     fn from(err: clap::Error) -> Self {
-        // Immediately prints a message, sets None to Self.message.
-        // It's allows prints a colorized message if possible.
         let _ = err.print();
         Self::new().code(err.exit_code())
     }

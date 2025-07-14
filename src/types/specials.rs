@@ -7,6 +7,7 @@ use crate::MuxError;
 use special_opt::SpecialOpt;
 use std::str::FromStr;
 
+/// Contains arbitrary valid mkvmerge arguments.
 #[derive(Clone, Default, PartialEq)]
 pub struct Specials(Option<Vec<String>>);
 
@@ -27,9 +28,9 @@ impl FromStr for Specials {
         }
 
         if specials.is_empty() {
-            return Err(MuxError::from("Not found any special option"));
+            return Err("Not found any special option".into());
         }
 
-        Ok(Specials(Some(specials)))
+        Ok(Self(Some(specials)))
     }
 }

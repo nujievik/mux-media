@@ -12,6 +12,9 @@ use set_get_field::{MIMkvmergeI, MISavedTracks};
 use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
+/// Extracts and caches media information.
+///
+/// User-defined settings from `MuxConfig` take precedence over extracted values.
 pub struct MediaInfo<'a> {
     pub mc: &'a MuxConfig,
     pub off_on_pro: &'a OffOnPro,
@@ -36,34 +39,42 @@ impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
 }
 
 impl MediaInfo<'_> {
+    /// Clears `MediaInfo` cache.
     pub fn clear(&mut self) {
         self.cache = CacheMI::default();
     }
 
+    /// Returns the length cache of files.
     pub fn len(&self) -> usize {
         self.cache.of_files.len()
     }
 
+    /// Returns `true` if cache empty.
     pub fn is_empty(&self) -> bool {
         self.cache.is_empty()
     }
 
+    /// Returns `true` if cache of files empty.
     pub fn is_no_files(&self) -> bool {
         self.cache.of_files.is_empty()
     }
 
+    /// Returns cache reference.
     pub fn get_cache(&self) -> &CacheMI {
         &self.cache
     }
 
+    /// Returns cache. Resets `self` cache to auto.
     pub fn take_cache(&mut self) -> CacheMI {
         std::mem::take(&mut self.cache)
     }
 
+    /// Update cache.
     pub fn upd_cache(&mut self, cache: CacheMI) {
         self.cache = cache;
     }
 
+    /// Update common stem.
     pub fn upd_cmn_stem(&mut self, stem: OsString) {
         self.cache.common.stem = CacheState::Cached(stem);
     }

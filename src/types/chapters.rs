@@ -1,9 +1,13 @@
 use crate::{
     MuxError, ToJsonArgs, ToMkvmergeArgs, from_arg_matches, json_arg, mkvmerge_arg,
-    mkvmerge_no_arg, to_mkvmerge_args, types::helpers::try_canonicalize_and_open,
+    mkvmerge_no_arg, to_mkvmerge_args, types::helpers,
 };
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 
+/// Settings for media chapters.
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Chapters {
     no_flag: bool,
@@ -11,11 +15,19 @@ pub struct Chapters {
 }
 
 impl Chapters {
+    /// Attempts to construct `Self` from the given path.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if:
+    /// 1. `std::fs::canonicalize(path)` fails (e.g., the path does not exist).
+    /// 2. The path does not point to a file.
+    /// 3. Opening the file with `std::fs::File::open(path)` fails.
     pub fn try_from_path(path: impl AsRef<Path>) -> Result<Self, MuxError> {
-        let path = try_canonicalize_and_open(path)?;
+        let path = helpers::try_canonicalize_and_open(path)?;
         Ok(Self {
+            no_flag: false,
             file: Some(path),
-            ..Default::default()
         })
     }
 
@@ -33,21 +45,23 @@ mkvmerge_no_arg!(Chapters, "--no-chapters");
 impl ToMkvmergeArgs for Chapters {
     to_mkvmerge_args!(@fn);
 
-    fn to_os_mkvmerge_args(&self, _: &mut crate::MediaInfo, _: &Path) -> Vec<std::ffi::OsString> {
+    fn to_os_mkvmerge_args(&self, _: &mut crate::MediaInfo, _: &Path) -> Vec<OsString> {
         use crate::{IsDefault, MkvmergeArg, MkvmergeNoArg};
 
         if self.is_default() {
-            Vec::new()
-        } else if self.no_flag {
-            vec![Self::MKVMERGE_NO_ARG.into()]
-        } else if let Some(file) = &self.file {
-            let arg = Self::MKVMERGE_ARG;
-            let file = file.as_os_str().to_os_string();
-            vec![arg.into(), file]
-        } else {
-            eprintln!("Unexpected None file. Return empty");
-            Vec::new()
+            return Vec::new();
         }
+
+        if self.no_flag {
+            return vec![Self::MKVMERGE_NO_ARG.into()];
+        }
+
+        if let Some(f) = &self.file {
+            return vec![Self::MKVMERGE_ARG.into(), f.into()];
+        }
+
+        log::warn!("Unexpected None file. Return empty");
+        Vec::new()
     }
 }
 

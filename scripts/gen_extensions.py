@@ -134,7 +134,6 @@ pub static {set_name.upper()}: phf::Set<&'static [u8]> = phf::phf_set! {{
 def generate_module_root(names: list[str]) -> str:
     mods: str = "\n".join(f"mod {name};" for name in names)
 
-    struct_name = "Extensions"
     struct_fields = "\n".join(f"    pub {name}: &'static Set<&'static [u8]>," for name in names)
     struct: str = "pub struct Extensions {\n" + struct_fields + "\n}"
 
@@ -147,8 +146,11 @@ def generate_module_root(names: list[str]) -> str:
 
 use phf::Set;
 
+/// A set of file type extensions, stored as byte slices (`&[u8]`).
 {struct}
 
+/// A static collection of file type extensions, grouped by type.
+/// All extensions are stored as byte slices (`&[u8]`).
 {static}
 """
 

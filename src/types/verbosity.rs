@@ -1,7 +1,8 @@
 use crate::{from_arg_matches, json_arg};
 use log::LevelFilter;
 
-#[derive(Debug, Default, Copy, Clone, PartialEq)]
+/// Defines logging level.
+#[derive(Copy, Clone, Debug, Default, PartialEq)]
 pub enum Verbosity {
     Quiet,
     #[default]
@@ -20,9 +21,9 @@ impl From<u8> for Verbosity {
     }
 }
 
-impl Verbosity {
-    pub fn to_level_filter(&self) -> LevelFilter {
-        match self {
+impl From<Verbosity> for LevelFilter {
+    fn from(val: Verbosity) -> Self {
+        match val {
             Verbosity::Quiet => LevelFilter::Error,
             Verbosity::Normal => LevelFilter::Info,
             Verbosity::Verbose => LevelFilter::Debug,
@@ -35,15 +36,15 @@ impl clap::FromArgMatches for Verbosity {
     from_arg_matches!(@unrealized_fns);
 
     fn from_arg_matches_mut(matches: &mut clap::ArgMatches) -> Result<Self, clap::Error> {
-        Ok(
-            if from_arg_matches!(matches, bool, Quiet, @no_default).unwrap_or(false) {
-                Self::Quiet
-            } else if let Some(cnt) = from_arg_matches!(matches, u8, Verbose, @no_default) {
-                cnt.into()
-            } else {
-                Self::default()
-            },
-        )
+        if from_arg_matches!(matches, bool, Quiet, @no_default).unwrap_or(false) {
+            return Ok(Self::Quiet);
+        }
+
+        if let Some(cnt) = from_arg_matches!(matches, u8, Verbose, @no_default) {
+            return Ok(Self::from(cnt));
+        }
+
+        Ok(Self::default())
     }
 }
 

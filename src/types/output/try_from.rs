@@ -6,11 +6,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-#[cfg(unix)]
-const MAIN_SEPARATOR_BYTES: &[u8] = b"/";
-#[cfg(windows)]
-const MAIN_SEPARATOR_BYTES: &[u8] = b"\\";
-
 impl TryFrom<&Input> for Output {
     type Error = MuxError;
 
@@ -131,7 +126,7 @@ impl Output {
         if path
             .as_os_str()
             .as_encoded_bytes()
-            .ends_with(MAIN_SEPARATOR_BYTES)
+            .ends_with(helpers::SEP_B)
         {
             return res(path.to_path_buf());
         }

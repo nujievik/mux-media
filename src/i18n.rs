@@ -4,7 +4,7 @@ mod as_rus;
 pub(crate) mod logs;
 mod pubs;
 
-/// Localized message.
+/// Localized messages.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Msg {
     ErrUpdLang,

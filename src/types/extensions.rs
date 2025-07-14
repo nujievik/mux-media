@@ -7,6 +7,7 @@ mod subs;
 
 use phf::Set;
 
+/// A set of file type extensions, stored as byte slices (`&[u8]`).
 pub struct Extensions {
     pub fonts: &'static Set<&'static [u8]>,
     pub matroska: &'static Set<&'static [u8]>,
@@ -14,6 +15,8 @@ pub struct Extensions {
     pub subs: &'static Set<&'static [u8]>,
 }
 
+/// A static collection of file type extensions, grouped by type.
+/// All extensions are stored as byte slices (`&[u8]`).
 pub static EXTENSIONS: Extensions = Extensions {
     fonts: &fonts::FONTS,
     matroska: &matroska::MATROSKA,

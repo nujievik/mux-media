@@ -2,7 +2,7 @@ use crate::{
     Input, MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity, MediaInfo, Msg, MuxConfig,
     MuxError, MuxLogger, Output, Tool, TryFinalizeInit, TryInit, i18n::logs, json_arg,
 };
-use log::{error, info, trace, warn};
+use log::{LevelFilter, error, info, trace, warn};
 use std::{ffi::OsString, path::PathBuf};
 
 /// Runs the mux and invokes all other components.
@@ -27,7 +27,7 @@ pub fn run() -> Result<(), MuxError> {
         mc
     };
 
-    MuxLogger::init_with_filter(mc.get::<MCVerbosity>().to_level_filter());
+    MuxLogger::init_with_filter(LevelFilter::from(*mc.get::<MCVerbosity>()));
 
     let output = mc.get::<MCOutput>();
     let result = try_mux(&mc, output);

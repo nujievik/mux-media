@@ -32,7 +32,7 @@ impl IsDefault for TrackLangs {
 }
 
 impl TrackLangs {
-    /// Returns `Some` if `self` contains a language for the given `TrackID`.
+    /// Returns user-defined value if exists; otherwise, returns `None`.
     pub fn get(&self, tid: &TrackID) -> Option<LangCode> {
         if let Some(lang) = &self.unmapped {
             return Some(*lang);

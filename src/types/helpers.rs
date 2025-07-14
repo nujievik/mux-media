@@ -12,9 +12,9 @@ const SEP_S: &'static str = "/";
 const SEP_S: &'static str = "\\";
 
 #[cfg(unix)]
-const SEP_B: &[u8] = b"/";
+pub(crate) const SEP_B: &[u8] = b"/";
 #[cfg(windows)]
-const SEP_B: &[u8] = b"\\";
+pub(crate) const SEP_B: &[u8] = b"\\";
 
 #[inline(always)]
 pub(crate) fn ensure_long_path_prefix(path: PathBuf) -> PathBuf {

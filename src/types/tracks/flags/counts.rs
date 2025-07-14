@@ -1,6 +1,7 @@
 use crate::{TFlagType, TrackType};
 use enum_map::EnumMap;
 
+/// Counts of `true` track flags by type.
 #[derive(Default)]
 pub struct TFlagsCounts(EnumMap<TFlagType, EnumMap<TrackType, u64>>);
 

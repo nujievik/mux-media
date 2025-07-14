@@ -5,14 +5,15 @@ use crate::{
 use std::{
     collections::HashMap,
     ffi::{OsStr, OsString},
-    path::PathBuf,
+    fs,
+    path::Path,
 };
 
 impl RawMuxConfig {
     pub(super) fn try_parse<I, T>(args: I) -> Result<Self, MuxError>
     where
         I: IntoIterator<Item = T>,
-        T: Into<OsString> + Clone,
+        T: Into<OsString>,
     {
         let raw = Self::try_from_args(args)?;
 
@@ -45,7 +46,7 @@ impl RawMuxConfig {
     pub fn try_from_args<I, T>(input_args: I) -> Result<Self, MuxError>
     where
         I: IntoIterator<Item = T>,
-        T: Into<OsString> + Clone,
+        T: Into<OsString>,
     {
         let mut locale: Option<LangCode> = None;
         let mut list_langs = false;
@@ -54,7 +55,7 @@ impl RawMuxConfig {
         let mut call_tool: Option<(Tool, Vec<OsString>)> = None;
         let mut args: Vec<OsString> = Vec::new();
         let mut trg_args: Option<HashMap<Target, Vec<OsString>>> = None;
-        let mut current_target: Option<Target> = None;
+        let mut target: Option<Target> = None;
 
         let mut iter = input_args.into_iter().map(|arg| arg.into());
 
@@ -89,32 +90,27 @@ impl RawMuxConfig {
                 }
             }
 
-            match arg {
-                arg if arg == OsStr::new("--target") => {
-                    if let Some(trg_arg) = iter.next() {
-                        let trg_str = trg_arg.to_string_lossy();
-                        if trg_str == "global" || trg_str == "g" {
-                            current_target = None;
-                        } else {
-                            let target = Self::parse_target(&trg_arg)?;
-                            current_target = Some(target.clone());
-
-                            trg_args
-                                .get_or_insert_with(HashMap::new)
-                                .entry(target)
-                                .or_insert_with(Vec::new);
-                        }
-                    }
-                }
-                _ => {
-                    if let Some(target) = &current_target {
-                        if let Some(map) = trg_args.as_mut() {
-                            map.get_mut(target).unwrap().push(arg);
-                        }
+            if arg == "--target" {
+                if let Some(trg_arg) = iter.next() {
+                    if trg_arg == "global" || trg_arg == "g" {
+                        target = None;
                     } else {
-                        args.push(arg);
+                        target = Some(Self::parse_target(&trg_arg)?);
                     }
                 }
+                continue;
+            }
+
+            match &target {
+                Some(target) => {
+                    let map = trg_args.get_or_insert_with(HashMap::new);
+                    if let Some(vec) = map.get_mut(target) {
+                        vec.push(arg);
+                    } else {
+                        map.insert(target.clone(), vec![arg]);
+                    }
+                }
+                None => args.push(arg),
             }
         }
 
@@ -130,16 +126,18 @@ impl RawMuxConfig {
 
     #[inline(always)]
     fn parse_target(arg: &OsString) -> Result<Target, MuxError> {
-        let s = arg.to_string_lossy();
-        let target = if let Ok(group) = s.parse::<TargetGroup>() {
-            Target::Group(group)
-        } else {
-            let path = PathBuf::from(arg.clone())
-                .canonicalize()
-                .map_err(|e| MuxError::from(format!("Incorrect path target '{}': {}", s, e)));
-            Target::Path(path?)
-        };
+        if let Some(group) = arg.to_str().and_then(|s| s.parse::<TargetGroup>().ok()) {
+            return Ok(Target::Group(group));
+        }
 
-        Ok(target)
+        let path = fs::canonicalize(arg).map_err(|e| {
+            MuxError::from(format!(
+                "Incorrect path target '{}': {}",
+                Path::new(arg).display(),
+                e
+            ))
+        })?;
+
+        Ok(Target::Path(path))
     }
 }

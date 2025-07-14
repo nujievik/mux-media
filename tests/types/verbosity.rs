@@ -31,7 +31,7 @@ fn test_verbose_flag() {
 }
 
 #[test]
-fn test_to_level_filter() {
+fn test_into_level_filter() {
     use log::LevelFilter;
 
     let cases = [
@@ -41,7 +41,7 @@ fn test_to_level_filter() {
     ];
 
     for (args, lvl) in cases {
-        assert_eq!(lvl, new(args).to_level_filter());
+        assert_eq!(lvl, LevelFilter::from(new(args)));
     }
-    assert_eq!(LevelFilter::Info, Verbosity::default().to_level_filter());
+    assert_eq!(LevelFilter::Info, LevelFilter::from(Verbosity::default()));
 }
