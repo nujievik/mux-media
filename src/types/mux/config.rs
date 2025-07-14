@@ -24,6 +24,11 @@ pub struct RawMuxConfig {
 }
 
 /// Contains mux settings.
+///
+/// # Warning
+///
+/// This struct is not fully initialized after construction.
+/// You **must** call `self.try_finalize_init` before using some methods.
 pub struct MuxConfig {
     input: Input,
     output: Output,

@@ -10,7 +10,7 @@ pub struct MuxError {
     pub kind: MuxErrorKind,
 }
 
-/// Kind of `MuxError`.
+/// Kind of [`MuxError`].
 #[derive(Default, Debug, PartialEq)]
 pub enum MuxErrorKind {
     InvalidValue,

@@ -1,7 +1,7 @@
 use crate::MuxError;
 use globset::{Glob, GlobSet, GlobSetBuilder};
 
-/// A wrapper for `GlobSet` with its raw pattern string.
+/// A wrapper for [`GlobSet`] with its raw pattern string.
 #[derive(Clone)]
 pub struct GlobSetPattern {
     pub glob_set: GlobSet,

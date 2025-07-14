@@ -23,7 +23,7 @@ pub enum CacheState<T> {
     Failed,
 }
 
-/// Cache of `MediaInfo`.
+/// Cache of [`crate::MediaInfo`].
 #[derive(Clone, Default)]
 pub struct CacheMI {
     pub common: CacheMICommon,

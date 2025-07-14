@@ -59,7 +59,7 @@ pub trait SetGetField<F> {
     fn unmut_get(&self) -> Option<&Self::FieldType>;
 }
 
-/// Sets value and gets a value reference from a field of `Self` identified by `Path`.
+/// Sets value and gets a value reference from a field of `Self` identified by [`Path`].
 pub trait SetGetPathField<F> {
     type FieldType;
     fn try_set(&mut self, path: &Path) -> Result<(), MuxError>;
@@ -68,7 +68,7 @@ pub trait SetGetPathField<F> {
     fn unmut_get(&self, path: &Path) -> Option<&Self::FieldType>;
 }
 
-/// Sets value and gets a value reference from a field of `Self` identified by `Path` and `num`.
+/// Sets value and gets a value reference from a field of `Self` identified by [`Path`] and `num`.
 pub trait SetGetPathTrackField<F> {
     type FieldType;
     fn try_set(&mut self, path: &Path, num: u64) -> Result<(), MuxError>;

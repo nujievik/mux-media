@@ -5,7 +5,7 @@ use std::{
     sync::Arc,
 };
 
-/// A wrapper for `Arc<PathBuf>`.
+/// A wrapper for [`Arc<PathBuf>`].
 #[derive(Debug, Ord, PartialOrd)]
 pub struct ArcPathBuf(Arc<PathBuf>);
 

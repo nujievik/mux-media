@@ -16,7 +16,7 @@ use std::{
 
 macro_rules! set_get_fields {
     ($( $field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
-        #[doc = concat!("Marker of `MediaInfo` common field, that stores `", stringify!($ty), "`.")]
+        #[doc = concat!("Marker of [`MediaInfo`] common field, that stores [`", stringify!($ty), "`].")]
         pub struct $marker;
 
         impl SetGetField<$marker> for MediaInfo<'_> {
@@ -66,7 +66,7 @@ macro_rules! set_get_fields {
 
 macro_rules! set_get_path_fields {
     ($( $map_field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
-        #[doc = concat!("Marker of `MediaInfo` field, that stores `", stringify!($ty), "`.")]
+        #[doc = concat!("Marker of [`MediaInfo`] fields, that stores [`", stringify!($ty), "`].")]
         pub struct $marker;
 
         impl SetGetPathField<$marker> for MediaInfo<'_> {
@@ -126,7 +126,7 @@ macro_rules! set_get_path_fields {
 
     (@ti;
     $( $tic_field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
-        #[doc = concat!("Marker of `MediaInfo` track field, that stores `", stringify!($ty), "`.")]
+        #[doc = concat!("Marker of [`MediaInfo`] track field, that stores [`", stringify!($ty), "`].")]
         pub struct $marker;
 
         impl SetGetPathTrackField<$marker> for MediaInfo<'_> {

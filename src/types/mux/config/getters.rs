@@ -61,7 +61,7 @@ macro_rules! get_fields {
     $( $field:ident, $ty:ty => $marker:ident ),* $(,)?
     ) => {
         $(
-            #[doc = concat!("Marker of `MuxConfig` fields, that stores `", stringify!($ty), "`.")]
+            #[doc = concat!("Marker of [`MuxConfig`] fields, that stores [`", stringify!($ty), "`].")]
             pub struct $marker;
 
             impl $crate::GetField<$marker> for $type {
