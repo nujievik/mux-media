@@ -10,6 +10,15 @@ use std::{
 };
 
 /// Contains output paths components, related functions and methods.
+///
+/// # Warning
+///
+/// This struct is not fully initialized after construction.
+/// You **must** call `self.try_finalize_init` before using some methods
+/// (e.g. [`Output::get_temp_dir`])
+///
+/// Final initialization creates temporary directory and ensures writable
+/// output directory and temporary directory.
 #[derive(Clone, Debug)]
 pub struct Output {
     dir: PathBuf,
@@ -24,8 +33,10 @@ impl Output {
     /// Builds the output path for the current media.
     ///
     /// Takes a middle part of the file name and constructs the full path
-    /// by prepending `self.dir` and `self.name_begin`, and appending
-    /// `self.name_tail` and `self.ext`.
+    /// by prepending `dir` and `name_begin`, and appending `name_tail` and `ext`.
+    ///
+    /// The `name_middle` is expected to be a number (from [`crate::MediaNumber`])
+    /// if `name_begin` or `name_tail` is not empty; otherwise, expected a full [`Path::file_stem`].
     pub fn build_out(&self, name_middle: impl AsRef<OsStr>) -> PathBuf {
         let mut name = OsString::from(&self.dir);
         name.push(&self.name_begin);

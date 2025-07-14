@@ -47,6 +47,12 @@ impl Input {
     iter_any_files_in_dir!(iter_media_in_dir, media);
     iter_any_files_in_dir!(iter_fonts_in_dir, fonts);
 
+    /// Collects all font files from the discovered directories.
+    ///
+    /// # Note
+    ///
+    /// This method assumes try_finalize_init` was called beforehand.
+    /// If it wasn’t, the `dirs` field will be empty and this will simply return an empty vector.
     pub fn collect_fonts(&self) -> Vec<PathBuf> {
         self.dirs
             .par_iter()
@@ -54,6 +60,12 @@ impl Input {
             .collect()
     }
 
+    /// Returns an iterator over grouped media files by stem from discovered directories.
+    ///
+    /// # Note
+    ///
+    /// This method assumes `try_finalize_init` was called beforehand.
+    /// If it wasn’t, the iterator will yield no items.
     pub fn iter_media_grouped_by_stem<'a>(&'a self) -> impl Iterator<Item = MediaGroupedByStem> {
         let mut media_number = self.init_media_number();
         let mut repeats: HashSet<Arc<OsString>> = HashSet::new();

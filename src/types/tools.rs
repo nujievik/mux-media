@@ -13,6 +13,7 @@ use std::{
     process::Command,
 };
 
+/// Manages paths to external binary tools and handles their execution.
 #[derive(Clone, Default)]
 pub struct Tools {
     paths: EnumMap<Tool, Option<PathBuf>>,
@@ -20,12 +21,18 @@ pub struct Tools {
 }
 
 impl Tools {
+    /// Creates a new `Tools`, resolving paths to the given tools.
+    ///
+    /// Returns an error if any tool path cannot be resolved.
     pub fn try_from_tools(tools: impl IntoIterator<Item = Tool>) -> Result<Self, MuxError> {
         let mut new = Self::default();
         new.try_upd_tools_paths(tools)?;
         Ok(new)
     }
 
+    /// Resolves and caches the path to the specified tool if not already set.
+    ///
+    /// Returns an error if tool path cannot be resolved.
     pub fn try_upd_tool_path(&mut self, tool: Tool) -> Result<(), MuxError> {
         if let None = self.paths[tool] {
             let path = try_get_tool_path(tool)?;
@@ -34,6 +41,9 @@ impl Tools {
         Ok(())
     }
 
+    /// Resolves and caches paths to the specified tools.
+    ///
+    /// Returns an error if any tool path cannot be resolved.
     pub fn try_upd_tools_paths(
         &mut self,
         tools: impl IntoIterator<Item = Tool>,
@@ -44,21 +54,32 @@ impl Tools {
         Ok(())
     }
 
+    /// Returns the default JSON file path for command-line arguments inside the given directory.
+    ///
+    /// File name is `.command-args.json`.
     pub fn make_json(dir: impl Into<PathBuf>) -> PathBuf {
         let mut json = dir.into();
         json.push(".command-args.json");
         json
     }
 
+    /// Sets the JSON file path used to store arguments for `mkvtoolnix` tools.
     pub fn upd_json(&mut self, json: impl Into<PathBuf>) {
         self.json = Some(json.into());
     }
 
+    /// Sets the JSON file path and returns the updated [`Tools`] instance.
     pub fn json(mut self, json: impl Into<PathBuf>) -> Self {
         self.upd_json(json);
         self
     }
 
+    /// Runs the specified tool with the given arguments.
+    ///
+    /// If the tool is from `mkvtoolnix` and a JSON file path is set,
+    /// arguments are written to that file and passed as `@<path>`.
+    ///
+    /// Logs errors and the executed command if logging is enabled.
     pub fn run<I, T>(&self, tool: Tool, args: I) -> Result<ToolOutput, MuxError>
     where
         I: IntoIterator<Item = T> + Clone,

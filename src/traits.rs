@@ -1,11 +1,14 @@
 use crate::{MediaInfo, MuxError};
 use std::{ffi::OsString, path::Path};
 
+/// Associates a type with its corresponding CLI arguments.
 pub trait CLIArgs {
     type Arg: CLIArg;
 }
 
+/// Enum representing long-form CLI argument names.
 pub trait CLIArg {
+    /// Returns the argument name without leading dashes (e.g. `"output"`).
     fn as_long(self) -> &'static str;
 }
 

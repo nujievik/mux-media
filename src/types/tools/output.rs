@@ -2,6 +2,7 @@ use crate::{MuxError, Tool};
 use log::warn;
 use std::{fmt, process::Output};
 
+/// Represents the output of an executed [`std::process::Command`].
 #[derive(Debug)]
 pub struct ToolOutput {
     tool: Tool,
@@ -12,38 +13,38 @@ pub struct ToolOutput {
 }
 
 impl ToolOutput {
-    pub(crate) fn into_err(self) -> MuxError {
-        let code = self.code.unwrap_or(1);
-        let mut s = self.stdout;
-        s.push_str(&self.stderr);
-        MuxError::from(s).code(code)
+    /// Returns the captured stdout as a string slice.
+    pub fn as_str_stdout(&self) -> &str {
+        &self.stdout
     }
 
+    /// Returns the captured stderr as a string slice.
+    pub fn as_str_stderr(&self) -> &str {
+        &self.stderr
+    }
+
+    /// Returns `Ok(Self)` if the tool succeeded, or `Err(MuxError)` otherwise.
+    ///
+    /// For `mkvtoolnix` tools, a non-zero exit code is tolerated if no `Error:` is found in stdout.
     pub(super) fn ok_or_err(self) -> Result<Self, MuxError> {
         if self.success {
             return Ok(self);
         }
 
         if !self.tool.is_mkvtoolnix() {
-            return Err(self.into_err());
+            return Err(self.into());
         }
 
-        // Mkvtoolnix always uses stdout, but prefixes any errors with `Error:`
-        // Non-zero code could have returned due to `Warning:`, check for that
+        // mkvtoolnix tools output all messages to stdout; errors are prefixed with "Error:"
         match self.stdout.rsplitn(2, "Error:").skip(1).next() {
-            Some(_) => Err(self.into_err()),
+            Some(_) => Err(self.into()),
             None => Ok(self),
         }
     }
 
-    pub fn as_str_stdout(&self) -> &str {
-        &self.stdout
-    }
-
-    pub fn as_str_stderr(&self) -> &str {
-        &self.stderr
-    }
-
+    /// Logs all warning lines in stdout, if tool is from `mkvtoolnix`.
+    ///
+    /// Warnings are detected by the `Warning: ` prefix.
     pub(crate) fn log_warns(&self) {
         if !self.tool.is_mkvtoolnix() {
             return;
@@ -83,5 +84,14 @@ impl From<(Tool, Output)> for ToolOutput {
             stdout: to_string(out.stdout),
             stderr: to_string(out.stderr),
         }
+    }
+}
+
+impl From<ToolOutput> for MuxError {
+    fn from(out: ToolOutput) -> Self {
+        let code = out.code.unwrap_or(1);
+        let mut s = out.stdout;
+        s.push_str(&out.stderr);
+        MuxError::from(s).code(code)
     }
 }
