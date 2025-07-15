@@ -7,9 +7,10 @@ mod pubs;
 /// Localized messages.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Msg {
+    ArgsInJson,
     ErrUpdLang,
     ErrWriteJson,
-    File,
+    FileIsAlreadyExists,
     FileTypeNotSup,
     FoundRepeat,
     FromPackage,
@@ -77,7 +78,6 @@ pub enum Msg {
     HelpVersion,
     HelpVideo,
     InstallIt,
-    IsAlreadyExists,
     LMedia,
     LangNotSupLog,
     ListTargets,
@@ -91,6 +91,7 @@ pub enum Msg {
     NotOutSaveAny,
     NotRecognizedMedia,
     NotSavedTrackOrAttach,
+    ReadsJson,
     RunningCommand,
     Skipping,
     SuccessMuxed,

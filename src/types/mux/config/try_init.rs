@@ -1,5 +1,5 @@
 use super::{MuxConfig, MuxConfigTarget, RawMuxConfig, cli_args::MuxConfigArg};
-use crate::{CLIArg, MuxError, Target, Tool, Tools, TryFinalizeInit, TryInit};
+use crate::{CLIArg, Msg, MuxError, Target, Tool, Tools, TryFinalizeInit, TryInit};
 use clap::{CommandFactory, FromArgMatches};
 use std::{
     collections::HashMap,
@@ -196,5 +196,11 @@ impl TryFrom<RawMuxConfig> for MuxConfig {
 fn try_read_json_args(path: &Path) -> Result<Vec<String>, MuxError> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
-    serde_json::from_reader(reader).map_err(|e| MuxError::from_any(e))
+    match serde_json::from_reader(reader) {
+        Ok(vec) => {
+            println!("{} '{}'", Msg::ReadsJson, path.display());
+            Ok(vec)
+        }
+        Err(e) => Err(e.into()),
+    }
 }

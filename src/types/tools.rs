@@ -1,11 +1,9 @@
-mod displays;
 pub(crate) mod mkvinfo;
 pub(crate) mod output;
 mod paths;
 pub(crate) mod tool;
 
-use crate::{MuxError, Tool, ToolOutput, types::helpers::try_write_args_to_json};
-use displays::{debug_running_command, warn_err_write_json};
+use crate::{MuxError, Tool, ToolOutput, i18n::logs, types::helpers::try_write_args_to_json};
 use enum_map::EnumMap;
 use paths::try_get_tool_path;
 use std::{
@@ -102,7 +100,7 @@ impl Tools {
                     json_args = Some(args);
                 }
                 Err(e) => {
-                    warn_err_write_json(e);
+                    logs::warn_err_write_json(e);
                     command.args(args);
                 }
             },
@@ -111,7 +109,7 @@ impl Tools {
             }
         }
 
-        debug_running_command(&command, json_args);
+        logs::debug_running_command(&command, json_args);
 
         match command.output() {
             Ok(out) => ToolOutput::from((tool, out)).ok_or_err(),

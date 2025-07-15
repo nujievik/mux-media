@@ -1,7 +1,27 @@
-use super::Msg;
-use crate::MuxError;
+use crate::{Msg, MuxError};
 use log::{debug, trace, warn};
-use std::{ffi::OsStr, path::Path};
+use std::{ffi::OsStr, fmt, path::Path, process::Command};
+
+#[inline(always)]
+pub(crate) fn warn_err_write_json(err: MuxError) {
+    warn!(
+        "{}: {}. {} CLI ({})",
+        Msg::ErrWriteJson,
+        err.to_str_localized(),
+        Msg::Using,
+        Msg::MayFailIfCommandLong
+    )
+}
+
+#[inline(always)]
+pub(crate) fn warn_file_is_already_exists(path: &Path) {
+    warn!(
+        "{}. {} '{}'",
+        Msg::FileIsAlreadyExists,
+        Msg::Skipping,
+        path.display()
+    )
+}
 
 #[inline(always)]
 pub(crate) fn warn_no_input_dir_media(dir: &Path, stem: &OsStr) {
@@ -11,17 +31,6 @@ pub(crate) fn warn_no_input_dir_media(dir: &Path, stem: &OsStr) {
         dir.display(),
         Msg::Skipping,
         AsRef::<Path>::as_ref(stem).display(),
-    )
-}
-
-#[inline(always)]
-pub(crate) fn warn_file_is_already_exists(out: &Path) {
-    warn!(
-        "{} '{}' {}. {}",
-        Msg::File,
-        out.display(),
-        Msg::IsAlreadyExists,
-        Msg::Skipping
     )
 }
 
@@ -38,10 +47,10 @@ pub(crate) fn warn_not_out_save_any(out: &Path) {
 #[inline(always)]
 pub(crate) fn warn_not_out_change(out: &Path) {
     warn!(
-        "{} '{}'. {}",
+        "{}. {} '{}'",
         Msg::NotOutChange,
-        out.display(),
-        Msg::Skipping
+        Msg::Skipping,
+        out.display()
     )
 }
 
@@ -77,6 +86,15 @@ pub(crate) fn debug_no_ext_media(stem: &OsStr) {
 }
 
 #[inline(always)]
+pub(crate) fn debug_running_command(cmd: &Command, json_args: Option<Vec<String>>) {
+    debug!("{}:\n{}", Msg::RunningCommand, CommandDisplay(cmd));
+
+    if let Some(args) = json_args {
+        debug!("{}:\n{}", Msg::ArgsInJson, ArgsDisplay(&args));
+    }
+}
+
+#[inline(always)]
 pub(crate) fn trace_found_repeat(stem: &OsStr) {
     trace!(
         "{}. {} '{}'",
@@ -84,4 +102,36 @@ pub(crate) fn trace_found_repeat(stem: &OsStr) {
         Msg::Skipping,
         AsRef::<Path>::as_ref(stem).display(),
     )
+}
+
+struct CommandDisplay<'a>(&'a Command);
+
+impl<'a> fmt::Display for CommandDisplay<'a> {
+    #[inline(always)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut try_write = |oss: &OsStr| -> fmt::Result {
+            let p: &Path = oss.as_ref();
+            write!(f, "\"{}\" ", p.display())
+        };
+
+        try_write(self.0.get_program())?;
+
+        for arg in self.0.get_args() {
+            try_write(arg)?;
+        }
+
+        Ok(())
+    }
+}
+
+struct ArgsDisplay<'a>(&'a [String]);
+
+impl<'a> fmt::Display for ArgsDisplay<'a> {
+    #[inline(always)]
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        for arg in self.0 {
+            write!(f, "\"{}\" ", arg)?;
+        }
+        Ok(())
+    }
 }
