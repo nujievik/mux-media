@@ -108,6 +108,7 @@ impl MediaInfo<'_> {
                     .mkvinfo_cutted
                     .as_mut()
                     .and_then(|mkvi| mkvi.get::<MKVILang>().copied())
+                    .filter(|lang| *lang != LangCode::Und)
             })
             .unwrap_or_else(|| {
                 from_name_tail_relative_or_fallback!(self, path, num, LangCode, try_from, Und)

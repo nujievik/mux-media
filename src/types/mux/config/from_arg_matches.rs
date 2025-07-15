@@ -61,15 +61,16 @@ impl FromArgMatches for MuxConfig {
     }
 
     fn update_from_arg_matches_mut(&mut self, matches: &mut ArgMatches) -> Result<(), Error> {
-        self.input.update_from_arg_matches_mut(matches)?;
-
-        if let Some(output) = from_arg_matches!(matches, Output, Output, @no_default) {
-            self.output = output;
-        }
-
         if let Some(lang) = from_arg_matches!(matches, LangCode, Locale, @no_default) {
             let _ = Msg::try_upd_lang(lang);
             self.locale = lang;
+        }
+
+        self.input.update_from_arg_matches_mut(matches)?;
+
+        match from_arg_matches!(matches, Output, Output, @no_default) {
+            Some(out) => self.output = out,
+            None => self.output = Output::try_from(&self.input)?,
         }
 
         from_arg_matches!(
