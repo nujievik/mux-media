@@ -21,7 +21,7 @@ archive for your system (`mux-media-win64.zip` or `mux-media-win32.zip`)
 2. [Download](https://github.com/nujievik/mux-media/releases) the
 archive for your system
 
-3. Unpacking it
+3. Unpack it
 
 4. Run unpacked `mux-media` in the media directory
 
