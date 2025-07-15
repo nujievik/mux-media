@@ -40,8 +40,8 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     Its affected only `Sub` tracks if they has same 1-4.
 /// 6. Track language `LangCode`:
 ///     - `locale` language
-///     - Other languages (excluding `Und` and `Jpn`)
 ///     - `Und` (undefined language)
+///     - Other languages (excluding `Jpn`)
 ///     - `Jpn` (Japanese)
 pub struct TrackOrder {
     pub paths: Vec<ArcPathBuf>,
@@ -186,9 +186,9 @@ impl OrderSortKey {
 
         let lang = match lang {
             _ if lang == locale_lang => 0,
-            LangCode::Und => 2,
+            LangCode::Und => 1,
             LangCode::Jpn => 3,
-            _ => 1,
+            _ => 2,
         };
 
         Self {
