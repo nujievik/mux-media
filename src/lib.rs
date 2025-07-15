@@ -27,9 +27,9 @@ pub use types::{
         cache::{CacheMI, CacheState},
         // Get Field MediaInfo markers
         set_get_field::{
-            MIAttachsInfo, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
-            MISavedTracks, MISubCharset, MITILang, MITIName, MITITrackIDs, MITargetGroup,
-            MITargets, MITracksInfo,
+            MIAttachsInfo, MICmnRegexAID, MICmnRegexTID, MICmnRegexWord, MIGroupStem, MIMkvinfo,
+            MIMkvmergeI, MIPathTail, MIRelativeUpmost, MISavedTracks, MISubCharset, MITILang,
+            MITIName, MITITrackIDs, MITargetGroup, MITargets, MITracksInfo,
         },
     },
     media_number::MediaNumber,
@@ -64,6 +64,9 @@ pub use types::{
     },
     verbosity::Verbosity,
 };
+
+#[doc(hidden)]
+pub use types::media_info::cache::{attach::CacheMIOfFileAttach, track::CacheMIOfFileTrack};
 
 #[doc(hidden)]
 pub use types::{mux::config::getters::MCRetiming, retiming::Retiming};

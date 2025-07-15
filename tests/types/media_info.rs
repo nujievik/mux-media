@@ -32,15 +32,15 @@ fn test_empty() {
 }
 
 #[test]
-fn test_upd_cmn_stem() {
+fn test_upd_group_stem() {
     ["x", "a", "bc"].iter().for_each(|s| {
         let mut mi = new();
         let stem = new_stem(s);
-        mi.upd_cmn_stem(stem.clone());
+        mi.upd_group_stem(stem.clone());
         assert_eq!(0, mi.len());
         assert!(!mi.is_empty());
         assert!(mi.is_no_files());
-        assert_eq!(&stem, mi.try_get_cmn::<MICmnStem>().unwrap());
+        assert_eq!(&stem, mi.try_get_cmn::<MIGroupStem>().unwrap());
     })
 }
 
@@ -71,7 +71,7 @@ fn test_try_insert() {
 #[test]
 fn test_clear() {
     let mut mi = new();
-    mi.upd_cmn_stem(new_stem("x"));
+    mi.upd_group_stem(new_stem("x"));
     mi.try_insert_path(new_path("srt.srt")).unwrap();
     mi.clear();
 
@@ -137,7 +137,7 @@ fn test_cmn_stem() {
         .into_iter()
         .for_each(|(stem, file)| {
             mi.try_insert_path(new_path(file)).unwrap();
-            assert_eq!(&new_stem(stem), mi.try_get_cmn::<MICmnStem>().unwrap());
+            assert_eq!(&new_stem(stem), mi.try_get_cmn::<MIGroupStem>().unwrap());
             mi.clear();
         });
 
@@ -149,7 +149,10 @@ fn test_cmn_stem() {
     .iter()
     .for_each(|f| mi.try_insert_path(new_path(f)).unwrap());
 
-    assert_eq!(&new_stem("x1_set"), mi.try_get_cmn::<MICmnStem>().unwrap());
+    assert_eq!(
+        &new_stem("x1_set"),
+        mi.try_get_cmn::<MIGroupStem>().unwrap()
+    );
 }
 
 #[test]
@@ -397,7 +400,7 @@ fn test_attachs_info() {
 fn test_path_tail() {
     let mut mi = new();
 
-    mi.upd_cmn_stem(new_stem(""));
+    mi.upd_group_stem(new_stem(""));
 
     [
         ("audio_x1", "audio_x1.mka"),
@@ -411,7 +414,7 @@ fn test_path_tail() {
     });
 
     mi.clear();
-    mi.upd_cmn_stem(new_stem("s"));
+    mi.upd_group_stem(new_stem("s"));
 
     [("ub_x1", "sub_x1.mks"), ("rt", "srt.srt")]
         .iter()
@@ -485,7 +488,7 @@ fn test_ti_name() {
     ]
     .iter()
     .for_each(|(name, file, cmn_stem)| {
-        mi.upd_cmn_stem(new_stem(cmn_stem));
+        mi.upd_group_stem(new_stem(cmn_stem));
         assert_eq!(
             name,
             mi.try_get_ti::<MITIName>(&data_file(file), 0).unwrap()
@@ -507,7 +510,7 @@ fn test_ti_lang() {
     ]
     .into_iter()
     .for_each(|(lang, file, cmn_stem)| {
-        mi.upd_cmn_stem(new_stem(cmn_stem));
+        mi.upd_group_stem(new_stem(cmn_stem));
         assert_eq!(
             lang,
             *mi.try_get_ti::<MITILang>(&data_file(file), 0).unwrap()

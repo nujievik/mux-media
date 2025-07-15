@@ -1,6 +1,8 @@
 use super::MediaInfo;
-use super::cache::{CacheMIOfFileTrack, CacheState};
-use crate::{MITracksInfo, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField};
+use crate::{
+    CacheMIOfFileTrack, CacheState, MITracksInfo, MuxError, SetGetField, SetGetPathField,
+    SetGetPathTrackField,
+};
 use std::{collections::HashMap, path::Path};
 
 impl MediaInfo<'_> {
@@ -87,7 +89,8 @@ impl MediaInfo<'_> {
         <Self as SetGetPathTrackField<F>>::try_get(self, path.as_ref(), num)
     }
 
-    /// Returns a reference to the common value.
+    /// Returns a reference to the common or common for stem-grouped media value,
+    /// associated with the marker type `F`.
     ///
     /// Returns `MuxError` if the value cannot be retrieved.
     pub fn try_get_cmn<F>(&mut self) -> Result<&<Self as SetGetField<F>>::FieldType, MuxError>

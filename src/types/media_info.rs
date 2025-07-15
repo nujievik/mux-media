@@ -5,10 +5,10 @@ mod mkvmerge_args;
 pub(crate) mod set_get_field;
 
 use crate::{
-    ArcPathBuf, MCInput, MCOffOnPro, MCTools, MIAttachsInfo, MuxConfig, MuxError, OffOnPro, Tools,
-    i18n::logs,
+    ArcPathBuf, IsDefault, MCInput, MCOffOnPro, MCTools, MIAttachsInfo, MuxConfig, MuxError,
+    OffOnPro, Tools, i18n::logs,
 };
-use cache::{CacheMI, CacheMIOfFile, CacheState};
+use cache::{CacheMI, CacheMICommon, CacheMIOfFile, CacheMIOfGroup, CacheState};
 use set_get_field::{MIMkvmergeI, MISavedTracks};
 use std::{ffi::OsString, path::Path, sync::Arc};
 
@@ -39,9 +39,30 @@ impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
 }
 
 impl MediaInfo<'_> {
-    /// Clears `MediaInfo` cache.
+    /// Clears cache.
     pub fn clear(&mut self) {
         self.cache = CacheMI::default();
+    }
+
+    /// Clears cache of current group and files.
+    pub fn clear_current(&mut self) {
+        self.cache.of_group = CacheMIOfGroup::default();
+        self.cache.of_files.clear();
+    }
+
+    /// Clears common cache.
+    pub fn clear_common(&mut self) {
+        self.cache.common = CacheMICommon::default();
+    }
+
+    /// Clears cache of current group.
+    pub fn clear_group(&mut self) {
+        self.cache.of_group = CacheMIOfGroup::default();
+    }
+
+    /// Clears cache of current files.
+    pub fn clear_files(&mut self) {
+        self.cache.of_files.clear();
     }
 
     /// Returns the length cache of files.
@@ -49,9 +70,9 @@ impl MediaInfo<'_> {
         self.cache.of_files.len()
     }
 
-    /// Returns `true` if cache empty.
+    /// Returns `true` if not cached any.
     pub fn is_empty(&self) -> bool {
-        self.cache.is_empty()
+        self.cache.of_group.is_default() && self.cache.of_files.is_empty()
     }
 
     /// Returns `true` if cache of files empty.
@@ -74,9 +95,9 @@ impl MediaInfo<'_> {
         self.cache = cache;
     }
 
-    /// Updates common stem.
-    pub fn upd_cmn_stem(&mut self, stem: Arc<OsString>) {
-        self.cache.common.stem = CacheState::Cached(stem);
+    /// Updates stem for stem-grouped media.
+    pub fn upd_group_stem(&mut self, stem: Arc<OsString>) {
+        self.cache.of_group.stem = CacheState::Cached(stem);
     }
 
     /// Attempts to insert a single `path` into the cache.

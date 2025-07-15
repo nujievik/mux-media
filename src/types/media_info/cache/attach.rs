@@ -1,5 +1,12 @@
-use super::CacheMIOfFileAttach;
 use crate::{AttachID, AttachType, MuxError};
+
+/// Cache of [`crate::MediaInfo`] is separate for each attach in media.
+#[derive(Clone)]
+pub struct CacheMIOfFileAttach {
+    pub id: AttachID,
+    pub attach_type: AttachType,
+    pub mkvmerge_id_line: String,
+}
 
 impl CacheMIOfFileAttach {
     pub fn try_init(num: u64, mkvmerge_id_line: String) -> Result<Self, MuxError> {

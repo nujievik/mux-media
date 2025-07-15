@@ -60,7 +60,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
             continue;
         }
 
-        mi.upd_cmn_stem(media.stem);
+        mi.upd_group_stem(media.stem);
 
         let files = media.files.into_iter().map(|p| ArcPathBuf::from(p));
         mi.try_insert_paths_with_filter(files, exit_on_err)?;
@@ -93,7 +93,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
             Err(e) => error!("{}", e),
         }
 
-        mi.clear();
+        mi.clear_current();
     }
 
     Ok(cnt)

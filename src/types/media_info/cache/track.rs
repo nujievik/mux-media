@@ -1,6 +1,16 @@
-use super::CacheMIOfFileTrack;
-use crate::{Mkvinfo, MuxError, TrackType};
+use crate::{CacheState, LangCode, Mkvinfo, MuxError, TrackID, TrackType};
 use log::trace;
+
+/// Cache of [`crate::MediaInfo`] is separate for each track in media.
+#[derive(Clone, Default)]
+pub struct CacheMIOfFileTrack {
+    pub mkvinfo_cutted: Option<Mkvinfo>,
+    pub mkvmerge_id_line: String,
+    pub track_type: TrackType,
+    pub lang: CacheState<LangCode>,
+    pub name: CacheState<String>,
+    pub track_ids: CacheState<[TrackID; 2]>,
+}
 
 impl CacheMIOfFileTrack {
     pub fn try_init(

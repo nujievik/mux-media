@@ -1,14 +1,12 @@
+mod name_tail_rel_fall;
 mod saved;
 
 use super::MediaInfo;
-use super::cache::{CacheMIOfFileAttach, CacheMIOfFileTrack};
 use crate::{
-    EXTENSIONS, LangCode, MICmnStem, MIMkvinfo, MIMkvmergeI, MIPathTail, MIRelativeUpmost,
-    MITILang, MITIName, MITargetGroup, MITracksInfo, MuxError, SubCharset, Target, TargetGroup,
-    Tool, TrackID, TrackType,
-    types::helpers,
-    types::tools::mkvinfo::{MKVILang, MKVIName, Mkvinfo},
+    CacheMIOfFileAttach, CacheMIOfFileTrack, EXTENSIONS, MICmnRegexAID, MICmnRegexTID, MIMkvinfo,
+    MIMkvmergeI, MITILang, MITargetGroup, Mkvinfo, MuxError, SubCharset, Target, Tool, TrackID,
 };
+use regex::Regex;
 use smallvec::SmallVec;
 use std::{
     collections::HashMap,
@@ -17,23 +15,19 @@ use std::{
     sync::Arc,
 };
 
-macro_rules! from_name_tail_relative_or_fallback {
-    ($mi:ident, $path:ident, $num:expr, $typ:ident, $try_from_words:ident, $fall:ident) => {
-        $mi.try_get_ti::<MITIName>($path, $num)
-            .and_then(|name| $typ::$try_from_words(str_to_words(name).as_slice()))
-            .or_else(|_| {
-                $mi.try_get::<MIPathTail>($path)
-                    .and_then(|s| $typ::$try_from_words(str_to_words(&s).as_slice()))
-            })
-            .or_else(|_| {
-                $mi.try_get::<MIRelativeUpmost>($path)
-                    .and_then(|s| $typ::$try_from_words(str_to_words(&s).as_slice()))
-            })
-            .unwrap_or($typ::$fall)
-    };
-}
-
 impl MediaInfo<'_> {
+    pub(super) fn build_regex_aid(&mut self) -> Result<Regex, MuxError> {
+        Regex::new(r"Attachment ID (\d+):").map_err(|e| e.into())
+    }
+
+    pub(super) fn build_regex_tid(&mut self) -> Result<Regex, MuxError> {
+        Regex::new(r"Track ID (\d+):").map_err(|e| e.into())
+    }
+
+    pub(super) fn build_regex_word(&mut self) -> Result<Regex, MuxError> {
+        Regex::new(r"[a-zA-Z]+|[а-яА-ЯёЁ]+").map_err(|e| e.into())
+    }
+
     pub(super) fn build_stem(&mut self) -> Result<Arc<OsString>, MuxError> {
         let shortest: &OsStr = self
             .cache
@@ -48,33 +42,6 @@ impl MediaInfo<'_> {
 
     pub(super) fn build_sub_charset(&mut self, path: &Path) -> Result<SubCharset, MuxError> {
         path.try_into()
-    }
-
-    pub(super) fn build_target_group(&mut self, path: &Path) -> Result<TargetGroup, MuxError> {
-        let num_types: Vec<(u64, TrackType)> = self
-            .try_get::<MITracksInfo>(path)?
-            .iter()
-            .map(|(num, cache)| (*num, cache.track_type))
-            .collect();
-
-        for tt in [TrackType::Video, TrackType::Audio, TrackType::Sub] {
-            if let Some(&(num, _)) = num_types.iter().find(|(_, t)| *t == tt) {
-                return Ok(if tt != TrackType::Sub {
-                    tt.into()
-                } else {
-                    from_name_tail_relative_or_fallback!(
-                        self,
-                        path,
-                        num,
-                        TargetGroup,
-                        try_signs_from_slice_string,
-                        Subs
-                    )
-                });
-            }
-        }
-
-        Err("Not found any Media Track".into())
     }
 
     pub(super) fn build_mkvinfo(&mut self, path: &Path) -> Result<Mkvinfo, MuxError> {
@@ -121,8 +88,8 @@ impl MediaInfo<'_> {
         &mut self,
         path: &Path,
     ) -> Result<HashMap<u64, CacheMIOfFileTrack>, MuxError> {
+        let re = self.try_get_cmn::<MICmnRegexTID>()?.clone();
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
-        let re = regex::Regex::new(r"Track ID (\d+):")?;
 
         let num_lines: Vec<(u64, String)> = mkvmerge_i
             .into_iter()
@@ -152,8 +119,8 @@ impl MediaInfo<'_> {
         &mut self,
         path: &Path,
     ) -> Result<HashMap<u64, CacheMIOfFileAttach>, MuxError> {
+        let re = self.try_get_cmn::<MICmnRegexAID>()?.clone();
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
-        let re = regex::Regex::new(r"Attachment ID (\d+):")?;
 
         let ai: HashMap<u64, CacheMIOfFileAttach> = mkvmerge_i
             .into_iter()
@@ -169,60 +136,6 @@ impl MediaInfo<'_> {
         Ok(ai)
     }
 
-    pub(super) fn build_path_tail(&mut self, path: &Path) -> Result<String, MuxError> {
-        let cmn_stem = self.try_get_cmn::<MICmnStem>()?;
-        let stem = path
-            .file_stem()
-            .ok_or_else(|| format!("Path '{}' has not file_stem()", path.display()))?;
-        helpers::os_str_tail(cmn_stem, stem).map(|os| os.to_string_lossy().into_owned())
-    }
-
-    pub(super) fn build_relative_upmost(&mut self, path: &Path) -> Result<String, MuxError> {
-        path.parent()
-            .ok_or_else(|| format!("Path '{}' has not parent()", path.display()).into())
-            .and_then(|parent| {
-                helpers::os_str_tail(self.upmost.as_os_str(), parent.as_os_str())
-                    .map(|os| os.to_string_lossy().into_owned())
-            })
-    }
-
-    pub(super) fn build_ti_name(&mut self, path: &Path, num: u64) -> Result<String, MuxError> {
-        Ok(self
-            .get_mut_track_cache(path, num)
-            .and_then(|cache| {
-                cache
-                    .mkvinfo_cutted
-                    .as_mut()
-                    .and_then(|mkvi| mkvi.get::<MKVIName>().cloned())
-            })
-            .or_else(|| {
-                self.try_get::<MIPathTail>(path).ok().and_then(|s| {
-                    let s = s.trim_matches(&['.', ' ']);
-                    (s.len() > 2).then(|| s.to_string())
-                })
-            })
-            .or_else(|| {
-                path.parent()
-                    .and_then(|p| p.file_name())
-                    .map(|p| p.to_string_lossy().into_owned())
-            })
-            .unwrap_or_default())
-    }
-
-    pub(super) fn build_ti_lang(&mut self, path: &Path, num: u64) -> Result<LangCode, MuxError> {
-        Ok(self
-            .get_mut_track_cache(path, num)
-            .and_then(|cache| {
-                cache
-                    .mkvinfo_cutted
-                    .as_mut()
-                    .and_then(|mkvi| mkvi.get::<MKVILang>().copied())
-            })
-            .unwrap_or_else(|| {
-                from_name_tail_relative_or_fallback!(self, path, num, LangCode, try_from, Und)
-            }))
-    }
-
     pub(super) fn build_ti_track_ids(
         &mut self,
         path: &Path,
@@ -231,16 +144,4 @@ impl MediaInfo<'_> {
         let lang = self.try_get_ti::<MITILang>(path, num)?;
         Ok([TrackID::Num(num), TrackID::Lang(*lang)])
     }
-}
-
-#[inline]
-fn str_to_words(s: &str) -> Vec<String> {
-    s.split_whitespace()
-        .map(|w| {
-            w.chars()
-                .filter(|c| c.is_alphanumeric())
-                .collect::<String>()
-        })
-        .filter(|w| !w.is_empty())
-        .collect()
 }

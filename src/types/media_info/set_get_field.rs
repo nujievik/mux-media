@@ -1,10 +1,11 @@
 use super::MediaInfo;
-use super::cache::{CacheMIOfFile, CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState};
+use super::cache::{CacheMIOfFile, CacheState};
 use crate::{
-    ArcPathBuf, LangCode, Mkvinfo, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField,
-    SubCharset, Target, TargetGroup, TrackID, TrackType,
+    ArcPathBuf, CacheMIOfFileAttach, CacheMIOfFileTrack, LangCode, Mkvinfo, MuxError, SetGetField,
+    SetGetPathField, SetGetPathTrackField, SubCharset, Target, TargetGroup, TrackID, TrackType,
 };
 use enum_map::EnumMap;
+use regex::Regex;
 use smallvec::SmallVec;
 use std::{
     collections::{BTreeSet, HashMap},
@@ -14,8 +15,8 @@ use std::{
 };
 
 macro_rules! set_get_fields {
-    ($( $field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
-        #[doc = concat!("Marker of [`MediaInfo`] common field, that stores [`", stringify!($ty), "`].")]
+    ($( $cache:ident, $field:ident, $ty:ty, $builder:ident, $to_doc:expr => $marker:ident; )*) => { $(
+        #[doc = concat!("Marker of [`MediaInfo`] ", $to_doc, " field, that stores [`", stringify!($ty), "`].")]
         pub struct $marker;
 
         impl SetGetField<$marker> for MediaInfo<'_> {
@@ -27,16 +28,16 @@ macro_rules! set_get_fields {
                     Err(e) => (CacheState::Failed, Err(e)),
                 };
 
-                self.cache.common.$field = state;
+                self.cache.$cache.$field = state;
                 result
             }
 
             fn try_get(&mut self) -> Result<&Self::FieldType, MuxError> {
-                if let CacheState::NotCached = self.cache.common.$field {
+                if let CacheState::NotCached = self.cache.$cache.$field {
                     <Self as SetGetField::<$marker>>::try_set(self)?;
                 }
 
-                match &self.cache.common.$field {
+                match &self.cache.$cache.$field {
                     CacheState::Cached(val) => Ok(val),
                     CacheState::Failed => Err("Previously failed to load".into()),
                     CacheState::NotCached => Err("Unexpected NotCached state".into()),
@@ -54,7 +55,7 @@ macro_rules! set_get_fields {
             }
 
             fn unmut_get(&self) -> Option<&Self::FieldType> {
-                match &self.cache.common.$field {
+                match &self.cache.$cache.$field {
                     CacheState::Cached(val) => Some(val),
                     _ => None,
                 }
@@ -177,7 +178,10 @@ macro_rules! set_get_path_fields {
 }
 
 set_get_fields!(
-    stem, Arc<OsString>, build_stem => MICmnStem;
+    common, regex_aid, Regex, build_regex_aid, "common" => MICmnRegexAID;
+    common, regex_tid, Regex, build_regex_tid, "common" => MICmnRegexTID;
+    common, regex_word, Regex, build_regex_word, "common" => MICmnRegexWord;
+    of_group, stem, Arc<OsString>, build_stem, "stem-grouped media" => MIGroupStem;
 );
 
 set_get_path_fields!(

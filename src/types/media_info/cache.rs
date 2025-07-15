@@ -1,20 +1,20 @@
-mod attach;
-mod track;
+pub(crate) mod attach;
+pub(crate) mod track;
 
-use crate::{
-    ArcPathBuf, AttachID, AttachType, IsDefault, LangCode, Mkvinfo, SubCharset, Target,
-    TargetGroup, TrackID, TrackType,
-};
+use crate::{ArcPathBuf, IsDefault, Mkvinfo, SubCharset, Target, TargetGroup, TrackType};
+use attach::CacheMIOfFileAttach;
 use enum_map::EnumMap;
+use regex::Regex;
 use smallvec::SmallVec;
 use std::{
     collections::{BTreeSet, HashMap},
     ffi::OsString,
     sync::Arc,
 };
+use track::CacheMIOfFileTrack;
 
 /// A state of cache field.
-#[derive(Clone, Default, Debug, PartialEq)]
+#[derive(Clone, Default, Debug)]
 pub enum CacheState<T> {
     #[default]
     NotCached,
@@ -26,22 +26,31 @@ pub enum CacheState<T> {
 #[derive(Clone, Default)]
 pub struct CacheMI {
     pub common: CacheMICommon,
+    pub of_group: CacheMIOfGroup,
     pub of_files: HashMap<ArcPathBuf, CacheMIOfFile>,
 }
 
-impl CacheMI {
-    pub fn is_empty(&self) -> bool {
-        self.of_files.is_empty() && self.common.is_default()
+impl IsDefault for CacheMI {
+    fn is_default(&self) -> bool {
+        self.of_group.is_default() && self.of_files.is_empty()
     }
 }
 
-/// Cache of `MediaInfo` is common for all media.
-#[derive(Clone, Default, PartialEq)]
+/// Cache of [`crate::MediaInfo`] is common for all.
+#[derive(Clone, Default)]
 pub struct CacheMICommon {
+    pub regex_aid: CacheState<Regex>,
+    pub regex_tid: CacheState<Regex>,
+    pub regex_word: CacheState<Regex>,
+}
+
+/// Cache of [`crate::MediaInfo`] common for stem-grouped media.
+#[derive(Clone, Default)]
+pub struct CacheMIOfGroup {
     pub stem: CacheState<Arc<OsString>>,
 }
 
-/// Cache of `MediaInfo` is separate for each media.
+/// Cache of [`crate::MediaInfo`] is separate for each media.
 #[derive(Clone, Default)]
 pub struct CacheMIOfFile {
     pub mkvinfo: CacheState<Mkvinfo>,
@@ -57,21 +66,17 @@ pub struct CacheMIOfFile {
     pub attachs_info: CacheState<HashMap<u64, CacheMIOfFileAttach>>,
 }
 
-/// Cache of `MediaInfo` is separate for each track in media.
-#[derive(Clone, Default)]
-pub struct CacheMIOfFileTrack {
-    pub mkvinfo_cutted: Option<Mkvinfo>,
-    pub mkvmerge_id_line: String,
-    pub track_type: TrackType,
-    pub lang: CacheState<LangCode>,
-    pub name: CacheState<String>,
-    pub track_ids: CacheState<[TrackID; 2]>,
+impl<T> IsDefault for CacheState<T> {
+    fn is_default(&self) -> bool {
+        match self {
+            Self::NotCached => true,
+            _ => false,
+        }
+    }
 }
 
-/// Cache of `MediaInfo` is separate for each attach in media.
-#[derive(Clone)]
-pub struct CacheMIOfFileAttach {
-    pub id: AttachID,
-    pub attach_type: AttachType,
-    pub mkvmerge_id_line: String,
+impl IsDefault for CacheMIOfGroup {
+    fn is_default(&self) -> bool {
+        self.stem.is_default()
+    }
 }
