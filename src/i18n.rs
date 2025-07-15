@@ -13,6 +13,7 @@ pub enum Msg {
     FileTypeNotSup,
     FoundRepeat,
     FromPackage,
+    HelpAddCharsets,
     HelpAddDefaults,
     HelpAddEnableds,
     HelpAddForceds,

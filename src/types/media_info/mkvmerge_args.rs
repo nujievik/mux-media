@@ -7,12 +7,14 @@ use crate::{
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
+    /// Collects mkvmerge args of all appended media.
     pub fn collect_os_mkvmerge_args(&mut self) -> Vec<OsString> {
         let mut args = Vec::<OsString>::new();
         self.append_os_mkvmerge_args(&mut args);
         args
     }
 
+    /// Appends mkvmerge args of all appended media to [`Vec<OsString>`].
     pub fn append_os_mkvmerge_args(&mut self, args: &mut Vec<OsString>) {
         match self.init_track_order() {
             Ok(order) => {
@@ -71,8 +73,12 @@ fn append_target_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, path: &Path)
         MCSpecials
     );
 
-    if let Ok(charset) = mi.try_get::<MISubCharset>(path).map(|c| c.clone()) {
-        args.append(&mut charset.clone().to_os_mkvmerge_args(mi, path))
+    if let Some(Ok(cs)) = mi
+        .off_on_pro
+        .add_charsets
+        .then(|| mi.try_get::<MISubCharset>(path).map(|c| c.clone()))
+    {
+        args.append(&mut cs.to_os_mkvmerge_args(mi, path))
     }
 }
 

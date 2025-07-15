@@ -6,6 +6,7 @@ crate::impl_msg_as_localized_str!(
     FileTypeNotSup => "File type is not supported",
     FoundRepeat => "Found repeat",
     FromPackage => "From package",
+    HelpAddCharsets => "On/Off auto set sub-charsets",
     HelpAddDefaults => "On/Off auto set default-track-flags",
     HelpAddEnableds => "On/Off auto set track-enabled-flags",
     HelpAddForceds => "On/Off auto set forced-display-flags",

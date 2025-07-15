@@ -48,37 +48,6 @@ pub struct TrackOrder {
     pub i_num_type: Vec<(usize, u64, TrackType)>,
 }
 
-mkvmerge_arg!(TrackOrder, "--track-order");
-
-impl ToMkvmergeArgs for TrackOrder {
-    fn to_mkvmerge_args(&self, _mi: &mut MediaInfo, _path: &Path) -> Vec<String> {
-        let mut i_to_fid: HashMap<usize, usize> = HashMap::new();
-        let mut max_fid: usize = 0;
-
-        let order_arg: String = self
-            .i_num_type
-            .iter()
-            .map(|(i, num, _)| {
-                let fid = match i_to_fid.get(i) {
-                    Some(fid) => *fid,
-                    None => {
-                        let fid = max_fid;
-                        i_to_fid.insert(*i, fid);
-                        max_fid += 1;
-                        fid
-                    }
-                };
-                format!("{}:{}", fid, num)
-            })
-            .collect::<Vec<_>>()
-            .join(",");
-
-        vec![Self::MKVMERGE_ARG.into(), order_arg]
-    }
-
-    to_mkvmerge_args!(@fn_os);
-}
-
 impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
     type Error = MuxError;
 
@@ -141,6 +110,37 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
 
         Ok(Self { paths, i_num_type })
     }
+}
+
+mkvmerge_arg!(TrackOrder, "--track-order");
+
+impl ToMkvmergeArgs for TrackOrder {
+    fn to_mkvmerge_args(&self, _mi: &mut MediaInfo, _path: &Path) -> Vec<String> {
+        let mut i_to_fid: HashMap<usize, usize> = HashMap::new();
+        let mut max_fid: usize = 0;
+
+        let order_arg: String = self
+            .i_num_type
+            .iter()
+            .map(|(i, num, _)| {
+                let fid = match i_to_fid.get(i) {
+                    Some(fid) => *fid,
+                    None => {
+                        let fid = max_fid;
+                        i_to_fid.insert(*i, fid);
+                        max_fid += 1;
+                        fid
+                    }
+                };
+                format!("{}:{}", fid, num)
+            })
+            .collect::<Vec<_>>()
+            .join(",");
+
+        vec![Self::MKVMERGE_ARG.into(), order_arg]
+    }
+
+    to_mkvmerge_args!(@fn_os);
 }
 
 struct OrderSortKey {

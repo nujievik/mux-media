@@ -6,6 +6,7 @@ crate::impl_msg_as_localized_str!(
     FileTypeNotSup => "Тип файла не поддерживается",
     FoundRepeat => "Найден повтор",
     FromPackage => "Из пакета",
+    HelpAddCharsets => "Вкл/Выкл автонастройку кодировки субтитров",
     HelpAddDefaults => "Вкл/Выкл автонастройку default флагов",
     HelpAddEnableds => "Вкл/Выкл автонастройку enabled флагов",
     HelpAddForceds => "Вкл/Выкл автонастройку forced флагов",

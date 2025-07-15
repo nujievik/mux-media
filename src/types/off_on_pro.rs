@@ -9,6 +9,7 @@ pub struct OffOnPro {
     t_flags: EnumMap<TFlagType, bool>,
     pub add_names: bool,
     pub add_langs: bool,
+    pub add_charsets: bool,
     //pub sort_fonts: bool,
 }
 
@@ -47,16 +48,12 @@ impl FromArgMatches for OffOnPro {
             TFlagType::Enabled => from_arg_matches!(matches, AddEnableds, NoAddEnableds, pro, @off_on_pro),
         };
 
-        let add_names = from_arg_matches!(matches, AddNames, NoAddNames, pro, @off_on_pro);
-        let add_langs = from_arg_matches!(matches, AddLangs, NoAddLangs, pro, @off_on_pro);
-        //let sort_fonts = from_arg_matches!(matches, SortFonts, NoSortFonts, pro, @off_on_pro);
-
         Ok(Self {
             pro,
             t_flags,
-            add_names,
-            add_langs,
-            //sort_fonts,
+            add_names: from_arg_matches!(matches, AddNames, NoAddNames, pro, @off_on_pro),
+            add_langs: from_arg_matches!(matches, AddLangs, NoAddLangs, pro, @off_on_pro),
+            add_charsets: from_arg_matches!(matches, AddCharsets, NoAddCharsets, pro, @off_on_pro),
         })
     }
 
@@ -106,6 +103,14 @@ impl FromArgMatches for OffOnPro {
             AddLangs,
             NoAddLangs
         );
+        self.add_charsets = upd_val!(
+            matches,
+            old_pro,
+            new_pro,
+            self.add_langs,
+            AddCharsets,
+            NoAddCharsets
+        );
         /*
         self.sort_fonts = upd_val!(
             matches,
@@ -147,7 +152,8 @@ impl ToJsonArgs for OffOnPro {
             self.t_flags[TFlagType::Forced], AddForceds, NoAddForceds,
             self.t_flags[TFlagType::Enabled], AddEnableds, NoAddEnableds,
             self.add_names, AddNames, NoAddNames,
-            self.add_langs, AddLangs, NoAddLangs
+            self.add_langs, AddLangs, NoAddLangs,
+            self.add_charsets, AddCharsets, NoAddCharsets
             //self.sort_fonts, SortFonts, NoSortFonts
         );
 

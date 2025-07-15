@@ -1,7 +1,6 @@
 mod builders;
 pub(crate) mod cache;
 mod getters;
-mod mkvinfo;
 mod mkvmerge_args;
 pub(crate) mod set_get_field;
 

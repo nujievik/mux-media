@@ -20,7 +20,7 @@ impl Blocks {
                 .arg(
                     Arg::new(help_arg.as_long())
                         .long(help_arg.as_long())
-                        .help(help_arg.help())
+                        .help(flag.to_help())
                         .action(ArgAction::SetTrue),
                 )
                 .arg(
@@ -43,14 +43,14 @@ impl Blocks {
     }
 }
 
-#[derive(Copy, Clone, EnumIter)]
+#[derive(Copy, Clone, Debug, EnumIter)]
 enum OffFlag {
     AddDefaults,
     AddForceds,
     AddEnableds,
     AddNames,
     AddLangs,
-    //SortFonts,
+    AddCharsets,
 }
 
 impl OffFlag {
@@ -61,6 +61,7 @@ impl OffFlag {
             Self::AddEnableds => MuxConfigArg::HelpAddEnableds,
             Self::AddNames => MuxConfigArg::HelpAddNames,
             Self::AddLangs => MuxConfigArg::HelpAddLangs,
+            Self::AddCharsets => MuxConfigArg::HelpAddCharsets,
             //Self::SortFonts => MuxConfigArg::HelpSortFonts,
         }
     }
@@ -72,6 +73,7 @@ impl OffFlag {
             Self::AddEnableds => MuxConfigArg::AddEnableds,
             Self::AddNames => MuxConfigArg::AddNames,
             Self::AddLangs => MuxConfigArg::AddLangs,
+            Self::AddCharsets => MuxConfigArg::AddCharsets,
             //Self::SortFonts => MuxConfigArg::SortFonts,
         }
     }
@@ -83,21 +85,19 @@ impl OffFlag {
             Self::AddEnableds => MuxConfigArg::NoAddEnableds,
             Self::AddNames => MuxConfigArg::NoAddNames,
             Self::AddLangs => MuxConfigArg::NoAddLangs,
+            Self::AddCharsets => MuxConfigArg::NoAddCharsets,
             //Self::SortFonts => MuxConfigArg::NoSortFonts,
         }
     }
-}
 
-impl MuxConfigArg {
-    fn help(self) -> &'static str {
+    fn to_help(self) -> &'static str {
         match self {
-            Self::HelpAddDefaults => Msg::HelpAddDefaults,
-            Self::HelpAddForceds => Msg::HelpAddForceds,
-            Self::HelpAddEnableds => Msg::HelpAddEnableds,
-            Self::HelpAddNames => Msg::HelpAddNames,
-            Self::HelpAddLangs => Msg::HelpAddLangs,
-            //Self::HelpSortFonts => Msg::HelpSortFonts,
-            _ => panic!("Received unsupported fn help() arg"),
+            Self::AddDefaults => Msg::HelpAddDefaults,
+            Self::AddForceds => Msg::HelpAddForceds,
+            Self::AddEnableds => Msg::HelpAddEnableds,
+            Self::AddNames => Msg::HelpAddNames,
+            Self::AddLangs => Msg::HelpAddLangs,
+            Self::AddCharsets => Msg::HelpAddCharsets,
         }
         .to_str_localized()
     }

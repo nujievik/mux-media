@@ -8,7 +8,7 @@ use std::path::Path;
 const READ_LIMIT: usize = 32 * 1024; // 32 KiB
 const LIM_CONFIDENCE: f32 = 0.8;
 
-/// A wrapper of [`CharEncoding`] with mkvmerge impls.
+/// A wrapper for [`CharEncoding`] with mkvmerge impls.
 #[derive(Clone, Debug, PartialEq)]
 pub struct SubCharset(pub CharEncoding);
 
@@ -25,7 +25,7 @@ mkvmerge_arg!(SubCharset, "--sub-charset");
 impl ToMkvmergeArgs for SubCharset {
     fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
         let enc = match &self.0 {
-            CharEncoding::MkvmergeNotRecognizable(s) => s,
+            CharEncoding::MkvmergeNotRecognizable(s) if !s.is_empty() => s,
             _ => return Vec::new(),
         };
         unwrap_or_return_vec!(mi.get::<MISavedTracks>(path))[TrackType::Sub]

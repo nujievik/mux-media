@@ -1,10 +1,9 @@
 mod attach;
 mod track;
 
-use super::mkvinfo::Mkvinfo;
 use crate::{
-    ArcPathBuf, AttachID, AttachType, IsDefault, LangCode, SubCharset, Target, TargetGroup,
-    TrackID, TrackType,
+    ArcPathBuf, AttachID, AttachType, IsDefault, LangCode, Mkvinfo, SubCharset, Target,
+    TargetGroup, TrackID, TrackType,
 };
 use enum_map::EnumMap;
 use smallvec::SmallVec;

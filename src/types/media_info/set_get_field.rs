@@ -1,9 +1,8 @@
 use super::MediaInfo;
 use super::cache::{CacheMIOfFile, CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState};
-use super::mkvinfo::Mkvinfo;
 use crate::{
-    ArcPathBuf, LangCode, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField, SubCharset,
-    Target, TargetGroup, TrackID, TrackType,
+    ArcPathBuf, LangCode, Mkvinfo, MuxError, SetGetField, SetGetPathField, SetGetPathTrackField,
+    SubCharset, Target, TargetGroup, TrackID, TrackType,
 };
 use enum_map::EnumMap;
 use smallvec::SmallVec;

@@ -1,6 +1,5 @@
-use super::super::mkvinfo::Mkvinfo;
 use super::CacheMIOfFileTrack;
-use crate::{MuxError, TrackType};
+use crate::{Mkvinfo, MuxError, TrackType};
 use log::trace;
 
 impl CacheMIOfFileTrack {

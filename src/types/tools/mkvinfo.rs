@@ -1,12 +1,28 @@
-use super::cache::CacheState;
-use crate::{LangCode, MuxError, SetGetField};
+use crate::{CacheState, LangCode, MuxError, SetGetField};
+
+/// A wrapper for mkvinfo stdout.
+#[derive(Clone, Default)]
+pub struct Mkvinfo {
+    lines: Vec<String>,
+    name: CacheState<String>,
+    lang: CacheState<LangCode>,
+}
+
+impl Mkvinfo {
+    pub(crate) fn get<F>(&mut self) -> Option<&<Self as SetGetField<F>>::FieldType>
+    where
+        Self: SetGetField<F>,
+    {
+        <Self as SetGetField<F>>::get(self)
+    }
+}
 
 macro_rules! mkvinfo_get_opt_fields {
-    ($( $field:ident, $field_ty:ty, $builder:ident => $marker:ident ),* $(,)?) => { $(
-        pub(super) struct $marker;
+    ($( $field:ident, $ty:ty, $builder:ident => $marker:ident ),* $(,)?) => { $(
+        pub(crate) struct $marker;
 
         impl SetGetField<$marker> for Mkvinfo {
-            type FieldType = $field_ty;
+            type FieldType = $ty;
 
             fn try_set(&mut self) -> Result<(), MuxError> {
                 let (state, result) = match self.$builder() {
@@ -50,26 +66,10 @@ macro_rules! mkvinfo_get_opt_fields {
     )* };
 }
 
-#[derive(Clone, Default)]
-pub struct Mkvinfo {
-    lines: Vec<String>,
-    name: CacheState<String>,
-    lang: CacheState<LangCode>,
-}
-
 mkvinfo_get_opt_fields!(
     name, String, build_name => MKVIName,
     lang, LangCode, build_lang => MKVILang,
 );
-
-impl Mkvinfo {
-    pub(super) fn get<F>(&mut self) -> Option<&<Self as SetGetField<F>>::FieldType>
-    where
-        Self: SetGetField<F>,
-    {
-        <Self as SetGetField<F>>::get(self)
-    }
-}
 
 impl std::ops::Deref for Mkvinfo {
     type Target = Vec<String>;

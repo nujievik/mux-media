@@ -14,6 +14,7 @@ fn test_empty() {
     assert!(off.add_t_flags(TFlagType::Enabled));
     assert!(off.add_names);
     assert!(off.add_langs);
+    assert!(off.add_charsets);
     //assert!(off.sort_fonts);
 }
 
@@ -26,6 +27,7 @@ fn test_pro() {
     assert!(!off.add_t_flags(TFlagType::Enabled));
     assert!(!off.add_names);
     assert!(!off.add_langs);
+    assert!(!off.add_charsets);
     //assert!(!off.sort_fonts);
 }
 
@@ -36,6 +38,7 @@ fn test_manual_on() {
     assert!(new(&["--add-enableds"]).add_t_flags(TFlagType::Enabled));
     assert!(new(&["--add-names"]).add_names);
     assert!(new(&["--add-langs"]).add_langs);
+    assert!(new(&["--add-charsets"]).add_charsets);
     //assert!(new(&["--sort-fonts"]).sort_fonts);
 }
 
@@ -46,6 +49,7 @@ fn test_manual_off() {
     assert!(!new(&["--no-add-enableds"]).add_t_flags(TFlagType::Enabled));
     assert!(!new(&["--no-add-names"]).add_names);
     assert!(!new(&["--no-add-langs"]).add_langs);
+    assert!(!new(&["--no-add-charsets"]).add_charsets);
     //assert!(!new(&["--no-sort-fonts"]).sort_fonts);
 }
 
@@ -56,6 +60,7 @@ fn test_manual_on_with_pro() {
     assert!(new(&["--pro", "--add-enableds"]).add_t_flags(TFlagType::Enabled));
     assert!(new(&["--pro", "--add-names"]).add_names);
     assert!(new(&["--pro", "--add-langs"]).add_langs);
+    assert!(new(&["--pro", "--add-charsets"]).add_charsets);
     //assert!(new(&["--pro", "--sort-fonts"]).sort_fonts);
 }
 
@@ -67,11 +72,13 @@ crate::build_test_to_json_args!(
     vec!["--no-add-enableds"],
     vec!["--no-add-names"],
     vec!["--no-add-langs"],
+    vec!["--no-add-charsets"],
     //vec!["--no-sort-fonts"],
     vec!["--pro", "--add-defaults"],
     vec!["--pro", "--add-forceds"],
     vec!["--pro", "--add-enableds"],
     vec!["--pro", "--add-names"],
     vec!["--pro", "--add-langs"],
+    vec!["--pro", "--add-charsets"],
     //vec!["--pro", "--sort-fonts"]
 );

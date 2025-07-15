@@ -50,7 +50,7 @@ pub use types::{
     range::Range,
     specials::Specials,
     target::{Target, group::TargetGroup},
-    tools::{Tools, output::ToolOutput, tool::Tool},
+    tools::{Tools, mkvinfo::Mkvinfo, output::ToolOutput, tool::Tool},
     tracks::{
         AudioTracks, ButtonTracks, SubTracks, Tracks, VideoTracks,
         flags::counts::TFlagsCounts,
