@@ -70,7 +70,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
             continue;
         }
 
-        let mut args = vec![OsString::new(); 2];
+        let mut args = vec![json_arg!(Output).into(), out.clone().into()];
 
         mi.append_os_mkvmerge_args(&mut args);
         push_fonts_to_args(&mut args, &mut fonts, input);
@@ -80,13 +80,11 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
             continue;
         }
 
-        args[0] = json_arg!(Output).into();
-        args[1] = out.into();
-
         match tools.run(Tool::Mkvmerge, &args) {
-            Ok(out) => {
-                trace!("{}", out);
-                out.log_warns();
+            Ok(tool_out) => {
+                trace!("{}", tool_out);
+                tool_out.log_warns();
+                info!("{} '{}'", Msg::SuccessMuxed, out.display());
                 cnt += 1;
             }
             Err(e) if exit_on_err => return Err(e),
