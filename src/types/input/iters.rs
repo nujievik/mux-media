@@ -52,8 +52,8 @@ impl Input {
     ///
     /// # Note
     ///
-    /// This method assumes try_finalize_init` was called beforehand.
-    /// If it wasn’t, the `dirs` field will be empty and this will simply return an empty vector.
+    /// This method assumes `try_finalize_init` was called beforehand.
+    /// If it wasn’t this will simply return an empty vector.
     pub fn collect_fonts(&self) -> Vec<PathBuf> {
         self.dirs
             .par_iter()
@@ -71,60 +71,59 @@ impl Input {
         let mut media_number = self.init_media_number();
         let mut processed = HashSet::<Arc<OsString>>::new();
 
-        self.iter_media_in_dir(&self.dir)
-            .filter_map(move |path| {
-                let up_stem = path.file_stem()?;
-                let up_stem = Arc::new(up_stem.to_os_string());
+        self.iter_media_in_dir(&self.dir).filter_map(move |path| {
+            let up_stem = path.file_stem()?;
+            let up_stem = Arc::new(up_stem.to_os_string());
 
-                if processed.contains(&up_stem) {
-                    logs::trace_found_repeat(&up_stem);
+            if processed.contains(&up_stem) {
+                logs::trace_found_repeat(&up_stem);
+                return None;
+            }
+
+            if let Some(num) = media_number.as_mut() {
+                num.upd(&up_stem);
+
+                if self
+                    .range
+                    .as_ref()
+                    .map_or(false, |range| !range.contains(num.to_u64()))
+                {
                     return None;
                 }
+            }
 
-                if let Some(num) = media_number.as_mut() {
-                    num.upd(&up_stem);
-
-                    if self
-                        .range
-                        .as_ref()
-                        .map_or(false, |range| !range.contains(num.to_u64()))
-                    {
-                        return None;
-                    }
-                }
-
-                let matched: Vec<PathBuf> = self
-                    .dirs
-                    .par_iter()
-                    .flat_map_iter(|dir| self.iter_media_in_dir(dir))
-                    .filter(|p| {
-                        p.file_stem()
-                            .map_or(false, |fs| helpers::os_str_starts_with(&up_stem, fs))
-                    })
-                    .collect();
-
-                if matched.len() < 2 {
-                    logs::debug_no_ext_media(&up_stem);
-                    return None;
-                }
-
-                processed.insert(up_stem.clone());
-
-                let out_name_middle: Arc<OsString> = match &media_number {
-                    Some(num) if self.out_need_num => OsString::from(num.as_str()).into(),
-                    None if self.out_need_num => {
-                        log::trace!("Unexpected None file_number. Use default out_name_middle");
-                        up_stem.clone()
-                    }
-                    _ => up_stem.clone(),
-                };
-
-                Some(MediaGroupedByStem {
-                    files: matched,
-                    out_name_middle,
-                    stem: up_stem,
+            let matched: Vec<PathBuf> = self
+                .dirs
+                .par_iter()
+                .flat_map_iter(|dir| self.iter_media_in_dir(dir))
+                .filter(|p| {
+                    p.file_stem()
+                        .map_or(false, |fs| helpers::os_str_starts_with(&up_stem, fs))
                 })
+                .collect();
+
+            if matched.len() < 2 {
+                logs::debug_no_ext_media(&up_stem);
+                return None;
+            }
+
+            processed.insert(up_stem.clone());
+
+            let out_name_middle: Arc<OsString> = match &media_number {
+                Some(num) if self.out_need_num => OsString::from(num.as_str()).into(),
+                None if self.out_need_num => {
+                    log::trace!("Unexpected None file_number. Use default out_name_middle");
+                    up_stem.clone()
+                }
+                _ => up_stem.clone(),
+            };
+
+            Some(MediaGroupedByStem {
+                files: matched,
+                out_name_middle,
+                stem: up_stem,
             })
+        })
     }
 
     #[inline(always)]

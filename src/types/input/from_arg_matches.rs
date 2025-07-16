@@ -36,10 +36,7 @@ impl FromArgMatches for Input {
 
         self.need_num = self.range.is_some();
         self.out_need_num = false;
-
-        if !self.dirs.is_empty() {
-            self.dirs = Vec::new();
-        }
+        self.dirs = Vec::new();
 
         Ok(())
     }

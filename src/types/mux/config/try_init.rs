@@ -1,5 +1,5 @@
 use super::{MuxConfig, MuxConfigTarget, RawMuxConfig, cli_args::MuxConfigArg};
-use crate::{CLIArg, Msg, MuxError, Target, Tool, Tools, TryFinalizeInit, TryInit};
+use crate::{CLIArg, Msg, MuxError, Output, Target, Tool, Tools, TryFinalizeInit, TryInit};
 use clap::{CommandFactory, FromArgMatches};
 use std::{
     collections::HashMap,
@@ -59,6 +59,12 @@ impl TryInit for MuxConfig {
 impl TryFinalizeInit for MuxConfig {
     fn try_finalize_init(&mut self) -> Result<(), MuxError> {
         self.input.upd_out_need_num(self.output.need_num());
+
+        if self.is_output_constructed_from_input
+            && Some(self.input.get_dir()) != self.output.get_dir().parent()
+        {
+            self.output = Output::try_from(&self.input)?;
+        }
 
         self.input.try_finalize_init()?;
         self.output.try_finalize_init()?;

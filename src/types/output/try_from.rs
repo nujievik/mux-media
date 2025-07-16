@@ -11,7 +11,7 @@ impl TryFrom<&Input> for Output {
 
     /// Attempts to construct `Self` from a subdirectory "muxed" in the input directory.
     ///
-    /// Returns an error if `std::env::current_dir()` fails.
+    /// Returns an error if [`env::current_dir()`] fails.
     ///
     /// Sets `self.dir` only, other components is default.
     ///
@@ -45,7 +45,7 @@ impl Output {
     ///
     /// 3. Otherwise, sets `self.dir` to `path.parent()`.
     ///
-    /// 4. Converts `self.dir` to an absolute path. (On Unix, expands `~` if present.)
+    /// 4. Converts `self.dir` to an absolute path. (On Unix, allows `~` start.)
     ///
     /// 5. Ensures `self.dir` ends with a `MAIN_SEPARATOR`.
     ///

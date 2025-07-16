@@ -2,7 +2,7 @@ mod from_arg_matches;
 mod iters;
 mod to_json_args;
 
-use crate::{MuxError, ArcPathBuf, Msg, GlobSetPattern, Range, TryFinalizeInit};
+use crate::{ArcPathBuf, GlobSetPattern, Msg, MuxError, Range, TryFinalizeInit};
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -13,9 +13,8 @@ use std::{
 /// # Warning
 ///
 /// This struct is not fully initialized after construction.
-/// You **must** call [`Init.finalize_init`] before using some methods
-/// (e.g. [`Input::collect_fonts`], [`Input::iter_media_grouped_by_stem`]).
-/// Otherwise, behavior be incorrect.
+/// You **must** call [`Input::try_finalize_init`] before using some methods
+/// (e.g. [`Input::collect_fonts`]). Otherwise, behavior be incorrect.
 #[derive(Clone)]
 pub struct Input {
     dir: PathBuf,

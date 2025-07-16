@@ -103,7 +103,7 @@ macro_rules! build_test_to_json_args {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
 
-        let add_args = vec!["--input", in_dir, "--output", &out_dir, "--locale", "eng"];
+        let add_args = vec!["--locale", "eng", "--input", in_dir, "--output", &out_dir];
         let json = dir.clone().join(mux_media::MuxConfig::JSON_NAME);
 
         $(

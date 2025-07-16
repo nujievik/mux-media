@@ -54,6 +54,11 @@ impl Output {
         !self.name_begin.is_empty() || !self.name_tail.is_empty()
     }
 
+    /// Returns a reference to the output directory.
+    pub fn get_dir(&self) -> &Path {
+        &self.dir
+    }
+
     /// Returns a reference to the temporary directory.
     pub fn get_temp_dir(&self) -> &Path {
         &self.temp_dir

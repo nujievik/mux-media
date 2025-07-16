@@ -22,8 +22,6 @@ impl FromArgMatches for MuxConfig {
     from_arg_matches!(@fn_update);
 
     fn from_arg_matches_mut(matches: &mut ArgMatches) -> Result<Self, Error> {
-        let input = Input::from_arg_matches_mut(matches)?;
-
         let locale = match from_arg_matches!(matches, LangCode, Locale, @no_default) {
             Some(lang) => {
                 let _ = Msg::try_upd_lang(lang);
@@ -32,9 +30,18 @@ impl FromArgMatches for MuxConfig {
             None => Msg::get_lang(),
         };
 
+        let input = Input::from_arg_matches_mut(matches)?;
+
+        let (output, is_output_constructed_from_input) = {
+            match from_arg_matches!(matches, Output, Output, @no_default) {
+                Some(out) => (out, false),
+                None => (Output::try_from(&input)?, true),
+            }
+        };
+
         Ok(Self {
-            output: from_arg_matches!(matches, Output, Output, || Output::try_from(&input), @try_default),
             input,
+            output,
             locale,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
             no_json: from_arg_matches!(matches, bool, NoJson, || false),
@@ -57,6 +64,7 @@ impl FromArgMatches for MuxConfig {
             targets: None,
             user_tools: from_arg_matches!(matches, bool, UserTools, || false),
             tools: Tools::default(),
+            is_output_constructed_from_input,
         })
     }
 
@@ -66,12 +74,12 @@ impl FromArgMatches for MuxConfig {
             self.locale = lang;
         }
 
-        self.input.update_from_arg_matches_mut(matches)?;
-
-        match from_arg_matches!(matches, Output, Output, @no_default) {
-            Some(out) => self.output = out,
-            None => self.output = Output::try_from(&self.input)?,
+        if let Some(out) = from_arg_matches!(matches, Output, Output, @no_default) {
+            self.output = out;
+            self.is_output_constructed_from_input = false;
         }
+
+        self.input.update_from_arg_matches_mut(matches)?;
 
         from_arg_matches!(
             @upd, self, matches;
@@ -81,7 +89,7 @@ impl FromArgMatches for MuxConfig {
         );
 
         self.off_on_pro.update_from_arg_matches_mut(matches)?;
-        self.retiming.update_from_arg_matches_mut(matches)?;
+        //self.retiming.update_from_arg_matches_mut(matches)?;
 
         upd_fields!(
             self, matches;

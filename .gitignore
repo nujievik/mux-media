@@ -2,4 +2,5 @@
 /tests/test_data/output/*
 !/tests/test_data/output/.gitkeep
 /tests/test_data/muxed/*
-./temp-mux-media/*
+/.temp-mux-media/*
+/muxed/*
