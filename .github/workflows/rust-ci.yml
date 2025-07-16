@@ -42,7 +42,13 @@ jobs:
         shell: powershell
         run: |
           choco install mkvtoolnix -y
+          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
 
+      - name: Check mkvtools
+        run: |
+          mkvinfo -V
+          mkvmerge -V
+      
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
