@@ -33,6 +33,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install 32-bit dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-multilib
+
       - name: Install 32-bit target
         run: rustup target add i686-unknown-linux-gnu
 
