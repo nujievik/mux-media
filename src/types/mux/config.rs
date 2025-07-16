@@ -54,6 +54,7 @@ pub struct MuxConfig {
     targets: Option<HashMap<Target, MuxConfigTarget>>,
     user_tools: bool,
     tools: Tools,
+    is_output_constructed_from_input: bool,
 }
 
 /// Contains mux settings for target.

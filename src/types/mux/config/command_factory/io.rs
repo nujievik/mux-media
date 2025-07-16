@@ -41,24 +41,10 @@ impl Blocks {
                     .value_parser(ValueParser::new(GlobSetPattern::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Up.as_long())
-                    .long(MuxConfigArg::Up.as_long())
+                Arg::new(MuxConfigArg::Depth.as_long())
+                    .long(MuxConfigArg::Depth.as_long())
                     .value_name("n")
-                    .help(Msg::HelpUp.to_str_localized())
-                    .value_parser(clap::value_parser!(u8)),
-            )
-            .arg(
-                Arg::new(MuxConfigArg::Check.as_long())
-                    .long(MuxConfigArg::Check.as_long())
-                    .value_name("n")
-                    .help(Msg::HelpCheck.to_str_localized())
-                    .value_parser(clap::value_parser!(u16).range(1..)),
-            )
-            .arg(
-                Arg::new(MuxConfigArg::Down.as_long())
-                    .long(MuxConfigArg::Down.as_long())
-                    .value_name("n")
-                    .help(Msg::HelpDown.to_str_localized())
+                    .help(Msg::HelpDepth.to_str_localized())
                     .value_parser(clap::value_parser!(u8)),
             );
 

@@ -271,17 +271,16 @@ fn test_to_json_args() {
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
 
-        let add1 = vec!["--input", s_dir];
-        let add2 = vec!["--locale", "eng"];
+        let add_args = vec!["--locale", "eng", "--input", s_dir];
         let json = d.clone().join(MuxConfig::JSON_NAME);
 
-        let mc_args = append_str_vecs([add1.clone(), add2.clone(), right]);
+        let mc_args = append_str_vecs([add_args.clone(), right]);
         let mc = cfg(mc_args);
 
         let right = mc.get::<MCOutput>().to_json_args();
         assert_eq!(to_args(&left), right);
 
-        let left = append_str_vecs([add1, left, add2]);
+        let left = append_str_vecs([add_args, left]);
         mc.write_args_to_json_or_log();
         let right = read_json_args(&json);
 

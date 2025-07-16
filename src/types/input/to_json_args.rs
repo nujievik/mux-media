@@ -22,19 +22,9 @@ impl ToJsonArgs for Input {
             }
         }
 
-        if self.up != Self::DEFAULT_UP {
-            args.push(json_arg!(Up));
-            args.push(self.up.to_string());
-        }
-
-        if self.check != Self::DEFAULT_CHECK {
-            args.push(json_arg!(Check));
-            args.push(self.check.to_string());
-        }
-
-        if self.down != Self::DEFAULT_DOWN {
-            args.push(json_arg!(Down));
-            args.push(self.down.to_string());
+        if self.depth != Self::DEFAULT_DEPTH {
+            args.push(json_arg!(Depth));
+            args.push(self.depth.to_string());
         }
 
         args

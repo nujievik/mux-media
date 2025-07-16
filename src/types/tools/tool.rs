@@ -6,7 +6,7 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, AsRefStr, Enum, EnumIter, EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Tool {
-    Ffprobe,
+    //Ffprobe,
     //Mkvextract,
     Mkvinfo,
     Mkvmerge,
@@ -25,7 +25,8 @@ impl Tool {
 
     /// Returns `true` if the tool belongs to the mkvtoolnix suite.
     pub(super) fn is_mkvtoolnix(self) -> bool {
-        self != Self::Ffprobe
+        true
+        //self != Self::Ffprobe
     }
 
     /// Returns the associated package name (`"mkvtoolnix"` or `"ffmpeg"`).

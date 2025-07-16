@@ -34,12 +34,12 @@ macro_rules! append_args_from_fields {
 
 impl ToJsonArgs for MuxConfig {
     fn to_json_args(&self) -> Vec<String> {
-        let mut args: Vec<String> = Vec::new();
-
-        append_args_from_fields!(args, self; input, output);
+        let mut args = Vec::<String>::new();
 
         args.push(json_arg!(Locale));
         args.push(self.locale.to_string());
+
+        append_args_from_fields!(args, self; input, output);
 
         append_args_from_fields!(args, self; verbosity);
         push_true_json_args!(args, self; no_json, NoJson, exit_on_err, ExitOnErr);

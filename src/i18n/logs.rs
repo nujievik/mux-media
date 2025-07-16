@@ -24,17 +24,6 @@ pub(crate) fn warn_file_is_already_exists(path: &Path) {
 }
 
 #[inline(always)]
-pub(crate) fn warn_no_input_dir_media(dir: &Path, stem: &OsStr) {
-    warn!(
-        "{} '{}'. {} '{}'",
-        Msg::NoInputDirMedia,
-        dir.display(),
-        Msg::Skipping,
-        AsRef::<Path>::as_ref(stem).display(),
-    )
-}
-
-#[inline(always)]
 pub(crate) fn warn_not_out_save_any(out: &Path) {
     warn!(
         "{} '{}'. {}",
