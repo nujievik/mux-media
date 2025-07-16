@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-linux:
-    name: Build on Ubuntu
+    name: Test and Build on Ubuntu
     runs-on: ubuntu-latest
 
     steps:
@@ -23,8 +23,35 @@ jobs:
       with:
         toolchain: stable
 
+    - name: Test
+      run: cargo test
+
+    - name: Release Test
+      run: cargo test --release
+
     - name: Build
       run: cargo build --release
 
-    - name: Test
-      run: cargo test
+  build-windows:
+    name: Test and Build on Windows
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install mkvtoolnix
+        shell: powershell
+        run: |
+          choco install mkvtoolnix -y
+
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Test
+        run: cargo test
+
+      - name: Release Test
+        run: cargo test --release
+
+      - name: Build
+        run: cargo build --release
