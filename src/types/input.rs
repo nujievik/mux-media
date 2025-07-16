@@ -1,9 +1,8 @@
 mod from_arg_matches;
 mod iters;
 mod to_json_args;
-mod try_finalize_init;
 
-use crate::{GlobSetPattern, Range};
+use crate::{MuxError, ArcPathBuf, Msg, GlobSetPattern, Range, TryFinalizeInit};
 use std::{
     fs, io,
     path::{Path, PathBuf},
@@ -14,50 +13,22 @@ use std::{
 /// # Warning
 ///
 /// This struct is not fully initialized after construction.
-/// You **must** call `self.try_finalize_init` before using any methods
-/// that rely on the `dirs` or `upmost` fields (e.g. [`Input::collect_fonts`],
-/// [`Input::iter_media_grouped_by_stem`]).
+/// You **must** call [`Init.finalize_init`] before using some methods
+/// (e.g. [`Input::collect_fonts`], [`Input::iter_media_grouped_by_stem`]).
 /// Otherwise, behavior be incorrect.
-///
-/// Typically, final initialization includes resolving the upmost directory
-/// and collecting eligible subdirectories for scanning.
 #[derive(Clone)]
 pub struct Input {
     dir: PathBuf,
     range: Option<Range<u64>>,
     skip: Option<GlobSetPattern>,
-    up: u8,
-    check: u16,
-    down: u8,
-    dir_not_upmost: bool,
+    depth: u8,
     need_num: bool,
     out_need_num: bool,
-    upmost: PathBuf,
-    dirs: Vec<PathBuf>,
-}
-
-impl Default for Input {
-    fn default() -> Self {
-        Self {
-            dir: PathBuf::from("."),
-            range: None,
-            skip: None,
-            up: Self::DEFAULT_UP,
-            check: Self::DEFAULT_CHECK,
-            down: Self::DEFAULT_DOWN,
-            dir_not_upmost: false,
-            need_num: false,
-            out_need_num: false,
-            upmost: PathBuf::from("."),
-            dirs: Vec::new(),
-        }
-    }
+    dirs: Vec<ArcPathBuf>,
 }
 
 impl Input {
-    const DEFAULT_UP: u8 = 8;
-    const DEFAULT_CHECK: u16 = 128;
-    const DEFAULT_DOWN: u8 = 16;
+    const DEFAULT_DEPTH: u8 = 16;
 
     /// Returns a normalized path via [`fs::canonicalize`] and checks it's readable via [`fs::read_dir`].
     ///
@@ -68,14 +39,9 @@ impl Input {
         Ok(dir)
     }
 
-    /// Returns a reference to the original `--input` directory.
+    /// Returns a reference to the start directory.
     pub fn get_dir(&self) -> &Path {
         &self.dir
-    }
-
-    /// Returns a reference to the resolved upmost directory.
-    pub fn get_upmost(&self) -> &Path {
-        &self.upmost
     }
 
     /// Sets output numbering flag, and enables input numbering if `true`.
@@ -91,5 +57,29 @@ impl Input {
 
     fn try_default_dir() -> Result<PathBuf, io::Error> {
         Self::try_normalize_dir(".")
+    }
+}
+
+impl TryFinalizeInit for Input {
+    /// Returns an error if not media files in the start directory;
+    /// otherwise returns Ok.
+    ///
+    /// Collects subdirectories up to the initialized depth for use in `self` methods.
+    fn try_finalize_init(&mut self) -> Result<(), MuxError> {
+        if let None = self.iter_media_in_dir(&self.dir).next() {
+            return Err(
+                [(Msg::NoInputDirMedia, format!(": {}", self.dir.display()))]
+                    .as_slice()
+                    .into(),
+            );
+        }
+
+        let skip = match &self.skip {
+            Some(skip) => Some(&skip.glob_set),
+            None => None,
+        };
+        self.dirs = iters::DirIter::new(&self.dir, self.depth as usize, skip).collect();
+
+        Ok(())
     }
 }

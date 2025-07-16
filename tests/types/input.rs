@@ -10,15 +10,6 @@ fn test_normalize() {
     assert_eq!(new_dir(""), Input::try_normalize_dir(".").unwrap());
 }
 
-#[test]
-fn test_default() {
-    let input = Input::default();
-    let dir = Path::new(".");
-
-    assert_eq!(dir, input.get_dir());
-    assert_eq!(dir, input.get_upmost());
-}
-
 fn new(args: &[&str]) -> Input {
     let mut input = cfg::<_, &&str>(args).get::<MCInput>().clone();
     input.try_finalize_init().unwrap();
@@ -80,7 +71,7 @@ fn test_iter_media_grouped_by_stem() {
         let dir = data_media(dir);
         let s_dir = dir.to_str().unwrap();
 
-        let input = new(&["-i", s_dir, "--up", "0"]);
+        let input = new(&["-i", s_dir]);
 
         let expected: Vec<Vec<PathBuf>> = files
             .iter()
@@ -100,7 +91,7 @@ fn test_skip_media() {
             let dir = data_media(dir);
             let s_dir = dir.to_str().unwrap();
 
-            let input = new(&["-i", s_dir, "--up", "0", "--skip", skip]);
+            let input = new(&["-i", s_dir, "--skip", skip]);
 
             let expected: Vec<Vec<PathBuf>> = files
                 .iter()
@@ -168,7 +159,7 @@ fn test_collect_fonts() {
         let dir = data_font(dir);
         let s_dir = dir.to_str().unwrap();
 
-        let input = new(&["-i", s_dir, "--up", "0"]);
+        let input = new(&["-i", s_dir]);
         let expected: HashSet<PathBuf> = files.iter().map(|f| data_font(f)).collect();
 
         collect_fonts_and_assert_eq(&input, &dir, &expected);
@@ -189,7 +180,7 @@ fn test_skip_fonts() {
             let dir = data_font(dir);
             let s_dir = dir.to_str().unwrap();
 
-            let input = new(&["-i", s_dir, "--up", "0", "--skip", skip]);
+            let input = new(&["-i", s_dir, "--skip", skip]);
 
             let expected: HashSet<PathBuf> = files
                 .iter()
@@ -203,28 +194,14 @@ fn test_skip_fonts() {
 }
 
 #[test]
-fn test_down() {
+fn test_depth() {
     let dir = data_font("5/");
     let s_dir = dir.to_str().unwrap();
 
     [(1, "0"), (2, "4"), (3, "10"), (4, "16"), (5, "17")]
         .into_iter()
         .for_each(|(expected_len, depth)| {
-            let input = new(&["-i", s_dir, "--up", "0", "--down", depth]);
-            assert_eq!(expected_len, input.collect_fonts().len());
-        })
-}
-
-#[test]
-fn test_up() {
-    let dir = data_font("5/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/17/");
-    let s_dir = dir.to_str().unwrap();
-
-    [(1, "0"), (5, "17")]
-        .into_iter()
-        .for_each(|(expected_len, depth)| {
-            let input = new(&["-i", s_dir, "--up", depth, "--down", "17"]);
-            dbg!(input.collect_fonts());
+            let input = new(&["-i", s_dir, "--depth", depth]);
             assert_eq!(expected_len, input.collect_fonts().len());
         })
 }

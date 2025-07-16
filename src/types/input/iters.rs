@@ -1,5 +1,6 @@
 use super::Input;
-use crate::{EXTENSIONS, GlobSetPattern, MediaNumber, i18n::logs, types::helpers};
+use crate::{ArcPathBuf, EXTENSIONS, MediaNumber, i18n::logs, types::helpers};
+use globset::GlobSet;
 use rayon::prelude::*;
 use std::{
     collections::HashSet,
@@ -10,8 +11,8 @@ use std::{
 use walkdir::{IntoIter, WalkDir};
 
 macro_rules! iter_any_files_in_dir {
-    ($id_fn:ident, $exts:ident) => {
-        pub(super) fn $id_fn(&self, dir: &Path) -> impl Iterator<Item = PathBuf> {
+    ($fn:ident, $exts:ident) => {
+        pub(super) fn $fn(&self, dir: &Path) -> impl Iterator<Item = PathBuf> {
             std::fs::read_dir(dir)
                 .ok()
                 .into_iter()
@@ -68,14 +69,14 @@ impl Input {
     /// If it wasn’t, the iterator will yield no items.
     pub fn iter_media_grouped_by_stem<'a>(&'a self) -> impl Iterator<Item = MediaGroupedByStem> {
         let mut media_number = self.init_media_number();
-        let mut repeats: HashSet<Arc<OsString>> = HashSet::new();
+        let mut processed = HashSet::<Arc<OsString>>::new();
 
-        self.iter_media_in_dir(&self.upmost)
+        self.iter_media_in_dir(&self.dir)
             .filter_map(move |path| {
                 let up_stem = path.file_stem()?;
                 let up_stem = Arc::new(up_stem.to_os_string());
 
-                if repeats.contains(&up_stem) {
+                if processed.contains(&up_stem) {
                     logs::trace_found_repeat(&up_stem);
                     return None;
                 }
@@ -107,34 +108,7 @@ impl Input {
                     return None;
                 }
 
-                let mut cnt_upmost = 0;
-                let mut cnt_dir = 0;
-                let mut inserted_repeat = false;
-
-                matched.iter().for_each(|path| {
-                    path.parent().map_or({}, |parent| {
-                        if parent == self.upmost {
-                            cnt_upmost += 1;
-
-                            if !inserted_repeat && cnt_upmost > 1 {
-                                repeats.insert(up_stem.clone());
-                                inserted_repeat = true;
-                            }
-
-                            // The second if-block will *never* execute under any condition.
-                            return;
-                        }
-
-                        if self.dir_not_upmost && parent == self.dir {
-                            cnt_dir += 1;
-                        }
-                    })
-                });
-
-                if self.dir_not_upmost && cnt_dir == 0 {
-                    logs::warn_no_input_dir_media(&self.dir, &up_stem);
-                    return None;
-                }
+                processed.insert(up_stem.clone());
 
                 let out_name_middle: Arc<OsString> = match &media_number {
                     Some(num) if self.out_need_num => OsString::from(num.as_str()).into(),
@@ -156,7 +130,7 @@ impl Input {
     #[inline(always)]
     fn init_media_number(&self) -> Option<MediaNumber> {
         (self.need_num || self.out_need_num)
-            .then(|| self.iter_media_in_dir(&self.upmost).skip(1).next())
+            .then(|| self.iter_media_in_dir(&self.dir).skip(1).next())
             .flatten()
             .and_then(|path| path.file_stem().map(MediaNumber::from))
     }
@@ -169,16 +143,16 @@ pub struct MediaGroupedByStem {
 }
 
 pub(super) struct DirIter<'a> {
-    seen: HashSet<PathBuf>,
+    seen: HashSet<ArcPathBuf>,
     walker: IntoIter,
-    skip: Option<&'a GlobSetPattern>,
+    skip: Option<&'a GlobSet>,
 }
 
 impl<'a> DirIter<'a> {
-    pub fn new(root: impl AsRef<Path>, down: u8, skip: Option<&'a GlobSetPattern>) -> Self {
+    pub fn new(root: &Path, depth: usize, skip: Option<&'a GlobSet>) -> Self {
         let walker = WalkDir::new(root)
             .follow_links(true)
-            .max_depth(down as usize)
+            .max_depth(depth)
             .into_iter();
 
         Self {
@@ -191,35 +165,37 @@ impl<'a> DirIter<'a> {
     #[inline(always)]
     fn should_skip(&self, path: &Path) -> bool {
         match self.skip {
-            Some(pat) => pat.glob_set.is_match(path),
+            Some(gs) => gs.is_match(path),
             None => false,
         }
     }
 }
 
 impl<'a> Iterator for DirIter<'a> {
-    type Item = PathBuf;
+    type Item = ArcPathBuf;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while let Some(entry_result) = self.walker.next() {
-            match entry_result {
-                Ok(entry) => {
-                    let path = entry.path();
+        while let Some(entry) = self.walker.next() {
+            let entry = match entry {
+                Ok(entry) if entry.file_type().is_dir() => entry,
+                _ => continue,
+            };
 
-                    if entry.file_type().is_dir() {
-                        if self.should_skip(path) {
-                            continue;
-                        }
+            let path = entry.path();
 
-                        if let Ok(real_path) = std::fs::canonicalize(path) {
-                            if self.seen.insert(real_path.clone()) {
-                                return Some(real_path);
-                            }
-                        }
-                    }
-                }
-                Err(_) => continue,
+            if self.should_skip(path) {
+                continue;
             }
+
+            let path = match std::fs::canonicalize(path) {
+                Ok(path) if !self.seen.contains(path.as_path()) => path,
+                _ => continue,
+            };
+
+            let path = ArcPathBuf::from(path);
+            self.seen.insert(path.clone());
+
+            return Some(path);
         }
         None
     }

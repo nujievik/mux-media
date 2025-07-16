@@ -27,7 +27,7 @@ impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
     fn from(mc: &'a MuxConfig) -> Self {
         let off_on_pro = mc.get::<MCOffOnPro>();
         let tools = mc.get::<MCTools>();
-        let upmost = mc.get::<MCInput>().get_upmost();
+        let upmost = mc.get::<MCInput>().get_dir();
         Self {
             mc,
             off_on_pro,
