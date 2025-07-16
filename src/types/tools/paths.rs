@@ -38,7 +38,6 @@ impl Tools {
             let bytes = match tool {
                 Tool::Mkvinfo => MKVINFO_BUNDLED,
                 Tool::Mkvmerge => MKVMERGE_BUNDLED,
-                _ => return Err("Tool not bundled".into()),
             };
 
             let mut tool_path = temp_dir.join(tool.as_ref());

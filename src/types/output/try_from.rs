@@ -11,7 +11,7 @@ impl TryFrom<&Input> for Output {
 
     /// Attempts to construct `Self` from a subdirectory "muxed" in the input directory.
     ///
-    /// Returns an error if [`env::current_dir()`] fails.
+    /// Returns an error if [`current_dir`] fails.
     ///
     /// Sets `self.dir` only, other components is default.
     ///
@@ -31,7 +31,7 @@ impl Output {
     /// `[dir][MAIN_SEPARATOR][name_begin][,][name_tail][.ext]`.
     ///
     /// Any component is optional. The method tries to infer meaningful values from the input.
-    /// Returns an error if `std::env::current_dir()` fails.
+    /// Returns an error if [`current_dir`] fails.
     ///
     /// # Path Parsing Rules
     ///
