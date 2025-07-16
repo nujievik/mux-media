@@ -69,8 +69,10 @@ fn test_from_input() {
         .for_each(|dir| {
             let dir = data_file(dir);
             let in_dir = dir.to_str().unwrap();
-            let out_dir = format!("{}/muxed", in_dir);
-            let out_dir = PathBuf::from(s_sep(out_dir));
+            let _ = new(&["-o", in_dir]);
+
+            let out_dir = format!("{}{}", in_dir, s_sep("/muxed"));
+            let out_dir = PathBuf::from(out_dir);
 
             let input = from_cfg::<MCInput>(vec!["-i", in_dir]);
             let mut out = Output::try_from(&input).unwrap();

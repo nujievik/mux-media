@@ -5,9 +5,14 @@ use std::path::{Path, PathBuf};
 pub const MAX_U64_STR: &'static str = "18446744073709551615";
 
 #[cfg(unix)]
-static SEP_B: &[u8] = b"/";
+const SEP_B: &[u8] = b"/";
 #[cfg(windows)]
-static SEP_B: &[u8] = b"\\";
+const SEP_B: &[u8] = b"\\";
+
+#[cfg(unix)]
+const ALT_SEP_B: &[u8] = b"\\";
+#[cfg(windows)]
+const ALT_SEP_B: &[u8] = b"/";
 
 pub fn s_sep(s: impl AsRef<str>) -> String {
     #[cfg(unix)]
@@ -21,7 +26,7 @@ pub fn s_sep(s: impl AsRef<str>) -> String {
 }
 
 pub fn new_dir(subdir: impl AsRef<OsStr>) -> PathBuf {
-    let sep_end = subdir.as_ref().as_encoded_bytes().ends_with(SEP_B);
+    let sep_end = is_sep_end(&subdir);
 
     let mut dir = std::env::current_dir().unwrap();
     dir.push(subdir.as_ref());
@@ -49,7 +54,7 @@ pub fn data_dir() -> PathBuf {
 }
 
 pub fn data_file(file: impl AsRef<OsStr>) -> PathBuf {
-    let sep_end = file.as_ref().as_encoded_bytes().ends_with(SEP_B);
+    let sep_end = is_sep_end(&file);
 
     let mut path = data_dir();
     path.push(file.as_ref());
@@ -118,6 +123,11 @@ pub fn read_json_args(path: &Path) -> Vec<String> {
     let file = std::fs::File::open(path).unwrap();
     let reader = std::io::BufReader::new(file);
     serde_json::from_reader(reader).unwrap()
+}
+
+fn is_sep_end(oss: impl AsRef<OsStr>) -> bool {
+    let bytes = oss.as_ref().as_encoded_bytes();
+    bytes.ends_with(SEP_B) || bytes.ends_with(ALT_SEP_B)
 }
 
 fn ensure_ends_sep(path: PathBuf) -> PathBuf {
