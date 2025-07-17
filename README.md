@@ -41,8 +41,7 @@ media directory.
 
 - Media is searched in:
   - the start directory
-  - the uppermost media directory (with a matching name prefix)
-  - all its subdirectories
+  - all its subdirectories up to given depth (default 16)
 
 ## Manual Build
 
