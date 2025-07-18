@@ -174,10 +174,18 @@ jobs:
           name: mux-media-macos-x64
           path: artifacts/macos
 
+      - name: Set tag name
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
           files: |
             artifacts/linux/*
             artifacts/windows/*
