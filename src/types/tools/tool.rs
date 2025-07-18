@@ -8,7 +8,6 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 pub enum Tool {
     //Ffprobe,
     //Mkvextract,
-    Mkvinfo,
     Mkvmerge,
 }
 

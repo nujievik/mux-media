@@ -66,11 +66,11 @@ fn test_path_target() {
 
     let dir_str = current_dir.to_str().unwrap();
 
-    let raw = new(&["--target", dir_str, "--x", "--y", "--mkvinfo"]);
+    let raw = new(&["--target", dir_str, "--x", "--y", "--mkvmerge"]);
 
     match raw.call_tool {
-        Some((Tool::Mkvinfo, _)) => {}
-        _ => panic!("Expected mkvinfo tool"),
+        Some((Tool::Mkvmerge, _)) => {}
+        _ => panic!("Expected mvkmerge tool"),
     }
 
     let canonical_dir = current_dir.canonicalize().unwrap();
@@ -120,11 +120,11 @@ fn test_locale() {
 
 #[test]
 fn test_only_tool() {
-    let raw = new(&["--mkvinfo", "-h"]);
+    let raw = new(&["--mkvmerge", "-h"]);
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);
-    assert_eq!(Some((Tool::Mkvinfo, oss(&["-h"]))), raw.call_tool);
+    assert_eq!(Some((Tool::Mkvmerge, oss(&["-h"]))), raw.call_tool);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);
 }

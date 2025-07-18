@@ -17,11 +17,6 @@ macro_rules! embed_tool_bin {
 }
 
 embed_tool_bin!(
-    MKVINFO_BUNDLED,
-    "/assets/win64/mkvinfo.exe",
-    "/assets/win32/mkvinfo.exe"
-);
-embed_tool_bin!(
     MKVMERGE_BUNDLED,
     "/assets/win64/mkvmerge.exe",
     "/assets/win32/mkvmerge.exe"
@@ -36,7 +31,6 @@ impl Tools {
     ) -> Result<(), MuxError> {
         if let None = self.paths[tool] {
             let bytes = match tool {
-                Tool::Mkvinfo => MKVINFO_BUNDLED,
                 Tool::Mkvmerge => MKVMERGE_BUNDLED,
             };
 

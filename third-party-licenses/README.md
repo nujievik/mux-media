@@ -35,6 +35,10 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/log
   
+- **matroska**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/matroska
+  
 - **once-cell**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/once_cell

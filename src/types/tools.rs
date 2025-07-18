@@ -1,4 +1,3 @@
-pub(crate) mod mkvinfo;
 pub(crate) mod output;
 mod paths;
 pub(crate) mod tool;

@@ -1,7 +1,7 @@
 [package]
 name = "mux-media"
 license = "GPL-3.0"
-version = "0.13.2"
+version = "0.13.4-dev"
 edition = "2024"
 repository = "https://github.com/nujievik/mux-media"
 description = "A simple automated solution for muxing media (e.g. video, audio, subtitles)."
@@ -20,6 +20,7 @@ clap = "4.5"
 enum-map = "2.7"
 globset = "0.4"
 log = "0.4"
+matroska = "0.30.0"
 once_cell = "1.21.3"
 phf = { version = "0.12.1", features = ["macros"] }
 rayon = "1.10.0"

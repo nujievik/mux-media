@@ -266,3 +266,9 @@ impl From<serde_json::Error> for MuxError {
         Self::from_any(err)
     }
 }
+
+impl From<matroska::MatroskaError> for MuxError {
+    fn from(err: matroska::MatroskaError) -> Self {
+        Self::from_any(err)
+    }
+}

@@ -206,7 +206,7 @@ fn test_target_group() {
 }
 
 #[test]
-fn test_mkvinfo() {
+fn test_matroska() {
     let mut mi = new();
 
     [
@@ -220,7 +220,7 @@ fn test_mkvinfo() {
     .iter()
     .for_each(|f| {
         let f = data_file(f);
-        mi.try_get::<MIMkvinfo>(&f).unwrap();
+        mi.try_get::<MIMatroska>(&f).unwrap();
     })
 }
 

@@ -10,7 +10,7 @@ fn test_from_track_type() {
     ];
 
     for (group, tt) in cases {
-        assert!(group == TargetGroup::from(tt));
+        assert_eq!(group, TargetGroup::try_from(tt).unwrap());
     }
 }
 

@@ -58,14 +58,18 @@ impl AsRef<Path> for TargetGroup {
     }
 }
 
-impl From<TrackType> for TargetGroup {
-    fn from(tt: TrackType) -> Self {
-        match tt {
+impl TryFrom<TrackType> for TargetGroup {
+    type Error = MuxError;
+
+    fn try_from(tt: TrackType) -> Result<Self, Self::Error> {
+        let group = match tt {
             TrackType::Audio => Self::Audio,
             TrackType::Sub => Self::Subs,
             TrackType::Video => Self::Video,
             TrackType::Button => Self::Buttons,
-        }
+            _ => return Err("Unsupported track type".into()),
+        };
+        Ok(group)
     }
 }
 

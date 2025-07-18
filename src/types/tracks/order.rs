@@ -167,6 +167,7 @@ impl OrderSortKey {
             TrackType::Audio => 1,
             TrackType::Sub => 2,
             TrackType::Button => 3,
+            _ => 4,
         };
 
         let flag_order = |flag: Option<bool>| match flag {

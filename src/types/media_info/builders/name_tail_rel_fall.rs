@@ -1,8 +1,6 @@
 use crate::{
     LangCode, MICmnRegexWord, MIGroupStem, MIPathTail, MIRelativeUpmost, MITIName, MITracksInfo,
-    MediaInfo, MuxError, TargetGroup, TrackType,
-    types::helpers,
-    types::tools::mkvinfo::{MKVILang, MKVIName},
+    MediaInfo, MuxError, TargetGroup, TrackType, types::helpers,
 };
 use regex::Regex;
 use std::path::Path;
@@ -41,7 +39,8 @@ impl MediaInfo<'_> {
         for tt in [TrackType::Video, TrackType::Audio, TrackType::Sub] {
             if let Some(&(num, _)) = num_types.iter().find(|(_, t)| *t == tt) {
                 if tt != TrackType::Sub {
-                    return Ok(tt.into());
+                    let group = TargetGroup::try_from(tt)?;
+                    return Ok(group);
                 }
 
                 let val = from_name_tail_relative_or_fallback!(
@@ -79,12 +78,13 @@ impl MediaInfo<'_> {
 
     pub(crate) fn build_ti_name(&mut self, path: &Path, num: u64) -> Result<String, MuxError> {
         Ok(self
-            .get_mut_track_cache(path, num)
+            .get::<MITracksInfo>(path)
+            .and_then(|ti| ti.get(&num))
             .and_then(|cache| {
                 cache
-                    .mkvinfo_cutted
-                    .as_mut()
-                    .and_then(|mkvi| mkvi.get::<MKVIName>().cloned())
+                    .matroska
+                    .as_ref()
+                    .and_then(|matroska| matroska.name.as_ref().map(|n| n.to_string()))
             })
             .or_else(|| {
                 self.try_get::<MIPathTail>(path).ok().and_then(|s| {
@@ -105,9 +105,14 @@ impl MediaInfo<'_> {
             .get_mut_track_cache(path, num)
             .and_then(|cache| {
                 cache
-                    .mkvinfo_cutted
-                    .as_mut()
-                    .and_then(|mkvi| mkvi.get::<MKVILang>().copied())
+                    .matroska
+                    .as_ref()
+                    .and_then(|matroska| {
+                        matroska
+                            .language
+                            .as_ref()
+                            .and_then(|lng| lng.to_string().parse::<LangCode>().ok())
+                    })
                     .filter(|lang| *lang != LangCode::Und)
             })
             .unwrap_or_else(|| {
