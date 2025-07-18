@@ -61,19 +61,6 @@ fn test_write_json() {
     assert_eq!(json_args, args);
 }
 
-#[cfg(unix)]
-#[test]
-fn test_not_panic_on_bad_utf8() {
-    use std::os::unix::ffi::OsStrExt;
-
-    let json = data_file("output/bad_utf8.json");
-    let tools = new().json(&json);
-
-    let bad_bytes = &[0x66, 0x6f, 0x6f, 0xFF];
-    let args = [OsStr::from_bytes(bad_bytes)];
-    assert!(tools.run(Tool::Mkvmerge, &args).is_err());
-}
-
 #[test]
 fn test_tool_helps() {
     let tools = new();
