@@ -61,6 +61,34 @@ impl Input {
             .collect()
     }
 
+    /// Collects all font files from the discovered directories,
+    /// sorts its by stem and filters stem duplicates.
+    ///
+    /// # Note
+    ///
+    /// This method assumes `try_finalize_init` was called beforehand.
+    /// If it wasn’t this will simply return an empty vector.
+    pub fn collect_fonts_with_filter_and_sort(&self) -> Vec<PathBuf> {
+        let mut seen = HashSet::<OsString>::new();
+
+        let mut fonts: Vec<PathBuf> = self
+            .collect_fonts()
+            .into_iter()
+            .filter(|font| {
+                match font.file_stem() {
+                    Some(stem) if !seen.contains(stem) => {
+                        let _ = seen.insert(stem.to_owned());
+                        true
+                    }
+                    _ => false,
+                }
+            })
+            .collect();
+
+        fonts.sort_by(|a, b| a.file_stem().cmp(&b.file_stem()));
+        fonts
+    }
+
     /// Returns an iterator over grouped media files by stem from discovered directories.
     ///
     /// # Note
