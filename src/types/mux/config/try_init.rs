@@ -71,26 +71,26 @@ impl TryFinalizeInit for MuxConfig {
 
         let temp_dir = self.output.get_temp_dir();
 
-        #[cfg(unix)]
+        #[cfg(not(all(windows, any(target_arch = "x86", target_arch = "x86_64"))))]
         {
-            self.tools.try_upd_tools_paths(Tool::iter_mkvtoolnix())?;
+            self.tools.try_upd_paths(Tool::iter_mkvtoolnix())?;
         }
 
-        #[cfg(windows)]
+        #[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
         {
             match self.user_tools {
                 true => self
                     .tools
-                    .try_upd_tools_paths(Tool::iter_mkvtoolnix())
+                    .try_upd_paths(Tool::iter_mkvtoolnix())
                     .or_else(|e| {
                         self.tools
-                            .try_upd_tools_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
+                            .try_upd_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
                             .map_err(|_| e)
                     }),
                 false => self
                     .tools
-                    .try_upd_tools_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
-                    .or_else(|_| self.tools.try_upd_tools_paths(Tool::iter_mkvtoolnix())),
+                    .try_upd_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
+                    .or_else(|_| self.tools.try_upd_paths(Tool::iter_mkvtoolnix())),
             }?
         }
 
