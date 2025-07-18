@@ -92,6 +92,45 @@ jobs:
           name: mux-media-win32
           path: mux-media-win32.zip
 
+  build-macos:
+    name: Build on macOS (Apple Silicon)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build for macOS (native)
+        run: cargo build --release
+
+      - name: Zip binary
+        run: zip -j mux-media-macos-aarch64.zip target/release/mux-media
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-macos-aarch64
+          path: mux-media-macos-aarch64.zip
+
+  build-macos-x64:
+    name: Build on macOS (x86_64)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install x86_64 target
+        run: rustup target add x86_64-apple-darwin
+
+      - name: Build for macOS x86_64
+        run: cargo build --release --target=x86_64-apple-darwin
+
+      - name: Zip binary
+        run: zip -j mux-media-macos-x64.zip target/x86_64-apple-darwin/release/mux-media
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-macos-x64
+          path: mux-media-macos-x64.zip
+
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
@@ -118,6 +157,16 @@ jobs:
           name: mux-media-win32
           path: artifacts/windows
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-macos-aarch64
+          path: artifacts/macos
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-macos-x64
+          path: artifacts/macos
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -125,5 +174,6 @@ jobs:
           files: |
             artifacts/linux/*
             artifacts/windows/*
+            artifacts/macos/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
