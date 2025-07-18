@@ -27,7 +27,7 @@ pub use types::{
         cache::{CacheMI, CacheState},
         // Get Field MediaInfo markers
         set_get_field::{
-            MIAttachsInfo, MICmnRegexAID, MICmnRegexTID, MICmnRegexWord, MIGroupStem, MIMkvinfo,
+            MIAttachsInfo, MICmnRegexAID, MICmnRegexTID, MICmnRegexWord, MIGroupStem, MIMatroska,
             MIMkvmergeI, MIPathTail, MIRelativeUpmost, MISavedTracks, MISubCharset, MITILang,
             MITIName, MITITrackIDs, MITargetGroup, MITargets, MITracksInfo,
         },
@@ -50,7 +50,7 @@ pub use types::{
     range::Range,
     specials::Specials,
     target::{Target, group::TargetGroup},
-    tools::{Tools, mkvinfo::Mkvinfo, output::ToolOutput, tool::Tool},
+    tools::{Tools, output::ToolOutput, tool::Tool},
     tracks::{
         AudioTracks, ButtonTracks, SubTracks, Tracks, VideoTracks,
         flags::counts::TFlagsCounts,

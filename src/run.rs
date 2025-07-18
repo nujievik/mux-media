@@ -100,7 +100,7 @@ fn try_mux(mc: &MuxConfig, output: &Output) -> Result<usize, MuxError> {
 #[inline(always)]
 fn push_fonts_to_args(args: &mut Vec<OsString>, fonts: &mut Option<Vec<PathBuf>>, input: &Input) {
     fonts
-        .get_or_insert_with(|| input.collect_fonts())
+        .get_or_insert_with(|| input.collect_fonts_with_filter_and_sort())
         .iter()
         .for_each(|f| {
             args.push("--attach-file".into());

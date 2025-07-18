@@ -59,7 +59,7 @@ cd mux-media
 
 4. Build:
 ```
-cargo build --release
+cargo build --release --locked
 ```
 
 5. On success, the binary will be in `target/release/mux-media`

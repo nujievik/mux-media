@@ -1,9 +1,10 @@
 pub(crate) mod attach;
 pub(crate) mod track;
 
-use crate::{ArcPathBuf, IsDefault, Mkvinfo, SubCharset, Target, TargetGroup, TrackType};
+use crate::{ArcPathBuf, IsDefault, SubCharset, Target, TargetGroup, TrackType};
 use attach::CacheMIOfFileAttach;
 use enum_map::EnumMap;
+use matroska::Matroska;
 use regex::Regex;
 use smallvec::SmallVec;
 use std::{
@@ -53,7 +54,7 @@ pub struct CacheMIOfGroup {
 /// Cache of [`crate::MediaInfo`] is separate for each media.
 #[derive(Clone, Default)]
 pub struct CacheMIOfFile {
-    pub mkvinfo: CacheState<Mkvinfo>,
+    pub matroska: CacheState<Matroska>,
     pub mkvmerge_i: CacheState<Vec<String>>,
     pub path_tail: CacheState<String>,
     pub relative_upmost: CacheState<String>,

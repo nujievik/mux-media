@@ -1,10 +1,11 @@
 use super::MediaInfo;
 use super::cache::{CacheMIOfFile, CacheState};
 use crate::{
-    ArcPathBuf, CacheMIOfFileAttach, CacheMIOfFileTrack, LangCode, Mkvinfo, MuxError, SetGetField,
+    ArcPathBuf, CacheMIOfFileAttach, CacheMIOfFileTrack, LangCode, MuxError, SetGetField,
     SetGetPathField, SetGetPathTrackField, SubCharset, Target, TargetGroup, TrackID, TrackType,
 };
 use enum_map::EnumMap;
+use matroska::Matroska;
 use regex::Regex;
 use smallvec::SmallVec;
 use std::{
@@ -147,6 +148,7 @@ macro_rules! set_get_path_fields {
 
             fn try_get(&mut self, path: &Path, num: u64) -> Result<&Self::FieldType, MuxError> {
                 let tic = self.get_mut_track_cache(path, num).ok_or("None CacheMIOfFileTrack")?;
+
                 let need_try_set = match tic.$tic_field {
                     CacheState::NotCached => true,
                     _ => false,
@@ -185,7 +187,7 @@ set_get_fields!(
 );
 
 set_get_path_fields!(
-    mkvinfo, Mkvinfo, build_mkvinfo => MIMkvinfo;
+    matroska, Matroska, build_matroska => MIMatroska;
     mkvmerge_i, Vec<String>, build_mkvmerge_i => MIMkvmergeI;
     path_tail, String, build_path_tail => MIPathTail;
     relative_upmost, String, build_relative_upmost => MIRelativeUpmost;

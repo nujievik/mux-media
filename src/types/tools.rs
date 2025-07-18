@@ -1,4 +1,3 @@
-pub(crate) mod mkvinfo;
 pub(crate) mod output;
 mod paths;
 pub(crate) mod tool;
@@ -25,14 +24,14 @@ impl Tools {
     /// Returns an error if any tool path cannot be resolved.
     pub fn try_from_tools(tools: impl IntoIterator<Item = Tool>) -> Result<Self, MuxError> {
         let mut new = Self::default();
-        new.try_upd_tools_paths(tools)?;
+        new.try_upd_paths(tools)?;
         Ok(new)
     }
 
     /// Resolves and caches the path to the specified tool if not already set.
     ///
     /// Returns an error if tool path cannot be resolved.
-    pub fn try_upd_tool_path(&mut self, tool: Tool) -> Result<(), MuxError> {
+    pub fn try_upd_path(&mut self, tool: Tool) -> Result<(), MuxError> {
         if let None = self.paths[tool] {
             let path = try_get_tool_path(tool)?;
             self.paths[tool] = Some(path);
@@ -43,12 +42,9 @@ impl Tools {
     /// Resolves and caches paths to the specified tools.
     ///
     /// Returns an error if any tool path cannot be resolved.
-    pub fn try_upd_tools_paths(
-        &mut self,
-        tools: impl IntoIterator<Item = Tool>,
-    ) -> Result<(), MuxError> {
+    pub fn try_upd_paths(&mut self, tools: impl IntoIterator<Item = Tool>) -> Result<(), MuxError> {
         for tool in tools {
-            self.try_upd_tool_path(tool)?;
+            self.try_upd_path(tool)?;
         }
         Ok(())
     }
@@ -71,6 +67,11 @@ impl Tools {
     pub fn json(mut self, json: impl Into<PathBuf>) -> Self {
         self.upd_json(json);
         self
+    }
+
+    /// Returns a reference to the tool path value if exists.
+    pub fn get_path(&self, tool: Tool) -> Option<&PathBuf> {
+        self.paths[tool].as_ref()
     }
 
     /// Runs the specified tool with the given arguments.

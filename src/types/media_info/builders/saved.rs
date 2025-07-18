@@ -50,6 +50,7 @@ impl MediaInfo<'_> {
                     .get_or_insert_with(|| self.mc.get_trg::<MCVideoTracks>(targets).inner()),
                 TrackType::Button => b_tracks
                     .get_or_insert_with(|| self.mc.get_trg::<MCButtonTracks>(targets).inner()),
+                _ => return,
             };
 
             if tracks.save_track(&TrackID::Num(num), &TrackID::Lang(lang)) {
@@ -58,6 +59,7 @@ impl MediaInfo<'_> {
                     TrackType::Sub => &mut sub_nums,
                     TrackType::Video => &mut video_nums,
                     TrackType::Button => &mut button_nums,
+                    _ => return,
                 };
                 nums.insert(num);
             }

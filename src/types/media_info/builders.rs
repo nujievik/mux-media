@@ -3,9 +3,10 @@ mod saved;
 
 use super::MediaInfo;
 use crate::{
-    CacheMIOfFileAttach, CacheMIOfFileTrack, EXTENSIONS, MICmnRegexAID, MICmnRegexTID, MIMkvinfo,
-    MIMkvmergeI, MITILang, MITargetGroup, Mkvinfo, MuxError, SubCharset, Target, Tool, TrackID,
+    CacheMIOfFileAttach, CacheMIOfFileTrack, EXTENSIONS, MICmnRegexAID, MICmnRegexTID, MIMatroska,
+    MIMkvmergeI, MITILang, MITargetGroup, MuxError, SubCharset, Target, Tool, TrackID,
 };
+use matroska::Matroska;
 use regex::Regex;
 use smallvec::SmallVec;
 use std::{
@@ -44,17 +45,16 @@ impl MediaInfo<'_> {
         path.try_into()
     }
 
-    pub(super) fn build_mkvinfo(&mut self, path: &Path) -> Result<Mkvinfo, MuxError> {
+    pub(super) fn build_matroska(&mut self, path: &Path) -> Result<Matroska, MuxError> {
         if !path.extension().map_or(false, |ext| {
             EXTENSIONS.matroska.contains(ext.as_encoded_bytes())
         }) {
             return Err(format!("File '{}' not has Matroska extension", path.display()).into());
         }
 
-        let out = self.tools.run(Tool::Mkvinfo, &[path])?;
-        let s: Vec<String> = out.as_str_stdout().lines().map(String::from).collect();
+        let matroska = matroska::open(path)?;
 
-        Ok(s.into())
+        Ok(matroska)
     }
 
     pub(super) fn build_mkvmerge_i(&mut self, path: &Path) -> Result<Vec<String>, MuxError> {
@@ -88,6 +88,22 @@ impl MediaInfo<'_> {
         &mut self,
         path: &Path,
     ) -> Result<HashMap<u64, CacheMIOfFileTrack>, MuxError> {
+        if let Ok(matroska) = self.try_get::<MIMatroska>(path) {
+            let map = matroska
+                .tracks
+                .clone()
+                .into_iter()
+                .map(|track| {
+                    // track num in Matroska has 1-based indexing
+                    // crate is used 0-based indexing
+                    let num = track.number - 1;
+                    CacheMIOfFileTrack::try_from(track).map(|cache| (num, cache))
+                })
+                .collect::<Result<HashMap<_, _>, _>>()?;
+
+            return Ok(map);
+        }
+
         let re = self.try_get_cmn::<MICmnRegexTID>()?.clone();
         let mkvmerge_i = self.try_get::<MIMkvmergeI>(path)?;
 
@@ -104,15 +120,12 @@ impl MediaInfo<'_> {
             })
             .collect();
 
-        let mkvinfo = self.get::<MIMkvinfo>(path);
-        let ti: HashMap<u64, CacheMIOfFileTrack> = num_lines
+        let map: HashMap<u64, CacheMIOfFileTrack> = num_lines
             .into_iter()
-            .map(|(num, line)| {
-                CacheMIOfFileTrack::try_init(num, line, mkvinfo).map(|cache| (num, cache))
-            })
+            .map(|(num, line)| CacheMIOfFileTrack::try_from(line).map(|cache| (num, cache)))
             .collect::<Result<_, _>>()?;
 
-        Ok(ti)
+        Ok(map)
     }
 
     pub(super) fn build_attachs_info(

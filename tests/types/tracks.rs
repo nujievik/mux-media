@@ -4,6 +4,8 @@ mod flags;
 mod langs;
 #[path = "tracks/names.rs"]
 mod names;
+#[path = "tracks/track_type.rs"]
+mod track_type;
 
 use crate::common::*;
 use crate::*;
