@@ -134,7 +134,7 @@ jobs:
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-linux, build-linux-32bit, build-windows, build-windows-32bit]
+    needs: [build-linux, build-linux-32bit, build-windows, build-windows-32bit, build-macos, build-macos-x64]
 
     steps:
       - uses: actions/download-artifact@v4
