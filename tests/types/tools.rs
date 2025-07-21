@@ -26,6 +26,8 @@ fn test_set_paths() {
 #[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
 #[test]
 fn test_set_bundled_paths() {
+    use mux_media::markers::MCTools;
+
     let d = data_dir();
     let dir = data_file("tools_bundled/");
     let args = vec![Path::new("-i"), &d, Path::new("-o"), &dir];
