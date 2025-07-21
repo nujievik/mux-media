@@ -4,6 +4,9 @@ mod run;
 mod traits;
 mod types;
 
+/// Field markers for [`MuxConfig`] and [`MediaInfo`].
+pub mod markers;
+
 pub use i18n::Msg;
 pub use run::run;
 
@@ -25,22 +28,9 @@ pub use types::{
     media_info::{
         MediaInfo,
         cache::{CacheMI, CacheState},
-        // Get Field MediaInfo markers
-        set_get_field::{
-            MIAttachsInfo, MICmnRegexAID, MICmnRegexTID, MICmnRegexWord, MIGroupStem, MIMatroska,
-            MIMkvmergeI, MIPathTail, MIRelativeUpmost, MISavedTracks, MISubCharset, MITILang,
-            MITIName, MITITrackIDs, MITargetGroup, MITargets, MITracksInfo,
-        },
     },
     media_number::MediaNumber,
     mux::{
-        // Get Field MuxConfig markers
-        config::getters::{
-            MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags,
-            MCExitOnErr, MCFontAttachs, MCForcedTFlags, MCInput, MCLocale, MCNoJson,
-            MCOtherAttachs, MCOutput, MCProFlags, MCSpecials, MCSubTracks, MCTools, MCTrackLangs,
-            MCTrackNames, MCVerbosity, MCVideoTracks,
-        },
         config::{MuxConfig, MuxConfigTarget, RawMuxConfig, cli_args::MuxConfigArg},
         error::{MuxError, MuxErrorKind},
         logger::MuxLogger,

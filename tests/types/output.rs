@@ -1,5 +1,6 @@
 use crate::common::*;
 use mux_media::*;
+use mux_media::markers::*;
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
@@ -273,16 +274,18 @@ fn test_to_json_args() {
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
 
-        let add_args = vec!["--locale", "eng", "--input", s_dir];
+        let add_args1 = vec!["--locale", "eng", "--input", s_dir];
+        let add_args2 = vec!["--json"];
+
         let json = d.clone().join(MuxConfig::JSON_NAME);
 
-        let mc_args = append_str_vecs([add_args.clone(), right]);
+        let mc_args = append_str_vecs([add_args1.clone(), add_args2.clone(), right]);
         let mc = cfg(mc_args);
 
         let right = mc.get::<MCOutput>().to_json_args();
         assert_eq!(to_args(&left), right);
 
-        let left = append_str_vecs([add_args, left]);
+        let left = append_str_vecs([add_args1, left, add_args2]);
         mc.write_args_to_json_or_log();
         let right = read_json_args(&json);
 

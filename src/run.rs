@@ -1,6 +1,9 @@
 use crate::{
-    ArcPathBuf, Input, MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity, MediaInfo, Msg,
-    MuxConfig, MuxError, MuxLogger, Output, Tool, TryFinalizeInit, TryInit, i18n::logs, json_arg,
+    ArcPathBuf, Input, MediaInfo, Msg, MuxConfig, MuxError, MuxLogger, Output, Tool,
+    TryFinalizeInit, TryInit,
+    i18n::logs,
+    json_arg,
+    markers::{MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity},
 };
 use log::{LevelFilter, error, info, trace, warn};
 use std::{ffi::OsString, path::PathBuf};

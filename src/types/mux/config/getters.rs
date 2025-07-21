@@ -96,7 +96,7 @@ get_fields! {
     output, Output => MCOutput,
     locale, LangCode => MCLocale,
     verbosity, Verbosity => MCVerbosity,
-    no_json, bool => MCNoJson,
+    json, bool => MCJson,
     exit_on_err, bool => MCExitOnErr,
     pro_flags, ProFlags => MCProFlags,
     retiming, Retiming => MCRetiming,

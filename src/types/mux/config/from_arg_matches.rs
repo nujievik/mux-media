@@ -44,7 +44,7 @@ impl FromArgMatches for MuxConfig {
             output,
             locale,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
-            no_json: from_arg_matches!(matches, bool, NoJson, || false),
+            json: from_arg_matches!(matches, bool, Json, || false),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
             pro_flags: ProFlags::from_arg_matches_mut(matches)?,
             retiming: Retiming::from_arg_matches_mut(matches)?,
@@ -83,7 +83,7 @@ impl FromArgMatches for MuxConfig {
 
         from_arg_matches!(
             @upd, self, matches;
-            no_json, bool, NoJson,
+            json, bool, Json,
             exit_on_err, bool, ExitOnErr,
             user_tools, bool, UserTools
         );

@@ -1,8 +1,11 @@
 use super::MediaInfo;
 use crate::{
-    ArcPathBuf, MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags,
-    MCFontAttachs, MCForcedTFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames,
-    MCVideoTracks, MISubCharset, MITargets, MuxError, TFlags, ToMkvmergeArgs, TrackOrder,
+    ArcPathBuf, MuxError, TFlags, ToMkvmergeArgs, TrackOrder,
+    markers::{
+        MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags, MCFontAttachs,
+        MCForcedTFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames, MCVideoTracks,
+        MISubCharset, MITargets,
+    },
 };
 use std::{ffi::OsString, path::Path};
 

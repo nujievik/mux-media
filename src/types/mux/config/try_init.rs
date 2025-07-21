@@ -1,5 +1,7 @@
 use super::{MuxConfig, MuxConfigTarget, RawMuxConfig, cli_args::MuxConfigArg};
-use crate::{CLIArg, Msg, MuxError, Output, Target, Tool, Tools, TryFinalizeInit, TryInit};
+use crate::{
+    CLIArg, Msg, MuxError, Output, Target, Tool, Tools, TryFinalizeInit, TryInit, from_arg_matches,
+};
 use clap::{CommandFactory, FromArgMatches};
 use std::{
     collections::HashMap,
@@ -16,22 +18,15 @@ impl TryInit for MuxConfig {
         let raw = RawMuxConfig::try_parse(args_os().skip(1))?;
         let mut matches = Self::command().try_get_matches_from(raw.args)?;
 
-        let json = matches.try_remove_one::<PathBuf>(MuxConfigArg::Json.as_long())?;
-        let no_json = *matches
-            .try_get_one::<bool>(MuxConfigArg::NoJson.as_long())?
-            .unwrap_or(&false);
-
-        let mut cfg = if no_json {
-            None
-        } else {
-            matches
-                .try_get_one::<PathBuf>(MuxConfigArg::Input.as_long())
-                .ok()
-                .flatten()
-                .and_then(|dir| Self::try_from_json(dir.join(Self::JSON_NAME)).ok())
+        let mut cfg = match matches.try_get_one::<bool>(MuxConfigArg::Json.as_long())? {
+            Some(true) => match matches.try_get_one::<PathBuf>(MuxConfigArg::Input.as_long())? {
+                Some(dir) => Self::try_from_json(dir.join(Self::JSON_NAME)).ok(),
+                _ => None,
+            },
+            _ => None,
         };
 
-        if let Some(json) = json {
+        if let Some(json) = from_arg_matches!(matches, PathBuf, Load, @no_default) {
             if let Some(cfg) = &mut cfg {
                 cfg.try_upd_from_json(json)?;
             } else {

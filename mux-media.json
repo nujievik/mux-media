@@ -12,6 +12,7 @@
   "--depth",
   "16",
   "--verbose",
+  "--json",
   "--exit-on-err",
   "--pro",
   "--add-defaults",

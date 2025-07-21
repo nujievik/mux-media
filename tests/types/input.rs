@@ -4,6 +4,7 @@ use std::{
     collections::HashSet,
     path::{Path, PathBuf},
 };
+use mux_media::markers::*;
 
 #[test]
 fn test_normalize() {

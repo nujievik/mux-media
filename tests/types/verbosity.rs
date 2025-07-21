@@ -1,5 +1,5 @@
 use super::common::cfg;
-use mux_media::{IsDefault, MCVerbosity, Verbosity};
+use mux_media::{IsDefault, Verbosity, markers::MCVerbosity};
 
 fn new(args: &[&str]) -> Verbosity {
     cfg::<_, &&str>(args).get::<MCVerbosity>().clone()

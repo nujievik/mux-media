@@ -1,6 +1,7 @@
 use super::common::data_file;
 use crate::*;
 use mux_media::*;
+use mux_media::markers::*;
 
 fn new(file: &str) -> Chapters {
     let file = data_file(file);

@@ -34,7 +34,7 @@ pub struct MuxConfig {
     output: Output,
     locale: LangCode,
     verbosity: Verbosity,
-    no_json: bool,
+    json: bool,
     exit_on_err: bool,
     pro_flags: ProFlags,
     retiming: Retiming,

@@ -6,7 +6,7 @@ use crate::{
 impl MuxConfig {
     /// Attempts to write args to json in the input directory; logs a warning on failure.
     pub fn write_args_to_json_or_log(&self) {
-        if self.no_json {
+        if !self.json {
             return;
         }
 
@@ -42,7 +42,7 @@ impl ToJsonArgs for MuxConfig {
         append_args_from_fields!(args, self; input, output);
 
         append_args_from_fields!(args, self; verbosity);
-        push_true_json_args!(args, self; no_json, NoJson, exit_on_err, ExitOnErr);
+        push_true_json_args!(args, self; json, Json, exit_on_err, ExitOnErr);
 
         append_args_from_fields!(
             args, self;

@@ -81,7 +81,8 @@ macro_rules! to_mkvmerge_args {
     (@names_or_langs, $typ:ident, $arg:ident, $add_marker:ident, $tic_marker:ident) => {
         impl $crate::ToMkvmergeArgs for $typ {
             fn to_mkvmerge_args(&self, mi: &mut $crate::MediaInfo, path: &std::path::Path) -> Vec<String> {
-                use $crate::{MISavedTracks, MkvmergeArg};
+                use $crate::MkvmergeArg;
+                use $crate::markers::{MISavedTracks, MITILang};
 
                 let add = mi.pro_flags.$add_marker;
                 let nums: Vec<u64> = $crate::unwrap_or_return_vec!(mi.get::<MISavedTracks>(path))
@@ -93,14 +94,14 @@ macro_rules! to_mkvmerge_args {
                     .into_iter()
                     .filter_map(|num| {
                         let val = self.get(&TrackID::Num(num)).or_else(|| {
-                            mi.get_ti::<$crate::MITILang>(path, num)
+                            mi.get_ti::<MITILang>(path, num)
                                 .and_then(|lang| self.get(&TrackID::Lang(*lang)))
                         });
 
                         val.map(|v| format!("{}:{}", num, v))
                             .or_else(|| {
                                 add.then(|| {
-                                    mi.get_ti::<$crate::$tic_marker>(path, num)
+                                    mi.get_ti::<$crate::markers::$tic_marker>(path, num)
                                         .map(|x| format!("{}:{}", num, x))
                                 }).flatten()
                             })

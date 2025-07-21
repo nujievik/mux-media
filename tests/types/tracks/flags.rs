@@ -1,6 +1,7 @@
 use crate::common::*;
 use crate::*;
 use mux_media::*;
+use mux_media::markers::*;
 
 #[test]
 fn test_mkvmerge_args() {

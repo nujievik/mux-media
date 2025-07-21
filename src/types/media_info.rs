@@ -5,11 +5,11 @@ mod mkvmerge_args;
 pub(crate) mod set_get_field;
 
 use crate::{
-    ArcPathBuf, IsDefault, MCInput, MCProFlags, MCTools, MIAttachsInfo, MuxConfig, MuxError,
-    ProFlags, Tools, i18n::logs,
+    ArcPathBuf, IsDefault, MuxConfig, MuxError, ProFlags, Tools,
+    i18n::logs,
+    markers::{MCInput, MCProFlags, MCTools, MIAttachsInfo, MIMkvmergeI, MISavedTracks},
 };
 use cache::{CacheMI, CacheMICommon, CacheMIOfFile, CacheMIOfGroup, CacheState};
-use set_get_field::{MIMkvmergeI, MISavedTracks};
 use std::{ffi::OsString, path::Path, sync::Arc};
 
 /// Extracts and caches media information.

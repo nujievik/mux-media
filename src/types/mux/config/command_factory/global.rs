@@ -32,20 +32,19 @@ impl Blocks {
                     .conflicts_with(MuxConfigArg::Verbose.as_long()),
             )
             .arg(
-                Arg::new(MuxConfigArg::Json.as_long())
-                    .short('j')
-                    .long(MuxConfigArg::Json.as_long())
+                Arg::new(MuxConfigArg::Load.as_long())
+                    .long(MuxConfigArg::Load.as_long())
+                    .alias("load-json")
                     .value_name("json")
-                    .help(Msg::HelpConfig.to_str_localized())
+                    .help(Msg::HelpLoad.to_str_localized())
                     .value_parser(ValueParser::new(ConfigParser)),
             )
             .arg(
-                Arg::new(MuxConfigArg::NoJson.as_long())
-                    .short('J')
-                    .long(MuxConfigArg::NoJson.as_long())
-                    .action(ArgAction::SetTrue)
-                    .help(Msg::HelpNoConfig.to_str_localized())
-                    .conflicts_with(MuxConfigArg::Json.as_long()),
+                Arg::new(MuxConfigArg::Json.as_long())
+                    .short('j')
+                    .long(MuxConfigArg::Json.as_long())
+                    .help(Msg::HelpJson.to_str_localized())
+                    .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new(MuxConfigArg::ExitOnErr.as_long())
