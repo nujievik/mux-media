@@ -83,7 +83,7 @@ macro_rules! to_mkvmerge_args {
             fn to_mkvmerge_args(&self, mi: &mut $crate::MediaInfo, path: &std::path::Path) -> Vec<String> {
                 use $crate::{MISavedTracks, MkvmergeArg};
 
-                let add = mi.off_on_pro.$add_marker;
+                let add = mi.pro_flags.$add_marker;
                 let nums: Vec<u64> = $crate::unwrap_or_return_vec!(mi.get::<MISavedTracks>(path))
                     .values()
                     .flat_map(|nums| nums.iter().copied())

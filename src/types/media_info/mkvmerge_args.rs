@@ -74,7 +74,7 @@ fn append_target_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, path: &Path)
     );
 
     if let Some(Ok(cs)) = mi
-        .off_on_pro
+        .pro_flags
         .add_charsets
         .then(|| mi.try_get::<MISubCharset>(path).map(|c| c.clone()))
     {

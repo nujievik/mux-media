@@ -1,7 +1,7 @@
 use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
-    Input, IsDefault, LangCode, Msg, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks,
+    Input, IsDefault, LangCode, Msg, OtherAttachs, Output, ProFlags, Retiming, Specials, SubTracks,
     Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
 };
 use clap::{ArgMatches, Error, FromArgMatches};
@@ -46,7 +46,7 @@ impl FromArgMatches for MuxConfig {
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
             no_json: from_arg_matches!(matches, bool, NoJson, || false),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
-            off_on_pro: OffOnPro::from_arg_matches_mut(matches)?,
+            pro_flags: ProFlags::from_arg_matches_mut(matches)?,
             retiming: Retiming::from_arg_matches_mut(matches)?,
             audio_tracks: AudioTracks::from_arg_matches_mut(matches)?,
             sub_tracks: SubTracks::from_arg_matches_mut(matches)?,
@@ -88,7 +88,7 @@ impl FromArgMatches for MuxConfig {
             user_tools, bool, UserTools
         );
 
-        self.off_on_pro.update_from_arg_matches_mut(matches)?;
+        self.pro_flags.update_from_arg_matches_mut(matches)?;
         //self.retiming.update_from_arg_matches_mut(matches)?;
 
         upd_fields!(

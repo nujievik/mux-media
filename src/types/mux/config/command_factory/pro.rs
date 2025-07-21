@@ -6,10 +6,18 @@ use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
 
 impl Blocks {
-    pub fn off(mut self) -> Self {
+    pub fn pro(mut self) -> Self {
         let mut cmd = self
             .0
-            .next_help_heading(Msg::HelpOffOnProOptions.to_str_localized());
+            .next_help_heading(Msg::HelpProFlags.to_str_localized())
+            .arg(
+                Arg::new(MuxConfigArg::Pro.as_long())
+                    .short('p')
+                    .long(MuxConfigArg::Pro.as_long())
+                    .alias("pro-mode")
+                    .help(Msg::HelpPro.to_str_localized())
+                    .action(ArgAction::SetTrue),
+            );
 
         for flag in OffFlag::iter() {
             let help_arg = flag.to_help_arg();

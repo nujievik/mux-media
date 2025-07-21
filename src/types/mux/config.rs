@@ -8,7 +8,7 @@ mod try_init;
 
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
-    Input, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials, SubTracks, Target, Tool,
+    Input, LangCode, OtherAttachs, Output, ProFlags, Retiming, Specials, SubTracks, Target, Tool,
     Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
 use std::{collections::HashMap, ffi::OsString};
@@ -36,7 +36,7 @@ pub struct MuxConfig {
     verbosity: Verbosity,
     no_json: bool,
     exit_on_err: bool,
-    off_on_pro: OffOnPro,
+    pro_flags: ProFlags,
     retiming: Retiming,
     audio_tracks: AudioTracks,
     sub_tracks: SubTracks,

@@ -1,7 +1,7 @@
 [package]
 name = "mux-media"
 license = "GPL-3.0"
-version = "0.13.3"
+version = "0.13.4"
 edition = "2024"
 repository = "https://github.com/nujievik/mux-media"
 description = "A simple automated solution for muxing media (e.g. video, audio, subtitles)."

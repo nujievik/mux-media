@@ -19,10 +19,10 @@ mod media_info;
 mod media_number;
 #[path = "types/mux.rs"]
 mod mux;
-#[path = "types/off_on_pro.rs"]
-mod off_on_pro;
 #[path = "types/output.rs"]
 mod output;
+#[path = "types/pro_flags.rs"]
+mod pro_flags;
 #[path = "types/range.rs"]
 mod range;
 #[path = "types/retiming.rs"]

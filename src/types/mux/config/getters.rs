@@ -1,7 +1,7 @@
 use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
-    GetField, GetOptField, Input, LangCode, OffOnPro, OtherAttachs, Output, Retiming, Specials,
+    GetField, GetOptField, Input, LangCode, OtherAttachs, Output, ProFlags, Retiming, Specials,
     SubTracks, TFlagType, TFlags, Target, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
 use std::path::Path;
@@ -98,7 +98,7 @@ get_fields! {
     verbosity, Verbosity => MCVerbosity,
     no_json, bool => MCNoJson,
     exit_on_err, bool => MCExitOnErr,
-    off_on_pro, OffOnPro => MCOffOnPro,
+    pro_flags, ProFlags => MCProFlags,
     retiming, Retiming => MCRetiming,
     tools, Tools => MCTools,
 }

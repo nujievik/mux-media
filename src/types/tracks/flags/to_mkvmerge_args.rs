@@ -48,7 +48,7 @@ impl TFlags {
                     .get(&TrackID::Num(num))
                     .or_else(|| flags.get(&TrackID::Lang(lang)))
                     .or_else(|| {
-                        mi.off_on_pro.add_t_flags(ft).then(|| {
+                        mi.pro_flags.add_t_flags(ft).then(|| {
                             let cnt = counts.get(ft, tt);
                             let mut val = flags.auto_val(cnt, ft);
                             if val && tt == TrackType::Sub && ft == TFlagType::Default {

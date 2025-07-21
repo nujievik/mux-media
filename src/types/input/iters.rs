@@ -74,14 +74,12 @@ impl Input {
         let mut fonts: Vec<PathBuf> = self
             .collect_fonts()
             .into_iter()
-            .filter(|font| {
-                match font.file_stem() {
-                    Some(stem) if !seen.contains(stem) => {
-                        let _ = seen.insert(stem.to_owned());
-                        true
-                    }
-                    _ => false,
+            .filter(|font| match font.file_stem() {
+                Some(stem) if !seen.contains(stem) => {
+                    let _ = seen.insert(stem.to_owned());
+                    true
                 }
+                _ => false,
             })
             .collect();
 

@@ -4,7 +4,7 @@ use enum_map::{EnumMap, enum_map};
 
 /// Settings for `Off on Pro` flags.
 #[derive(Copy, Clone)]
-pub struct OffOnPro {
+pub struct ProFlags {
     pub pro: bool,
     t_flags: EnumMap<TFlagType, bool>,
     pub add_names: bool,
@@ -13,7 +13,7 @@ pub struct OffOnPro {
     //pub sort_fonts: bool,
 }
 
-impl OffOnPro {
+impl ProFlags {
     /// Returns a value of add track flag by type.
     pub fn add_t_flags(&self, ft: TFlagType) -> bool {
         self.t_flags[ft]
@@ -35,7 +35,7 @@ macro_rules! upd_val {
     }};
 }
 
-impl FromArgMatches for OffOnPro {
+impl FromArgMatches for ProFlags {
     from_arg_matches!(@fn);
     from_arg_matches!(@fn_update);
 
@@ -43,17 +43,17 @@ impl FromArgMatches for OffOnPro {
         let pro = from_arg_matches!(matches, bool, Pro, || false);
 
         let t_flags: EnumMap<TFlagType, bool> = enum_map! {
-            TFlagType::Default => from_arg_matches!(matches, AddDefaults, NoAddDefaults, pro, @off_on_pro),
-            TFlagType::Forced => from_arg_matches!(matches, AddForceds, NoAddForceds, pro, @off_on_pro),
-            TFlagType::Enabled => from_arg_matches!(matches, AddEnableds, NoAddEnableds, pro, @off_on_pro),
+            TFlagType::Default => from_arg_matches!(matches, AddDefaults, NoAddDefaults, pro, @pro_flags),
+            TFlagType::Forced => from_arg_matches!(matches, AddForceds, NoAddForceds, pro, @pro_flags),
+            TFlagType::Enabled => from_arg_matches!(matches, AddEnableds, NoAddEnableds, pro, @pro_flags),
         };
 
         Ok(Self {
             pro,
             t_flags,
-            add_names: from_arg_matches!(matches, AddNames, NoAddNames, pro, @off_on_pro),
-            add_langs: from_arg_matches!(matches, AddLangs, NoAddLangs, pro, @off_on_pro),
-            add_charsets: from_arg_matches!(matches, AddCharsets, NoAddCharsets, pro, @off_on_pro),
+            add_names: from_arg_matches!(matches, AddNames, NoAddNames, pro, @pro_flags),
+            add_langs: from_arg_matches!(matches, AddLangs, NoAddLangs, pro, @pro_flags),
+            add_charsets: from_arg_matches!(matches, AddCharsets, NoAddCharsets, pro, @pro_flags),
         })
     }
 
@@ -138,7 +138,7 @@ macro_rules! push {
     }};
 }
 
-impl ToJsonArgs for OffOnPro {
+impl ToJsonArgs for ProFlags {
     fn to_json_args(&self) -> Vec<String> {
         let mut args: Vec<String> = Vec::new();
 

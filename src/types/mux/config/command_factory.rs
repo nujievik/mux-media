@@ -1,7 +1,7 @@
 mod global;
 mod io;
-mod off;
 mod other;
+mod pro;
 mod retiming;
 mod target;
 mod val_parsers;
@@ -14,7 +14,7 @@ impl CommandFactory for MuxConfig {
         Blocks::new()
             .io()
             .global()
-            .off()
+            .pro()
             .retiming()
             .target()
             .other()

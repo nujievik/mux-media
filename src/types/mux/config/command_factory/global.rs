@@ -54,14 +54,6 @@ impl Blocks {
                     .alias("exit-on-error")
                     .help(Msg::HelpExitOnErr.to_str_localized())
                     .action(ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new(MuxConfigArg::Pro.as_long())
-                    .short('p')
-                    .long(MuxConfigArg::Pro.as_long())
-                    .alias("pro-mode")
-                    .help(Msg::HelpPro.to_str_localized())
-                    .action(ArgAction::SetTrue),
             );
 
         self

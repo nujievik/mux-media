@@ -1,14 +1,14 @@
 use super::common::*;
 use mux_media::*;
 use serde_json::from_reader;
+#[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
+use std::path::Path;
 use std::{
     ffi::OsStr,
     fs::{self, File},
     io::BufReader,
     path::PathBuf,
 };
-#[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
-use std::path::Path;
 
 fn new() -> Tools {
     Tools::try_from_tools(Tool::iter()).unwrap()
