@@ -46,6 +46,15 @@ media directory and loading it using `mux-media -j`
 
 ## Manual Build
 
+0. Windows x86_64-pc-windows and i686-pc-windows builds only:
+   - Install [MKVToolNix](
+https://mkvtoolnix.download/downloads.html#windows) and add it to
+system PATH
+   - `build.rs` will auto copy `mkvmerge.exe` from PATH to `assets/`
+directory
+   - Alternatively, you can manually copy `mkvmerge.exe` to `assets/`
+for the current target (win64 or win32)
+
 1. Install [Rust](https://www.rust-lang.org/tools/install)
 
 2. Clone the repo:

@@ -27,7 +27,6 @@ fn cp_tool_to_assets(assets_dir: &PathBuf, tool: &str) {
     let path = assets_dir.join(format!("{}.exe", tool));
 
     if path.exists() && check_arch(&path).is_ok() {
-        dbg!("check arch ok");
         return;
     }
 
@@ -51,7 +50,7 @@ fn cp_tool_to_assets(assets_dir: &PathBuf, tool: &str) {
 
 fn try_cp_from_os_path(tool: &str, tool_path: &PathBuf) -> Result<(), String> {
     let path =
-        which::which(tool).map_err(|e| format!("tool '{}' not found in PATH: {}", e, tool))?;
+        which::which(tool).map_err(|e| format!("tool '{}' not found in PATH: {}", tool, e))?;
 
     let bytes = fs::read(path).map_err(|e| format!("{}", e))?;
 
@@ -94,17 +93,17 @@ fn check_arch(bin: &PathBuf) -> Result<(), String> {
         .map_err(|_| "Read machine failed")?;
     let machine = u16::from_le_bytes(machine);
 
-    if expected_machine() != machine {
+    if try_expected_machine()? != machine {
         return Err("bin architecture mismatch".into());
     }
 
     Ok(())
 }
 
-fn expected_machine() -> u16 {
+fn try_expected_machine() -> Result<u16, String> {
     match env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
-        Ok("x86_64") => 0x8664,
-        Ok("x86") => 0x014c,
-        arch => panic!("Unknown or unsupported target arch: {:?}", arch),
+        Ok("x86_64") => Ok(0x8664),
+        Ok("x86") => Ok(0x014c),
+        arch => Err(format!("Unknown or unsupported target arch: {:?}", arch)),
     }
 }
