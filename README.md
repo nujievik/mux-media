@@ -29,10 +29,11 @@ Or you can [build manually](#manual-build).
 
 Usage `mux-media -h` for help.
 
-Default settings can be overridden via CLI or by configuring the
-[JSON file](
-https://github.com/nujievik/mux-media/blob/main/mux-media.json) in the
-media directory and loading it with `mux-media -j`.
+Default settings can be overridden:
+- via CLI arguments
+- by configuring a [JSON file](
+https://github.com/nujievik/mux-media/blob/main/mux-media.json) in a
+media directory and loading it using `mux-media -j`
 
 ## Notices
 
