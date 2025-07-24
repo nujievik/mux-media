@@ -1,0 +1,10 @@
+/.temp-mux-media/**
+/assets/win32/**
+/assets/win64/**
+/muxed/**
+/resources/**
+/target/
+/tests/test_data/muxed/**
+/tests/test_data/output/**
+
+!**/.gitkeep

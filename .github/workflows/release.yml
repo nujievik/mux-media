@@ -1,0 +1,194 @@
+name: Release Build
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.3)'
+        required: true
+        default: 'v1.0.0'
+
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build
+      run: cargo build --release
+
+    - name: Zip binary
+      run: zip -j mux-media-linux-x64.zip target/release/mux-media
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: mux-media-linux-x64
+        path: mux-media-linux-x64.zip
+
+  build-linux-32bit:
+    name: Build on Ubuntu (32-bit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install 32-bit dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y gcc-multilib
+
+      - name: Install 32-bit target
+        run: rustup target add i686-unknown-linux-gnu
+
+      - name: Build for 32-bit Linux
+        run: cargo build --release --target=i686-unknown-linux-gnu
+
+      - name: Zip binary
+        run: zip -j mux-media-linux-x32.zip target/i686-unknown-linux-gnu/release/mux-media
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-linux-x32
+          path: mux-media-linux-x32.zip
+
+  build-windows:
+    name: Build on Windows
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --release
+
+      - name: Zip binary
+        run: |
+          powershell -Command "Compress-Archive -Path target/release/mux-media.exe -DestinationPath mux-media-win64.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-win64
+          path: mux-media-win64.zip
+
+  build-windows-32bit:
+    name: Build on Windows (32-bit)
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install 32-bit target
+        run: rustup target add i686-pc-windows-msvc
+
+      - name: Build for 32-bit Windows
+        run: cargo build --release --target=i686-pc-windows-msvc
+
+      - name: Zip binary
+        run: |
+          powershell -Command "Compress-Archive -Path target/i686-pc-windows-msvc/release/mux-media.exe -DestinationPath mux-media-win32.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-win32
+          path: mux-media-win32.zip
+
+  build-macos:
+    name: Build on macOS (Apple Silicon)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build for macOS (native)
+        run: cargo build --release
+
+      - name: Zip binary
+        run: zip -j mux-media-macos-aarch64.zip target/release/mux-media
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-macos-aarch64
+          path: mux-media-macos-aarch64.zip
+
+  build-macos-x64:
+    name: Build on macOS (x86_64)
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install x86_64 target
+        run: rustup target add x86_64-apple-darwin
+
+      - name: Build for macOS x86_64
+        run: cargo build --release --target=x86_64-apple-darwin
+
+      - name: Zip binary
+        run: zip -j mux-media-macos-x64.zip target/x86_64-apple-darwin/release/mux-media
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-macos-x64
+          path: mux-media-macos-x64.zip
+
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-linux-32bit, build-windows, build-windows-32bit, build-macos, build-macos-x64]
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-linux-x64
+          path: artifacts/linux
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-linux-x32
+          path: artifacts/linux
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-win64
+          path: artifacts/windows
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-win32
+          path: artifacts/windows
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-macos-aarch64
+          path: artifacts/macos
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-macos-x64
+          path: artifacts/macos
+
+      - name: Set tag name
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "RELEASE_TAG=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          else
+            echo "RELEASE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          files: |
+            artifacts/linux/*
+            artifacts/windows/*
+            artifacts/macos/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
