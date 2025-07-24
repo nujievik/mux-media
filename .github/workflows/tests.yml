@@ -11,6 +11,9 @@ jobs:
     name: Test and Build on Ubuntu
     runs-on: ubuntu-latest
 
+    env:
+      TARGET: x86_64-unknown-linux-gnu
+
     steps:
       - uses: actions/checkout@v4
 
@@ -23,18 +26,59 @@ jobs:
         run: |
           mkvmerge -V
 
-      - name: Test
-        run: cargo test
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
 
-      - name: Release Test
-        run: cargo test --release
+      - name: Test
+        run: cargo test --target ${{ env.TARGET }}
 
       - name: Build
-        run: cargo build --release
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Release Test
+        run: cargo test --release --target ${{ env.TARGET }}
+
+  test-linux-32bit:
+    name: Test and Build on Ubuntu (32-bit)
+    runs-on: ubuntu-latest
+
+    env:
+      TARGET: i686-unknown-linux-gnu
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mkvtoolnix
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mkvtoolnix
+
+      - name: Check mkvtools
+        run: |
+          mkvmerge -V
+
+      - name: Install 32-bit dependencies
+        run: |
+          sudo apt-get install -y gcc-multilib
+
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Test
+        run: cargo test --target ${{ env.TARGET }}
+
+      - name: Build
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Release Test
+        run: cargo test --release --target ${{ env.TARGET }}
 
   test-windows:
     name: Test and Build on Windows
     runs-on: windows-latest
+
+    env:
+      TARGET: x86_64-pc-windows-msvc
     
     steps:
       - uses: actions/checkout@v4
@@ -49,18 +93,56 @@ jobs:
         run: |
           mkvmerge -V
 
-      - name: Test
-        run: cargo test
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
 
-      - name: Release Test
-        run: cargo test --release
+      - name: Test
+        run: cargo test --target ${{ env.TARGET }}
 
       - name: Build
-        run: cargo build --release
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Release Test
+        run: cargo test --release --target ${{ env.TARGET }}
+
+  test-windows-32bit:
+    name: Test and Build on Windows (32-bit)
+    runs-on: windows-latest
+
+    env:
+      TARGET: i686-pc-windows-msvc
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install mkvtoolnix (32-bit)
+        shell: powershell
+        run: |
+          choco install mkvtoolnix --x86 -y
+          echo "C:\Program Files (x86)\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
+
+      - name: Check mkvtools
+        run: |
+          mkvmerge -V
+
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Test
+        run: cargo test --target ${{ env.TARGET }}
+
+      - name: Build
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Release Test
+        run: cargo test --release --target ${{ env.TARGET }}
 
   test-macos:
     name: Test and Build on macOS
     runs-on: macos-latest
+
+    env:
+      TARGET: aarch64-apple-darwin
 
     steps:
       - uses: actions/checkout@v4
@@ -84,11 +166,55 @@ jobs:
         run: |
           mkvmerge -V
 
-      - name: Test
-        run: cargo test
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
 
-      - name: Release Test
-        run: cargo test --release
+      - name: Test
+        run: cargo test --target ${{ env.TARGET }}
 
       - name: Build
-        run: cargo build --release
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Release Test
+        run: cargo test --release --target ${{ env.TARGET }}
+
+  test-macos-x64:
+    name: Test and Build on macOS (x86_64)
+    runs-on: macos-latest
+
+    env:
+      TARGET: x86_64-apple-darwin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure Homebrew is installed
+        run: |
+          if ! command -v brew &>/dev/null; then
+            echo "Homebrew not found. Installing..."
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+          else
+            echo "Homebrew is already installed."
+          fi
+
+      - name: Install mkvtoolnix
+        run: |
+          brew install mkvtoolnix
+
+      - name: Check mkvtools
+        run: |
+          mkvmerge -V
+
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Test
+        run: cargo test --target ${{ env.TARGET }}
+
+      - name: Build
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Release Test
+        run: cargo test --release --target ${{ env.TARGET }}

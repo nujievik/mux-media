@@ -20,39 +20,49 @@ jobs:
     name: Build on Ubuntu
     runs-on: ubuntu-latest
 
+    env:
+      TARGET: x86_64-unknown-linux-gnu
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --release
+      - uses: actions/checkout@v4
 
-    - name: Zip binary
-      run: zip -j mux-media-linux-x64.zip target/release/mux-media
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: mux-media-linux-x64
-        path: mux-media-linux-x64.zip
+      - name: Build
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Zip binary
+        run: zip -j mux-media-linux-x64.zip target/${{ env.TARGET }}/release/mux-media
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-linux-x64
+          path: mux-media-linux-x64.zip
 
   build-linux-32bit:
     name: Build on Ubuntu (32-bit)
     runs-on: ubuntu-latest
+
+    env:
+      TARGET: i686-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v4
 
       - name: Install 32-bit dependencies
         run: |
-          sudo apt update
-          sudo apt install -y gcc-multilib
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib
 
-      - name: Install 32-bit target
-        run: rustup target add i686-unknown-linux-gnu
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
 
       - name: Build for 32-bit Linux
-        run: cargo build --release --target=i686-unknown-linux-gnu
+        run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Zip binary
-        run: zip -j mux-media-linux-x32.zip target/i686-unknown-linux-gnu/release/mux-media
+        run: zip -j mux-media-linux-x32.zip target/${{ env.TARGET }}/release/mux-media
 
       - uses: actions/upload-artifact@v4
         with:
@@ -63,14 +73,33 @@ jobs:
     name: Build on Windows
     runs-on: windows-latest
 
+    env:
+      TARGET: x86_64-pc-windows-msvc
+
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install mkvtoolnix
+        shell: powershell
+        run: |
+          choco install mkvtoolnix -y
+          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
+
+      - name: Check mkvtools
+        run: |
+          mkvmerge -V
+
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
+
       - name: Build
-        run: cargo build --release
+        run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Zip binary
+        shell: pwsh
         run: |
-          powershell -Command "Compress-Archive -Path target/release/mux-media.exe -DestinationPath mux-media-win64.zip"
+          $src = "target/${{ env.TARGET }}/release/mux-media.exe"
+          Compress-Archive -Path $src -DestinationPath mux-media-win64.zip
 
       - uses: actions/upload-artifact@v4
         with:
@@ -81,18 +110,33 @@ jobs:
     name: Build on Windows (32-bit)
     runs-on: windows-latest
 
+    env:
+      TARGET: i686-pc-windows-msvc
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install 32-bit target
-        run: rustup target add i686-pc-windows-msvc
+      - name: Install mkvtoolnix (32-bit)
+        shell: powershell
+        run: |
+          choco install mkvtoolnix --x86 -y
+          echo "C:\Program Files (x86)\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
+
+      - name: Check mkvtools
+        run: |
+          mkvmerge -V
+
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
 
       - name: Build for 32-bit Windows
-        run: cargo build --release --target=i686-pc-windows-msvc
+        run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Zip binary
+        shell: pwsh
         run: |
-          powershell -Command "Compress-Archive -Path target/i686-pc-windows-msvc/release/mux-media.exe -DestinationPath mux-media-win32.zip"
+          $src = "target/${{ env.TARGET }}/release/mux-media.exe"
+          Compress-Archive -Path $src -DestinationPath mux-media-win32.zip
 
       - uses: actions/upload-artifact@v4
         with:
@@ -100,17 +144,23 @@ jobs:
           path: mux-media-win32.zip
 
   build-macos:
-    name: Build on macOS (Apple Silicon)
+    name: Build on macOS
     runs-on: macos-latest
+
+    env:
+      TARGET: aarch64-apple-darwin
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
+
       - name: Build for macOS (native)
-        run: cargo build --release
+        run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Zip binary
-        run: zip -j mux-media-macos-aarch64.zip target/release/mux-media
+        run: zip -j mux-media-macos-aarch64.zip target/${{ env.TARGET }}/release/mux-media
 
       - uses: actions/upload-artifact@v4
         with:
@@ -121,17 +171,20 @@ jobs:
     name: Build on macOS (x86_64)
     runs-on: macos-latest
 
+    env:
+      TARGET: x86_64-apple-darwin
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install x86_64 target
-        run: rustup target add x86_64-apple-darwin
+      - name: Install target
+        run: rustup target add ${{ env.TARGET }}
 
       - name: Build for macOS x86_64
-        run: cargo build --release --target=x86_64-apple-darwin
+        run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Zip binary
-        run: zip -j mux-media-macos-x64.zip target/x86_64-apple-darwin/release/mux-media
+        run: zip -j mux-media-macos-x64.zip target/${{ env.TARGET }}/release/mux-media
 
       - uses: actions/upload-artifact@v4
         with:
