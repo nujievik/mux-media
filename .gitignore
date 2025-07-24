@@ -3,7 +3,7 @@
 /assets/win64/**
 /muxed/**
 /resources/**
-/target/
+/target/**
 /tests/test_data/muxed/**
 /tests/test_data/output/**
 
