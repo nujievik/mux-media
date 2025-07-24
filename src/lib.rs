@@ -19,6 +19,7 @@ pub use traits::{
 pub use types::{
     arc_path_buf::ArcPathBuf,
     attachs::{Attachs, FontAttachs, OtherAttachs, attach_type::AttachType, id::AttachID},
+    auto_flags::AutoFlags,
     chapters::Chapters,
     char_encoding::{CharEncoding, SubCharset},
     extensions::{EXTENSIONS, Extensions},
@@ -36,7 +37,6 @@ pub use types::{
         logger::MuxLogger,
     },
     output::Output,
-    pro_flags::ProFlags,
     range::Range,
     specials::Specials,
     target::{Target, group::TargetGroup},

@@ -13,7 +13,7 @@ pub struct TrackLangs {
 }
 
 mkvmerge_arg!(TrackLangs, "--language");
-to_mkvmerge_args!(@names_or_langs, TrackLangs, Langs, add_langs, MITILang);
+to_mkvmerge_args!(@names_or_langs, TrackLangs, Langs, auto_langs, MITILang);
 
 to_json_args!(@names_or_langs, TrackLangs, Langs);
 

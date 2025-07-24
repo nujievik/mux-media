@@ -4,7 +4,6 @@ pub(crate) mod tool;
 
 use crate::{MuxError, Tool, ToolOutput, i18n::logs, types::helpers::try_write_args_to_json};
 use enum_map::EnumMap;
-use paths::try_get_tool_path;
 use std::{
     ffi::{OsStr, OsString},
     path::PathBuf,
@@ -16,10 +15,12 @@ use std::{
 pub struct Tools {
     paths: EnumMap<Tool, Option<PathBuf>>,
     json: Option<PathBuf>,
+    #[allow(dead_code)]
+    user_tools: bool,
 }
 
 impl Tools {
-    /// Creates a new `Tools`, resolving paths to the given tools.
+    /// Creates a new [`Tools`], resolving paths to the given tools.
     ///
     /// Returns an error if any tool path cannot be resolved.
     pub fn try_from_tools(tools: impl IntoIterator<Item = Tool>) -> Result<Self, MuxError> {
@@ -33,7 +34,7 @@ impl Tools {
     /// Returns an error if tool path cannot be resolved.
     pub fn try_upd_path(&mut self, tool: Tool) -> Result<(), MuxError> {
         if let None = self.paths[tool] {
-            let path = try_get_tool_path(tool)?;
+            let path = self.try_find_path(tool)?;
             self.paths[tool] = Some(path);
         }
         Ok(())
@@ -67,6 +68,14 @@ impl Tools {
     pub fn json(mut self, json: impl Into<PathBuf>) -> Self {
         self.upd_json(json);
         self
+    }
+
+    /// Sets the priority for user tools.
+    ///
+    /// In the current implementation, this affects the behavior of path-related methods
+    /// only in builds for Windows on x86 or x86_64 architectures.
+    pub fn upd_user_tools(&mut self, user_tools: bool) {
+        self.user_tools = user_tools;
     }
 
     /// Returns a reference to the tool path value if exists.

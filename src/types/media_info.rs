@@ -5,9 +5,9 @@ mod mkvmerge_args;
 pub(crate) mod set_get_field;
 
 use crate::{
-    ArcPathBuf, IsDefault, MuxConfig, MuxError, ProFlags, Tools,
+    ArcPathBuf, AutoFlags, IsDefault, MuxConfig, MuxError, Tools,
     i18n::logs,
-    markers::{MCInput, MCProFlags, MCTools, MIAttachsInfo, MIMkvmergeI, MISavedTracks},
+    markers::{MCAutoFlags, MCInput, MCTools, MIAttachsInfo, MIMkvmergeI, MISavedTracks},
 };
 use cache::{CacheMI, CacheMICommon, CacheMIOfFile, CacheMIOfGroup, CacheState};
 use std::{ffi::OsString, path::Path, sync::Arc};
@@ -17,7 +17,7 @@ use std::{ffi::OsString, path::Path, sync::Arc};
 /// User-defined settings from `MuxConfig` take precedence over extracted values.
 pub struct MediaInfo<'a> {
     pub mc: &'a MuxConfig,
-    pub pro_flags: &'a ProFlags,
+    pub auto_flags: &'a AutoFlags,
     tools: &'a Tools,
     upmost: &'a Path,
     cache: CacheMI,
@@ -25,12 +25,12 @@ pub struct MediaInfo<'a> {
 
 impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
     fn from(mc: &'a MuxConfig) -> Self {
-        let pro_flags = mc.get::<MCProFlags>();
+        let auto_flags = mc.get::<MCAutoFlags>();
         let tools = mc.get::<MCTools>();
         let upmost = mc.get::<MCInput>().get_dir();
         Self {
             mc,
-            pro_flags,
+            auto_flags,
             tools,
             upmost,
             cache: CacheMI::default(),

@@ -1,7 +1,7 @@
 use crate::common::*;
 use crate::*;
-use mux_media::*;
 use mux_media::markers::*;
+use mux_media::*;
 
 #[test]
 fn test_mkvmerge_args() {
@@ -24,9 +24,9 @@ fn test_is_default() {
     assert!(from_cfg::<MCForcedTFlags>(vec![]).is_default());
     assert!(from_cfg::<MCEnabledTFlags>(vec![]).is_default());
 
-    assert!(!from_cfg::<MCDefaultTFlags>(vec!["--lim-defaults", "1"]).is_default());
-    assert!(!from_cfg::<MCForcedTFlags>(vec!["--lim-forceds", "0"]).is_default());
-    assert!(!from_cfg::<MCEnabledTFlags>(vec!["--lim-enableds", MAX_U64_STR]).is_default());
+    assert!(!from_cfg::<MCDefaultTFlags>(vec!["--max-defaults", "1"]).is_default());
+    assert!(!from_cfg::<MCForcedTFlags>(vec!["--max-forceds", "0"]).is_default());
+    assert!(!from_cfg::<MCEnabledTFlags>(vec!["--max-enableds", MAX_U64_STR]).is_default());
 }
 
 const FROM_STR_CASES: [&'static str; 11] = [
@@ -190,7 +190,7 @@ macro_rules! build_test_flags_to_json_args {
 }
 
 build_test_flags_to_json_args!(
-    test_defaults_to_json_args, MCDefaultTFlags, "default_t_flags", "--defaults", "--lim-defaults";
-    test_forceds_to_json_args, MCForcedTFlags, "forced_t_flags", "--forceds", "--lim-forceds";
-    test_enableds_to_json_args, MCEnabledTFlags, "enabled_t_flags", "--enableds", "--lim-enableds"
+    test_defaults_to_json_args, MCDefaultTFlags, "default_t_flags", "--defaults", "--max-defaults";
+    test_forceds_to_json_args, MCForcedTFlags, "forced_t_flags", "--forceds", "--max-forceds";
+    test_enableds_to_json_args, MCEnabledTFlags, "enabled_t_flags", "--enableds", "--max-enableds"
 );

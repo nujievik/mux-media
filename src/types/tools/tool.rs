@@ -6,8 +6,6 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, AsRefStr, Enum, EnumIter, EnumString)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Tool {
-    //Ffprobe,
-    //Mkvextract,
     Mkvmerge,
 }
 

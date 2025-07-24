@@ -39,7 +39,7 @@ fn test_basic_split() {
     assert_eq!(true, raw.list_targets);
     assert_eq!(
         Some((Tool::Mkvmerge, oss(&["-o", "out.mkv"]))),
-        raw.call_tool
+        raw.run_command
     );
     assert_eq!(
         raw.args,
@@ -68,7 +68,7 @@ fn test_path_target() {
 
     let raw = new(&["--target", dir_str, "--x", "--y", "--mkvmerge"]);
 
-    match raw.call_tool {
+    match raw.run_command {
         Some((Tool::Mkvmerge, _)) => {}
         _ => panic!("Expected mvkmerge tool"),
     }
@@ -112,7 +112,7 @@ fn test_locale() {
         assert_eq!(Some(lang), raw.locale);
         assert_eq!(false, raw.list_langs);
         assert_eq!(false, raw.list_targets);
-        assert_eq!(None, raw.call_tool);
+        assert_eq!(None, raw.run_command);
         assert_eq!(oss(&["--locale", lng]), raw.args);
         assert_eq!(None, raw.trg_args);
     })
@@ -124,7 +124,7 @@ fn test_only_tool() {
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);
-    assert_eq!(Some((Tool::Mkvmerge, oss(&["-h"]))), raw.call_tool);
+    assert_eq!(Some((Tool::Mkvmerge, oss(&["-h"]))), raw.run_command);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);
 }
@@ -138,7 +138,7 @@ fn test_list_langs_flags() {
             assert_eq!(None, raw.locale);
             assert_eq!(true, raw.list_langs);
             assert_eq!(false, raw.list_targets);
-            assert_eq!(None, raw.call_tool);
+            assert_eq!(None, raw.run_command);
             assert_eq!(oss(&[]), raw.args);
             assert_eq!(None, raw.trg_args);
         })
@@ -150,7 +150,7 @@ fn test_list_targets_flag() {
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(true, raw.list_targets);
-    assert_eq!(None, raw.call_tool);
+    assert_eq!(None, raw.run_command);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);
 }
@@ -208,7 +208,7 @@ fn test_empty_input() {
     assert_eq!(None, raw.locale);
     assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);
-    assert_eq!(None, raw.call_tool);
+    assert_eq!(None, raw.run_command);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);
 }

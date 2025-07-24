@@ -100,7 +100,7 @@ impl Blocks {
                 Arg::new(MuxConfigArg::Chapters.as_long())
                     .short('c')
                     .long(MuxConfigArg::Chapters.as_long())
-                    .value_name("chp")
+                    .value_name("file")
                     .help(Msg::HelpChapters.to_str_localized())
                     .value_parser(ValueParser::new(ChaptersParser)),
             )
@@ -156,10 +156,10 @@ impl Blocks {
                     .value_parser(ValueParser::new(DefaultTFlags::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::LimDefaults.as_long())
-                    .long(MuxConfigArg::LimDefaults.as_long())
+                Arg::new(MuxConfigArg::MaxDefaults.as_long())
+                    .long(MuxConfigArg::MaxDefaults.as_long())
                     .value_name("n")
-                    .help(Msg::HelpLimDefaults.to_str_localized())
+                    .help(Msg::HelpMaxDefaults.to_str_localized())
                     .value_parser(clap::value_parser!(u64)),
             )
             .arg(
@@ -171,10 +171,10 @@ impl Blocks {
                     .value_parser(ValueParser::new(ForcedTFlags::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::LimForceds.as_long())
-                    .long(MuxConfigArg::LimForceds.as_long())
+                Arg::new(MuxConfigArg::MaxForceds.as_long())
+                    .long(MuxConfigArg::MaxForceds.as_long())
                     .value_name("n")
-                    .help(Msg::HelpLimForceds.to_str_localized())
+                    .help(Msg::HelpMaxForceds.to_str_localized())
                     .value_parser(clap::value_parser!(u64)),
             )
             .arg(
@@ -186,10 +186,10 @@ impl Blocks {
                     .value_parser(ValueParser::new(EnabledTFlags::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::LimEnableds.as_long())
-                    .long(MuxConfigArg::LimEnableds.as_long())
+                Arg::new(MuxConfigArg::MaxEnableds.as_long())
+                    .long(MuxConfigArg::MaxEnableds.as_long())
                     .value_name("n")
-                    .help(Msg::HelpLimEnableds.to_str_localized())
+                    .help(Msg::HelpMaxEnableds.to_str_localized())
                     .value_parser(clap::value_parser!(u64)),
             )
             .arg(

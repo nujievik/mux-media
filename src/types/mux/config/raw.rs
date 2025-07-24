@@ -1,6 +1,6 @@
 use super::RawMuxConfig;
 use crate::{
-    LangCode, Msg, MuxError, Target, TargetGroup, Tool, Tools, types::helpers::os_str_tail,
+    LangCode, Msg, MuxError, Target, TargetGroup, Tool, types::helpers::os_str_tail,
 };
 use std::{
     collections::HashMap,
@@ -31,18 +31,13 @@ impl RawMuxConfig {
             return Err(MuxError::new_ok());
         }
 
-        if let Some((tool, args)) = raw.call_tool {
-            let tools = Tools::try_from_tools([tool])?;
-            let out = tools.run(tool, args)?;
-            return Err(out.into());
+        if let Some((tool, args)) = raw.run_command {
+            return Err(run_command_to_err(raw.args, tool, args)?);
         }
 
         Ok(raw)
     }
-}
 
-impl RawMuxConfig {
-    #[inline]
     pub fn try_from_args<I, T>(input_args: I) -> Result<Self, MuxError>
     where
         I: IntoIterator<Item = T>,
@@ -52,7 +47,7 @@ impl RawMuxConfig {
         let mut list_langs = false;
         let mut list_targets = false;
 
-        let mut call_tool: Option<(Tool, Vec<OsString>)> = None;
+        let mut run_command: Option<(Tool, Vec<OsString>)> = None;
         let mut args: Vec<OsString> = Vec::new();
         let mut trg_args: Option<HashMap<Target, Vec<OsString>>> = None;
         let mut target: Option<Target> = None;
@@ -85,7 +80,7 @@ impl RawMuxConfig {
             if let Ok(maybe_tool) = os_str_tail(OsStr::new("--"), arg.as_ref()) {
                 if let Some(tool) = Tool::iter().find(|tool| maybe_tool == tool.as_ref()) {
                     let remaining_args: Vec<OsString> = iter.collect();
-                    call_tool = Some((tool, remaining_args));
+                    run_command = Some((tool, remaining_args));
                     break;
                 }
             }
@@ -95,7 +90,7 @@ impl RawMuxConfig {
                     if trg_arg == "global" || trg_arg == "g" {
                         target = None;
                     } else {
-                        target = Some(Self::parse_target(&trg_arg)?);
+                        target = Some(parse_target(&trg_arg)?);
                     }
                 }
                 continue;
@@ -118,26 +113,58 @@ impl RawMuxConfig {
             locale,
             list_langs,
             list_targets,
-            call_tool,
+            run_command,
             args,
             trg_args,
         })
     }
+}
 
-    #[inline(always)]
-    fn parse_target(arg: &OsString) -> Result<Target, MuxError> {
-        if let Some(group) = arg.to_str().and_then(|s| s.parse::<TargetGroup>().ok()) {
-            return Ok(Target::Group(group));
-        }
-
-        let path = fs::canonicalize(arg).map_err(|e| {
-            MuxError::from(format!(
-                "Incorrect path target '{}': {}",
-                Path::new(arg).display(),
-                e
-            ))
-        })?;
-
-        Ok(path.into())
+#[inline(always)]
+fn parse_target(arg: &OsString) -> Result<Target, MuxError> {
+    if let Some(group) = arg.to_str().and_then(|s| s.parse::<TargetGroup>().ok()) {
+        return Ok(Target::Group(group));
     }
+
+    let path = fs::canonicalize(arg).map_err(|e| {
+        MuxError::from(format!(
+            "Incorrect path target '{}': {}",
+            Path::new(arg).display(),
+            e
+        ))
+    })?;
+
+    Ok(path.into())
+}
+
+#[cfg(not(all(windows, any(target_arch = "x86", target_arch = "x86_64"))))]
+#[inline(always)]
+fn run_command_to_err(
+    _: Vec<OsString>,
+    tool: Tool,
+    run_args: Vec<OsString>,
+) -> Result<MuxError, MuxError> {
+    let tools = crate::Tools::try_from_tools([tool])?;
+    let out = tools.run(tool, run_args)?;
+    return Err(out.into());
+}
+
+#[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
+#[inline(always)]
+fn run_command_to_err(
+    cfg_args: Vec<OsString>,
+    tool: Tool,
+    run_args: Vec<OsString>,
+) -> Result<MuxError, MuxError> {
+    use crate::{
+        MuxConfig, TryFinalizeInit,
+        markers::{MCOutput, MCTools},
+    };
+
+    let mut mc = MuxConfig::try_from_args(cfg_args)?;
+    mc.try_finalize_init()?;
+    let result = mc.get::<MCTools>().run(tool, run_args);
+    mc.get::<MCOutput>().remove_created_dirs();
+
+    return Err(result?.into());
 }

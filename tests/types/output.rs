@@ -1,6 +1,6 @@
 use crate::common::*;
-use mux_media::*;
 use mux_media::markers::*;
+use mux_media::*;
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},

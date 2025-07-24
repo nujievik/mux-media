@@ -76,12 +76,12 @@ fn append_target_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, path: &Path)
         MCSpecials
     );
 
-    if let Some(Ok(cs)) = mi
-        .pro_flags
-        .add_charsets
-        .then(|| mi.try_get::<MISubCharset>(path).map(|c| c.clone()))
+    if let Some(Ok(sc)) = mi
+        .auto_flags
+        .auto_charsets
+        .then(|| mi.try_get::<MISubCharset>(path).map(|sc| sc.clone()))
     {
-        args.append(&mut cs.to_os_mkvmerge_args(mi, path))
+        args.append(&mut sc.to_os_mkvmerge_args(mi, path))
     }
 }
 

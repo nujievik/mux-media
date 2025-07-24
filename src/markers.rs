@@ -1,8 +1,9 @@
 // Get Field MuxConfig markers
 pub use crate::types::mux::config::getters::{
-    MCAudioTracks, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags, MCExitOnErr,
-    MCFontAttachs, MCForcedTFlags, MCInput, MCJson, MCLocale, MCOtherAttachs, MCOutput, MCProFlags,
-    MCSpecials, MCSubTracks, MCTools, MCTrackLangs, MCTrackNames, MCVerbosity, MCVideoTracks,
+    MCAudioTracks, MCAutoFlags, MCButtonTracks, MCChapters, MCDefaultTFlags, MCEnabledTFlags,
+    MCExitOnErr, MCFontAttachs, MCForcedTFlags, MCInput, MCJson, MCLocale, MCOtherAttachs,
+    MCOutput, MCSpecials, MCSubTracks, MCTools, MCTrackLangs, MCTrackNames, MCVerbosity,
+    MCVideoTracks,
 };
 
 // Get Field MediaInfo markers

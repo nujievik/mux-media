@@ -37,6 +37,6 @@ macro_rules! flags_to_json_args {
     };
 }
 
-flags_to_json_args!(DefaultTFlags, Defaults, LimDefaults);
-flags_to_json_args!(ForcedTFlags, Forceds, LimForceds);
-flags_to_json_args!(EnabledTFlags, Enableds, LimEnableds);
+flags_to_json_args!(DefaultTFlags, Defaults, MaxDefaults);
+flags_to_json_args!(ForcedTFlags, Forceds, MaxForceds);
+flags_to_json_args!(EnabledTFlags, Enableds, MaxEnableds);

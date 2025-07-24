@@ -84,7 +84,7 @@ macro_rules! to_mkvmerge_args {
                 use $crate::MkvmergeArg;
                 use $crate::markers::{MISavedTracks, MITILang};
 
-                let add = mi.pro_flags.$add_marker;
+                let add = mi.auto_flags.$add_marker;
                 let nums: Vec<u64> = $crate::unwrap_or_return_vec!(mi.get::<MISavedTracks>(path))
                     .values()
                     .flat_map(|nums| nums.iter().copied())

@@ -1,5 +1,6 @@
 pub(crate) mod arc_path_buf;
 pub(crate) mod attachs;
+pub(crate) mod auto_flags;
 pub(crate) mod chapters;
 pub(crate) mod char_encoding;
 pub(crate) mod extensions;
@@ -11,7 +12,6 @@ pub(crate) mod media_info;
 pub(crate) mod media_number;
 pub(crate) mod mux;
 pub(crate) mod output;
-pub(crate) mod pro_flags;
 pub(crate) mod range;
 pub(crate) mod retiming;
 pub(crate) mod specials;

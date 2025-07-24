@@ -64,33 +64,20 @@ impl TryFinalizeInit for MuxConfig {
         self.input.try_finalize_init()?;
         self.output.try_finalize_init()?;
 
-        let temp_dir = self.output.get_temp_dir();
+        #[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
+        {
+            let json = Tools::make_json(self.output.get_temp_dir());
+            self.tools.upd_json(json);
+            self.tools.upd_user_tools(self.user_tools);
+        }
+
+        self.tools.try_upd_paths(Tool::iter_mkvtoolnix())?;
 
         #[cfg(not(all(windows, any(target_arch = "x86", target_arch = "x86_64"))))]
         {
-            self.tools.try_upd_paths(Tool::iter_mkvtoolnix())?;
+            let json = Tools::make_json(self.output.get_temp_dir());
+            self.tools.upd_json(json);
         }
-
-        #[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
-        {
-            match self.user_tools {
-                true => self
-                    .tools
-                    .try_upd_paths(Tool::iter_mkvtoolnix())
-                    .or_else(|e| {
-                        self.tools
-                            .try_upd_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
-                            .map_err(|_| e)
-                    }),
-                false => self
-                    .tools
-                    .try_upd_paths_from_bundled(Tool::iter_mkvtoolnix(), temp_dir)
-                    .or_else(|_| self.tools.try_upd_paths(Tool::iter_mkvtoolnix())),
-            }?
-        }
-
-        let json = Tools::make_json(temp_dir);
-        self.tools.upd_json(json);
 
         Ok(())
     }
@@ -199,7 +186,7 @@ fn try_read_json_args(path: &Path) -> Result<Vec<String>, MuxError> {
     let reader = BufReader::new(file);
     match serde_json::from_reader(reader) {
         Ok(vec) => {
-            println!("{} '{}'", Msg::ReadsJson, path.display());
+            println!("{} '{}'", Msg::LoadingJson, path.display());
             Ok(vec)
         }
         Err(e) => Err(e.into()),

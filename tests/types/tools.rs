@@ -41,7 +41,21 @@ fn test_set_bundled_paths() {
     Tool::iter().for_each(|tool| {
         let exp = dir.join(format!("{}.exe", tool.as_ref()));
         assert_eq!(&exp, tools.get_path(tool).unwrap())
-    })
+    });
+
+    let args = vec![
+        Path::new("-i"),
+        &d,
+        Path::new("-o"),
+        &dir,
+        Path::new("--user-tools"),
+    ];
+    let mut mc = cfg(args);
+    mc.try_finalize_init().unwrap();
+    let tools = mc.get::<MCTools>();
+
+    Tool::iter()
+        .for_each(|tool| assert_eq!(Path::new(tool.as_ref()), tools.get_path(tool).unwrap()));
 }
 
 #[test]

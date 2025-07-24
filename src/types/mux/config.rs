@@ -7,9 +7,9 @@ mod to_json_args;
 mod try_init;
 
 use crate::{
-    AudioTracks, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs, ForcedTFlags,
-    Input, LangCode, OtherAttachs, Output, ProFlags, Retiming, Specials, SubTracks, Target, Tool,
-    Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
+    AudioTracks, AutoFlags, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs,
+    ForcedTFlags, Input, LangCode, OtherAttachs, Output, Retiming, Specials, SubTracks, Target,
+    Tool, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
 use std::{collections::HashMap, ffi::OsString};
 
@@ -18,7 +18,7 @@ pub struct RawMuxConfig {
     pub locale: Option<LangCode>,
     pub list_langs: bool,
     pub list_targets: bool,
-    pub call_tool: Option<(Tool, Vec<OsString>)>,
+    pub run_command: Option<(Tool, Vec<OsString>)>,
     pub args: Vec<OsString>,
     pub trg_args: Option<HashMap<Target, Vec<OsString>>>,
 }
@@ -36,7 +36,7 @@ pub struct MuxConfig {
     verbosity: Verbosity,
     json: bool,
     exit_on_err: bool,
-    pro_flags: ProFlags,
+    auto_flags: AutoFlags,
     retiming: Retiming,
     audio_tracks: AudioTracks,
     sub_tracks: SubTracks,

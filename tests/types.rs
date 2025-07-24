@@ -3,6 +3,8 @@ mod macros;
 
 #[path = "types/attachs.rs"]
 mod attachs;
+#[path = "types/auto_flags.rs"]
+mod auto_flags;
 #[path = "types/chapters.rs"]
 mod chapters;
 #[path = "types/char_encoding.rs"]
@@ -21,8 +23,6 @@ mod media_number;
 mod mux;
 #[path = "types/output.rs"]
 mod output;
-#[path = "types/pro_flags.rs"]
-mod pro_flags;
 #[path = "types/range.rs"]
 mod range;
 #[path = "types/retiming.rs"]

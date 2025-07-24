@@ -29,7 +29,7 @@ macro_rules! from_arg_matches {
     };
 
     // Case 4: Off on pro flag logic
-    ($matches:ident, $arg:ident, $no_arg:ident, $pro:expr, @pro_flags) => {
+    ($matches:ident, $arg:ident, $no_arg:ident, $pro:expr, @auto_flags) => {
         match $crate::from_arg_matches!($matches, bool, $arg, @no_default)
         {
             Some(true) => true,

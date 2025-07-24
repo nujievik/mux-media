@@ -79,35 +79,28 @@ project.
   License: Unlicense OR MIT
   Source: https://crates.io/crates/walkdir
   
-### Windows build only
-  
-- **mkvmerge**
-  License: GPL v2
-  Source: https://mkvtoolnix.download/downloads.html#windows
+### Windows builds only
   
 - **winapi**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/winapi
   
+### Windows x86 and x86_64 builds only
+
+- **mkvmerge**
+  License: GPL v2
+  Source: https://mkvtoolnix.download/downloads.html#windows
+
+
 ### Other
 
 Following components is not include in Release but uses in the project: 
 
-#### Resources
+#### Build
 
-- **mkvtoolnix** resources
-  License: GPL v2
-  Source: https://codeberg.org/mbunkus/mkvtoolnix
-  
-#### Scripts
-
-- **Python**
-  License: PSF
-  Source: https://www.python.org/
-  
-- **wcwidth**
+- **which**
   License: MIT
-  Source: https://pypi.org/project/wcwidth/
+  Source: https://crates.io/crates/which
   
 #### Tests
 
@@ -122,3 +115,13 @@ Following components is not include in Release but uses in the project:
 - **Roboto**
   License: SIL Open Font License 1.1
   Source: https://fonts.google.com/specimen/Roboto
+  
+#### Scripts
+
+- **Python**
+  License: PSF
+  Source: https://www.python.org/
+  
+- **wcwidth**
+  License: MIT
+  Source: https://pypi.org/project/wcwidth/

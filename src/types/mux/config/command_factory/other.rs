@@ -16,9 +16,8 @@ impl Blocks {
                     .action(ArgAction::SetTrue),
             );
 
-        #[cfg(unix)]
+        #[cfg(not(all(windows, any(target_arch = "x86", target_arch = "x86_64"))))]
         {
-            // Hide in Unix, visible in Windows only
             self.0 = self.0.arg(
                 Arg::new(MuxConfigArg::UserTools.as_long())
                     .long(MuxConfigArg::UserTools.as_long())
@@ -27,7 +26,7 @@ impl Blocks {
             );
         }
 
-        #[cfg(windows)]
+        #[cfg(all(windows, any(target_arch = "x86", target_arch = "x86_64")))]
         {
             self.0 = self.0.arg(
                 Arg::new(MuxConfigArg::UserTools.as_long())
@@ -37,34 +36,15 @@ impl Blocks {
             );
         }
 
-        /*
         self.0 = self
             .0
-            .arg(
-                Arg::new(MuxConfigArg::FfprobeHelp.as_long())
-                    .long(MuxConfigArg::FfprobeHelp.as_long())
-                    .help(Msg::HelpFfprobeHelp.to_str_localized())
-                    .action(ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new(MuxConfigArg::MkvextractHelp.as_long())
-                    .long(MuxConfigArg::MkvextractHelp.as_long())
-                    .help(Msg::HelpMkvextractHelp.to_str_localized())
-                    .action(ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new(MuxConfigArg::MkvinfoHelp.as_long())
-                    .long(MuxConfigArg::MkvinfoHelp.as_long())
-                    .help(Msg::HelpMkvinfoHelp.to_str_localized())
-                    .action(ArgAction::SetTrue),
-            )
+            .next_help_heading(Msg::HelpOtherOptions.to_str_localized())
             .arg(
                 Arg::new(MuxConfigArg::MkvmergeHelp.as_long())
                     .long(MuxConfigArg::MkvmergeHelp.as_long())
                     .help(Msg::HelpMkvmergeHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             );
-        */
 
         self
     }

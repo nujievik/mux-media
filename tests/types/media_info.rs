@@ -1,5 +1,6 @@
 use super::char_encoding;
 use crate::common::*;
+use mux_media::markers::*;
 use mux_media::*;
 use once_cell::sync::Lazy;
 use smallvec::SmallVec;
@@ -8,7 +9,6 @@ use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
-use mux_media::markers::*;
 
 static MUX_CONFIG: Lazy<MuxConfig> = Lazy::new(|| cfg::<_, &str>([]));
 

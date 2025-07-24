@@ -15,6 +15,6 @@ macro_rules! flags_from_arg_matches {
     };
 }
 
-flags_from_arg_matches!(DefaultTFlags, Defaults, LimDefaults);
-flags_from_arg_matches!(ForcedTFlags, Forceds, LimForceds);
-flags_from_arg_matches!(EnabledTFlags, Enableds, LimEnableds);
+flags_from_arg_matches!(DefaultTFlags, Defaults, MaxDefaults);
+flags_from_arg_matches!(ForcedTFlags, Forceds, MaxForceds);
+flags_from_arg_matches!(EnabledTFlags, Enableds, MaxEnableds);

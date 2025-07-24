@@ -46,7 +46,7 @@ impl ToJsonArgs for MuxConfig {
 
         append_args_from_fields!(
             args, self;
-            pro_flags,
+            auto_flags,
             retiming,
             audio_tracks,
             sub_tracks,

@@ -32,7 +32,7 @@ Usage `mux-media -h` for help.
 Default settings can be overridden via CLI or by configuring the
 [JSON file](
 https://github.com/nujievik/mux-media/blob/main/mux-media.json) in the
-media directory.
+media directory and loading it with `mux-media -j`.
 
 ## Notices
 
@@ -59,7 +59,7 @@ cd mux-media
 
 4. Build:
 ```
-cargo build --release --locked
+cargo build --release
 ```
 
 5. On success, the binary will be in `target/release/mux-media`

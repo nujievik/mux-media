@@ -1,8 +1,8 @@
 use super::id;
 use crate::common::*;
 use crate::*;
-use mux_media::*;
 use mux_media::markers::*;
+use mux_media::*;
 
 #[test]
 fn test_is_default() {

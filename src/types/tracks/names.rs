@@ -11,7 +11,7 @@ pub struct TrackNames {
 }
 
 mkvmerge_arg!(TrackNames, "--track-name");
-to_mkvmerge_args!(@names_or_langs, TrackNames, Names, add_names, MITIName);
+to_mkvmerge_args!(@names_or_langs, TrackNames, Names, auto_names, MITIName);
 
 to_json_args!(@names_or_langs, TrackNames, Names);
 
