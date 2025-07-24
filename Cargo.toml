@@ -10,6 +10,8 @@ include = [
     "Cargo.toml",
     "LICENSE",
     "README.md",
+    "assets/win32/.gitkeep",
+    "assets/win64/.gitkeep",
     "build.rs",
     "src/**",
 ]
