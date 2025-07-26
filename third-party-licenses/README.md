@@ -59,10 +59,6 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/serde_json
   
-- **smallvec**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/smallvec
-  
 - **strum**
   License: MIT
   Source: https://crates.io/crates/strum
@@ -101,6 +97,24 @@ Following components is not include in Release but uses in the project:
 - **which**
   License: MIT
   Source: https://crates.io/crates/which
+  
+#### Macros
+
+- **proc-macro-crate**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/proc-macro-crate
+  
+- **proc-macro2**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/proc-macro2
+  
+- **quote**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/quote
+  
+- **syn**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/syn
   
 #### Tests
 
