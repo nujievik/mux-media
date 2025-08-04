@@ -8,7 +8,6 @@ use strum_macros::AsRefStr;
 pub enum TargetGroup {
     Audio,
     Video,
-    Signs,
     Subs,
 }
 
@@ -18,27 +17,6 @@ impl TargetGroup {
     /// Internally uses the kebab-case string form (e.g., `"audio"`, `"signs"`).
     pub fn as_path(&self) -> &Path {
         Path::new::<str>(self.as_ref())
-    }
-
-    /// Attempts to parse any full string as [`TargetGroup::Signs`] in the given strings.
-    ///
-    /// Recognizes English `"signs"` and Russian `"надписи"` (case-insensitive).
-    pub fn try_signs_many(slice: &[String]) -> Result<Self, MuxError> {
-        slice
-            .iter()
-            .find_map(|s| Self::try_signs(s).ok())
-            .ok_or_else(|| "No found any signs key".into())
-    }
-
-    /// Attempts to parse a full string as [`TargetGroup::Signs`].
-    ///
-    /// Recognizes English `"signs"` and Russian `"надписи"` (case-insensitive).
-    pub fn try_signs(s: &str) -> Result<Self, MuxError> {
-        match s.to_lowercase().as_ref() {
-            "signs" => Ok(Self::Signs),
-            "надписи" => Ok(Self::Signs),
-            _ => Err("Is not signs key".into()),
-        }
     }
 }
 
@@ -71,7 +49,6 @@ impl FromStr for TargetGroup {
             "audio" => Self::Audio,
             "v" => Self::Video,
             "video" => Self::Video,
-            "signs" => Self::Signs,
             "s" => Self::Subs,
             "subs" => Self::Subs,
             "subtitles" => Self::Subs,

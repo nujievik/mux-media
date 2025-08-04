@@ -14,12 +14,6 @@ fn new_other(args: &[&str]) -> OtherAttachs {
 }
 
 #[test]
-fn test_mkvmerge_args() {
-    assert_eq!("-m", Attachs::MKVMERGE_ARG);
-    assert_eq!("-M", Attachs::MKVMERGE_NO_ARG);
-}
-
-#[test]
 fn test_is_default() {
     assert!(FontAttachs::default().is_default());
     assert!(new_fonts(&[]).is_default());
@@ -160,8 +154,8 @@ test_save_attach!(test_other_save_attach, other_str);
 fn_variants_of_args!(
     "-f" => vec!["--fonts"],
     "-F" => vec!["--no-fonts"],
-    "-m" => vec!["--attachs"],
-    "-M" => vec!["--no-attachs"],
+    "-m" => vec!["--attachs", "--attachments"],
+    "-M" => vec!["--no-attachs", "--no-attachments"],
 );
 
 fn current_args(at: AttachType) -> (&'static str, &'static str, &'static str, &'static str) {
@@ -179,11 +173,11 @@ fn build_test_to_mkvmerge_args(file: &str, at: AttachType) {
         (vec![], vec![]),
         (vec![], vec![no_alt]),
         (vec![], vec![alt, "1"]),
-        (vec!["-M"], vec![no_arg]),
-        (vec!["-m", "1,8,16"], vec![arg, "1,8,16"]),
-        (vec!["-m", "!1"], vec![arg, "2-"]),
-        (vec!["-m", "!3,4"], vec![arg, "!3,4"]),
-        (vec!["-m", "1"], vec![arg, "!2-"]),
+        (vec!["--no-attachments"], vec![no_arg]),
+        (vec!["--attachments", "1,8,16"], vec![arg, "1,8,16"]),
+        (vec!["--attachments", "!1"], vec![arg, "2-"]),
+        (vec!["--attachments", "!3,4"], vec![arg, "!3,4"]),
+        (vec!["--attachments", "1"], vec![arg, "!2-"]),
     ];
 
     compare_arg_cases!(
@@ -212,18 +206,33 @@ fn build_test_mix_to_mvkmerge_args(file: &str, at: AttachType) {
 
     let cases = [
         (vec![], vec![]),
-        (vec!["-m", "1,2,3,4,5,6,7,8"], vec![no_alt]),
-        (vec!["-m", "1,2,3,4,5,6,7,8"], vec![alt, "1"]),
-        (vec!["-m", "9,10,11,12,13,14,15,16"], vec![no_arg]),
-        (vec!["-m", "9,10,11,12,13,14,15,16"], vec![arg, "32"]),
-        (vec!["-M"], vec!["-FM"]),
-        (vec!["-M"], vec![no_arg, no_alt]),
-        (vec!["-M"], vec![arg, "32", alt, "32"]),
-        (vec!["-M"], vec![arg, "!1-16", alt, "!1-16"]),
-        (vec!["-m", "3,4,10"], vec![arg, "3,4", alt, "10"]),
-        (vec!["-m", "3,4,10"], vec![arg, "!1-2,5-", alt, "!9,11-"]),
-        (vec!["-m", "!3,4,10"], vec![arg, "!3,4", alt, "!10"]),
-        (vec!["-m", "!3,4,10"], vec![arg, "1,2,5-", alt, "9,11-"]),
+        (vec!["--attachments", "1,2,3,4,5,6,7,8"], vec![no_alt]),
+        (vec!["--attachments", "1,2,3,4,5,6,7,8"], vec![alt, "1"]),
+        (
+            vec!["--attachments", "9,10,11,12,13,14,15,16"],
+            vec![no_arg],
+        ),
+        (
+            vec!["--attachments", "9,10,11,12,13,14,15,16"],
+            vec![arg, "32"],
+        ),
+        (vec!["--no-attachments"], vec!["-FM"]),
+        (vec!["--no-attachments"], vec![no_arg, no_alt]),
+        (vec!["--no-attachments"], vec![arg, "32", alt, "32"]),
+        (vec!["--no-attachments"], vec![arg, "!1-16", alt, "!1-16"]),
+        (vec!["--attachments", "3,4,10"], vec![arg, "3,4", alt, "10"]),
+        (
+            vec!["--attachments", "3,4,10"],
+            vec![arg, "!1-2,5-", alt, "!9,11-"],
+        ),
+        (
+            vec!["--attachments", "!3,4,10"],
+            vec![arg, "!3,4", alt, "!10"],
+        ),
+        (
+            vec!["--attachments", "!3,4,10"],
+            vec![arg, "1,2,5-", alt, "9,11-"],
+        ),
     ];
 
     compare_arg_cases!(

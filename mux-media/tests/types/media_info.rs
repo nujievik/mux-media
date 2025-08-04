@@ -1,9 +1,11 @@
-use super::char_encoding;
-use crate::common::*;
-use mux_media::markers::*;
-use mux_media::*;
+use crate::{char_encoding, common::*, input};
+use mux_media::{markers::*, *};
 use once_cell::sync::Lazy;
-use std::path::{Path, PathBuf};
+use std::{
+    collections::HashSet,
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
 
 static MUX_CONFIG: Lazy<MuxConfig> = Lazy::new(|| cfg::<_, &str>([]));
 
@@ -24,14 +26,14 @@ fn test_empty() {
 }
 
 #[test]
-fn test_upd_group_stem() {
+fn test_set_cmn_stem() {
     ["x", "a", "bc"].iter().for_each(|s| {
         let mut mi = new();
-        mi.upd_group_stem(s);
+        mi.set_cmn::<MICmnStem>(s.into());
         assert_eq!(0, mi.len());
         assert!(!mi.is_empty());
         assert!(mi.is_no_files());
-        assert_eq!(s, mi.try_get_cmn::<MIGroupStem>().unwrap());
+        assert_eq!(s, mi.try_get_cmn::<MICmnStem>().unwrap());
     })
 }
 
@@ -62,7 +64,7 @@ fn test_try_insert() {
 #[test]
 fn test_clear() {
     let mut mi = new();
-    mi.upd_group_stem("x");
+    mi.set_cmn::<MICmnStem>("x".into());
     mi.try_insert(new_path("srt.srt")).unwrap();
     mi.clear();
 
@@ -72,25 +74,26 @@ fn test_clear() {
 }
 
 #[test]
-fn test_get_take_upd_cache() {
+fn test_get_take_set_cache() {
     let mut mi = new();
     assert!(mi.cache().of_files.is_empty());
 
     ["srt.srt", "audio_x1.mka"].iter().for_each(|f| {
         let file = new_path(f);
         mi.try_insert(file.clone()).unwrap();
+        mi.init_ti::<MITIName>(&file, 0).unwrap();
 
         let cache = mi.cache();
         assert_eq!(&file, cache.of_files.keys().next().unwrap());
-        mi.unmut::<MIMkvmergeI>(&file).unwrap();
+        mi.immut_ti::<MITIName>(&file, 0).unwrap();
 
         let cache = mi.take_cache();
         assert_eq!(&file, cache.of_files.keys().next().unwrap());
-        assert!(mi.unmut::<MIMkvmergeI>(&file).is_none());
+        assert!(mi.immut_ti::<MITIName>(&file, 0).is_none());
 
-        mi.upd_cache(cache);
+        mi.set_cache(cache);
         assert_eq!(&file, mi.cache().of_files.keys().next().unwrap());
-        mi.unmut::<MIMkvmergeI>(&file).unwrap();
+        mi.immut_ti::<MITIName>(&file, 0).unwrap();
 
         mi.clear()
     })
@@ -164,6 +167,30 @@ build_tests_cmn_regex_id!(
 );
 
 #[test]
+fn test_cmn_external_fonts() {
+    input::TEST_INPUT_FONTS.iter().for_each(|(dir, files)| {
+        let dir = input::data_font(dir);
+        let mut mux_config = cfg([Path::new("-i"), &dir]);
+        mux_config.try_finalize_init().unwrap();
+        let mut mi = MediaInfo::from(&mux_config);
+
+        let expected_len = files
+            .iter()
+            .map(|f| input::data_font(f).file_stem().unwrap().to_owned())
+            .collect::<HashSet<OsString>>()
+            .len();
+
+        let expected = mi.try_take_cmn::<MICmnExternalFonts>().unwrap();
+        assert_eq!(expected_len, expected.len());
+
+        let collected = mux_config
+            .field::<MCInput>()
+            .collect_fonts_with_filter_and_sort();
+        assert_eq!(expected, collected);
+    })
+}
+
+#[test]
 fn test_cmn_regex_words() {
     let mut mi = new();
     let re = mi.try_get_cmn::<MICmnRegexWord>().unwrap();
@@ -196,14 +223,60 @@ fn test_cmn_regex_words() {
 }
 
 #[test]
-fn test_group_stem() {
+fn test_cmn_regex_codec() {
+    let mut mi = new();
+    let re = mi.try_get_cmn::<MICmnRegexCodec>().unwrap();
+
+    [
+        "ab",
+        "c",
+        "def",
+        "xyz",
+        "def",
+        "xyz",
+        "ab",
+        "c",
+        "AAC",
+        "AC-3",
+        "AVC/H.264/MPEG-4p10",
+        "A_AC3",
+        "A_VORBIS",
+        "MP3",
+        "V_MPEG4/ISO/AVC",
+        "Vorbis",
+    ]
+    .into_iter()
+    .for_each(|codec| {
+        let compare_with = |track: &str, add: &str| {
+            let s = format!("Track ID {}:{}({})", track, add, codec);
+            let extracted = re.captures(&s).unwrap().get(1).unwrap().as_str();
+
+            assert_eq!(codec, extracted);
+        };
+
+        ["1", "2", "3", "4", "999", "1000", "9999"]
+            .iter()
+            .for_each(|track| {
+                compare_with(track, "\n");
+                compare_with(track, " ");
+                compare_with(track, "");
+                compare_with(track, ".");
+                compare_with(track, ",");
+                compare_with(track, ":");
+                compare_with(track, "123");
+            })
+    })
+}
+
+#[test]
+fn test_cmn_stem() {
     let mut mi = new();
 
     [("srt", "srt.srt"), ("audio_x1", "audio_x1.mka")]
         .into_iter()
         .for_each(|(stem, file)| {
             mi.try_insert(new_path(file)).unwrap();
-            assert_eq!(stem, mi.try_get_cmn::<MIGroupStem>().unwrap());
+            assert_eq!(stem, mi.try_get_cmn::<MICmnStem>().unwrap());
             mi.clear();
         });
 
@@ -215,7 +288,14 @@ fn test_group_stem() {
     .iter()
     .for_each(|f| mi.try_insert(new_path(f)).unwrap());
 
-    assert_eq!("x1_set", mi.try_get_cmn::<MIGroupStem>().unwrap());
+    assert_eq!("x1_set", mi.try_get_cmn::<MICmnStem>().unwrap());
+}
+
+#[test]
+fn test_cmn_track_order() {
+    let mut mi = new();
+    mi.try_insert(data("audio_x1.mka")).unwrap();
+    mi.try_init_cmn::<MICmnTrackOrder>().unwrap();
 }
 
 #[test]
@@ -459,7 +539,7 @@ fn test_attachs_info() {
 fn test_path_tail() {
     let mut mi = new();
 
-    mi.upd_group_stem("");
+    mi.set_cmn::<MICmnStem>("".into());
 
     [
         ("audio_x1", "audio_x1.mka"),
@@ -473,7 +553,7 @@ fn test_path_tail() {
     });
 
     mi.clear();
-    mi.upd_group_stem("s");
+    mi.set_cmn::<MICmnStem>("s".into());
 
     [("ub_x1", "sub_x1.mks"), ("rt", "srt.srt")]
         .iter()
@@ -544,8 +624,11 @@ fn test_ti_name() {
     ]
     .iter()
     .for_each(|(name, file, cmn_stem)| {
-        mi.upd_group_stem(cmn_stem);
-        assert_eq!(name, mi.try_get_ti::<MITIName>(&data(file), 0).unwrap());
+        mi.set_cmn::<MICmnStem>(cmn_stem.into());
+        assert_eq!(
+            name,
+            mi.try_get_ti::<MITIName>(&data(file), 0).unwrap().inner()
+        );
     })
 }
 
@@ -563,8 +646,11 @@ fn test_ti_lang() {
     ]
     .into_iter()
     .for_each(|(lang, file, cmn_stem)| {
-        mi.upd_group_stem(cmn_stem);
-        assert_eq!(lang, *mi.try_get_ti::<MITILang>(&data(file), 0).unwrap());
+        mi.set_cmn::<MICmnStem>(cmn_stem.into());
+        assert_eq!(
+            lang,
+            *mi.try_get_ti::<MITILang>(&data(file), 0).unwrap().inner()
+        );
     });
 
     let mc = cfg::<_, PathBuf>([PathBuf::from("-i"), data("")]);
@@ -577,7 +663,10 @@ fn test_ti_lang() {
     ]
     .into_iter()
     .for_each(|(lang, file)| {
-        assert_eq!(lang, *mi.try_get_ti::<MITILang>(&data(file), 0).unwrap());
+        assert_eq!(
+            lang,
+            *mi.try_get_ti::<MITILang>(&data(file), 0).unwrap().inner()
+        );
     });
 }
 

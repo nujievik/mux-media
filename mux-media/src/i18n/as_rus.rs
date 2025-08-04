@@ -23,6 +23,7 @@ crate::impl_msg_as_localized_str!(
     HelpDepth => "Сканировать подкаталоги до этой глубины",
     HelpEnableds => "Установить enabled флаги",
     HelpExitOnErr => "Пропустить мукс следующих файлов при ошибке",
+    HelpFfmpegHelp => "Выполнить команду ffmpeg",
     HelpFonts => "[!]Копировать вложенные шрифты",
     HelpForceds => "Установить forced флаги",
     HelpGlobalOptions => "Глобальные опции",
@@ -32,6 +33,7 @@ crate::impl_msg_as_localized_str!(
     HelpJson => "Загрузить и сохранить JSON настройки в стартовой директории",
     HelpLangs => "Установить языки дорожек",
     HelpLessRetiming => "Не ретаймить если линкованные сегменты снаружи основного",
+    HelpListContainers => "Показать поддерживаемые выходные контейнеры",
     HelpListLangs => "Показать поддерживаемые языковые коды",
     HelpListTargets => "Показать поддерживаемые цели",
     HelpLoad => "Загрузить настройки из JSON",
@@ -54,6 +56,7 @@ crate::impl_msg_as_localized_str!(
     HelpPro => "Отключить все автофлаги ниже",
     HelpQuiet => "Подавить логирование",
     HelpRange => "Диапазон номеров файлов",
+    HelpReencode => "Форсировать перекодирование для пользовательских расширений (.avi, .mp4, и т.д.)",
     HelpRetimingOptions => "Ретайминг опции",
     HelpRmSegments => "Удалить сегменты с паттернами имен",
     HelpSkip => "Паттерны пропуска файлов",
@@ -72,23 +75,30 @@ crate::impl_msg_as_localized_str!(
     LangNotSupLog => "Язык не поддерживается для ведения журнала",
     LoadingJson => "Загрузка JSON",
     MayFailIfCommandLong => "Может привести к ошибке если команда длинная",
+    Muxing => "Муксирование",
     NoExtMediaFound => "Не найдено внешних медиа",
     NoInputDirMedia => "Не найдены медиа в стартовой директории",
     NoStemMedia => "Не найдены медиа для stem",
     NotFound => "Не найден",
     NotFoundTrack => "Не найдено дорожки",
-    NotMuxedAny => "Медиа не мультиплексированы",
+    NotMuxedAny => "Медиа не муксированы",
     NotOutChange => "Не найдено изменений для выходного файла",
     NotOutSaveAny => "Не найдено сохраняемой дорожки или вложения для выходного файла",
     NotRecognizedMedia => "Не распознан медиа файл",
     NotSavedTrackOrAttach => "Не найдена сохраняемая дорожка или вложение",
     RunningCommand => "Выполнение команды",
     Skipping => "Пропуск",
-    SuccessMuxed => "Успешно мультиплексировано",
+    SuccessMuxed => "Успешно муксировано",
+    UnsupOutContainerExt => "Неподдерживаемое расширение выходного контейнера",
     Using => "Используется",
     ListTargets => r#"Поддерживаемые цели (в порядке приоритета):
  1. Путь к файлу
  2. Путь к родительской директории файла
  3. Группа файла: video, audio, subs (файл должен содержать соответствующую дорожку)
     или global (по умолчанию)"#,
+    ListContainers => r#"Поддерживаемые контейнеры:
+ 1. Matroska (.mkv). Универсальный контейнер по умолчанию
+ 2. AVI (.avi). Устаревший
+ 3. MP4 (.mp4). MPEG-4 Part 10
+ 4. Webm (.webm). YouTube формат"#,
 );

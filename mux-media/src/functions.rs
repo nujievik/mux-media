@@ -1,8 +1,8 @@
 use crate::{
-    ArcPathBuf, Input, MediaInfo, Msg, MuxConfig, MuxCurrent, MuxError, MuxLogger, Muxer, Output,
-    Tools, TryFinalizeInit, TryInit,
+    Input, MediaInfo, Msg, MuxConfig, MuxCurrent, MuxError, MuxLogger, Muxer, Output,
+    TryFinalizeInit, TryInit,
     i18n::logs,
-    markers::{MCExitOnErr, MCInput, MCOutput, MCTools, MCVerbosity},
+    markers::{MCExitOnErr, MCInput, MCMuxer, MCOutput, MCVerbosity, MICmnStem},
 };
 use log::{LevelFilter, error, info, trace, warn};
 use std::{
@@ -14,7 +14,11 @@ use std::{
 pub const SEP_BYTES: &[u8] = &[MAIN_SEPARATOR as u8];
 
 /// String form of [`MAIN_SEPARATOR`].
-pub const SEP_STR: &str = unsafe { str::from_utf8_unchecked(SEP_BYTES) };
+// checked for valid UTF-8 at compile time
+pub const SEP_STR: &str = match str::from_utf8(SEP_BYTES) {
+    Ok(s) => s,
+    Err(_) => panic!("MAIN_SEPARATOR is not valid UTF-8"),
+};
 
 /// Runs muxing and invokes all other components.
 ///
@@ -26,9 +30,10 @@ pub const SEP_STR: &str = unsafe { str::from_utf8_unchecked(SEP_BYTES) };
 /// 2. CLI or JSON argument parsing failures
 ///    return an error with exit code `2`.
 ///
-/// 3. All other errors
-///    return exit code `1`.
+/// 3. All other errors return exit code `1`.
+///
 ///    - Critical errors return immediately.
+///
 ///    - Errors while processing current media return an error if `--exit-on-err` is set;
 ///      otherwise, muxing continues with the next media.
 pub fn run() -> Result<(), MuxError> {
@@ -62,11 +67,11 @@ pub fn run() -> Result<(), MuxError> {
 ///
 /// - Returns a muxing error.
 pub fn mux(mux_config: &MuxConfig) -> Result<usize, MuxError> {
-    let (input, output, tools, exit_on_err, muxer, mut mi, mut fonts, mut cnt) =
-        init_try_mux(mux_config);
+    let (input, output, exit_on_err, muxer, mut mi, mut cnt) = init_mux(mux_config);
 
     for media in input.iter_media_grouped_by_stem() {
         let out = output.build_out(media.out_name_middle);
+        info!("{} '{}'...", Msg::Muxing, out.display());
 
         match init_current_media(exit_on_err, &mut mi, media.stem, media.files, &out) {
             MuxCurrent::Continue => continue,
@@ -74,7 +79,7 @@ pub fn mux(mux_config: &MuxConfig) -> Result<usize, MuxError> {
             MuxCurrent::Err(e) => return Err(e),
         }
 
-        match muxer.mux_current(input, tools, &mut mi, &mut fonts, &out) {
+        match muxer.mux_current(&mut mi, &out) {
             MuxCurrent::Continue => continue,
             MuxCurrent::Ok(tool_out) => {
                 trace!("{}", tool_out);
@@ -142,32 +147,20 @@ pub fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
         return path;
     }
 
-    let mut prf_path = std::ffi::OsString::from("\\\\?\\");
+    let mut prf_path = OsString::from("\\\\?\\");
     prf_path.push(path.as_os_str());
     prf_path.into()
 }
 
 #[inline(always)]
-fn init_try_mux<'a>(
-    mc: &'a MuxConfig,
-) -> (
-    &'a Input,
-    &'a Output,
-    &'a Tools,
-    bool,
-    Muxer,
-    MediaInfo<'a>,
-    Option<Vec<PathBuf>>,
-    usize,
-) {
+fn init_mux<'a>(mc: &'a MuxConfig) -> (&'a Input, &'a Output, bool, Muxer, MediaInfo<'a>, usize) {
     let input = mc.field::<MCInput>();
     let output = mc.field::<MCOutput>();
-    let tools = mc.field::<MCTools>();
     let exit_on_err = *mc.field::<MCExitOnErr>();
-    let muxer = Muxer::from(output);
+    let muxer = *mc.field::<MCMuxer>();
     let mi = MediaInfo::from(mc);
 
-    (input, output, tools, exit_on_err, muxer, mi, None, 0)
+    (input, output, exit_on_err, muxer, mi, 0)
 }
 
 #[inline(always)]
@@ -183,11 +176,9 @@ fn init_current_media(
         return MuxCurrent::Continue;
     }
 
-    mi.upd_group_stem(stem);
+    mi.set_cmn::<MICmnStem>(stem);
 
-    if let Err(e) =
-        mi.try_insert_many_filtered(files.into_iter().map(|p| ArcPathBuf::from(p)), exit_on_err)
-    {
+    if let Err(e) = mi.try_insert_many_filtered(files, exit_on_err) {
         return Err(e).into();
     }
 

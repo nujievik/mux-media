@@ -17,13 +17,18 @@ impl RawMuxConfig {
             Msg::upd_lang_or_warn(lang);
         }
 
-        if raw.list_langs {
-            LangCode::print_list_langs();
+        if raw.list_targets {
+            Target::print_list_targets();
             return Err(MuxError::new_ok());
         }
 
-        if raw.list_targets {
-            Target::print_list_targets();
+        if raw.list_containers {
+            println!("{}", Msg::ListContainers);
+            return Err(MuxError::new_ok());
+        }
+
+        if raw.list_langs {
+            LangCode::print_list_langs();
             return Err(MuxError::new_ok());
         }
 
@@ -40,8 +45,9 @@ impl RawMuxConfig {
         T: Into<OsString>,
     {
         let mut locale: Option<LangCode> = None;
-        let mut list_langs = false;
         let mut list_targets = false;
+        let mut list_containers = false;
+        let mut list_langs = false;
 
         let mut run_command: Option<(Tool, Vec<OsString>)> = None;
         let mut args: Vec<OsString> = Vec::new();
@@ -63,13 +69,18 @@ impl RawMuxConfig {
                 continue;
             }
 
-            if arg == "--list-langs" || arg == "--list-languages" {
-                list_langs = true;
+            if arg == "--list-targets" {
+                list_targets = true;
                 continue;
             }
 
-            if arg == "--list-targets" {
-                list_targets = true;
+            if arg == "--list-containers" {
+                list_containers = true;
+                continue;
+            }
+
+            if arg == "--list-langs" || arg == "--list-languages" {
+                list_langs = true;
                 continue;
             }
 
@@ -107,8 +118,9 @@ impl RawMuxConfig {
 
         Ok(Self {
             locale,
-            list_langs,
             list_targets,
+            list_containers,
+            list_langs,
             run_command,
             args,
             trg_args,

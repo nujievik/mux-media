@@ -1,7 +1,7 @@
 use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, AutoFlags, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs,
-    ForcedTFlags, Input, IsDefault, LangCode, Msg, OtherAttachs, Output, Retiming, Specials,
+    ForcedTFlags, Input, IsDefault, LangCode, Msg, Muxer, OtherAttachs, Output, Specials,
     SubTracks, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks, from_arg_matches,
 };
 use clap::{ArgMatches, Error, FromArgMatches};
@@ -44,10 +44,10 @@ impl FromArgMatches for MuxConfig {
             output,
             locale,
             verbosity: Verbosity::from_arg_matches_mut(matches)?,
-            json: from_arg_matches!(matches, bool, Json, || false),
             exit_on_err: from_arg_matches!(matches, bool, ExitOnErr, || false),
+            json: from_arg_matches!(matches, bool, Json, || false),
+            reencode: from_arg_matches!(matches, bool, Reencode, || false),
             auto_flags: AutoFlags::from_arg_matches_mut(matches)?,
-            retiming: Retiming::from_arg_matches_mut(matches)?,
             audio_tracks: AudioTracks::from_arg_matches_mut(matches)?,
             sub_tracks: SubTracks::from_arg_matches_mut(matches)?,
             video_tracks: VideoTracks::from_arg_matches_mut(matches)?,
@@ -64,6 +64,7 @@ impl FromArgMatches for MuxConfig {
             targets: None,
             user_tools: from_arg_matches!(matches, bool, UserTools, || false),
             tools: Tools::default(),
+            muxer: Muxer::default(),
             is_output_constructed_from_input,
         })
     }
@@ -83,13 +84,13 @@ impl FromArgMatches for MuxConfig {
 
         from_arg_matches!(
             @upd, self, matches;
-            json, bool, Json,
             exit_on_err, bool, ExitOnErr,
+            json, bool, Json,
+            reencode, bool, Reencode,
             user_tools, bool, UserTools
         );
 
         self.auto_flags.update_from_arg_matches_mut(matches)?;
-        //self.retiming.update_from_arg_matches_mut(matches)?;
 
         upd_fields!(
             self, matches;

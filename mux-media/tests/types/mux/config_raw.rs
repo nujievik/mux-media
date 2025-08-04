@@ -15,8 +15,9 @@ fn test_basic_split() {
     let raw = new(&[
         "--locale",
         "eng",
-        "--list-langs",
         "--list-targets",
+        "--list-containers",
+        "--list-langs",
         "arg1",
         "arg2",
         "--target",
@@ -36,8 +37,10 @@ fn test_basic_split() {
     ]);
 
     assert_eq!(Some(LangCode::Eng), raw.locale);
-    assert_eq!(true, raw.list_langs);
     assert_eq!(true, raw.list_targets);
+    assert_eq!(true, raw.list_containers);
+    assert_eq!(true, raw.list_langs);
+
     assert_eq!(
         Some((Tool::Mkvmerge, oss(&["-o", "out.mkv"]))),
         raw.run_command
@@ -103,8 +106,9 @@ fn test_locale() {
     .for_each(|(lang, lng)| {
         let raw = new(&["--locale", lng]);
         assert_eq!(Some(lang), raw.locale);
-        assert_eq!(false, raw.list_langs);
         assert_eq!(false, raw.list_targets);
+        assert_eq!(false, raw.list_containers);
+        assert_eq!(false, raw.list_langs);
         assert_eq!(None, raw.run_command);
         assert_eq!(oss(&["--locale", lng]), raw.args);
         assert_eq!(None, raw.trg_args);
@@ -115,8 +119,9 @@ fn test_locale() {
 fn test_only_tool() {
     let raw = new(&["--mkvmerge", "-h"]);
     assert_eq!(None, raw.locale);
-    assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);
+    assert_eq!(false, raw.list_containers);
+    assert_eq!(false, raw.list_langs);
     assert_eq!(Some((Tool::Mkvmerge, oss(&["-h"]))), raw.run_command);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);
@@ -129,8 +134,9 @@ fn test_list_langs_flags() {
         .for_each(|args| {
             let raw = new(args);
             assert_eq!(None, raw.locale);
-            assert_eq!(true, raw.list_langs);
             assert_eq!(false, raw.list_targets);
+            assert_eq!(false, raw.list_containers);
+            assert_eq!(true, raw.list_langs);
             assert_eq!(None, raw.run_command);
             assert_eq!(oss(&[]), raw.args);
             assert_eq!(None, raw.trg_args);
@@ -141,8 +147,21 @@ fn test_list_langs_flags() {
 fn test_list_targets_flag() {
     let raw = new(&["--list-targets"]);
     assert_eq!(None, raw.locale);
-    assert_eq!(false, raw.list_langs);
     assert_eq!(true, raw.list_targets);
+    assert_eq!(false, raw.list_containers);
+    assert_eq!(false, raw.list_langs);
+    assert_eq!(None, raw.run_command);
+    assert_eq!(oss(&[]), raw.args);
+    assert_eq!(None, raw.trg_args);
+}
+
+#[test]
+fn test_list_containers_flag() {
+    let raw = new(&["--list-containers"]);
+    assert_eq!(None, raw.locale);
+    assert_eq!(false, raw.list_targets);
+    assert_eq!(true, raw.list_containers);
+    assert_eq!(false, raw.list_langs);
     assert_eq!(None, raw.run_command);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);
@@ -199,8 +218,9 @@ fn test_multiple_target_switching() {
 fn test_empty_input() {
     let raw = new(&[]);
     assert_eq!(None, raw.locale);
-    assert_eq!(false, raw.list_langs);
     assert_eq!(false, raw.list_targets);
+    assert_eq!(false, raw.list_containers);
+    assert_eq!(false, raw.list_langs);
     assert_eq!(None, raw.run_command);
     assert_eq!(oss(&[]), raw.args);
     assert_eq!(None, raw.trg_args);

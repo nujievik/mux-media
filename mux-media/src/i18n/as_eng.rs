@@ -23,6 +23,7 @@ crate::impl_msg_as_localized_str!(
     HelpDepth => "Scan subdirectories up to this depth",
     HelpEnableds => "Set track-enabled-flags",
     HelpExitOnErr => "Skip muxing next files if error occurs",
+    HelpFfmpegHelp => "Run ffmpeg command",
     HelpFonts => "[!]Copy font attachments",
     HelpForceds => "Set forced-display-flags",
     HelpGlobalOptions => "Global options",
@@ -32,6 +33,7 @@ crate::impl_msg_as_localized_str!(
     HelpJson => "Load and save JSON settings in input directory",
     HelpLangs => "Set track languages",
     HelpLessRetiming => "No retiming if linked segments outside main",
+    HelpListContainers => "Show supported output containers",
     HelpListLangs => "Show supported language codes",
     HelpListTargets => "Show supported targets",
     HelpLoad => "Load settings from JSON",
@@ -54,6 +56,7 @@ crate::impl_msg_as_localized_str!(
     HelpPro => "Disable all auto flags below",
     HelpQuiet => "Suppress logging",
     HelpRange => "Number range of files",
+    HelpReencode => "Force reencode for custom output (.avi, .mp4, etc.)",
     HelpRetimingOptions => "Retiming options",
     HelpRmSegments => "Remove segments with name patterns",
     HelpSkip => "Patterns of files to skip",
@@ -72,6 +75,7 @@ crate::impl_msg_as_localized_str!(
     LangNotSupLog => "Language is not supported for logging",
     LoadingJson => "Loading JSON",
     MayFailIfCommandLong => "May fail if command long",
+    Muxing => "Muxing",
     NoExtMediaFound => "No external media found",
     NoInputDirMedia => "No media found in the input directory",
     NoStemMedia => "No media found for stem",
@@ -85,10 +89,16 @@ crate::impl_msg_as_localized_str!(
     RunningCommand => "Running command",
     Skipping => "Skipping",
     SuccessMuxed => "Success muxed",
+    UnsupOutContainerExt => "Unsupported output container extension",
     Using => "Using",
     ListTargets => r#"Supported targets (in order of priority):
  1. Path to a file
  2. Path to the parent directory of the file
  3. File group: video, audio, subs (file must contain the corresponding track type),
     or global (default)"#,
+    ListContainers => r#"Supported containers:
+ 1. Matroska (.mkv). Universal default container
+ 2. AVI (.avi). Legacy
+ 3. MP4 (.mp4). MPEG-4 Part 10
+ 4. Webm (.webm). YouTube format"#,
 );

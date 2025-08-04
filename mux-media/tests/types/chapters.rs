@@ -14,12 +14,6 @@ fn try_new(file: &str) -> Result<Chapters, MuxError> {
 }
 
 #[test]
-fn test_mkvmerge_args() {
-    assert_eq!("--chapters", Chapters::MKVMERGE_ARG);
-    assert_eq!("--no-chapters", Chapters::MKVMERGE_NO_ARG);
-}
-
-#[test]
 fn test_is_default() {
     assert!(Chapters::default().is_default());
     assert!(!new("srt.srt").is_default());

@@ -1,34 +1,4 @@
-use super::MuxConfig;
-use crate::{ParseableArg, ParseableArgs};
-
-macro_rules! parseable_args {
-    ($ty:ident, $enum_arg:ident;
-    $( $arg:ident => $long:expr ),* ) => {
-        impl ParseableArgs for $ty {
-            type Arg = $enum_arg;
-        }
-
-        #[doc = concat!("[`ParseableArgs`] assotiated with the [`", stringify!($ty), "`].")]
-        #[derive(Copy, Clone)]
-        pub enum $enum_arg {
-            $( $arg ),*
-        }
-
-        impl ParseableArg for $enum_arg {
-            fn dashed(self) -> &'static str {
-                match self {
-                    $( Self::$arg => concat!("--", $long) ),*
-                }
-            }
-
-            fn undashed(self) -> &'static str {
-                match self {
-                    $( Self::$arg => $long ),*
-                }
-            }
-        }
-    };
-}
+use crate::{MuxConfig, parseable_args};
 
 parseable_args!(
     MuxConfig, MuxConfigArg;
@@ -40,13 +10,11 @@ parseable_args!(
     Locale => "locale",
     Verbose => "verbose",
     Quiet => "quiet",
-    Load => "load",
-    Json => "json",
     ExitOnErr => "exit-on-err",
+    Json => "json",
+    Load => "load",
+    Reencode => "reencode",
     Pro => "pro",
-    HelpAutoCharsets => "auto-charsets / --no-auto-charsets",
-    AutoCharsets => "auto-charsets",
-    NoAutoCharsets => "no-auto-charsets",
     HelpAutoDefaults => "auto-defaults / --no-auto-defaults",
     AutoDefaults => "auto-defaults",
     NoAutoDefaults => "no-auto-defaults",
@@ -62,41 +30,56 @@ parseable_args!(
     HelpAutoLangs => "auto-langs / --no-auto-langs",
     AutoLangs => "auto-langs",
     NoAutoLangs => "no-auto-langs",
-    HelpSortFonts => "sort-fonts / --no-sort-fonts",
-    SortFonts => "sort-fonts",
-    NoSortFonts => "no-sort-fonts",
-    RmSegments => "rm-segments",
-    NoLinked => "no-linked",
-    LessRetiming => "less-retiming",
+    HelpAutoCharsets => "auto-charsets / --no-auto-charsets",
+    AutoCharsets => "auto-charsets",
+    NoAutoCharsets => "no-auto-charsets",
     Target => "target",
     TargetHelp => "target <trg> [options]",
     ListTargets => "list-targets",
     Audio => "audio",
+    AudioTracks => "audio-tracks",
     NoAudio => "no-audio",
     Subs => "subs",
+    SubtitleTracks => "subtitle-tracks",
     NoSubs => "no-subs",
+    NoSubtitles => "no-subtitles",
     Video => "video",
+    VideoTracks => "video-tracks",
     NoVideo => "no-video",
     Buttons => "buttons",
+    ButtonTracks => "button-tracks",
     NoButtons => "no-buttons",
     Chapters => "chapters",
     NoChapters => "no-chapters",
+    Attachments => "attachments",
+    NoAttachments => "no-attachments",
     Fonts => "fonts",
     NoFonts => "no-fonts",
     Attachs => "attachs",
     NoAttachs => "no-attachs",
+    DefaultTrackFlag => "default-track-flag",
     Defaults => "defaults",
     MaxDefaults => "max-defaults",
+    ForcedDisplayFlag => "forced-display-flag",
     Forceds => "forceds",
     MaxForceds => "max-forceds",
     Enableds => "enableds",
     MaxEnableds => "max-enableds",
+    TrackEnabledFlag => "track-enabled-flag",
+    Metadata => "metadata",
     Names => "names",
+    Title => "title",
+    TrackName => "track-name",
     Langs => "langs",
+    Language => "language",
     Specials => "specials",
+    ListContainers => "list-containers",
     ListLangs => "list-langs",
     UserTools => "user-tools",
+    FfmpegHelp => "ffmpeg [options]",
     MkvmergeHelp => "mkvmerge [options]",
     Version => "version",
-    Help => "help"
+    Help => "help",
+    SubCharset => "sub-charset",
+    TrackOrder => "track-order",
 );

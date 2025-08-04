@@ -13,12 +13,15 @@ OUT_PATHS = {
     "media": MODULE / "media.rs",
     "mp4": MODULE / "mp4.rs",
     "subs": MODULE / "subs.rs",
+    "webm": MODULE / "webm.rs",
 }
 
 EXTS = {
     "avi": { "avi" },
 
     "mp4": { "mp4" },
+
+    "webm": { "webm" },
 
     # Common for video and audio
     "container": {
@@ -131,7 +134,7 @@ def generate_phf_set(exts: list[str], set_name: str) -> str:
     lines = '\n    '.join(f'b"{e}",' for e in all_exts)
     return f"""{GEN_BY}
 
-pub static {set_name.upper()}: phf::Set<&'static [u8]> = phf::phf_set! {{
+pub static {set_name.upper()}: phf::Set<&[u8]> = phf::phf_set! {{
     {lines}
 }};
 """
@@ -152,11 +155,10 @@ def generate_module_root(names: list[str]) -> str:
 
 use phf::Set;
 
-/// A set of file type extensions, stored as byte slices (`&[u8]`).
+/// A sets of file type extensions, stored as byte slices (`&[u8]`).
 {struct}
 
-/// A static collection of file type extensions, grouped by type.
-/// All extensions are stored as byte slices (`&[u8]`).
+/// The static collection of file type extensions.
 {static}
 """
 

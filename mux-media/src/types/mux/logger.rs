@@ -17,11 +17,6 @@ impl MuxLogger {
     /// Initializes the global logger with the given [`LevelFilter`].
     ///
     /// This is safe to call multiple times; initialization will only occur once.
-    /// Internally uses [`log::set_logger`] wrapped in [`std::sync::Once`] to ensure
-    /// only the first call sets the logger.
-    ///
-    /// If logger initialization somehow fails (which should be impossible due to `Once`),
-    /// a fallback message is printed to stderr.
     pub fn init_with_filter(filter: LevelFilter) {
         INIT.call_once(|| {
             log::set_logger(&LOGGER)
@@ -37,7 +32,7 @@ impl MuxLogger {
     ///
     /// - ANSI color codes are applied to `Error` and `Warn` if stderr supports color.
     /// - ANSI color codes are applied to `Debug` and `Trace` if stdout supports color.
-    pub(crate) fn get_color_prefix(level: Level) -> &'static str {
+    pub(crate) fn color_prefix(level: Level) -> &'static str {
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",
             Level::Error => "Error: ",
@@ -48,6 +43,15 @@ impl MuxLogger {
             Level::Trace if *STDOUT_ON_COLOR => "\x1b[35mTrace\x1b[0m: ",
             Level::Trace => "Trace: ",
             _ => "",
+        }
+    }
+
+    /// Returns a colored or plain clap-style try help string.
+    pub(crate) fn try_help() -> &'static str {
+        if *STDERR_ON_COLOR {
+            "For more information, try '\x1b[34m--help\x1b[0m'."
+        } else {
+            "For more information, try '--help'."
         }
     }
 }
@@ -64,7 +68,7 @@ impl Log for MuxLogger {
 
         let level = record.level();
 
-        let msg = format!("{}{}\n", Self::get_color_prefix(level), record.args());
+        let msg = format!("{}{}\n", Self::color_prefix(level), record.args());
         let msg = msg.as_bytes();
 
         match level {

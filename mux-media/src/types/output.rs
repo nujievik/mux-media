@@ -1,5 +1,4 @@
-mod default;
-mod to_json_args;
+mod to_args;
 mod try_finalize_init;
 mod try_from;
 
@@ -97,6 +96,21 @@ impl Output {
     #[inline(always)]
     pub fn ext(&self) -> &OsStr {
         &self.ext
+    }
+
+    /// Sets the extension.
+    /// ```
+    /// # use mux_media::Output;
+    /// #
+    /// let mut out = Output::try_from_path("").unwrap();
+    /// ["avi", "mp4", "mkv"].iter().for_each(|ext| {
+    ///     out.set_ext(ext);
+    ///     assert_eq!(*ext, out.ext());
+    /// })
+    /// ```
+    #[inline(always)]
+    pub fn set_ext(&mut self, ext: impl Into<OsString>) {
+        self.ext = ext.into();
     }
 
     /// Removes the temporary directory and all created empty directories.

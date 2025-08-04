@@ -42,22 +42,27 @@ fn assert_all_permutations_absent(set: &'static Set<&'static [u8]>, ext: &str) {
     }
 }
 
-#[test]
-fn test_fonts_contains() {
-    ["otf", "ttf"]
-        .iter()
-        .for_each(|ext| assert_all_permutations_present(EXTENSIONS.fonts, ext))
+macro_rules! test_any_exts_contains {
+    ($fn:ident, $ext:ident, $ext_list:expr) => {
+        #[test]
+        fn $fn() {
+            $ext_list
+                .iter()
+                .for_each(|ext| assert_all_permutations_present(EXTENSIONS.$ext, ext))
+        }
+    };
 }
 
-#[test]
-fn test_matroska_contains() {
+test_any_exts_contains!(test_avi_contains, avi, ["avi"]);
+test_any_exts_contains!(test_fonts_contains, fonts, ["otf", "ttf"]);
+test_any_exts_contains!(
+    test_matroska_contains,
+    matroska,
     ["mka", "mks", "mkv", "webm"]
-        .iter()
-        .for_each(|ext| assert_all_permutations_present(EXTENSIONS.matroska, ext))
-}
-
-#[test]
-fn test_media_contains() {
+);
+test_any_exts_contains!(
+    test_media_contains,
+    media,
     [
         "264", "265", "3gp", "aac", "ac3", "ass", "avi", "avc", "av1", "caf", "dts", "dtshd",
         "eac3", "ec3", "f4v", "flac", "flv", "h264", "h265", "hevc", "ivf", "m2ts", "m2v", "m4a",
@@ -65,16 +70,14 @@ fn test_media_contains() {
         "ogm", "ogv", "obu", "opus", "ra", "srt", "ssa", "sub", "sup", "thd", "truehd", "tta",
         "ts", "vc1", "wav", "weba", "webm", "webma", "wma", "wmv", "x264", "x265",
     ]
-    .iter()
-    .for_each(|ext| assert_all_permutations_present(EXTENSIONS.media, ext))
-}
-
-#[test]
-fn test_subs_contain() {
+);
+test_any_exts_contains!(test_mp4_contains, mp4, ["mp4"]);
+test_any_exts_contains!(
+    test_subs_contains,
+    subs,
     ["ass", "mks", "srt", "ssa", "sub", "sup"]
-        .iter()
-        .for_each(|ext| assert_all_permutations_present(EXTENSIONS.subs, ext))
-}
+);
+test_any_exts_contains!(test_webm_contains, webm, ["webm"]);
 
 #[test]
 fn test_media_absent() {
@@ -90,14 +93,17 @@ fn test_extensions_absent() {
     ];
 
     for set in [
+        EXTENSIONS.avi,
         EXTENSIONS.fonts,
         EXTENSIONS.matroska,
-        EXTENSIONS.subs,
         EXTENSIONS.media,
+        EXTENSIONS.mp4,
+        EXTENSIONS.subs,
+        EXTENSIONS.webm,
     ] {
-        for ext in fake_exts {
+        fake_exts.iter().for_each(|ext| {
             assert_all_permutations_absent(set, ext);
-        }
+        })
     }
 }
 
@@ -108,8 +114,11 @@ fn generate_fake_exts(existing: HashSet<String>, count: usize) -> Vec<String> {
     let mut rng = rand::rng();
     let charset = b"abcdefghijklmnopqrstuvwxyz0123456789";
     let mut fake_exts = HashSet::new();
+    let mut attempts = 0;
 
-    while fake_exts.len() < count {
+    while fake_exts.len() < count && attempts < 10000 {
+        attempts += 1;
+
         let len = rng.random_range(3..6);
         let candidate: String = (0..len)
             .map(|_| *charset.iter().choose(&mut rng).unwrap() as char)
@@ -132,13 +141,16 @@ fn test_extensions_auto_absent() {
         .filter_map(|bytes| Some(String::from_utf8_lossy(bytes).to_string()))
         .collect();
 
-    let fake_exts = generate_fake_exts(all_known, 100);
+    let fake_exts = generate_fake_exts(all_known, 1000);
 
     for set in [
+        EXTENSIONS.avi,
         EXTENSIONS.fonts,
         EXTENSIONS.matroska,
-        EXTENSIONS.subs,
         EXTENSIONS.media,
+        EXTENSIONS.mp4,
+        EXTENSIONS.subs,
+        EXTENSIONS.webm,
     ] {
         for ext in &fake_exts {
             assert_all_permutations_absent(set, &ext);

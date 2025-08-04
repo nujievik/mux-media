@@ -1,6 +1,6 @@
 use crate::{
-    IsDefault, MuxError, ToJsonArgs, ToMkvmergeArgs, from_arg_matches, json_arg, mkvmerge_arg,
-    mkvmerge_no_arg, to_mkvmerge_args, types::helpers,
+    IsDefault, MediaInfo, MuxConfigArg, MuxError, ParseableArg, ToJsonArgs, ToMkvmergeArgs,
+    from_arg_matches, to_json_args, types::helpers,
 };
 use std::{
     ffi::OsString,
@@ -15,7 +15,7 @@ pub struct Chapters {
 }
 
 impl Chapters {
-    /// Attempts to construct `Self` from the given path.
+    /// Attempts to construct [`Chapters`] from the given path.
     ///
     /// # Warning
     ///
@@ -24,8 +24,11 @@ impl Chapters {
     /// # Errors
     ///
     /// Returns an error if:
+    ///
     /// 1. [`canonicalize`](std::fs::canonicalize) fails.
+    ///
     /// 2. The path does not point to a file.
+    ///
     /// 3. [`open`](std::fs::File::open) the file fails.
     pub fn try_from_path(path: impl AsRef<Path>) -> Result<Self, MuxError> {
         let path = helpers::try_canonicalize_and_open(path)?;
@@ -43,42 +46,41 @@ impl Chapters {
 
 from_arg_matches!(@impl, Chapters, Chapters, NoChapters);
 
-mkvmerge_arg!(Chapters, "--chapters");
-mkvmerge_no_arg!(Chapters, "--no-chapters");
-
 impl ToMkvmergeArgs for Chapters {
-    to_mkvmerge_args!(@fn);
-
-    fn to_os_mkvmerge_args(&self, _: &mut crate::MediaInfo, _: &Path) -> Vec<OsString> {
-        use crate::{IsDefault, MkvmergeArg, MkvmergeNoArg};
-
+    fn try_append_mkvmerge_args(
+        &self,
+        args: &mut Vec<OsString>,
+        _: &mut MediaInfo,
+        _: &Path,
+    ) -> Result<(), MuxError> {
         if self.is_default() {
-            return Vec::new();
+            return Ok(());
         }
 
         if self.no_flag {
-            return vec![Self::MKVMERGE_NO_ARG.into()];
+            args.push(MuxConfigArg::NoChapters.dashed().into());
+            return Ok(());
         }
 
         if let Some(f) = &self.file {
-            return vec![Self::MKVMERGE_ARG.into(), f.into()];
+            args.push(MuxConfigArg::Chapters.dashed().into());
+            args.push(f.into());
         }
 
-        log::warn!("Unexpected None file. Return empty");
-        Vec::new()
+        Ok(())
     }
 }
 
 impl ToJsonArgs for Chapters {
-    fn to_json_args(&self) -> Vec<String> {
+    fn append_json_args(&self, args: &mut Vec<String>) {
         if self.no_flag {
-            return vec![json_arg!(NoChapters)];
+            args.push(to_json_args!(NoChapters));
+            return;
         }
 
         if let Some(s) = self.file.as_ref().and_then(|f| f.to_str()) {
-            return vec![json_arg!(Chapters), s.to_owned()];
+            args.push(to_json_args!(Chapters));
+            args.push(s.to_owned());
         }
-
-        Vec::new()
     }
 }

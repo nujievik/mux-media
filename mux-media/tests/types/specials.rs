@@ -1,7 +1,5 @@
-use crate::build_test_to_json_args;
-use crate::common::cfg;
-use mux_media::markers::*;
-use mux_media::*;
+use crate::{common::*, *};
+use mux_media::{markers::*, *};
 use std::path::Path;
 
 fn new(args: &[&str]) -> Specials {

@@ -36,6 +36,16 @@ pub(crate) fn warn_file_is_already_exists(path: &Path) {
 }
 
 #[inline(always)]
+pub(crate) fn warn_no_ext_media(stem: &OsStr) {
+    warn!(
+        "{}. {} '{}'",
+        Msg::NoExtMediaFound,
+        Msg::Skipping,
+        AsRef::<Path>::as_ref(stem).display()
+    )
+}
+
+#[inline(always)]
 pub(crate) fn warn_not_out_save_any(out: &Path) {
     warn!(
         "{} '{}'. {}",
@@ -77,21 +87,11 @@ pub(crate) fn warn_not_recognized_media(path: &Path, e: MuxError) {
 }
 
 #[inline(always)]
-pub(crate) fn debug_no_ext_media(stem: &OsStr) {
-    debug!(
-        "{}. {} '{}'",
-        Msg::NoExtMediaFound,
-        Msg::Skipping,
-        AsRef::<Path>::as_ref(stem).display()
-    )
-}
-
-#[inline(always)]
 pub(crate) fn debug_running_command(cmd: &Command, json_args: Option<Vec<String>>) {
     debug!("{}:\n{}", Msg::RunningCommand, CommandDisplay(cmd));
 
     if let Some(args) = json_args {
-        debug!("{}:\n{}", Msg::ArgsInJson, ArgsDisplay(&args));
+        debug!("{}:\n{}", Msg::ArgsInJson, JsonArgsDisplay(&args));
     }
 }
 
@@ -105,34 +105,68 @@ pub(crate) fn trace_found_repeat(stem: &OsStr) {
     )
 }
 
+#[cfg(unix)]
+const CONTINUE_CMD: char = '\\';
+#[cfg(windows)]
+const CONTINUE_CMD: char = '^';
+
 struct CommandDisplay<'a>(&'a Command);
 
 impl<'a> fmt::Display for CommandDisplay<'a> {
-    #[inline(always)]
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut try_write = |oss: &OsStr| -> fmt::Result {
+        let write_with_continue = |f: &mut fmt::Formatter<'_>, oss: &OsStr| {
             let p: &Path = oss.as_ref();
-            write!(f, "\"{}\" ", p.display())
+            write!(f, "\"{}\" {}\n", p.display(), CONTINUE_CMD)
         };
 
-        try_write(self.0.get_program())?;
+        let write = |f: &mut fmt::Formatter<'_>, oss: &OsStr| {
+            let p: &Path = oss.as_ref();
+            write!(f, "\"{}\"", p.display())
+        };
 
-        for arg in self.0.get_args() {
-            try_write(arg)?;
+        let args = self.0.get_args();
+        let args_len = args.len();
+
+        if args_len > 0 {
+            write_with_continue(f, self.0.get_program())?;
+        } else {
+            write(f, self.0.get_program())?;
+        }
+
+        let last_i = match args_len {
+            0 => 0,
+            _ => args_len - 1,
+        };
+
+        for (i, arg) in args.into_iter().enumerate() {
+            if i < last_i {
+                write_with_continue(f, arg)?;
+            } else {
+                write(f, arg)?;
+            }
         }
 
         Ok(())
     }
 }
 
-struct ArgsDisplay<'a>(&'a [String]);
+struct JsonArgsDisplay<'a>(&'a [String]);
 
-impl<'a> fmt::Display for ArgsDisplay<'a> {
-    #[inline(always)]
+impl<'a> fmt::Display for JsonArgsDisplay<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        for arg in self.0 {
-            write!(f, "\"{}\" ", arg)?;
+        let mut last_i = self.0.len();
+        if last_i > 0 {
+            last_i -= 1;
         }
+
+        for (i, arg) in self.0.into_iter().enumerate() {
+            if i < last_i {
+                write!(f, "\"{}\" {}\n", arg, CONTINUE_CMD)?;
+            } else {
+                write!(f, "\"{}\"", arg)?;
+            }
+        }
+
         Ok(())
     }
 }

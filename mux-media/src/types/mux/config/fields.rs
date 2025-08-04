@@ -1,13 +1,14 @@
 use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, AutoFlags, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, Field,
-    FontAttachs, ForcedTFlags, Input, LangCode, OtherAttachs, Output, Retiming, Specials,
-    SubTracks, TFlagType, TFlags, Target, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
+    FontAttachs, ForcedTFlags, Input, LangCode, Muxer, OtherAttachs, Output, Specials, SubTracks,
+    TFlagType, TFlags, Target, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
 use std::path::Path;
 
 impl MuxConfig {
     /// Returns the field value for marker `F`.
+    #[inline(always)]
     pub fn field<F>(&self) -> &<Self as Field<F>>::FieldType
     where
         Self: Field<F>,
@@ -100,11 +101,12 @@ fields! {
     output, Output => MCOutput,
     locale, LangCode => MCLocale,
     verbosity, Verbosity => MCVerbosity,
-    json, bool => MCJson,
     exit_on_err, bool => MCExitOnErr,
+    json, bool => MCJson,
+    reencode, bool => MCReencode,
     auto_flags, AutoFlags => MCAutoFlags,
-    retiming, Retiming => MCRetiming,
     tools, Tools => MCTools,
+    muxer, Muxer => MCMuxer,
 }
 
 fields! {

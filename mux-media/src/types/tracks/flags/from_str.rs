@@ -22,9 +22,9 @@ impl FromStr for TFlags {
             let bool = parse_bool(b)?;
 
             if id.is_range() {
-                map_hashed.get_or_insert_with(HashMap::new).insert(id, bool);
-            } else {
                 map_unhashed.get_or_insert_with(Vec::new).push((id, bool));
+            } else {
+                map_hashed.get_or_insert_with(HashMap::new).insert(id, bool);
             }
         }
 

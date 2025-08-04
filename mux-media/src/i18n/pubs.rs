@@ -1,6 +1,6 @@
 use super::Msg;
 
-use crate::{LangCode, MuxError, MuxLogger};
+use crate::{LangCode, MuxError, MuxLogger, mux_err};
 use once_cell::sync::Lazy;
 use std::fmt;
 use std::sync::Mutex;
@@ -56,7 +56,7 @@ impl Msg {
 
         let mut code = LANG_CODE
             .lock()
-            .map_err(|_| MuxError::from("Fail LANG_CODE.lock()"))?;
+            .map_err(|_| mux_err!("Fail LANG_CODE.lock()"))?;
 
         *code = lang;
 
@@ -68,7 +68,7 @@ impl Msg {
         Self::try_upd_lang(lang).unwrap_or_else(|e| {
             eprintln!(
                 "{}{}: {}. {} '{}'",
-                MuxLogger::get_color_prefix(log::Level::Warn),
+                MuxLogger::color_prefix(log::Level::Warn),
                 Self::ErrUpdLang,
                 e.to_str_localized(),
                 Self::Using,

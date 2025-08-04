@@ -1,7 +1,7 @@
 mod iter;
 mod max_value;
 
-use crate::{MaxValue, MuxError, ToMkvmergeArg};
+use crate::{MaxValue, MuxError, ToMkvmergeArg, mux_err};
 use std::{fmt, hash::Hash, ops::Add, str::FromStr};
 
 /// Range `start..=end`.
@@ -59,20 +59,22 @@ where
 
         let (start, end) = match detect_delimiter(s) {
             Some((delimiter, count)) if count > 1 => {
-                return Err(MuxError::from(format!(
+                return Err(mux_err!(
                     "Too many '{}' delimiters in input: '{}'",
-                    delimiter, s
-                )));
+                    delimiter,
+                    s
+                ));
             }
             Some((delimiter, _)) => parse_with_delimiter::<T>(s, delimiter)?,
             None => parse_single_or_empty::<T>(s)?,
         };
 
         if end < start {
-            return Err(MuxError::from(format!(
+            return Err(mux_err!(
                 "End of range ({:?}) must be greater than or equal to start ({:?})",
-                end, start
-            )));
+                end,
+                start
+            ));
         }
 
         Ok(Self { start, end })
@@ -127,6 +129,6 @@ where
         Ok(dflt)
     } else {
         part.parse::<T>()
-            .map_err(|e| MuxError::from(format!("invalid value '{}': {}", part, e)))
+            .map_err(|e| mux_err!("invalid value '{}': {}", part, e))
     }
 }

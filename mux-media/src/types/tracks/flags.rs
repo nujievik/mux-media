@@ -2,27 +2,26 @@ pub(crate) mod counts;
 pub(crate) mod flag_type;
 mod from_arg_matches;
 mod from_str;
-mod to_json_args;
-mod to_mkvmerge_args;
+mod to_args;
 
 use crate::{IsDefault, TrackID, deref_singleton_tuple_fields};
 use flag_type::TFlagType;
 use std::collections::HashMap;
 
 /// Settings for `default` track flags.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct DefaultTFlags(TFlags);
 
 /// Settings for `forced` track flags.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ForcedTFlags(TFlags);
 
 /// Settings for `enabled` track flags.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct EnabledTFlags(TFlags);
 
 /// Common interface for settings of track flags by type.
-#[derive(Clone, Default, IsDefault)]
+#[derive(Clone, Debug, Default, IsDefault)]
 pub struct TFlags {
     lim_for_unset: Option<u64>,
     unmapped: Option<bool>,
@@ -63,8 +62,8 @@ impl TFlags {
         None
     }
 
-    #[inline(always)]
-    fn auto_lim_for_unset(ft: TFlagType) -> u64 {
+    #[inline]
+    const fn auto_lim_for_unset(ft: TFlagType) -> u64 {
         match ft {
             TFlagType::Default => 1,
             TFlagType::Forced => 0,

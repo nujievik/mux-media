@@ -4,6 +4,8 @@ mod flags;
 mod langs;
 #[path = "tracks/names.rs"]
 mod names;
+#[path = "tracks/order.rs"]
+mod order;
 #[path = "tracks/track_type.rs"]
 mod track_type;
 
@@ -11,18 +13,6 @@ use crate::common::*;
 use crate::*;
 use mux_media::markers::*;
 use mux_media::*;
-
-#[test]
-fn test_mkvmerge_args() {
-    assert_eq!("-a", AudioTracks::MKVMERGE_ARG);
-    assert_eq!("-A", AudioTracks::MKVMERGE_NO_ARG);
-    assert_eq!("-s", SubTracks::MKVMERGE_ARG);
-    assert_eq!("-S", SubTracks::MKVMERGE_NO_ARG);
-    assert_eq!("-d", VideoTracks::MKVMERGE_ARG);
-    assert_eq!("-D", VideoTracks::MKVMERGE_NO_ARG);
-    assert_eq!("-b", ButtonTracks::MKVMERGE_ARG);
-    assert_eq!("-B", ButtonTracks::MKVMERGE_NO_ARG);
-}
 
 #[test]
 fn test_is_default() {
@@ -259,9 +249,9 @@ macro_rules! test_x8_file_to_mkvmerge_arg {
 }
 
 test_x8_file_to_mkvmerge_arg!(
-    test_x8_audio_to_mkvmerge_args, "audio_x8.mka", MCAudioTracks, "-a", "-A";
-    test_x8_sub_to_mkvmerge_args, "sub_x8.mks", MCSubTracks, "-s", "-S";
-    test_x8_video_to_mkvmerge_args, "video_x8.mkv", MCVideoTracks, "-d", "-D"
+    test_x8_audio_to_mkvmerge_args, "audio_x8.mka", MCAudioTracks, "--audio-tracks", "--no-audio";
+    test_x8_sub_to_mkvmerge_args, "sub_x8.mks", MCSubTracks, "--subtitle-tracks", "--no-subtitles";
+    test_x8_video_to_mkvmerge_args, "video_x8.mkv", MCVideoTracks, "--video-tracks", "--no-video"
 );
 
 macro_rules! test_x1_file_to_mkvmerge_arg {
@@ -292,9 +282,9 @@ macro_rules! test_x1_file_to_mkvmerge_arg {
 }
 
 test_x1_file_to_mkvmerge_arg!(
-    test_x1_audio_to_mkvmerge_args, "audio_x1.mka", MCAudioTracks, "-a", "-A";
-    test_x1_sub_to_mkvmerge_args, "sub_x1.mks", MCSubTracks, "-s", "-S";
-    test_x1_video_to_mkvmerge_args, "video_x1.mkv", MCVideoTracks, "-d", "-D"
+    test_x1_audio_to_mkvmerge_args, "audio_x1.mka", MCAudioTracks, "--audio-tracks", "--no-audio";
+    test_x1_sub_to_mkvmerge_args, "sub_x1.mks", MCSubTracks, "--subtitle-tracks", "--no-subtitles";
+    test_x1_video_to_mkvmerge_args, "video_x1.mkv", MCVideoTracks, "--video-tracks", "--no-video"
 );
 
 macro_rules! build_test_tracks_to_json_args {

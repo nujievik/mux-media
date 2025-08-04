@@ -137,7 +137,7 @@ fn test_from_clap_error() {
     assert_eq!("", format!("{}", err));
     // clap::Error return code 2 on error
     assert_eq!(2, err.code);
-    assert_eq!(MuxErrorKind::Unknown, err.kind);
+    assert_eq!(MuxErrorKind::Clap, err.kind);
 }
 
 #[test]

@@ -2,19 +2,31 @@ use super::{
     LangCode, list_langs::LIST_LANGS, map_from_str::MAP_FROM_STR,
     set_multiple_priority::SET_MULTIPLE_PRIORITY,
 };
-use crate::{IsDefault, MuxError};
+use crate::{IsDefault, MuxError, TrackID};
 use std::{env, fmt, str::FromStr};
 
 impl LangCode {
     /// Returns [`LangCode`] parsed from the system locale if successful;
     /// otherwise, returns [`LangCode::Und`] (undeterminated).
     pub fn init() -> Self {
-        Self::try_from_system_locale().unwrap_or(Self::default())
+        Self::try_from_system_locale().unwrap_or(Self::Und)
     }
 
     /// Prints the list of supported language codes to stdout.
     pub fn print_list_langs() {
         println!("{}", LIST_LANGS)
+    }
+
+    pub(crate) fn try_priority(slice: &[String]) -> Result<Self, MuxError> {
+        slice
+            .iter()
+            .find_map(|s| {
+                let s = s.to_lowercase();
+                s.parse::<Self>()
+                    .ok()
+                    .filter(|lang| SET_MULTIPLE_PRIORITY.contains(&lang))
+            })
+            .ok_or_else(|| "Not found a priority language".into())
     }
 }
 
@@ -47,21 +59,33 @@ impl FromStr for LangCode {
     }
 }
 
+impl From<&TrackID> for LangCode {
+    fn from(tid: &TrackID) -> LangCode {
+        match tid {
+            TrackID::Lang(lang) => *lang,
+            _ => Self::Und,
+        }
+    }
+}
+
 impl TryFrom<&[String]> for LangCode {
     type Error = MuxError;
 
     fn try_from(slice: &[String]) -> Result<Self, Self::Error> {
         let mut unpriority = None;
+
         for s in slice {
             let s = s.to_lowercase();
+
             if let Ok(code) = s.parse::<Self>() {
                 if SET_MULTIPLE_PRIORITY.contains(&code) {
                     return Ok(code);
-                } else if unpriority.is_none() {
-                    unpriority = Some(code);
                 }
+
+                unpriority = Some(code);
             }
         }
+
         unpriority.ok_or("Not found any language code".into())
     }
 }

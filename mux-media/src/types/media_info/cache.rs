@@ -1,7 +1,9 @@
 pub(crate) mod attach;
 pub(crate) mod track;
 
-use crate::{ArcPathBuf, IsDefault, MuxError, SubCharset, Target, TargetGroup, TrackType};
+use crate::{
+    ArcPathBuf, IsDefault, MuxError, SubCharset, Target, TargetGroup, TrackOrder, TrackType,
+};
 use attach::CacheMIOfFileAttach;
 use enum_map::EnumMap;
 use matroska::Matroska;
@@ -9,6 +11,8 @@ use regex::Regex;
 use std::{
     collections::{BTreeSet, HashMap},
     ffi::OsString,
+    mem,
+    path::PathBuf,
 };
 use track::CacheMIOfFileTrack;
 
@@ -32,8 +36,10 @@ pub struct CacheMI {
 /// Cache of [`MediaInfo`](crate::MediaInfo) is common for all.
 #[derive(Clone, Default, IsDefault)]
 pub struct CacheMICommon {
-    pub regex_aid: CacheState<Regex>,
-    pub regex_tid: CacheState<Regex>,
+    pub external_fonts: CacheState<Vec<PathBuf>>,
+    pub regex_attach_id: CacheState<Regex>,
+    pub regex_codec: CacheState<Regex>,
+    pub regex_track_id: CacheState<Regex>,
     pub regex_word: CacheState<Regex>,
 }
 
@@ -41,6 +47,7 @@ pub struct CacheMICommon {
 #[derive(Clone, Default, IsDefault)]
 pub struct CacheMIOfGroup {
     pub stem: CacheState<OsString>,
+    pub track_order: CacheState<TrackOrder>,
 }
 
 /// Cache of [`MediaInfo`](crate::MediaInfo) is separate for each media.
@@ -61,4 +68,51 @@ pub struct CacheMIOfFile {
 
     pub tracks_info: CacheState<HashMap<u64, CacheMIOfFileTrack>>,
     pub attachs_info: CacheState<HashMap<u64, CacheMIOfFileAttach>>,
+}
+
+impl<T> CacheState<T> {
+    pub(crate) fn try_get(&self) -> Result<&T, MuxError> {
+        match self {
+            CacheState::Cached(val) => Ok(val),
+            CacheState::NotCached => Err("Not cached any".into()),
+            CacheState::Failed(e) => Err(e.clone()),
+        }
+    }
+
+    pub(crate) const fn get(&self) -> Option<&T> {
+        match self {
+            CacheState::Cached(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub(crate) fn try_mut(&mut self) -> Result<&mut T, MuxError> {
+        match self {
+            CacheState::Cached(val) => Ok(val),
+            CacheState::NotCached => Err("Not cached any".into()),
+            CacheState::Failed(e) => Err(e.clone()),
+        }
+    }
+
+    pub(crate) const fn get_mut(&mut self) -> Option<&mut T> {
+        match self {
+            CacheState::Cached(val) => Some(val),
+            _ => None,
+        }
+    }
+
+    pub(crate) fn try_take(&mut self) -> Result<T, MuxError> {
+        match mem::take(self) {
+            CacheState::Cached(val) => Ok(val),
+            CacheState::NotCached => Err("Not cached any".into()),
+            CacheState::Failed(e) => Err(e.clone()),
+        }
+    }
+
+    pub(crate) fn take(&mut self) -> Option<T> {
+        match mem::take(self) {
+            CacheState::Cached(val) => Some(val),
+            _ => None,
+        }
+    }
 }

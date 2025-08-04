@@ -21,15 +21,6 @@ fn test_iter() {
     assert_eq!(expected, variants);
 }
 
-#[test]
-fn test_as_str_mkvtoolnix() {
-    assert_eq!("video", TrackType::Video.as_str_mkvtoolnix());
-    assert_eq!("audio", TrackType::Audio.as_str_mkvtoolnix());
-    assert_eq!("subtitles", TrackType::Sub.as_str_mkvtoolnix());
-    assert_eq!("buttons", TrackType::Button.as_str_mkvtoolnix());
-    assert_eq!("", TrackType::NonCustomizable.as_str_mkvtoolnix());
-}
-
 macro_rules! build_test_map {
     ( $fn:ident; $( $ty:ty ),* ) => {
         #[test]

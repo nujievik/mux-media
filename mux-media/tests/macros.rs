@@ -11,19 +11,20 @@ macro_rules! take_mi_cache {
 #[macro_export]
 macro_rules! fn_variants_of_args {
     ( $( $arg:expr => $vars:expr ),* $(,)?) => {
-        fn variants_of_args<I, S>(args: I) -> Vec<Vec<String>>
+        fn variants_of_args<I, S>(args: I) -> Vec<Vec<std::ffi::OsString>>
         where
             I: IntoIterator<Item = S>,
-            S: ToString,
+            S: Into<std::ffi::OsString>,
         {
-            let mut variants: Vec<Vec<String>> = Vec::new();
-            let args: Vec<String> = args
+            let mut variants: Vec<Vec<std::ffi::OsString>> = Vec::new();
+
+            let args: Vec<std::ffi::OsString> = args
                 .into_iter()
-                .map(|arg| arg.to_string())
+                .map(|arg| arg.into())
                 .collect();
 
             for (i, arg) in args.iter().enumerate() {
-                let alts: Option<Vec<&str>> = match arg.as_str() {
+                let alts: Option<Vec<&str>> = match arg.to_str().unwrap() {
                     $( $arg => Some($vars), )*
                     _ => None,
                 };
@@ -31,7 +32,7 @@ macro_rules! fn_variants_of_args {
                 if let Some(alts) = alts {
                     for alt in alts {
                         let mut new_args = args.clone();
-                        new_args[i] = alt.to_string();
+                        new_args[i] = alt.into();
                         variants.push(new_args);
                     }
                 }
@@ -51,9 +52,10 @@ macro_rules! compare_arg_cases {
         let cache = $crate::take_mi_cache!(&path, $( $cache_field, )*);
 
         for (exp, args) in $cases {
-            let exp = $crate::common::to_args(exp);
+            let exp = $crate::common::to_os_args(exp);
+
             $var_args(args).into_iter().for_each(|args| {
-                assert_eq!(exp, $crate::common::cfg_args::<$field>(args, &path, cache.clone()));
+                assert_eq!(exp, $crate::common::cfg_args::<$field, _, _>(args, &path, cache.clone()));
             });
         }
     }};
@@ -86,6 +88,20 @@ macro_rules! test_from_str {
             }
 
             $crate::test_from_str!($type, $err_cases, @err);
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! build_test_parseable_args {
+    ($fn:ident, $ty:ty; $( $arg:ident => $s:expr ),* $(,)?) => {
+        #[test]
+        fn $fn() {
+            $(
+                let arg = <$ty as ParseableArgs>::Arg::$arg;
+                assert_eq!(&format!("--{}", $s), arg.dashed());
+                assert_eq!($s, arg.undashed());
+            )*
         }
     };
 }

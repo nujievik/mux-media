@@ -1,6 +1,7 @@
 use super::media_info;
 use crate::common::*;
 use mux_media::*;
+use std::ffi::OsString;
 
 pub fn empty() -> CharEncoding {
     CharEncoding::MkvmergeRecognizable
@@ -26,14 +27,14 @@ macro_rules! test_file {
     };
 }
 
-test_file!(test_matroska, "sub_x1.mks", empty(), Vec::<String>::new());
-test_file!(test_utf8, "srt.srt", empty(), Vec::<String>::new());
+test_file!(test_matroska, "sub_x1.mks", empty(), Vec::<OsString>::new());
+test_file!(test_utf8, "srt.srt", empty(), Vec::<OsString>::new());
 
 test_file!(
     test_cp1251,
     "cp1251.srt",
     new("windows-1251"),
-    to_args(["--sub-charset", "0:windows-1251"])
+    to_os_args(["--sub-charset", "0:windows-1251"])
 );
 
 #[test]

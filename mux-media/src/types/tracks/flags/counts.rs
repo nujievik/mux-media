@@ -6,11 +6,15 @@ use enum_map::EnumMap;
 pub struct TFlagsCounts(EnumMap<TFlagType, EnumMap<TrackType, u64>>);
 
 impl TFlagsCounts {
-    pub fn add(&mut self, ft: TFlagType, tt: TrackType) {
-        self.0[ft][tt] += 1;
+    /// Increments the counter for the given flag and track type.
+    #[inline]
+    pub fn add(&mut self, flag_type: TFlagType, track_type: TrackType) {
+        self.0[flag_type][track_type] += 1;
     }
 
-    pub fn get(&self, ft: TFlagType, tt: TrackType) -> u64 {
-        self.0[ft][tt]
+    /// Returns the current count for the given flag and track type.
+    #[inline]
+    pub fn val(&self, flag_type: TFlagType, track_type: TrackType) -> u64 {
+        self.0[flag_type][track_type]
     }
 }

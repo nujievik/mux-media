@@ -31,12 +31,12 @@ impl Blocks {
                     .conflicts_with(MuxConfigArg::Verbose.undashed()),
             )
             .arg(
-                Arg::new(MuxConfigArg::Load.undashed())
-                    .long(MuxConfigArg::Load.undashed())
-                    .alias("load-json")
-                    .value_name("json")
-                    .help(Msg::HelpLoad.to_str_localized())
-                    .value_parser(ValueParser::new(ConfigParser)),
+                Arg::new(MuxConfigArg::ExitOnErr.undashed())
+                    .short('e')
+                    .long(MuxConfigArg::ExitOnErr.undashed())
+                    .alias("exit-on-error")
+                    .help(Msg::HelpExitOnErr.to_str_localized())
+                    .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new(MuxConfigArg::Json.undashed())
@@ -46,11 +46,18 @@ impl Blocks {
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(MuxConfigArg::ExitOnErr.undashed())
-                    .short('e')
-                    .long(MuxConfigArg::ExitOnErr.undashed())
-                    .alias("exit-on-error")
-                    .help(Msg::HelpExitOnErr.to_str_localized())
+                Arg::new(MuxConfigArg::Load.undashed())
+                    .long(MuxConfigArg::Load.undashed())
+                    .alias("load-json")
+                    .value_name("json")
+                    .help(Msg::HelpLoad.to_str_localized())
+                    .value_parser(ValueParser::new(ConfigParser)),
+            )
+            .arg(
+                Arg::new(MuxConfigArg::Reencode.undashed())
+                    .long(MuxConfigArg::Reencode.undashed())
+                    .alias("re-encode")
+                    .help(Msg::HelpReencode.to_str_localized())
                     .action(ArgAction::SetTrue),
             );
 

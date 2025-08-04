@@ -1,6 +1,5 @@
 use crate::common::*;
-use mux_media::markers::*;
-use mux_media::*;
+use mux_media::{markers::*, *};
 use std::{
     collections::HashSet,
     path::{Path, PathBuf},
@@ -109,7 +108,7 @@ fn test_skip_media() {
     })
 }
 
-static TEST_INPUT_FONTS: &[(&str, &[&str])] = &[
+pub static TEST_INPUT_FONTS: &[(&str, &[&str])] = &[
     ("1", &["1/ttf.ttf"]),
     ("2", &["2/a b c.ttf", "2/other.ttf", "2/ttf.ttf"]),
     ("3", &["3/abc.tTf", "3/other.ttf", "3/ttf.TTF"]),
@@ -127,7 +126,7 @@ static TEST_INPUT_FONTS: &[(&str, &[&str])] = &[
     ),
 ];
 
-fn data_font(s: &str) -> PathBuf {
+pub fn data_font(s: &str) -> PathBuf {
     let s = format!("input/fonts/{}", s);
     data(s)
 }

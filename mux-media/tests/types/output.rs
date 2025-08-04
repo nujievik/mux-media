@@ -1,6 +1,5 @@
 use crate::common::*;
-use mux_media::markers::*;
-use mux_media::*;
+use mux_media::{markers::*, *};
 use std::path::{Path, PathBuf};
 
 fn body_test_empty(out: &Output, dir: PathBuf) {
@@ -15,12 +14,6 @@ fn body_test_empty(out: &Output, dir: PathBuf) {
 }
 
 #[test]
-fn test_default() {
-    let out = Output::default();
-    body_test_empty(&out, PathBuf::from(""));
-}
-
-#[test]
 fn test_empty() {
     let dir = new_dir("muxed/");
 
@@ -31,7 +24,7 @@ fn test_empty() {
     body_test_empty(&out, dir);
 }
 
-fn new(args: &[&str]) -> Output {
+pub fn new(args: &[&str]) -> Output {
     let mut out = cfg::<_, &&str>(args).field::<MCOutput>().clone();
     out.try_finalize_init().unwrap();
     out

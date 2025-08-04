@@ -13,6 +13,7 @@ pub struct MuxError {
 /// Kind of [`MuxError`].
 #[derive(Clone, Default, Debug, PartialEq)]
 pub enum MuxErrorKind {
+    Clap,
     InvalidValue,
     MatchesErrorDowncast,
     MatchesErrorUnknownArgument,
@@ -144,11 +145,12 @@ impl MuxError {
         }
     }
 
-    #[inline(always)]
+    #[inline]
     fn print_in_stderr_or_stdout(&self, msg: &str) {
         if self.use_stderr() {
-            let prefix = MuxLogger::get_color_prefix(log::Level::Error);
+            let prefix = MuxLogger::color_prefix(log::Level::Error);
             eprintln!("{}{}", prefix, msg);
+            eprintln!("\n{}", MuxLogger::try_help());
         } else {
             println!("{}", msg);
         }
@@ -225,7 +227,7 @@ impl From<clap::Error> for MuxError {
     /// Prints the `clap` error (colorized if possible) and sets only the exit code.
     fn from(err: clap::Error) -> Self {
         let _ = err.print();
-        Self::new().code(err.exit_code())
+        Self::new().code(err.exit_code()).kind(MuxErrorKind::Clap)
     }
 }
 

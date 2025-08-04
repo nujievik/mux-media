@@ -1,54 +1,55 @@
 use super::{AudioTracks, ButtonTracks, SubTracks, VideoTracks};
 use crate::{
-    IsDefault, MediaInfo, MkvmergeArg, MkvmergeNoArg, ToMkvmergeArgs, TrackType,
-    markers::MISavedTracks, mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args, unwrap_or_return_vec,
+    IsDefault, MediaInfo, MuxConfigArg, MuxError, ParseableArg, ToMkvmergeArgs, TrackType,
+    markers::MISavedTracks,
 };
-use std::path::Path;
-
-mkvmerge_arg!(AudioTracks, "-a");
-mkvmerge_no_arg!(AudioTracks, "-A");
-mkvmerge_arg!(SubTracks, "-s");
-mkvmerge_no_arg!(SubTracks, "-S");
-mkvmerge_arg!(VideoTracks, "-d");
-mkvmerge_no_arg!(VideoTracks, "-D");
-mkvmerge_arg!(ButtonTracks, "-b");
-mkvmerge_no_arg!(ButtonTracks, "-B");
+use std::{ffi::OsString, path::Path};
 
 macro_rules! tracks_to_mkvmerge_args {
-    ( $( $type:ident, $track_type:expr => $arg:ident, $no_arg:ident, )* ) => {
-        $(
-            impl ToMkvmergeArgs for $type {
-                fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
-                    if self.is_default() {
-                        Vec::new()
-                    } else if self.no_flag {
-                        vec![Self::MKVMERGE_NO_ARG.into()]
-                    } else {
-                        let nums: String = unwrap_or_return_vec!(
-                            mi.get::<MISavedTracks>(path)
-                        )[$track_type]
-                            .iter()
-                            .map(|num| num.to_string())
-                            .collect::<Vec<_>>()
-                            .join(",");
-
-                        if nums.is_empty() {
-                            vec![Self::MKVMERGE_NO_ARG.into()]
-                        } else {
-                            vec![Self::MKVMERGE_ARG.into(), nums]
-                        }
-                    }
+    ( $( $type:ident, $track_type:expr => $arg:ident, $no_arg:ident, )* ) => { $(
+        impl ToMkvmergeArgs for $type {
+            fn try_append_mkvmerge_args(&self, args: &mut Vec<OsString>, mi: &mut MediaInfo, path: &Path) -> Result<(), MuxError> {
+                if self.is_default() {
+                    return Ok(());
                 }
 
-                to_mkvmerge_args!(@fn_os);
+                if self.no_flag {
+                    args.push(MuxConfigArg::$no_arg.dashed().into());
+                    return Ok(());
+                }
+
+                let tracks = &mi.try_get::<MISavedTracks>(path)?[$track_type];
+                let tracks_len = tracks.len();
+
+                let factor = match tracks_len {
+                    0 => {
+                        args.push(MuxConfigArg::$no_arg.dashed().into());
+                        return Ok(());
+                    }
+                    _ => (tracks_len as f64).log10().floor() as usize + 2,
+                };
+
+                let mut arg = String::with_capacity(tracks_len * factor);
+                tracks.iter().enumerate().for_each(|(i, track)| {
+                    if i > 0 {
+                        arg.push(',');
+                    }
+                    use std::fmt::Write;
+                    let _ = write!(arg, "{}", track);
+                });
+
+                args.push(MuxConfigArg::$arg.dashed().into());
+                args.push(arg.into());
+
+                Ok(())
             }
-        )*
-    };
+        }
+    )* };
 }
 
 tracks_to_mkvmerge_args!(
-    AudioTracks, TrackType::Audio => Audio, NoAudio,
-    SubTracks, TrackType::Sub => Subs, NoSubs,
-    VideoTracks, TrackType::Video => Video, NoVideo,
-    ButtonTracks, TrackType::Button => Buttons, NoButtons,
+    AudioTracks, TrackType::Audio => AudioTracks, NoAudio,
+    SubTracks, TrackType::Sub => SubtitleTracks, NoSubtitles,
+    VideoTracks, TrackType::Video => VideoTracks, NoVideo,
+    ButtonTracks, TrackType::Button => ButtonTracks, NoButtons,
 );

@@ -18,23 +18,36 @@ impl TrackType {
         <Self as strum::IntoEnumIterator>::iter()
     }
 
-    /// Returns the string marker for [`TrackType`] used in mkvtoolnix tools.
-    pub fn as_str_mkvtoolnix(self) -> &'static str {
-        match self {
-            Self::Video => "video",
-            Self::Audio => "audio",
-            Self::Sub => "subtitles",
-            Self::Button => "buttons",
-            Self::NonCustomizable => "",
-        }
-    }
-
     /// Returns a new [`EnumMap<TrackType, T>`] with default values.
     pub fn map<T>() -> EnumMap<Self, T>
     where
         T: Default,
     {
         EnumMap::default()
+    }
+
+    pub(crate) fn iter_customizable() -> impl Iterator<Item = Self> {
+        [Self::Video, Self::Audio, Self::Sub].into_iter()
+    }
+
+    /// Returns char form of [`TrackType`].
+    pub(crate) fn as_char(self) -> char {
+        match self {
+            Self::Video => 'v',
+            Self::Audio => 'a',
+            Self::Sub => 's',
+            _ => unreachable!("Non-customizable flag"),
+        }
+    }
+
+    /// Return mkvtoolnix-compatible form of [`TrackType`].
+    pub(crate) fn as_str_mkvtoolnix(self) -> &'static str {
+        match self {
+            Self::Video => "video",
+            Self::Audio => "audio",
+            Self::Sub => "subtitles",
+            _ => unreachable!("Non-customizable flag"),
+        }
     }
 }
 

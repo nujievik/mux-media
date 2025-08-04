@@ -48,18 +48,30 @@ pub fn body_derive_is_default(input: TokenStream) -> TokenStream {
         },
 
         Data::Enum(enum_data) => {
-            let default_variant = enum_data.variants.iter().find_map(|variant| {
-                variant
-                    .attrs
-                    .iter()
-                    .find(|attr| {
-                        let path = attr.path();
-                        path.is_ident("is_default") || path.is_ident("default")
-                    })
-                    .map(|_| &variant.ident)
-            });
+            let mut default_variant_ident = None;
 
-            match default_variant {
+            for variant in &enum_data.variants {
+                let has_default_attr = variant.attrs.iter().any(|attr| {
+                    let path = attr.path();
+                    path.is_ident("is_default") || path.is_ident("default")
+                });
+
+                if has_default_attr {
+                    if !matches!(variant.fields, Fields::Unit) {
+                        return syn::Error::new_spanned(
+                            &variant.ident,
+                            "the #[default] or #[is_default] attribute may only be used on unit enum variants",
+                        )
+                        .to_compile_error()
+                        .into();
+                    }
+
+                    default_variant_ident = Some(&variant.ident);
+                    break;
+                }
+            }
+
+            match default_variant_ident {
                 Some(ident) => quote!(matches!(self, #name::#ident)),
                 None => quote!(self == &Default::default()),
             }

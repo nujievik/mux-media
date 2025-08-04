@@ -2,7 +2,7 @@ mod auto;
 mod global;
 mod io;
 mod other;
-mod retiming;
+//mod retiming;
 mod target;
 mod val_parsers;
 
@@ -15,7 +15,6 @@ impl CommandFactory for MuxConfig {
             .io()
             .global()
             .auto()
-            .retiming()
             .target()
             .other()
             .version()

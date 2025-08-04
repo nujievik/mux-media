@@ -4,33 +4,43 @@ A simple automated solution for muxing media (e.g. video, audio,
 subtitles).
 
 
-## Quick start
+## Quick Start
 
 ### Windows
 
-1. [Download](https://github.com/nujievik/mux-media/releases) the full
-archive for your Windows system
-(`mux-media-win64-full.zip` or `mux-media-win32-full.zip`)
+1. [Download](https://github.com/nujievik/mux-media/releases) the
+**full** archive for your Windows system
+(`mux-media-win64-full.zip` or `mux-media-win32-full.zip`).
 
-2. Unpack it
+2. Unpack it.
 
-3. Run the unpacked `mux-media.exe` in the media directory
+3. Run the unpacked `mux-media.exe` in a media directory.
 
-### Other system
+### Other Systems
 
-1. Install [MKVToolNix](https://mkvtoolnix.download/)
+1. Install [MKVToolNix](https://mkvtoolnix.download/).
 
 2. [Download](https://github.com/nujievik/mux-media/releases) the
-archive for your system
+archive for your system.
 
-3. Unpack it
+3. Unpack it.
 
-4. Run the unpacked `mux-media` in the media directory
+4. Run the unpacked `mux-media` in a media directory.
 
 
-## Custom settings
+## Notices
 
-Use `mux-media -h` to display help.
+- Media files must share the same filename prefix.
+(eg., **Death Note - 01**.mkv and **Death Note - 01**.eng.aac)
+
+- Media is searched in:
+  - the start directory
+  - all its subdirectories up to the given depth (default: 16)
+  
+
+## Advanced Use 🤓
+
+Run `mux-media -h` to display help.
 
 Custom settings can be specified:
 
@@ -40,28 +50,42 @@ Custom settings can be specified:
 https://github.com/nujievik/mux-media/blob/main/mux-media.json) in a
 media directory and loading it using `mux-media -j`
 
+### Windows
 
-## Notices
+- The **full** version for Windows includes bundled `mkvmerge` and
+`ffmpeg`.
 
-- Media files must share the same filename prefix.
-(eg. **Death Note - 01**.mkv and **Death Note - 01**.eng.aac)
+- Use the system's `mkvmerge` and `ffmpeg` by running
+`mux-media --user-tools`.
 
-- Media is searched in:
-  - the start directory
-  - all its subdirectories up to the given depth (default 16)
+- The non-**full** version for Windows requires manually installing
+[MKVToolNix](https://mkvtoolnix.download/) and [FFmpeg](
+https://ffmpeg.org/) (for custom containers).
 
-- Container:
-  - default is Matroska (.mkv)
-  - other custom containers may not support all options
+### Custom Output Containers
 
-- Re-encoding:
-  - by default, no re-encoding is performed
-  
-  - custom containers may re-encode unsupported tracks - use only if
-  necessary, as this may significantly degrade quality.
+- The default container is Matroska (.mkv).
+
+- Other supported containers: `.avi`, `.mp4`, `.webm`.
+
+- Install [FFmpeg](https://ffmpeg.org/) to use a custom container if
+you are use not using the **full** version.
+
+- Custom containers may require reencoding of unsupported tracks - use
+only if necessary, as this can significantly degrade quality.
+
+### Reencoding
+
+- By default, no reencoding is performed.
+
+- When using a custom container, reencoding is automatically performed
+if needed.
+
+- Use `mux-media --reencode` with a custom container to force
+reencoding.
 
 
-## Manual Build
+## Manual Build 🤓
 
 1. Install [Rust](https://www.rust-lang.org/tools/install)
 
@@ -116,7 +140,7 @@ cargo build --release --features with_embedded_bins
 4. On success, the binary will be in `target/release/mux-media`.
 
 
-## Alternative GUI solutions
+## Alternative GUI Solutions
 
 There are alternative solutions with user-friendly GUI interfaces,
 though they offer less automation:

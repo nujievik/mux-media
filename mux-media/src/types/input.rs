@@ -1,6 +1,6 @@
 mod from_arg_matches;
 mod iters;
-mod to_json_args;
+mod to_args;
 
 use crate::{ArcPathBuf, FileType, GlobSetPattern, Msg, MuxError, Range, TryFinalizeInit};
 use enum_map::EnumMap;

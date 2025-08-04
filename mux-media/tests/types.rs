@@ -21,12 +21,12 @@ mod media_info;
 mod media_number;
 #[path = "types/mux.rs"]
 mod mux;
+#[path = "types/muxer.rs"]
+mod muxer;
 #[path = "types/output.rs"]
 mod output;
 #[path = "types/range.rs"]
 mod range;
-#[path = "types/retiming.rs"]
-mod retiming;
 #[path = "types/specials.rs"]
 mod specials;
 #[path = "types/targets.rs"]

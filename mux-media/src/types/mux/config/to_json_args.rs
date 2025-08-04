@@ -1,7 +1,5 @@
 use super::{MuxConfig, MuxConfigTarget};
-use crate::{
-    Target, ToJsonArgs, json_arg, push_true_json_args, types::helpers::try_write_args_to_json,
-};
+use crate::{Target, ToJsonArgs, to_json_args, types::helpers::try_write_args_to_json};
 
 impl MuxConfig {
     /// Attempts to write args to json in the input directory; logs a warning on failure.
@@ -17,37 +15,34 @@ impl MuxConfig {
         }
 
         let json = self.input.dir().join(Self::JSON_NAME);
-        match try_write_args_to_json(args, &json) {
-            Ok(_) => {}
-            Err(e) => log::warn!("Fail save current config to json: {}", e),
+
+        if let Err(e) = try_write_args_to_json(args, &json) {
+            log::warn!("Fail save current config to json: {}", e);
         }
     }
 }
 
 macro_rules! append_args_from_fields {
-    ($args:ident, $self:ident; $( $field:ident ),*) => {{
+    ($self:ident, $args:ident; $( $field:ident ),*) => {{
         $(
-            $args.append(&mut $self.$field.to_json_args());
+            $self.$field.append_json_args($args);
         )*
     }};
 }
 
 impl ToJsonArgs for MuxConfig {
-    fn to_json_args(&self) -> Vec<String> {
-        let mut args = Vec::<String>::new();
-
-        args.push(json_arg!(Locale));
+    fn append_json_args(&self, args: &mut Vec<String>) {
+        args.push(to_json_args!(Locale));
         args.push(self.locale.to_string());
 
-        append_args_from_fields!(args, self; input, output);
+        append_args_from_fields!(self, args; input, output, verbosity);
 
-        append_args_from_fields!(args, self; verbosity);
-        push_true_json_args!(args, self; json, Json, exit_on_err, ExitOnErr);
+        to_json_args!(@push_true, self, args; json, Json, exit_on_err, ExitOnErr);
 
         append_args_from_fields!(
-            args, self;
+            self, args;
             auto_flags,
-            retiming,
+            //retiming,
             audio_tracks,
             sub_tracks,
             video_tracks,
@@ -79,32 +74,28 @@ impl ToJsonArgs for MuxConfig {
                     continue;
                 }
 
-                args.push(json_arg!(Target));
+                args.push(to_json_args!(Target));
                 args.push(target);
                 args.append(&mut trg_args);
             }
         }
-
-        args
     }
 }
 
 macro_rules! append_args_from_opt_fields {
-    ($args:ident, $self:ident; $( $field:ident ),*) => {{
+    ($self:ident, $args:ident; $( $field:ident ),*) => {{
         $(
             if let Some(val) = $self.$field.as_ref() {
-                $args.append(&mut val.to_json_args());
+                val.append_json_args($args);
             }
         )*
     }};
 }
 
 impl ToJsonArgs for MuxConfigTarget {
-    fn to_json_args(&self) -> Vec<String> {
-        let mut args = Vec::<String>::new();
-
+    fn append_json_args(&self, args: &mut Vec<String>) {
         append_args_from_opt_fields!(
-            args, self;
+            self, args;
             audio_tracks,
             sub_tracks,
             video_tracks,
@@ -119,7 +110,5 @@ impl ToJsonArgs for MuxConfigTarget {
             track_langs,
             specials
         );
-
-        args
     }
 }

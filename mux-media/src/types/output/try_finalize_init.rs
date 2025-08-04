@@ -54,8 +54,10 @@ fn try_create_chain_dirs(downmost_dir: &Path) -> Result<Vec<PathBuf>, MuxError> 
 
     for dir in dirs.iter().rev() {
         if let Err(err) = fs::create_dir(dir) {
-            remove_empty_chain_dirs(&dirs);
-            return Err(err.into());
+            if !dir.exists() {
+                remove_empty_chain_dirs(&dirs);
+                return Err(err.into());
+            }
         }
     }
 

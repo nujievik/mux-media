@@ -1,6 +1,6 @@
 use super::{MuxConfig, MuxConfigTarget, RawMuxConfig, parseable_args::MuxConfigArg};
 use crate::{
-    Msg, MuxError, Output, ParseableArg, Target, Tool, Tools, TryFinalizeInit, TryInit,
+    Msg, MuxError, Muxer, Output, ParseableArg, Target, Tool, Tools, TryFinalizeInit, TryInit,
     from_arg_matches,
 };
 use clap::{CommandFactory, FromArgMatches};
@@ -72,11 +72,17 @@ impl TryFinalizeInit for MuxConfig {
         ))]
         {
             let json = Tools::make_json(self.output.temp_dir());
-            self.tools.upd_json(json);
-            self.tools.upd_user_tools(self.user_tools);
+            self.tools.set_json(json);
+            self.tools.set_user_tools(self.user_tools);
         }
 
-        self.tools.try_upd_paths(Tool::iter_mkvtoolnix())?;
+        self.tools.try_upd_path(Tool::Mkvmerge)?;
+
+        let muxer = Muxer::from(&self.output);
+
+        if !matches!(muxer, Muxer::Matroska) {
+            self.tools.try_upd_path(Tool::Ffmpeg)?;
+        }
 
         #[cfg(not(all(
             feature = "with_embedded_bins",
@@ -85,15 +91,18 @@ impl TryFinalizeInit for MuxConfig {
         )))]
         {
             let json = Tools::make_json(self.output.temp_dir());
-            self.tools.upd_json(json);
+            self.tools.set_json(json);
         }
+
+        self.muxer = muxer;
+        self.output.set_ext(muxer.as_ext());
 
         Ok(())
     }
 }
 
 impl MuxConfig {
-    pub const JSON_NAME: &'static str = "mux-media.json";
+    pub const JSON_NAME: &str = "mux-media.json";
 
     pub fn try_from_args<I, T>(args: I) -> Result<Self, MuxError>
     where

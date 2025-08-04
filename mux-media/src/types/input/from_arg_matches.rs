@@ -1,5 +1,4 @@
-use super::Input;
-use crate::{FileType, GlobSetPattern, Range, from_arg_matches};
+use crate::{FileType, GlobSetPattern, Input, Range, from_arg_matches};
 use clap::{ArgMatches, Error, FromArgMatches};
 use std::path::PathBuf;
 

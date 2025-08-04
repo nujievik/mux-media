@@ -86,7 +86,10 @@ project.
 - **mkvmerge**
   License: GPL v2
   Source: https://mkvtoolnix.download/downloads.html#windows
-
+  
+- **FFmpeg**
+  License: LGPL v2.1 OR GPL v2
+  Source: https://ffmpeg.org/download.html
 
 ### Other
 

@@ -10,16 +10,17 @@ mod try_init;
 use crate::TryFinalizeInit;
 use crate::{
     AudioTracks, AutoFlags, ButtonTracks, Chapters, DefaultTFlags, EnabledTFlags, FontAttachs,
-    ForcedTFlags, Input, LangCode, OtherAttachs, Output, Retiming, Specials, SubTracks, Target,
-    Tool, Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
+    ForcedTFlags, Input, LangCode, Muxer, OtherAttachs, Output, Specials, SubTracks, Target, Tool,
+    Tools, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
 use std::{collections::HashMap, ffi::OsString};
 
 /// Contains raw user-defined mux settings.
 pub struct RawMuxConfig {
     pub locale: Option<LangCode>,
-    pub list_langs: bool,
     pub list_targets: bool,
+    pub list_containers: bool,
+    pub list_langs: bool,
     pub run_command: Option<(Tool, Vec<OsString>)>,
     pub args: Vec<OsString>,
     pub trg_args: Option<HashMap<Target, Vec<OsString>>>,
@@ -36,10 +37,10 @@ pub struct MuxConfig {
     output: Output,
     locale: LangCode,
     verbosity: Verbosity,
-    json: bool,
     exit_on_err: bool,
+    json: bool,
+    reencode: bool,
     auto_flags: AutoFlags,
-    retiming: Retiming,
     audio_tracks: AudioTracks,
     sub_tracks: SubTracks,
     video_tracks: VideoTracks,
@@ -56,6 +57,7 @@ pub struct MuxConfig {
     targets: Option<HashMap<Target, MuxConfigTarget>>,
     user_tools: bool,
     tools: Tools,
+    muxer: Muxer,
     is_output_constructed_from_input: bool,
 }
 

@@ -1,46 +1,59 @@
 use super::{Attachs, FontAttachs, OtherAttachs};
 use crate::{
-    AttachType, IsDefault, MediaInfo, MkvmergeArg, MkvmergeNoArg, ToMkvmergeArgs,
+    AttachType, IsDefault, MediaInfo, MuxConfigArg, MuxError, ParseableArg, ToMkvmergeArgs, immut,
     markers::{MCFontAttachs, MCOtherAttachs, MIAttachsInfo, MITargets},
-    mkvmerge_arg, mkvmerge_no_arg, to_mkvmerge_args, unmut, unwrap_or_return_vec,
+    to_json_args,
 };
-use std::{collections::BTreeSet, path::Path};
+use std::{collections::BTreeSet, ffi::OsString, path::Path};
 
-mkvmerge_arg!(Attachs, "-m");
-mkvmerge_no_arg!(Attachs, "-M");
+to_json_args!(@tracks_or_attachs, FontAttachs, Fonts, NoFonts);
+to_json_args!(@tracks_or_attachs, OtherAttachs, Attachs, NoAttachs);
 
 impl ToMkvmergeArgs for FontAttachs {
-    fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
-        self.inner().to_mkvmerge_args(mi, path)
+    fn try_append_mkvmerge_args(
+        &self,
+        args: &mut Vec<OsString>,
+        mi: &mut MediaInfo,
+        media: &Path,
+    ) -> Result<(), MuxError> {
+        self.inner().try_append_mkvmerge_args(args, mi, media)?;
+        Ok(())
     }
-
-    to_mkvmerge_args!(@fn_os);
 }
 
 impl ToMkvmergeArgs for OtherAttachs {
-    fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
-        self.inner().to_mkvmerge_args(mi, path)
+    fn try_append_mkvmerge_args(
+        &self,
+        args: &mut Vec<OsString>,
+        mi: &mut MediaInfo,
+        media: &Path,
+    ) -> Result<(), MuxError> {
+        self.inner().try_append_mkvmerge_args(args, mi, media)?;
+        Ok(())
     }
-
-    to_mkvmerge_args!(@fn_os);
 }
 
 impl ToMkvmergeArgs for Attachs {
-    fn to_mkvmerge_args(&self, mi: &mut MediaInfo, path: &Path) -> Vec<String> {
-        let targets = unwrap_or_return_vec!(unmut!(mi, MITargets, path));
+    fn try_append_mkvmerge_args(
+        &self,
+        args: &mut Vec<OsString>,
+        mi: &mut MediaInfo,
+        media: &Path,
+    ) -> Result<(), MuxError> {
+        let targets = immut!(@try, mi, MITargets, media)?;
 
         let fonts = mi.mux_config.trg_field::<MCFontAttachs>(targets);
         let other = mi.mux_config.trg_field::<MCOtherAttachs>(targets);
 
         if fonts.is_default() && other.is_default() {
-            return Vec::new();
+            return Ok(());
         }
 
-        let ai = unwrap_or_return_vec!(mi.get::<MIAttachsInfo>(path));
+        let ai = mi.try_get::<MIAttachsInfo>(media)?;
         let cnt_init = ai.len();
 
         if cnt_init == 0 {
-            return Vec::new();
+            return Ok(());
         }
 
         let nums: BTreeSet<u64> = ai
@@ -58,20 +71,19 @@ impl ToMkvmergeArgs for Attachs {
         let cnt = nums.len();
 
         if cnt == 0 {
-            return vec![Self::MKVMERGE_NO_ARG.to_owned()];
+            args.push(MuxConfigArg::NoAttachments.dashed().into());
+            return Ok(());
         }
 
         if cnt == cnt_init {
-            return Vec::new();
+            return Ok(());
         }
 
-        let arg = Self::MKVMERGE_ARG.to_owned();
-        let nums = shortest_track_nums(nums, cnt, cnt_init);
+        args.push(MuxConfigArg::Attachments.dashed().into());
+        args.push(shortest_track_nums(nums, cnt, cnt_init).into());
 
-        vec![arg, nums]
+        Ok(())
     }
-
-    to_mkvmerge_args!(@fn_os);
 }
 
 #[inline(always)]

@@ -15,8 +15,10 @@ pub use functions::{SEP_BYTES, SEP_STR, ensure_long_path_prefix, ensure_trailing
 pub use i18n::Msg;
 
 pub use traits::{
-    Field, MaxValue, MutField, MutPathField, MutPathNumField, ParseableArg, ParseableArgs,
-    ToJsonArgs, ToMkvmergeArgs, TryFinalizeInit, TryInit, is_default::IsDefault,
+    Field, MaxValue, ParseableArg, ParseableArgs, ToFfmpegArgs, ToJsonArgs, ToMkvmergeArgs,
+    TryFinalizeInit, TryInit,
+    is_default::IsDefault,
+    lazy_fields::{LazyField, LazyPathField, LazyPathNumField},
 };
 
 pub use types::{
@@ -36,7 +38,7 @@ pub use types::{
     },
     media_number::MediaNumber,
     mux::{
-        config::{MuxConfig, MuxConfigTarget, RawMuxConfig, parseable_args::MuxConfigArg},
+        config::{MuxConfig, MuxConfigTarget, RawMuxConfig},
         error::{MuxError, MuxErrorKind},
         logger::MuxLogger,
     },
@@ -57,15 +59,21 @@ pub use types::{
         order::TrackOrder,
         track_type::TrackType,
     },
+    value::Value,
     verbosity::Verbosity,
 };
 
 #[doc(hidden)]
-pub use traits::{MkvmergeArg, MkvmergeNoArg, ToMkvmergeArg};
+pub use traits::ToMkvmergeArg;
 
 #[doc(hidden)]
 pub use types::{
-    media_info::cache::{attach::CacheMIOfFileAttach, track::CacheMIOfFileTrack},
+    media_info::cache::{CacheMIOfFile, attach::CacheMIOfFileAttach, track::CacheMIOfFileTrack},
     mux::current::MuxCurrent,
-    retiming::Retiming,
+    //retiming::Retiming,
+};
+
+pub(crate) use types::{
+    media_info::cache::track::RawTrackCache, mux::config::parseable_args::MuxConfigArg,
+    muxer::codecs::MUXER_CODECS,
 };

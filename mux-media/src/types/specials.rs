@@ -1,9 +1,8 @@
 mod from_arg_matches;
 mod special_opt;
-mod to_json_args;
-mod to_mkvmerge_args;
+mod to_args;
 
-use crate::{IsDefault, MuxError};
+use crate::{IsDefault, MuxError, mux_err};
 use special_opt::SpecialOpt;
 use std::str::FromStr;
 
@@ -20,7 +19,7 @@ impl FromStr for Specials {
         for part in s.split_whitespace() {
             if part.starts_with('-') {
                 SpecialOpt::from_str(part.trim_start_matches('-'))
-                    .map_err(|_| MuxError::from(format!("unexpected argument: '{}'", part)))?;
+                    .map_err(|_| mux_err!("unexpected argument: '{}'", part))?;
                 specials.push(part.to_string());
             } else {
                 specials.push(part.to_string());

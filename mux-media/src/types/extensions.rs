@@ -6,10 +6,11 @@ mod matroska;
 mod media;
 mod mp4;
 mod subs;
+mod webm;
 
 use phf::Set;
 
-/// A set of file type extensions, stored as byte slices (`&[u8]`).
+/// A sets of file type extensions, stored as byte slices (`&[u8]`).
 pub struct Extensions {
     pub avi: &'static Set<&'static [u8]>,
     pub fonts: &'static Set<&'static [u8]>,
@@ -17,10 +18,10 @@ pub struct Extensions {
     pub media: &'static Set<&'static [u8]>,
     pub mp4: &'static Set<&'static [u8]>,
     pub subs: &'static Set<&'static [u8]>,
+    pub webm: &'static Set<&'static [u8]>,
 }
 
-/// A static collection of file type extensions, grouped by type.
-/// All extensions are stored as byte slices (`&[u8]`).
+/// A static collection of file type extensions.
 pub static EXTENSIONS: Extensions = Extensions {
     avi: &avi::AVI,
     fonts: &fonts::FONTS,
@@ -28,4 +29,5 @@ pub static EXTENSIONS: Extensions = Extensions {
     media: &media::MEDIA,
     mp4: &mp4::MP4,
     subs: &subs::SUBS,
+    webm: &webm::WEBM,
 };

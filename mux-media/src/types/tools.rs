@@ -60,21 +60,15 @@ impl Tools {
     }
 
     /// Sets the JSON file path used to store arguments for `mkvtoolnix` tools.
-    pub fn upd_json(&mut self, json: impl Into<PathBuf>) {
+    pub fn set_json(&mut self, json: impl Into<PathBuf>) {
         self.json = Some(json.into());
-    }
-
-    /// Sets the JSON file path and returns the updated [`Tools`] instance.
-    pub fn json(mut self, json: impl Into<PathBuf>) -> Self {
-        self.upd_json(json);
-        self
     }
 
     /// Sets the priority for user tools.
     ///
     /// In the current implementation, this affects the behavior of path-related methods
-    /// only in builds for Windows on x86 or x86_64 architectures.
-    pub fn upd_user_tools(&mut self, user_tools: bool) {
+    /// only in builds with features `with_embedded_bins` for Windows x86 or x86_64 architectures.
+    pub fn set_user_tools(&mut self, user_tools: bool) {
         self.user_tools = user_tools;
     }
 
@@ -88,7 +82,14 @@ impl Tools {
     /// If the tool is from `mkvtoolnix` and a JSON file path is set,
     /// arguments are written to that file and passed as `@<path>`.
     ///
-    /// Logs errors and the executed command if logging is enabled.
+    /// # Logging
+    ///
+    /// - **Only if** [`log`] is initialized with at least [`LevelFilter::Warn`](
+    ///   log::LevelFilter::Warn).
+    ///
+    /// - Warn: Error write JSON.
+    ///
+    /// - Debug: Running command.
     pub fn run<I, T>(&self, tool: Tool, args: I) -> Result<ToolOutput, MuxError>
     where
         I: IntoIterator<Item = T> + Clone,

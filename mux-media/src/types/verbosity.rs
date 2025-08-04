@@ -1,4 +1,4 @@
-use crate::{IsDefault, ToJsonArgs, from_arg_matches, json_arg};
+use crate::{IsDefault, ToJsonArgs, from_arg_matches, to_json_args};
 use log::LevelFilter;
 
 /// Defines logging level.
@@ -49,12 +49,12 @@ impl clap::FromArgMatches for Verbosity {
 }
 
 impl ToJsonArgs for Verbosity {
-    fn to_json_args(&self) -> Vec<String> {
+    fn append_json_args(&self, args: &mut Vec<String>) {
         match self {
-            Self::Quiet => vec![json_arg!(Quiet)],
-            Self::Normal => Vec::new(),
-            Self::Verbose => vec!["-v".to_owned()],
-            Self::Debug => vec!["-vv".to_owned()],
+            Self::Quiet => args.push(to_json_args!(Quiet)),
+            Self::Normal => (),
+            Self::Verbose => args.push("-v".to_owned()),
+            Self::Debug => args.push("-vv".to_owned()),
         }
     }
 }

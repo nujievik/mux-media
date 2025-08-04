@@ -38,10 +38,10 @@ pub fn data(add: impl AsRef<OsStr>) -> PathBuf {
     path
 }
 
-pub fn cfg<I, T>(args: I) -> MuxConfig
+pub fn cfg<I, S>(args: I) -> MuxConfig
 where
-    I: IntoIterator<Item = T>,
-    T: Into<OsString> + Clone,
+    I: IntoIterator<Item = S>,
+    S: Into<OsString> + Clone,
 {
     MuxConfig::try_from_args(args).unwrap()
 }
@@ -54,6 +54,19 @@ where
     cfg(args).field::<F>().clone()
 }
 
+pub fn cfg_args<F, I, S>(args: I, path: &Path, cache: CacheMI) -> Vec<OsString>
+where
+    MuxConfig: Field<F>,
+    <MuxConfig as Field<F>>::FieldType: ToMkvmergeArgs,
+    I: IntoIterator<Item = S>,
+    S: Into<OsString> + Clone,
+{
+    let mc = cfg(args);
+    let mut mi = MediaInfo::from(&mc);
+    mi.set_cache(cache);
+    mc.field::<F>().to_mkvmerge_args(&mut mi, path)
+}
+
 pub fn to_args<I, S>(args: I) -> Vec<String>
 where
     I: IntoIterator<Item = S>,
@@ -62,15 +75,14 @@ where
     args.into_iter().map(|s| s_sep(s.as_ref())).collect()
 }
 
-pub fn cfg_args<F>(args: Vec<String>, path: &Path, cache: CacheMI) -> Vec<String>
+pub fn to_os_args<I, S>(args: I) -> Vec<OsString>
 where
-    MuxConfig: Field<F>,
-    <MuxConfig as Field<F>>::FieldType: ToMkvmergeArgs,
+    I: IntoIterator<Item = S>,
+    S: AsRef<OsStr>,
 {
-    let mc = cfg(args);
-    let mut mi = MediaInfo::from(&mc);
-    mi.upd_cache(cache);
-    mc.field::<F>().to_mkvmerge_args(&mut mi, path)
+    args.into_iter()
+        .map(|oss| ensure_platform_seps(oss).into_os_string())
+        .collect()
 }
 
 pub fn repeat_track_arg(arg: &str, val: &str, range: &str) -> Vec<String> {

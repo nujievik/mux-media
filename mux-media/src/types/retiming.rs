@@ -1,6 +1,4 @@
-use crate::{
-    GlobSetPattern, IsDefault, ToJsonArgs, from_arg_matches, json_arg, push_true_json_args,
-};
+use crate::{GlobSetPattern, IsDefault, ToJsonArgs, from_arg_matches, to_json_args};
 use clap::{ArgMatches, Error, FromArgMatches};
 
 #[derive(Clone, Default, IsDefault)]
@@ -36,18 +34,14 @@ impl FromArgMatches for Retiming {
 }
 
 impl ToJsonArgs for Retiming {
-    fn to_json_args(&self) -> Vec<String> {
-        let mut args = Vec::<String>::new();
-
+    fn append_json_args(&self, args: &mut Vec<String>) {
         if let Some(pat) = &self.rm_segments {
             if !pat.raw.is_empty() {
-                args.push(json_arg!(RmSegments));
+                args.push(to_json_args!(RmSegments));
                 args.push(pat.raw.clone());
             }
         }
 
-        push_true_json_args!(args, self; no_linked, NoLinked, less, LessRetiming);
-
-        args
+        to_json_args!(@push_true, self, args; no_linked, NoLinked, less, LessRetiming);
     }
 }

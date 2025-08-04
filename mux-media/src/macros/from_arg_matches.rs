@@ -3,11 +3,11 @@
 macro_rules! from_arg_matches {
     // Case 1: Return Option<T>
     ($matches:ident, $typ:ty, $arg:ident, @no_default) => {{
-        use $crate::ParseableArg;
+        use $crate::{ParseableArg, MuxConfigArg, MuxError};
 
         $matches
-            .try_remove_one::<$typ>(<$crate::MuxConfig as $crate::ParseableArgs>::Arg::$arg.undashed())
-            .map_err($crate::MuxError::from)?
+            .try_remove_one::<$typ>(MuxConfigArg::$arg.undashed())
+            .map_err(MuxError::from)?
     }};
 
     // Case 2: Default function returns plain value

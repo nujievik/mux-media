@@ -9,6 +9,12 @@ impl Blocks {
             .0
             .next_help_heading(Msg::HelpOtherOptions.to_str_localized())
             .arg(
+                Arg::new(MuxConfigArg::ListContainers.undashed())
+                    .long(MuxConfigArg::ListContainers.undashed())
+                    .help(Msg::HelpListContainers.to_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
                 Arg::new(MuxConfigArg::ListLangs.undashed())
                     .long(MuxConfigArg::ListLangs.undashed())
                     .help(Msg::HelpListLangs.to_str_localized())
@@ -50,6 +56,12 @@ impl Blocks {
                 Arg::new(MuxConfigArg::MkvmergeHelp.undashed())
                     .long(MuxConfigArg::MkvmergeHelp.undashed())
                     .help(Msg::HelpMkvmergeHelp.to_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(MuxConfigArg::FfmpegHelp.undashed())
+                    .long(MuxConfigArg::FfmpegHelp.undashed())
+                    .help(Msg::HelpFfmpegHelp.to_str_localized())
                     .action(ArgAction::SetTrue),
             );
 

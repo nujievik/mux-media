@@ -69,7 +69,6 @@ impl OffFlag {
             Self::AutoNames => MuxConfigArg::HelpAutoNames,
             Self::AutoLangs => MuxConfigArg::HelpAutoLangs,
             Self::AutoCharsets => MuxConfigArg::HelpAutoCharsets,
-            //Self::SortFonts => MuxConfigArg::HelpSortFonts,
         }
     }
 
@@ -81,7 +80,6 @@ impl OffFlag {
             Self::AutoNames => MuxConfigArg::AutoNames,
             Self::AutoLangs => MuxConfigArg::AutoLangs,
             Self::AutoCharsets => MuxConfigArg::AutoCharsets,
-            //Self::SortFonts => MuxConfigArg::SortFonts,
         }
     }
 
@@ -93,7 +91,6 @@ impl OffFlag {
             Self::AutoNames => MuxConfigArg::NoAutoNames,
             Self::AutoLangs => MuxConfigArg::NoAutoLangs,
             Self::AutoCharsets => MuxConfigArg::NoAutoCharsets,
-            //Self::SortFonts => MuxConfigArg::NoSortFonts,
         }
     }
 

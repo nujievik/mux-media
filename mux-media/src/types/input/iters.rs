@@ -172,7 +172,7 @@ impl Input {
                 .collect();
 
             if matched.len() < 2 {
-                logs::debug_no_ext_media(up_stem);
+                logs::warn_no_ext_media(up_stem);
                 return None;
             }
 

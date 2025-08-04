@@ -1,21 +1,35 @@
-use crate::{CacheState, LangCode, MuxError, TrackID, TrackType};
+use crate::{CacheState, LangCode, MuxError, TrackID, TrackType, Value};
 
 /// Cache of [`crate::MediaInfo`] is separate for each track in media.
 #[derive(Clone, Debug, Default)]
 pub struct CacheMIOfFileTrack {
-    pub matroska: Option<matroska::Track>,
-    pub mkvmerge_id_line: Option<String>,
+    pub raw: RawTrackCache,
     pub track_type: TrackType,
-    pub lang: CacheState<LangCode>,
-    pub name: CacheState<String>,
+
+    pub lang: CacheState<Value<LangCode>>,
+    pub name: CacheState<Value<String>>,
     pub words_name: CacheState<Vec<String>>,
     pub track_ids: CacheState<[TrackID; 2]>,
+    pub codec: CacheState<String>,
+    pub it_signs: CacheState<bool>,
 }
 
-impl TryFrom<matroska::Track> for CacheMIOfFileTrack {
+#[derive(Clone, Debug)]
+pub enum RawTrackCache {
+    Matroska(matroska::Track),
+    Mkvmerge(String),
+}
+
+impl Default for RawTrackCache {
+    fn default() -> Self {
+        RawTrackCache::Mkvmerge(String::new())
+    }
+}
+
+impl TryFrom<&matroska::Track> for CacheMIOfFileTrack {
     type Error = MuxError;
 
-    fn try_from(mt: matroska::Track) -> Result<Self, Self::Error> {
+    fn try_from(mt: &matroska::Track) -> Result<Self, Self::Error> {
         let track_type = TrackType::from(mt.tracktype);
 
         if let TrackType::NonCustomizable = track_type {
@@ -23,7 +37,7 @@ impl TryFrom<matroska::Track> for CacheMIOfFileTrack {
         }
 
         Ok(Self {
-            matroska: Some(mt),
+            raw: RawTrackCache::Matroska(mt.clone()),
             track_type,
             ..Default::default()
         })
@@ -45,7 +59,7 @@ impl TryFrom<String> for CacheMIOfFileTrack {
         .ok_or_else(|| MuxError::from("Unsupported track type"))?;
 
         Ok(Self {
-            mkvmerge_id_line: Some(mkvmerge_id_line),
+            raw: RawTrackCache::Mkvmerge(mkvmerge_id_line),
             track_type,
             ..Default::default()
         })

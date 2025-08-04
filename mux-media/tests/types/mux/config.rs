@@ -1,100 +1,99 @@
 use mux_media::*;
 
-macro_rules! parseable_args_list {
-    ($macro:ident) => {
-        $macro! {
-            Input => "input",
-            Output => "output",
-            Range => "range",
-            Skip => "skip",
-            Depth => "depth",
-            Locale => "locale",
-            Verbose => "verbose",
-            Quiet => "quiet",
-            Load => "load",
-            Json => "json",
-            ExitOnErr => "exit-on-err",
-            Pro => "pro",
-            HelpAutoCharsets => "auto-charsets / --no-auto-charsets",
-            AutoCharsets => "auto-charsets",
-            NoAutoCharsets => "no-auto-charsets",
-            HelpAutoDefaults => "auto-defaults / --no-auto-defaults",
-            AutoDefaults => "auto-defaults",
-            NoAutoDefaults => "no-auto-defaults",
-            HelpAutoForceds => "auto-forceds / --no-auto-forceds",
-            AutoForceds => "auto-forceds",
-            NoAutoForceds => "no-auto-forceds",
-            HelpAutoEnableds => "auto-enableds / --no-auto-enableds",
-            AutoEnableds => "auto-enableds",
-            NoAutoEnableds => "no-auto-enableds",
-            HelpAutoNames => "auto-names / --no-auto-names",
-            AutoNames => "auto-names",
-            NoAutoNames => "no-auto-names",
-            HelpAutoLangs => "auto-langs / --no-auto-langs",
-            AutoLangs => "auto-langs",
-            NoAutoLangs => "no-auto-langs",
-            HelpSortFonts => "sort-fonts / --no-sort-fonts",
-            SortFonts => "sort-fonts",
-            NoSortFonts => "no-sort-fonts",
-            RmSegments => "rm-segments",
-            NoLinked => "no-linked",
-            LessRetiming => "less-retiming",
-            Target => "target",
-            TargetHelp => "target <trg> [options]",
-            ListTargets => "list-targets",
-            Audio => "audio",
-            NoAudio => "no-audio",
-            Subs => "subs",
-            NoSubs => "no-subs",
-            Video => "video",
-            NoVideo => "no-video",
-            Buttons => "buttons",
-            NoButtons => "no-buttons",
-            Chapters => "chapters",
-            NoChapters => "no-chapters",
-            Fonts => "fonts",
-            NoFonts => "no-fonts",
-            Attachs => "attachs",
-            NoAttachs => "no-attachs",
-            Defaults => "defaults",
-            MaxDefaults => "max-defaults",
-            Forceds => "forceds",
-            MaxForceds => "max-forceds",
-            Enableds => "enableds",
-            MaxEnableds => "max-enableds",
-            Names => "names",
-            Langs => "langs",
-            Specials => "specials",
-            ListLangs => "list-langs",
-            UserTools => "user-tools",
-            MkvmergeHelp => "mkvmerge [options]",
-            Version => "version",
-            Help => "help"
-        }
-    };
+#[test]
+fn test_ok_exit() {
+    ["--list-targets", "--list-containers", "--list-langs"]
+        .iter()
+        .for_each(|arg| {
+            let err = match MuxConfig::try_from_args([arg]) {
+                Ok(_) => panic!("Unexpected ok"),
+                Err(e) => e,
+            };
+            assert_eq!(0, err.code);
+            assert_eq!(MuxErrorKind::Ok, err.kind);
+        })
 }
 
-macro_rules! build_test_long_args {
-    ( $( $arg:ident => $long:expr ),* ) => {
-        #[test]
-        fn test_long_args() {
-            $(
-                assert_eq!($long, <MuxConfig as ParseableArgs>::Arg::$arg.undashed());
-            )*
-        }
-    };
-}
-
-macro_rules! build_test_json_args {
-    ( $( $arg:ident => $json_arg:expr ),* ) => {
-        #[test]
-        fn test_json_args() {
-            $(
-                assert_eq!(format!("--{}", $json_arg), json_arg!($arg));
-            )*
-        }
-    };
-}
-
-parseable_args_list!(build_test_long_args);
-parseable_args_list!(build_test_json_args);
+crate::build_test_parseable_args!(
+    test_parseable_args, MuxConfig;
+    Input => "input",
+    Output => "output",
+    Range => "range",
+    Skip => "skip",
+    Depth => "depth",
+    Locale => "locale",
+    Verbose => "verbose",
+    Quiet => "quiet",
+    ExitOnErr => "exit-on-err",
+    Json => "json",
+    Load => "load",
+    Reencode => "reencode",
+    Pro => "pro",
+    HelpAutoDefaults => "auto-defaults / --no-auto-defaults",
+    AutoDefaults => "auto-defaults",
+    NoAutoDefaults => "no-auto-defaults",
+    HelpAutoForceds => "auto-forceds / --no-auto-forceds",
+    AutoForceds => "auto-forceds",
+    NoAutoForceds => "no-auto-forceds",
+    HelpAutoEnableds => "auto-enableds / --no-auto-enableds",
+    AutoEnableds => "auto-enableds",
+    NoAutoEnableds => "no-auto-enableds",
+    HelpAutoNames => "auto-names / --no-auto-names",
+    AutoNames => "auto-names",
+    NoAutoNames => "no-auto-names",
+    HelpAutoLangs => "auto-langs / --no-auto-langs",
+    AutoLangs => "auto-langs",
+    NoAutoLangs => "no-auto-langs",
+    HelpAutoCharsets => "auto-charsets / --no-auto-charsets",
+    AutoCharsets => "auto-charsets",
+    NoAutoCharsets => "no-auto-charsets",
+    Target => "target",
+    TargetHelp => "target <trg> [options]",
+    ListTargets => "list-targets",
+    Audio => "audio",
+    AudioTracks => "audio-tracks",
+    NoAudio => "no-audio",
+    Subs => "subs",
+    SubtitleTracks => "subtitle-tracks",
+    NoSubs => "no-subs",
+    NoSubtitles => "no-subtitles",
+    Video => "video",
+    VideoTracks => "video-tracks",
+    NoVideo => "no-video",
+    Buttons => "buttons",
+    ButtonTracks => "button-tracks",
+    NoButtons => "no-buttons",
+    Chapters => "chapters",
+    NoChapters => "no-chapters",
+    Attachments => "attachments",
+    NoAttachments => "no-attachments",
+    Fonts => "fonts",
+    NoFonts => "no-fonts",
+    Attachs => "attachs",
+    NoAttachs => "no-attachs",
+    DefaultTrackFlag => "default-track-flag",
+    Defaults => "defaults",
+    MaxDefaults => "max-defaults",
+    ForcedDisplayFlag => "forced-display-flag",
+    Forceds => "forceds",
+    MaxForceds => "max-forceds",
+    Enableds => "enableds",
+    MaxEnableds => "max-enableds",
+    TrackEnabledFlag => "track-enabled-flag",
+    Metadata => "metadata",
+    Names => "names",
+    Title => "title",
+    TrackName => "track-name",
+    Langs => "langs",
+    Language => "language",
+    Specials => "specials",
+    ListContainers => "list-containers",
+    ListLangs => "list-langs",
+    UserTools => "user-tools",
+    FfmpegHelp => "ffmpeg [options]",
+    MkvmergeHelp => "mkvmerge [options]",
+    Version => "version",
+    Help => "help",
+    SubCharset => "sub-charset",
+    TrackOrder => "track-order",
+);

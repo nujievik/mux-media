@@ -73,7 +73,8 @@ fn test_write_json() {
     let json = data("output/write_json.json");
     let _ = fs::remove_file(&json);
 
-    let tools = new().json(&json);
+    let mut tools = new();
+    tools.set_json(&json);
 
     let srt = data("srt.srt");
     let args = ["-i".to_string(), srt.to_string_lossy().into_owned()];

@@ -1,10 +1,9 @@
 use crate::{
-    LangCode, MediaInfo, MuxError, TrackID, TrackType, Tracks,
+    LangCode, MediaInfo, MuxError, TrackID, TrackType, Tracks, immut,
     markers::{
         MCAudioTracks, MCButtonTracks, MCSubTracks, MCVideoTracks, MITILang, MITargets,
         MITracksInfo,
     },
-    unmut,
 };
 use enum_map::EnumMap;
 use std::collections::BTreeSet;
@@ -26,12 +25,13 @@ impl MediaInfo<'_> {
             .map(|(num, ttype)| {
                 let lang = *self
                     .try_get_ti::<MITILang>(media, num)
+                    .map(|lang| lang.inner())
                     .unwrap_or(&LangCode::default());
                 (num, lang, ttype)
             })
             .collect();
 
-        let targets = unmut!(@try, self, MITargets, media)?;
+        let targets = immut!(@try, self, MITargets, media)?;
 
         let mut audio_nums: BTreeSet<u64> = BTreeSet::new();
         let mut sub_nums: BTreeSet<u64> = BTreeSet::new();

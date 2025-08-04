@@ -3,6 +3,7 @@ use crate::*;
 use mux_media::markers::*;
 use mux_media::*;
 
+/*
 #[test]
 fn test_mkvmerge_args() {
     assert_eq!("--default-track-flag", DefaultTFlags::MKVMERGE_ARG);
@@ -13,6 +14,7 @@ fn test_mkvmerge_args() {
     assert_eq!("--forced-display-flag", TFlagType::Forced.to_mkvmerge_arg());
     assert_eq!("--track-enabled-flag", TFlagType::Enabled.to_mkvmerge_arg());
 }
+*/
 
 #[test]
 fn test_is_default() {
@@ -68,7 +70,7 @@ fn test_counts_default() {
     let counts = TFlagsCounts::default();
     for ft in TFlagType::iter() {
         for tt in TrackType::iter() {
-            assert_eq!(0, counts.get(ft, tt));
+            assert_eq!(0, counts.val(ft, tt));
         }
     }
 }
@@ -89,7 +91,7 @@ fn test_counts_add() {
             current += x;
 
             for tt in TrackType::iter() {
-                assert_eq!(current, counts.get(ft, tt));
+                assert_eq!(current, counts.val(ft, tt));
             }
         };
 

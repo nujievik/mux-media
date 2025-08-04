@@ -1,4 +1,4 @@
-use crate::{TFlagType, ToJsonArgs, from_arg_matches, json_arg};
+use crate::{TFlagType, ToJsonArgs, from_arg_matches, to_json_args};
 use clap::{ArgMatches, Error, FromArgMatches};
 use enum_map::{EnumMap, enum_map};
 
@@ -129,20 +129,18 @@ macro_rules! push_json_args {
     ($args:ident, $pro:expr; $( $val:expr, $arg:ident, $no_arg:ident ),*) => {{
         $(
             if $pro && $val {
-                $args.push(json_arg!($arg));
+                $args.push(to_json_args!($arg));
             } else if !$pro && !$val {
-                $args.push(json_arg!($no_arg));
+                $args.push(to_json_args!($no_arg));
             }
         )*
     }};
 }
 
 impl ToJsonArgs for AutoFlags {
-    fn to_json_args(&self) -> Vec<String> {
-        let mut args = Vec::<String>::new();
-
+    fn append_json_args(&self, args: &mut Vec<String>) {
         if self.pro {
-            args.push(json_arg!(Pro));
+            args.push(to_json_args!(Pro));
         }
 
         push_json_args!(
@@ -154,7 +152,5 @@ impl ToJsonArgs for AutoFlags {
             self.auto_langs, AutoLangs, NoAutoLangs,
             self.auto_charsets, AutoCharsets, NoAutoCharsets
         );
-
-        args
     }
 }

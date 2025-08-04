@@ -1,24 +1,26 @@
-use crate::{
-    ArcPathBuf, LangCode, MediaInfo, MkvmergeArg, MuxError, TargetGroup, ToMkvmergeArgs, TrackID,
-    TrackType,
-    markers::{
-        MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale, MISavedTracks, MITILang,
-        MITargetGroup, MITargets,
-    },
-    mkvmerge_arg, to_mkvmerge_args, unmut,
-};
-use std::{cmp::Ordering, collections::HashMap, path::Path};
+mod to_args;
 
-/// Sorts tracks of media files.
+use crate::{
+    ArcPathBuf, LangCode, MediaInfo, MuxError, TrackType, immut,
+    markers::{
+        MCDefaultTFlags, MCEnabledTFlags, MCForcedTFlags, MCLocale, MISavedTracks, MITIItSigns,
+        MITITrackIDs, MITargets,
+    },
+};
+use std::cmp::Ordering;
+
+/// Sorts media and tracks of media files.
 ///
-/// Stores:
+/// # Stores
+///
 /// - A vector of media file paths.
-/// - A list of tuples: `(media_index, track_number, track_type)`,
+///
+/// - A vector of tuples: `(media_index, track_number, track_type)`,
 ///   where `media_index` refers to the index in the `media` vector.
 ///
 /// # Sorting Priority
 ///
-/// Tracks are sorted by the following rules (from highest to lowest priority):
+/// Sorts by the following rules (from highest to lowest priority):
 ///
 /// 1. `TrackType`:
 ///     - `Video`
@@ -35,21 +37,26 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     #     .join("test_data")
 ///     #     .join("order")
 ///     #     .join("1");
+///     # let dir = ensure_long_path_prefix(dir);
+///     #
 ///     # let args = [Path::new("-i"), &dir];
 ///     # let mux_config = MuxConfig::try_from_args(args).unwrap();
+///     #
 ///     let video = ArcPathBuf::from(dir.join("3.mkv"));
 ///     let audio = ArcPathBuf::from(dir.join("1.ogg"));
 ///     let subs = ArcPathBuf::from(dir.join("2.srt"));
+///
 ///     let mut mi = MediaInfo::from(&mux_config);
 ///     mi.try_insert(subs.clone()).unwrap();
 ///     mi.try_insert(audio.clone()).unwrap();
 ///     mi.try_insert(video.clone()).unwrap();
-///     let order = TrackOrder::try_from(&mut mi).unwrap();
-///     let (media, idxs) = (order.media, order.i_track_type);
 ///
-///     assert_eq!(&video, &media[idxs[0].0]);
-///     assert_eq!(&audio, &media[idxs[1].0]);
-///     assert_eq!(&subs, &media[idxs[2].0]);
+///     let order = TrackOrder::try_from(&mut mi).unwrap();
+///     let media = order.media();
+///
+///     assert_eq!(&video, &media[0]);
+///     assert_eq!(&audio, &media[1]);
+///     assert_eq!(&subs, &media[2]);
 ///     ```
 ///
 /// 2. `TFlagType::Default`:
@@ -78,11 +85,12 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     let mut mi = MediaInfo::from(&mux_config);
 ///     mi.try_insert(first.clone()).unwrap();
 ///     mi.try_insert(second.clone()).unwrap();
-///     let order = TrackOrder::try_from(&mut mi).unwrap();
-///     let (media, idxs) = (order.media, order.i_track_type);
 ///
-///     assert_eq!(&second, &media[idxs[0].0]);
-///     assert_eq!(&first, &media[idxs[1].0]);
+///     let order = TrackOrder::try_from(&mut mi).unwrap();
+///     let media = order.media();
+///
+///     assert_eq!(&second, &media[0]);
+///     assert_eq!(&first, &media[1]);
 ///     ```
 ///
 /// 3. `TFlagType::Forced`:
@@ -113,11 +121,12 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     # let mut mi = MediaInfo::from(&mux_config);
 ///     # mi.try_insert(first.clone()).unwrap();
 ///     # mi.try_insert(second.clone()).unwrap();
-///     # let order = TrackOrder::try_from(&mut mi).unwrap();
-///     # let (media, idxs) = (order.media, order.i_track_type);
 ///     #
-///     assert_eq!(&second, &media[idxs[0].0]);
-///     assert_eq!(&first, &media[idxs[1].0]);
+///     # let order = TrackOrder::try_from(&mut mi).unwrap();
+///     # let media = order.media();
+///     #
+///     assert_eq!(&second, &media[0]);
+///     assert_eq!(&first, &media[1]);
 ///     ```
 ///
 /// 4. `TFlagType::Enabled`:
@@ -148,16 +157,17 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     # let mut mi = MediaInfo::from(&mux_config);
 ///     # mi.try_insert(first.clone()).unwrap();
 ///     # mi.try_insert(second.clone()).unwrap();
-///     # let order = TrackOrder::try_from(&mut mi).unwrap();
-///     # let (media, idxs) = (order.media, order.i_track_type);
 ///     #
-///     assert_eq!(&second, &media[idxs[0].0]);
-///     assert_eq!(&first, &media[idxs[1].0]);
+///     # let order = TrackOrder::try_from(&mut mi).unwrap();
+///     # let media = order.media();
+///     #
+///     assert_eq!(&second, &media[0]);
+///     assert_eq!(&first, &media[1]);
 ///     ```
 ///
-/// 5. `TargetGroup`:
-///     - `Signs`
-///     - Other group.
+/// 5.  It `Sub` track and signs:
+///     - `true`
+///     - `false`.
 ///
 ///     Its affected only `Sub` tracks if they has same 1-4.
 ///
@@ -184,13 +194,13 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     # let mut mi = MediaInfo::from(&mux_config);
 ///     # mi.try_insert(first.clone()).unwrap();
 ///     # mi.try_insert(second.clone()).unwrap();
-///     # let order = TrackOrder::try_from(&mut mi).unwrap();
-///     # let (media, idxs) = (order.media, order.i_track_type);
 ///     #
-///     assert_eq!(&second, &media[idxs[0].0]);
-///     assert_eq!(&first, &media[idxs[1].0]);
+///     # let order = TrackOrder::try_from(&mut mi).unwrap();
+///     # let media = order.media();
+///     #
+///     assert_eq!(&second, &media[0]);
+///     assert_eq!(&first, &media[1]);
 ///     ```
-///
 ///
 /// 6. Track language `LangCode`:
 ///     - `locale` language
@@ -222,11 +232,12 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     # let mut mi = MediaInfo::from(&mux_config);
 ///     # mi.try_insert(first.clone()).unwrap();
 ///     # mi.try_insert(second.clone()).unwrap();
-///     # let order = TrackOrder::try_from(&mut mi).unwrap();
-///     # let (media, idxs) = (order.media, order.i_track_type);
 ///     #
-///     assert_eq!(&second, &media[idxs[0].0]);
-///     assert_eq!(&first, &media[idxs[1].0]);
+///     # let order = TrackOrder::try_from(&mut mi).unwrap();
+///     # let media = order.media();
+///     #
+///     assert_eq!(&second, &media[0]);
+///     assert_eq!(&first, &media[1]);
 ///     ```
 ///
 /// 7. Path name.
@@ -249,23 +260,41 @@ use std::{cmp::Ordering, collections::HashMap, path::Path};
 ///     #
 ///     let args = [Path::new("-i"), &dir];
 ///     # let mux_config = MuxConfig::try_from_args(args).unwrap();
-///     # let mut mi = MediaInfo::from(&mux_config);
 ///     #
+///     # let mut mi = MediaInfo::from(&mux_config);
 ///     # mi.try_insert(first.clone()).unwrap();
 ///     # mi.try_insert(second.clone()).unwrap();
-///     # let order = TrackOrder::try_from(&mut mi).unwrap();
-///     # let (media, idxs) = (order.media, order.i_track_type);
 ///     #
-///     assert_eq!(&first, &media[idxs[0].0]);
-///     assert_eq!(&second, &media[idxs[1].0]);
+///     # let order = TrackOrder::try_from(&mut mi).unwrap();
+///     # let media = order.media();
+///     #
+///     assert_eq!(&first, &media[0]);
+///     assert_eq!(&second, &media[1]);
 ///     ```
+#[derive(Clone)]
 pub struct TrackOrder {
-    pub media: Vec<ArcPathBuf>,
-    pub i_track_type: Vec<(usize, u64, TrackType)>,
+    media: Vec<ArcPathBuf>,
+    i_track_type: Vec<(usize, u64, TrackType)>,
+}
 
-    // Prevents direct initialization outside the module.
-    #[allow(dead_code)]
-    field: (),
+impl TrackOrder {
+    /// Consumes [`Self`], returning its fields.
+    #[inline(always)]
+    pub fn into_media_and_i_track_type(self) -> (Vec<ArcPathBuf>, Vec<(usize, u64, TrackType)>) {
+        (self.media, self.i_track_type)
+    }
+
+    /// Returns the sorted media.
+    #[inline(always)]
+    pub fn media(&self) -> &Vec<ArcPathBuf> {
+        &self.media
+    }
+
+    /// Returns the sorted `(media_index, track_number, track_type)`.
+    #[inline(always)]
+    pub fn i_track_type(&self) -> &Vec<(usize, u64, TrackType)> {
+        &self.i_track_type
+    }
 }
 
 impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
@@ -276,48 +305,49 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
             return Err("Not found any cached Media".into());
         }
 
-        let mut media: Vec<ArcPathBuf> = mi.cache().of_files.keys().cloned().collect();
-        media.sort(); // First sort by names
+        let mut raw_media: Vec<ArcPathBuf> = mi.cache().of_files.keys().cloned().collect();
+        raw_media.sort(); // First sort by names
 
-        let i_track_type = {
+        let raw_i_track_type: Vec<(usize, u64, TrackType)> = {
             let locale_lang = *mi.mux_config.field::<MCLocale>();
             let mut to_sort: Vec<(usize, u64, TrackType, OrderSortKey)> = Vec::new();
 
-            for (i, path) in media.iter().enumerate() {
-                let num_types: Vec<(u64, TrackType)> = mi
-                    .try_get::<MISavedTracks>(path)?
-                    .iter()
-                    .flat_map(|(tt, nums)| nums.iter().map(move |num| (*num, tt)))
-                    .collect();
+            for (i, path) in raw_media.iter().enumerate() {
+                let tracks = mi.try_take::<MISavedTracks>(path)?;
 
-                let target_group = *mi.try_get::<MITargetGroup>(path)?;
-                let targets = unmut!(@try, mi, MITargets, path)?;
+                let targets = immut!(@try, mi, MITargets, path)?;
 
                 let defaults = mi.mux_config.trg_field::<MCDefaultTFlags>(targets);
                 let forceds = mi.mux_config.trg_field::<MCForcedTFlags>(targets);
                 let enableds = mi.mux_config.trg_field::<MCEnabledTFlags>(targets);
 
-                for (num, ttype) in num_types {
-                    let tid = TrackID::Num(num);
-                    let lang = *mi.try_get_ti::<MITILang>(path, num)?;
-                    let lang_tid = TrackID::Lang(lang);
+                for (ty, num) in tracks
+                    .iter()
+                    .flat_map(|(ty, nums)| nums.iter().map(move |num| (ty, *num)))
+                {
+                    let it_signs = matches!(ty, TrackType::Sub)
+                        && *mi.get_ti::<MITIItSigns>(path, num).unwrap_or(&false);
+                    let tids = mi.try_get_ti::<MITITrackIDs>(path, num)?;
+                    let lang = LangCode::from(&tids[1]);
 
-                    let default = defaults.get(&tid).or_else(|| defaults.get(&lang_tid));
-                    let forced = forceds.get(&tid).or_else(|| forceds.get(&lang_tid));
-                    let enabled = enableds.get(&tid).or_else(|| enableds.get(&lang_tid));
+                    let default = defaults.get(&tids[0]).or_else(|| defaults.get(&tids[1]));
+                    let forced = forceds.get(&tids[0]).or_else(|| forceds.get(&tids[1]));
+                    let enabled = enableds.get(&tids[0]).or_else(|| enableds.get(&tids[1]));
 
                     let key = OrderSortKey::new(
-                        ttype,
+                        ty,
                         default,
                         forced,
                         enabled,
-                        target_group,
+                        it_signs,
                         lang,
                         locale_lang,
                     );
 
-                    to_sort.push((i, num, ttype, key));
+                    to_sort.push((i, num, ty, key));
                 }
+
+                mi.set::<MISavedTracks>(path, tracks);
             }
 
             to_sort.sort_by(|a, b| a.3.cmp(&b.3));
@@ -328,43 +358,38 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
                 .collect()
         };
 
+        let mut media: Vec<ArcPathBuf> = Vec::with_capacity(raw_media.len());
+
+        let mut i_track_type: Vec<(usize, u64, TrackType)> =
+            Vec::with_capacity(raw_i_track_type.len());
+
+        let mut old_i_to_new: Vec<Option<usize>> = vec![None; raw_media.len()];
+        let mut new_i = 0;
+
+        raw_i_track_type.into_iter().for_each(|(old_i, track, tt)| {
+            let i = match old_i_to_new[old_i] {
+                Some(i) => i,
+
+                None => {
+                    old_i_to_new[old_i] = Some(new_i);
+
+                    media.push(raw_media[old_i].clone());
+
+                    let i = new_i;
+                    new_i += 1;
+
+                    i
+                }
+            };
+
+            i_track_type.push((i, track, tt));
+        });
+
         Ok(Self {
             media,
             i_track_type,
-            field: (),
         })
     }
-}
-
-mkvmerge_arg!(TrackOrder, "--track-order");
-
-impl ToMkvmergeArgs for TrackOrder {
-    fn to_mkvmerge_args(&self, _mi: &mut MediaInfo, _path: &Path) -> Vec<String> {
-        let mut i_to_fid: HashMap<usize, usize> = HashMap::new();
-        let mut max_fid: usize = 0;
-
-        let order_arg: String = self
-            .i_track_type
-            .iter()
-            .map(|(i, num, _)| {
-                let fid = match i_to_fid.get(i) {
-                    Some(fid) => *fid,
-                    None => {
-                        let fid = max_fid;
-                        i_to_fid.insert(*i, fid);
-                        max_fid += 1;
-                        fid
-                    }
-                };
-                format!("{}:{}", fid, num)
-            })
-            .collect::<Vec<_>>()
-            .join(",");
-
-        vec![Self::MKVMERGE_ARG.into(), order_arg]
-    }
-
-    to_mkvmerge_args!(@fn_os);
 }
 
 struct OrderSortKey {
@@ -372,7 +397,7 @@ struct OrderSortKey {
     default: u8,
     forced: u8,
     enabled: u8,
-    target_group: u8,
+    it_signs: u8,
     lang: u8,
 }
 
@@ -382,7 +407,7 @@ impl OrderSortKey {
         default: Option<bool>,
         forced: Option<bool>,
         enabled: Option<bool>,
-        target_group: TargetGroup,
+        it_signs: bool,
         lang: LangCode,
         locale_lang: LangCode,
     ) -> Self {
@@ -404,10 +429,7 @@ impl OrderSortKey {
         let forced = flag_order(forced);
         let enabled = flag_order(enabled);
 
-        let target_group = match target_group {
-            TargetGroup::Signs => 0,
-            _ => 1,
-        };
+        let it_signs = if it_signs { 0 } else { 1 };
 
         let lang = match lang {
             _ if lang == locale_lang => 0,
@@ -421,7 +443,7 @@ impl OrderSortKey {
             default,
             forced,
             enabled,
-            target_group,
+            it_signs,
             lang,
         }
     }
@@ -433,7 +455,7 @@ impl PartialEq for OrderSortKey {
             && self.default == other.default
             && self.forced == other.forced
             && self.enabled == other.enabled
-            && self.target_group == other.target_group
+            && self.it_signs == other.it_signs
             && self.lang == other.lang
     }
 }
@@ -453,7 +475,7 @@ impl Ord for OrderSortKey {
             self.default,
             self.forced,
             self.enabled,
-            self.target_group,
+            self.it_signs,
             self.lang,
         )
             .cmp(&(
@@ -461,7 +483,7 @@ impl Ord for OrderSortKey {
                 other.default,
                 other.forced,
                 other.enabled,
-                other.target_group,
+                other.it_signs,
                 other.lang,
             ))
     }

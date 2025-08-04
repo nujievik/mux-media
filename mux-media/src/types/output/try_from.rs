@@ -312,11 +312,33 @@ impl Output {
 }
 
 impl Output {
+    const DEFAULT_EXT: &str = "mkv";
+
+    #[inline(always)]
+    fn default_ext() -> OsString {
+        Self::DEFAULT_EXT.into()
+    }
+
+    #[inline(always)]
+    pub(super) fn make_any_dir(dir: impl AsRef<Path>, subdir: &str) -> PathBuf {
+        let dir = dir.as_ref().join(subdir);
+        crate::ensure_trailing_sep(dir)
+    }
+
+    #[inline(always)]
+    fn make_dir(input_dir: impl AsRef<Path>) -> PathBuf {
+        Self::make_any_dir(input_dir, "muxed")
+    }
+
     #[inline(always)]
     fn empty_with_dir(dir: PathBuf) -> Self {
         Self {
             dir,
-            ..Default::default()
+            temp_dir: PathBuf::new(),
+            created_dirs: Vec::new(),
+            name_begin: OsString::new(),
+            name_tail: OsString::new(),
+            ext: Self::default_ext(),
         }
     }
 
