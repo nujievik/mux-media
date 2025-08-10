@@ -80,8 +80,10 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install mkvtoolnix & FFmpeg
+        shell: powershell
         run: |
           choco install mkvtoolnix ffmpeg -y
+          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
           mkvmerge -V
           ffmpeg -h
 
@@ -116,9 +118,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mkvtoolnix & FFmpeg (32-bit)
+      - name: Install mkvtoolnix & FFmpeg
+        shell: powershell
         run: |
-          choco install mkvtoolnix ffmpeg --x86 -y
+          choco install mkvtoolnix ffmpeg -y
+          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
           mkvmerge -V
           ffmpeg -h
 
@@ -133,15 +137,6 @@ jobs:
 
       - name: Release Test
         run: cargo test --release --target ${{ env.TARGET }}
-
-      - name: Test with_embedded_bins
-        run: cargo test --target ${{ env.TARGET }} --features with_embedded_bins
-
-      - name: Build with_embedded_bins
-        run: cargo build --release --target ${{ env.TARGET }} --features with_embedded_bins
-
-      - name: Release Test with_embedded_bins
-        run: cargo test --release --target ${{ env.TARGET }} --features with_embedded_bins
 
   test-macos:
     name: Test and Build on macOS

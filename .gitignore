@@ -1,5 +1,4 @@
 /mux-media/.temp-mux-media/**
-/mux-media/assets/win32/**
 /mux-media/assets/win64/**
 /mux-media/muxed/**
 /mux-media/resources/**

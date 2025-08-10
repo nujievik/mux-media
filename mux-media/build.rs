@@ -12,18 +12,13 @@ fn main() {
 
     let target = env::var("TARGET").unwrap_or_default();
 
-    if !(target.starts_with("x86_64-pc-windows") || target.starts_with("i686-pc-windows")) {
+    if !target.starts_with("x86_64-pc-windows") {
         return;
     }
 
     let mut assets = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     assets.push("assets");
-
-    if target.starts_with("x86_64") {
-        assets.push("win64");
-    } else {
-        assets.push("win32");
-    }
+    assets.push("win64");
 
     copy_tool_to_dir(&assets, "ffmpeg");
     copy_tool_to_dir(&assets, "mkvmerge");
@@ -116,7 +111,6 @@ fn verify_arch(bin: &PathBuf) -> Result<(), String> {
 fn try_expected_machine() -> Result<u16, String> {
     match env::var("CARGO_CFG_TARGET_ARCH").as_deref() {
         Ok("x86_64") => Ok(0x8664),
-        Ok("x86") => Ok(0x014c),
         arch => Err(format!("Unknown or unsupported target arch: {:?}", arch)),
     }
 }

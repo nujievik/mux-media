@@ -29,10 +29,7 @@ impl Tools {
 
         #[cfg(windows)]
         {
-            #[cfg(all(
-                feature = "with_embedded_bins",
-                any(target_arch = "x86", target_arch = "x86_64")
-            ))]
+            #[cfg(all(feature = "with_embedded_bins", target_arch = "x86_64"))]
             if let Some(Some(path)) = (!self.user_tools).then(|| self.get_bundled_path(tool)) {
                 return Ok(path);
             }
@@ -63,10 +60,7 @@ impl Tools {
                 }
             }
 
-            #[cfg(all(
-                feature = "with_embedded_bins",
-                any(target_arch = "x86", target_arch = "x86_64")
-            ))]
+            #[cfg(all(feature = "with_embedded_bins", target_arch = "x86_64"))]
             if let Some(Some(path)) = self.user_tools.then(|| self.get_bundled_path(tool)) {
                 return Ok(path);
             }
@@ -75,11 +69,7 @@ impl Tools {
         }
     }
 
-    #[cfg(all(
-        feature = "with_embedded_bins",
-        windows,
-        any(target_arch = "x86", target_arch = "x86_64")
-    ))]
+    #[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
     fn get_bundled_path(&self, tool: Tool) -> Option<PathBuf> {
         let path = self
             .json
@@ -111,22 +101,11 @@ fn is_tool_help_success(tool_path: &Path) -> bool {
 }
 
 macro_rules! embed_tool_bin {
-    ($var:ident, $path64:expr, $path32:expr) => {
+    ($var:ident, $path:expr) => {
         #[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
-        static $var: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), $path64));
-        #[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86"))]
-        static $var: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), $path32));
+        static $var: &[u8] = include_bytes!(concat!(env!("CARGO_MANIFEST_DIR"), $path));
     };
 }
 
-embed_tool_bin!(
-    FFMPEG_BUNDLED,
-    "/assets/win64/ffmpeg.exe",
-    "/assets/win32/ffmpeg.exe"
-);
-
-embed_tool_bin!(
-    MKVMERGE_BUNDLED,
-    "/assets/win64/mkvmerge.exe",
-    "/assets/win32/mkvmerge.exe"
-);
+embed_tool_bin!(FFMPEG_BUNDLED, "/assets/win64/ffmpeg.exe");
+embed_tool_bin!(MKVMERGE_BUNDLED, "/assets/win64/mkvmerge.exe");

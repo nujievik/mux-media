@@ -10,7 +10,7 @@ subtitles).
 
 1. [Download](https://github.com/nujievik/mux-media/releases) the
 **full** archive for your Windows system
-(`mux-media-win64-full.zip` or `mux-media-win32-full.zip`).
+(`mux-media-win64-full.zip`).
 
 2. Unpack it.
 
@@ -109,12 +109,11 @@ cargo build --release
 
 ### Features with_embedded_bins
 
-Available **only for Windows** builds (x86_64-pc-windows and
-i686-pc-windows). Embeds `ffmpeg.exe` and `mkvmerge.exe` into the
-binary.
+Available **only for Windows** builds (x86_64-pc-windows). Embeds
+`ffmpeg.exe` and `mkvmerge.exe` into the binary.
 
 1. Ensure that `ffmpeg.exe` and `mkvmerge.exe` are available in
-`mux-media/assets/` for the current target:
+`mux-media/assets/win64/`:
 
   - Automatic (from system PATH):
 
@@ -124,13 +123,10 @@ binary.
     - The `mux-media/build.rs` script will automatically copy the
       required binaries from PATH.
 
-  - Manually copy `ffmpeg.exe` and `mkvmerge.exe` to either:
+  - Manually copy `ffmpeg.exe` and `mkvmerge.exe` to
+    `mux-media/assets/win64/`.
 
-    - `mux-media/assets/win64` for x86_64-pc-windows target
-    
-    - `mux-media/assets/win32` for i686-pc-windows target
-
-2. Follow steps 1–3 from [Manual Build](#manual-build).
+2. Follow steps 1–3 from [Manual Build](#manual-build-).
 
 3. Build with the feature:
 ```

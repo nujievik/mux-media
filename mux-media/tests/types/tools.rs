@@ -1,11 +1,7 @@
 use super::common::*;
 use mux_media::*;
 use serde_json::from_reader;
-#[cfg(all(
-    feature = "with_embedded_bins",
-    windows,
-    any(target_arch = "x86", target_arch = "x86_64")
-))]
+#[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
 use std::path::Path;
 use std::{
     ffi::OsStr,
@@ -27,11 +23,7 @@ fn test_set_paths() {
     })
 }
 
-#[cfg(all(
-    feature = "with_embedded_bins",
-    windows,
-    any(target_arch = "x86", target_arch = "x86_64")
-))]
+#[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
 #[test]
 fn test_set_bundled_paths() {
     use mux_media::markers::MCTools;

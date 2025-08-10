@@ -65,11 +65,7 @@ impl TryFinalizeInit for MuxConfig {
         self.input.try_finalize_init()?;
         self.output.try_finalize_init()?;
 
-        #[cfg(all(
-            feature = "with_embedded_bins",
-            windows,
-            any(target_arch = "x86", target_arch = "x86_64")
-        ))]
+        #[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
         {
             let json = Tools::make_json(self.output.temp_dir());
             self.tools.set_json(json);
@@ -84,11 +80,7 @@ impl TryFinalizeInit for MuxConfig {
             self.tools.try_upd_path(Tool::Ffmpeg)?;
         }
 
-        #[cfg(not(all(
-            feature = "with_embedded_bins",
-            windows,
-            any(target_arch = "x86", target_arch = "x86_64")
-        )))]
+        #[cfg(not(all(feature = "with_embedded_bins", windows, target_arch = "x86_64")))]
         {
             let json = Tools::make_json(self.output.temp_dir());
             self.tools.set_json(json);

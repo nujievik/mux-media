@@ -128,11 +128,7 @@ impl RawMuxConfig {
     }
 }
 
-#[cfg(not(all(
-    feature = "with_embedded_bins",
-    windows,
-    any(target_arch = "x86", target_arch = "x86_64")
-)))]
+#[cfg(not(all(feature = "with_embedded_bins", windows, target_arch = "x86_64")))]
 #[inline(always)]
 fn run_command_to_err(
     _: Vec<OsString>,
@@ -144,11 +140,7 @@ fn run_command_to_err(
     return Err(out.into());
 }
 
-#[cfg(all(
-    feature = "with_embedded_bins",
-    windows,
-    any(target_arch = "x86", target_arch = "x86_64")
-))]
+#[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
 #[inline(always)]
 fn run_command_to_err(
     cfg_args: Vec<OsString>,

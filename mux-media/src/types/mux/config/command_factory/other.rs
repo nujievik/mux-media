@@ -21,11 +21,7 @@ impl Blocks {
                     .action(ArgAction::SetTrue),
             );
 
-        #[cfg(not(all(
-            feature = "with_embedded_bins",
-            windows,
-            any(target_arch = "x86", target_arch = "x86_64")
-        )))]
+        #[cfg(not(all(feature = "with_embedded_bins", windows, target_arch = "x86_64")))]
         {
             self.0 = self.0.arg(
                 Arg::new(MuxConfigArg::UserTools.undashed())
@@ -35,11 +31,7 @@ impl Blocks {
             );
         }
 
-        #[cfg(all(
-            feature = "with_embedded_bins",
-            windows,
-            any(target_arch = "x86", target_arch = "x86_64")
-        ))]
+        #[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
         {
             self.0 = self.0.arg(
                 Arg::new(MuxConfigArg::UserTools.undashed())
