@@ -94,7 +94,7 @@ jobs:
 
           7z x $archive -o$extractPath -y
 
-          Write-Host "Contents of $extractPath:"
+          Write-Host "Contents of ${extractPath}:"
           Get-ChildItem $extractPath | ForEach-Object { Write-Host $_.Name }
 
           $ffmpegDir = Get-ChildItem $extractPath | Where-Object { $_.PSIsContainer -and $_.Name -like "ffmpeg*" } | Select-Object -First 1
