@@ -79,15 +79,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mkvtoolnix
-        shell: powershell
+      - name: Install mkvtoolnix & FFmpeg
         run: |
-          choco install mkvtoolnix -y
-          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
-
-      - name: Check mkvtools
-        run: |
+          choco install mkvtoolnix ffmpeg -y
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install target
         run: rustup target add ${{ env.TARGET }}
@@ -106,6 +102,20 @@ jobs:
           name: mux-media-win64
           path: mux-media-win64.zip
 
+      - name: Build (full, with_embedded_bins)
+        run: cargo build --release --target ${{ env.TARGET }} --features with_embedded_bins
+
+      - name: Zip binary (full)
+        shell: pwsh
+        run: |
+          $src = "target/${{ env.TARGET }}/release/mux-media.exe"
+          Compress-Archive -Path $src -DestinationPath mux-media-win64-full.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-win64-full
+          path: mux-media-win64-full.zip
+
   build-windows-32bit:
     name: Build on Windows (32-bit)
     runs-on: windows-latest
@@ -116,20 +126,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mkvtoolnix (32-bit)
-        shell: powershell
+      - name: Install mkvtoolnix & FFmpeg (32-bit)
         run: |
-          choco install mkvtoolnix --x86 -y
-          echo "C:\Program Files (x86)\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
-
-      - name: Check mkvtools
-        run: |
+          choco install mkvtoolnix ffmpeg --x86 -y
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install target
         run: rustup target add ${{ env.TARGET }}
 
-      - name: Build for 32-bit Windows
+      - name: Build (32-bit)
         run: cargo build --release --target ${{ env.TARGET }}
 
       - name: Zip binary
@@ -142,6 +148,20 @@ jobs:
         with:
           name: mux-media-win32
           path: mux-media-win32.zip
+
+      - name: Build (32-bit, with_embedded_bins)
+        run: cargo build --release --target ${{ env.TARGET }} --features with_embedded_bins
+
+      - name: Zip binary (32-bit, full)
+        shell: pwsh
+        run: |
+          $src = "target/${{ env.TARGET }}/release/mux-media.exe"
+          Compress-Archive -Path $src -DestinationPath mux-media-win32-full.zip
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mux-media-win32-full
+          path: mux-media-win32-full.zip
 
   build-macos:
     name: Build on macOS
@@ -214,7 +234,17 @@ jobs:
 
       - uses: actions/download-artifact@v4
         with:
+          name: mux-media-win64-full
+          path: artifacts/windows
+
+      - uses: actions/download-artifact@v4
+        with:
           name: mux-media-win32
+          path: artifacts/windows
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: mux-media-win32-full
           path: artifacts/windows
 
       - uses: actions/download-artifact@v4

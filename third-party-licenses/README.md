@@ -81,7 +81,7 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/winapi
   
-### Windows x86 and x86_64 builds only
+#### with_embedded_bins builds only
 
 - **mkvmerge**
   License: GPL v2

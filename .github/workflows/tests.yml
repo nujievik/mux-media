@@ -17,14 +17,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mkvtoolnix
+      - name: Install mkvtoolnix & FFmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y mkvtoolnix
-
-      - name: Check mkvtools
-        run: |
+          sudo apt-get install -y mkvtoolnix ffmpeg
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install target
         run: rustup target add ${{ env.TARGET }}
@@ -48,14 +46,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mkvtoolnix
+      - name: Install mkvtoolnix & FFmpeg
         run: |
           sudo apt-get update
-          sudo apt-get install -y mkvtoolnix
-
-      - name: Check mkvtools
-        run: |
+          sudo apt-get install -y mkvtoolnix ffmpeg
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install 32-bit dependencies
         run: |
@@ -82,16 +78,12 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-    
-      - name: Install mkvtoolnix
-        shell: powershell
-        run: |
-          choco install mkvtoolnix -y
-          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
 
-      - name: Check mkvtools
+      - name: Install mkvtoolnix & FFmpeg
         run: |
+          choco install mkvtoolnix ffmpeg -y
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install target
         run: rustup target add ${{ env.TARGET }}
@@ -104,6 +96,15 @@ jobs:
 
       - name: Release Test
         run: cargo test --release --target ${{ env.TARGET }}
+
+      - name: Test with_embedded_bins
+        run: cargo test --target ${{ env.TARGET }} --features with_embedded_bins
+
+      - name: Build with_embedded_bins
+        run: cargo build --release --target ${{ env.TARGET }} --features with_embedded_bins
+
+      - name: Release Test with_embedded_bins
+        run: cargo test --release --target ${{ env.TARGET }} --features with_embedded_bins
 
   test-windows-32bit:
     name: Test and Build on Windows (32-bit)
@@ -115,15 +116,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mkvtoolnix (32-bit)
-        shell: powershell
+      - name: Install mkvtoolnix & FFmpeg (32-bit)
         run: |
-          choco install mkvtoolnix --x86 -y
-          echo "C:\Program Files (x86)\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
-
-      - name: Check mkvtools
-        run: |
+          choco install mkvtoolnix ffmpeg --x86 -y
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install target
         run: rustup target add ${{ env.TARGET }}
@@ -136,6 +133,15 @@ jobs:
 
       - name: Release Test
         run: cargo test --release --target ${{ env.TARGET }}
+
+      - name: Test with_embedded_bins
+        run: cargo test --target ${{ env.TARGET }} --features with_embedded_bins
+
+      - name: Build with_embedded_bins
+        run: cargo build --release --target ${{ env.TARGET }} --features with_embedded_bins
+
+      - name: Release Test with_embedded_bins
+        run: cargo test --release --target ${{ env.TARGET }} --features with_embedded_bins
 
   test-macos:
     name: Test and Build on macOS
@@ -158,13 +164,11 @@ jobs:
             echo "Homebrew is already installed."
           fi
 
-      - name: Install mkvtoolnix
+      - name: Install mkvtoolnix & FFmpeg
         run: |
-          brew install mkvtoolnix
-
-      - name: Check mkvtools
-        run: |
+          brew install mkvtoolnix ffmpeg
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install target
         run: rustup target add ${{ env.TARGET }}
@@ -199,13 +203,11 @@ jobs:
             echo "Homebrew is already installed."
           fi
 
-      - name: Install mkvtoolnix
+      - name: Install mkvtoolnix & FFmpeg
         run: |
-          brew install mkvtoolnix
-
-      - name: Check mkvtools
-        run: |
+          brew install mkvtoolnix ffmpeg
           mkvmerge -V
+          ffmpeg -h
 
       - name: Install target
         run: rustup target add ${{ env.TARGET }}
