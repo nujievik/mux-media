@@ -1,7 +1,7 @@
 [package]
 name = "mux-media"
 license = "GPL-3.0"
-version = "0.14.0"
+version = "0.14.1"
 edition = "2024"
 rust-version = "1.85"
 repository = "https://github.com/nujievik/mux-media"
@@ -9,7 +9,6 @@ description = "A simple automated solution for muxing media (e.g. video, audio, 
 
 include = [
     "Cargo.toml",
-    "LICENSE",
     "README.md",
     "assets/win64/.gitkeep",
     "build.rs",
@@ -21,7 +20,7 @@ default = []
 with_embedded_bins = []
 
 [dependencies]
-mux-media-macros = { path = "../mux-media-macros" }
+mux-media-macros = { version = "0.14.0", path = "../mux-media-macros" }
 atty = "0.2"
 chardet = "0.2.4"
 clap = "4.5"

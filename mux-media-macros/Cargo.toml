@@ -3,6 +3,10 @@ name = "mux-media-macros"
 version = "0.14.0"
 edition = "2024"
 rust-version = "1.85"
+license = "MIT OR Apache-2.0"
+description = "Helper derive macros for mux-media crate"
+repository = "https://github.com/nujievik/mux-media"
+homepage = "https://crates.io/crates/mux-media"
 
 [lib]
 proc-macro = true
