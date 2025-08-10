@@ -83,7 +83,7 @@ jobs:
         shell: pwsh
         run: |
           $url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
-          $archive = "$env:RUNNER_TEMP\ffmpeg.7z"
+          $archive = "$env:RUNNER_TEMP\\ffmpeg.7z"
           $extractPath = "$env:RUNNER_TEMP\\ffmpeg"
           
           Invoke-WebRequest -Uri $url -OutFile $archive
@@ -97,19 +97,18 @@ jobs:
           Write-Host "Contents of ${extractPath}:"
           Get-ChildItem $extractPath | ForEach-Object { Write-Host $_.Name }
 
-          $ffmpegDir = Get-ChildItem $extractPath | Where-Object { $_.PSIsContainer -and $_.Name -like "ffmpeg*" } | Select-Object -First 1
+          $ffmpegDir = Get-ChildItem $extractPath |
+            Where-Object {
+              $_.PSIsContainer -and $_.Name -like "ffmpeg*"
+            } |
+            Select-Object -First 1
 
-          if ($ffmpegDir) {
-            $ffmpegBin = Join-Path $ffmpegDir.FullName "bin"
-          } else {
-            $binPath = Join-Path $extractPath "bin"
-            if (Test-Path $binPath) {
-              $ffmpegBin = $binPath
-            } else {
-              Write-Error "FFmpeg folder not found in $extractPath and no bin directory detected."
-              exit 1
-            }
+          if (-not $ffmpegDir) {
+            Write-Error "FFmpeg folder not found in $extractPath"
+            exit 1
           }
+
+          $ffmpegBin = Join-Path $ffmpegDir.FullName "bin"
 
           Write-Host "Adding ffmpeg bin path: $ffmpegBin"
           echo $ffmpegBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
