@@ -80,11 +80,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install ffmpeg (gyan.dev build)
-        shell: pwsh
+        shell: powershell
         run: |
           $url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
           $archive = "$env:RUNNER_TEMP\ffmpeg.7z"
-          $extractPath = "$env:RUNNER_TEMP\ffmpeg"
+          $extractPath = "$env:RUNNER_TEMP"
 
           Invoke-WebRequest -Uri $url -OutFile $archive
 
@@ -93,12 +93,18 @@ jobs:
           7z x $archive -o$extractPath
 
           $folders = Get-ChildItem $extractPath | Where-Object { $_.PSIsContainer }
-          $ffmpegFolders = $folders | Where-Object { $_.Name -like "ffmpeg*" }
-          $ffmpegDir = $ffmpegFolders | Select-Object -First 1
 
-          $ffmpegPath = Join-Path $ffmpegDir.FullName "bin"
+          $ffmpegDir = $folders | Where-Object { $_.Name -like "ffmpeg*" } | Select-Object -First 1
 
-          echo "$ffmpegPath" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          if (-not $ffmpegDir) {
+            Write-Error "FFmpeg folder not found in $extractPath"
+            exit 1
+          }
+
+          $ffmpegBin = Join-Path $ffmpegDir.FullName "bin"
+
+          Write-Host "Adding ffmpeg bin path: $ffmpegBin"
+          echo "$ffmpegBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Check ffmpeg
         run: ffmpeg -h
