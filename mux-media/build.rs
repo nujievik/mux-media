@@ -100,8 +100,13 @@ fn verify_arch(bin: &PathBuf) -> Result<(), String> {
 
     let machine = u16::from_le_bytes(machine);
 
+    let expected = try_expected_machine()?;
     if try_expected_machine()? != machine {
-        return Err(fail("Bin architecture mismatch"));
+        let s = format!(
+            "Bin architecture mismatch: expected '{}' found '{}'",
+            expected, machine
+        );
+        return Err(fail(&s));
     }
 
     Ok(())
