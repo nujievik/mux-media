@@ -39,14 +39,17 @@ pub const SEP_STR: &str = match str::from_utf8(SEP_BYTES) {
 pub fn run() -> Result<(), MuxError> {
     let mc = {
         let mut mc = MuxConfig::try_init()?;
-        mc.try_finalize_init()?;
+        if let Err(e) = mc.try_finalize_init() {
+            remove_created_dirs(&mc);
+            return Err(e);
+        }
         mc
     };
 
     MuxLogger::init_with_filter(LevelFilter::from(*mc.field::<MCVerbosity>()));
 
     let result = mux(&mc);
-    mc.field::<MCOutput>().remove_created_dirs();
+    remove_created_dirs(&mc);
 
     result.map(|cnt| match cnt {
         0 => warn!("{}", Msg::NotMuxedAny),
@@ -150,6 +153,11 @@ pub fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
     let mut prf_path = OsString::from("\\\\?\\");
     prf_path.push(path.as_os_str());
     prf_path.into()
+}
+
+#[inline(always)]
+fn remove_created_dirs(mc: &MuxConfig) {
+    mc.field::<MCOutput>().remove_created_dirs();
 }
 
 #[inline(always)]
