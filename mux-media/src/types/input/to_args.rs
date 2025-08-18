@@ -23,5 +23,9 @@ impl ToJsonArgs for Input {
             args.push(to_json_args!(Depth));
             args.push(self.depth.to_string());
         }
+
+        if self.solo {
+            args.push(to_json_args!(Solo));
+        }
     }
 }

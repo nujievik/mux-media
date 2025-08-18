@@ -21,6 +21,7 @@ crate::build_test_parseable_args!(
     Range => "range",
     Skip => "skip",
     Depth => "depth",
+    Solo => "solo",
     Locale => "locale",
     Verbose => "verbose",
     Quiet => "quiet",

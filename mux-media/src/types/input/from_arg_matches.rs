@@ -15,6 +15,7 @@ impl FromArgMatches for Input {
             range,
             skip: from_arg_matches!(matches, GlobSetPattern, Skip, @no_default),
             depth: from_arg_matches!(matches, u8, Depth, || Self::DEFAULT_DEPTH),
+            solo: from_arg_matches!(matches, bool, Solo, || false),
             out_need_num: false,
             dirs: FileType::map(),
         })
@@ -24,7 +25,8 @@ impl FromArgMatches for Input {
         from_arg_matches!(
             @upd, self, matches;
             dir, PathBuf, Input,
-            depth, u8, Depth
+            depth, u8, Depth,
+            solo, bool, Solo
         );
 
         from_arg_matches!(

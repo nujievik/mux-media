@@ -60,6 +60,7 @@ crate::impl_msg_as_localized_str!(
     HelpRetimingOptions => "Ретайминг опции",
     HelpRmSegments => "Удалить сегменты с паттернами имен",
     HelpSkip => "Паттерны пропуска файлов",
+    HelpSolo => "Разрешить одиночные медиа",
     HelpSortFonts => "Вкл/Выкл сортировку вложенных шрифтов",
     HelpSpecials => "Пользовательские параметры mkvmerge (raw)",
     HelpSubs => "[!]Копировать дорожки субтитров",

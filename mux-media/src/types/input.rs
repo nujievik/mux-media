@@ -22,6 +22,7 @@ pub struct Input {
     range: Option<Range<u64>>,
     skip: Option<GlobSetPattern>,
     depth: u8,
+    solo: bool,
     need_num: bool,
     out_need_num: bool,
     dirs: EnumMap<FileType, Vec<ArcPathBuf>>,

@@ -203,3 +203,19 @@ fn test_depth() {
             assert_eq!(expected_len, input.collect_fonts().len());
         })
 }
+
+#[test]
+fn test_solo() {
+    let dir = data_media("solo/");
+    let s_dir = dir.to_str().unwrap();
+
+    let input = new(&["-i", s_dir]);
+    assert_eq!(None, input.iter_media_grouped_by_stem().next());
+
+    let input = new(&["-i", s_dir, "--solo"]);
+    let exp = vec![dir.join("srt.srt")];
+    assert_eq!(
+        exp,
+        input.iter_media_grouped_by_stem().next().unwrap().files
+    );
+}

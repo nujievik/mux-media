@@ -60,6 +60,7 @@ crate::impl_msg_as_localized_str!(
     HelpRetimingOptions => "Retiming options",
     HelpRmSegments => "Remove segments with name patterns",
     HelpSkip => "Patterns of files to skip",
+    HelpSolo => "Allow solo media",
     HelpSortFonts => "On/Off sort in-files fonts",
     HelpSpecials => "Custom mkvmerge options (raw)",
     HelpSubs => "[!]Copy subtitle tracks",

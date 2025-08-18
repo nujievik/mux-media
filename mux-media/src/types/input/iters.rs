@@ -171,7 +171,7 @@ impl Input {
                 })
                 .collect();
 
-            if matched.len() < 2 {
+            if !self.solo && matched.len() < 2 {
                 logs::warn_no_ext_media(up_stem);
                 return None;
             }

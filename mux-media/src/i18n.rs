@@ -67,6 +67,7 @@ pub enum Msg {
     HelpRetimingOptions,
     HelpRmSegments,
     HelpSkip,
+    HelpSolo,
     HelpSortFonts,
     HelpSpecials,
     HelpSubs,

@@ -1,7 +1,7 @@
 use super::Blocks;
 use super::val_parsers::{InputDirParser, OutputParser};
 use crate::{GlobSetPattern, Msg, MuxConfigArg, ParseableArg, Range};
-use clap::{Arg, builder::ValueParser};
+use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
 
 impl Blocks {
@@ -46,6 +46,12 @@ impl Blocks {
                     .value_name("n")
                     .help(Msg::HelpDepth.to_str_localized())
                     .value_parser(clap::value_parser!(u8)),
+            )
+            .arg(
+                Arg::new(MuxConfigArg::Solo.undashed())
+                    .long(MuxConfigArg::Solo.undashed())
+                    .help(Msg::HelpSolo.to_str_localized())
+                    .action(ArgAction::SetTrue),
             );
 
         self
