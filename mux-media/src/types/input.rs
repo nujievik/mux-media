@@ -60,6 +60,16 @@ impl Input {
     }
 }
 
+macro_rules! collect_dirs {
+    ($self:ident, $dirs:expr, $method:ident) => {
+        $dirs
+            .par_iter()
+            .filter(|dir| $self.$method(dir).next().is_some())
+            .map(|dir| dir.clone())
+            .collect()
+    };
+}
+
 impl TryFinalizeInit for Input {
     /// Collects subdirectories up to the initialized depth.
     ///
@@ -78,21 +88,10 @@ impl TryFinalizeInit for Input {
             None => None,
         };
 
-        let mut map = FileType::map::<Vec<ArcPathBuf>>();
         let dirs: Vec<_> = iters::DirIter::new(&self.dir, self.depth as usize, skip).collect();
 
-        let mut insert = |ft: FileType| {
-            map[ft] = dirs
-                .par_iter()
-                .filter(|dir| self.iter_files_in_dir(ft, dir).next().is_some())
-                .map(|dir| dir.clone())
-                .collect();
-        };
-
-        insert(FileType::Font);
-        insert(FileType::Media);
-
-        self.dirs = map;
+        self.dirs[FileType::Font] = collect_dirs!(self, dirs, iter_fonts_in_dir);
+        self.dirs[FileType::Media] = collect_dirs!(self, dirs, iter_media_in_dir);
 
         Ok(())
     }
