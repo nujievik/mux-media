@@ -7,7 +7,7 @@ pub use crate::types::mux::config::fields::{
 };
 
 // Get Field MediaInfo markers
-pub use crate::types::media_info::mut_fields::{
+pub use crate::types::media_info::lazy_fields::{
     MIAttachsInfo, MICmnExternalFonts, MICmnRegexAttachID, MICmnRegexCodec, MICmnRegexTrackID,
     MICmnRegexWord, MICmnStem, MICmnTrackOrder, MIMatroska, MIMkvmergeI, MIPathTail,
     MIRelativeUpmost, MISavedTracks, MISubCharset, MITICache, MITICodec, MITIItSigns, MITILang,

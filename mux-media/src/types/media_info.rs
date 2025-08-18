@@ -1,6 +1,6 @@
 mod builders;
 pub(crate) mod cache;
-pub(crate) mod mut_fields;
+pub(crate) mod lazy_fields;
 
 use crate::{
     ArcPathBuf, AutoFlags, IsDefault, MuxConfig, MuxError, Tools,
