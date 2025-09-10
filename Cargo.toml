@@ -1,7 +1,52 @@
-[workspace]
-members = [
-    "mux-media",
-    "mux-media-macros"
+[package]
+name = "mux-media"
+version = "0.15.0-dev"
+authors = ["Ivan Reutov <nujievik@gmail.com>"]
+edition = "2024"
+rust-version = "1.85"
+description = "A simple automated utility for muxing media (e.g. video, audio, subtitles)."
+repository = "https://github.com/nujievik/mux-media"
+license = "GPL-3.0"
+keywords = ["cli", "utility"]
+categories = ["command-line-utilities", "multimedia"]
+
+include = [
+    "Cargo.toml",
+    "README.md",
+    "assets/win64/.gitkeep",
+    "build.rs",
+    "src/**",
 ]
 
-resolver = "3"
+[features]
+default = []
+with_embedded_bins = []
+
+[dependencies]
+atty = "0.2"
+chardet = "0.2"
+clap = "4"
+enum-map = "2"
+globset = "0.4"
+is_default = { version = "0.1", features = ["derive"] }
+lazy-regex = "3"
+log = "0.4"
+matroska = "0.30"
+phf = { version = "0.13", features = ["macros"] }
+rayon = "1"
+rsubs-lib = "0.3"
+serde_json = "1"
+strum = "0.27"
+strum_macros = "0.27"
+supports-color = "3"
+time = "0.3"
+walkdir = "2"
+
+[target.'cfg(windows)'.dependencies]
+winapi = { version = "0.3", features = ["winnls"] }
+
+[build-dependencies]
+which = "8"
+
+[dev-dependencies]
+rand = "0.9"

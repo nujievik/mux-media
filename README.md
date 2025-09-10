@@ -1,6 +1,6 @@
 # mux-media
 
-A simple automated solution for muxing media (e.g. video, audio,
+A simple automated utility for muxing media (e.g. video, audio,
 subtitles).
 
 

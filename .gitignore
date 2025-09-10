@@ -1,9 +1,9 @@
-/mux-media/.temp-mux-media/**
-/mux-media/assets/win64/**
-/mux-media/muxed/**
-/mux-media/resources/**
-/mux-media/tests/test_data/muxed/**
-/mux-media/tests/test_data/output/**
+/.temp-mux-media/**
+/assets/win64/**
+/muxed/**
+/resources/**
 /target/**
+/tests/test_data/muxed/**
+/tests/test_data/output/**
 
 !**/.gitkeep
