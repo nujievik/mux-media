@@ -3,6 +3,7 @@
 A simple automated utility for muxing media (e.g. video, audio,
 subtitles).
 
+[![Cargo Build & Test](https://github.com/nujievik/mux-media/actions/workflows/tests.yml/badge.svg)](https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
 
 ## Quick Start
 
