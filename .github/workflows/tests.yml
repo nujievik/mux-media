@@ -16,29 +16,52 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
         toolchain: [stable, beta, nightly]
-        include:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        target:
+          - x86_64-unknown-linux-gnu
+          - i686-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - i686-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+
+        exclude:
           # Linux
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
+            target: x86_64-pc-windows-msvc
           - os: ubuntu-latest
-            target: i686-unknown-linux-gnu
+            target: i686-pc-windows-msvc
+          - os: ubuntu-latest
+            target: x86_64-apple-darwin
+          - os: ubuntu-latest
+            target: aarch64-apple-darwin
 
           # Windows
           - os: windows-latest
-            target: x86_64-pc-windows-msvc
+            target: x86_64-unknown-linux-gnu
           - os: windows-latest
-            target: i686-pc-windows-msvc
+            target: i686-unknown-linux-gnu
+          - os: windows-latest
+            target: x86_64-apple-darwin
+          - os: windows-latest
+            target: aarch64-apple-darwin
 
           # macOS
           - os: macos-latest
-            target: x86_64-apple-darwin
+            target: x86_64-unknown-linux-gnu
           - os: macos-latest
-            target: aarch64-apple-darwin
+            target: i686-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-pc-windows-msvc
+          - os: macos-latest
+            target: i686-pc-windows-msvc
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Debug matrix
+        run: echo "OS=${{ matrix.os }}, TARGET=${{ matrix.target }}, TOOLCHAIN=${{ matrix.toolchain }}"
 
       - name: Install mkvtoolnix & FFmpeg (Linux)
         if: matrix.os == 'ubuntu-latest'
