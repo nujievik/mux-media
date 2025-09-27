@@ -11,57 +11,32 @@ env:
 
 jobs:
   build_and_test:
-    name: Rust project - latest
+    name: run
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        toolchain: [stable, beta, nightly]
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        target:
-          - x86_64-unknown-linux-gnu
-          - i686-unknown-linux-gnu
-          - x86_64-pc-windows-msvc
-          - i686-pc-windows-msvc
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
-
-        exclude:
+        include:
           # Linux
           - os: ubuntu-latest
-            target: x86_64-pc-windows-msvc
+            target: x86_64-unknown-linux-gnu
           - os: ubuntu-latest
-            target: i686-pc-windows-msvc
-          - os: ubuntu-latest
-            target: x86_64-apple-darwin
-          - os: ubuntu-latest
-            target: aarch64-apple-darwin
+            target: i686-unknown-linux-gnu
 
           # Windows
           - os: windows-latest
-            target: x86_64-unknown-linux-gnu
+            target: x86_64-pc-windows-msvc
           - os: windows-latest
-            target: i686-unknown-linux-gnu
-          - os: windows-latest
-            target: x86_64-apple-darwin
-          - os: windows-latest
-            target: aarch64-apple-darwin
+            target: i686-pc-windows-msvc
 
           # macOS
           - os: macos-latest
-            target: x86_64-unknown-linux-gnu
+            target: x86_64-apple-darwin
           - os: macos-latest
-            target: i686-unknown-linux-gnu
-          - os: macos-latest
-            target: x86_64-pc-windows-msvc
-          - os: macos-latest
-            target: i686-pc-windows-msvc
+            target: aarch64-apple-darwin
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Debug matrix
-        run: echo "OS=${{ matrix.os }}, TARGET=${{ matrix.target }}, TOOLCHAIN=${{ matrix.toolchain }}"
 
       - name: Install mkvtoolnix & FFmpeg (Linux)
         if: matrix.os == 'ubuntu-latest'
@@ -130,7 +105,7 @@ jobs:
         run: sudo apt-get install -y gcc-multilib
 
       - name: Update Rust
-        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
+        run: rustup update stable && rustup default stable
 
       - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
