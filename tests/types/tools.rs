@@ -36,18 +36,22 @@ fn test_set_bundled_paths() {
     let dir = data("tools_bundled/");
     let temp_dir = dir.join(".temp-mux-media");
 
-    let with_args = |args, s_add| {
+    let with_args = |args, ext: &str| {
         let mut mc = cfg(args);
         mc.try_finalize_init().unwrap();
         mc.tool_paths
-            .try_resolve_many(Tool::iter().collect::<Vec<_>>(), "", true)
+            .try_resolve_many(Tool::iter().collect::<Vec<_>>(), &mc.output.temp_dir)
             .unwrap();
         let tools = Tools::from(&mc);
 
         Tool::iter().for_each(|t| {
-            let s = format!("{}{}", t.as_ref(), s_add);
-            let exp = temp_dir.join(s);
-            assert_eq!(tools.paths[t].as_ref().unwrap(), &exp);
+            let exp = if ext.is_empty() {
+                PathBuf::from(t.as_ref())
+            } else {
+                let s = format!("{}{}", t.as_ref(), ext);
+                temp_dir.join(s)
+            };
+            assert_eq!(tools.paths[t].get().unwrap(), &exp);
         })
     };
 

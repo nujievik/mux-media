@@ -275,11 +275,15 @@ pub struct TrackOrderItem {
     /// The type of the track.
     pub ty: TrackType,
 
-    /// Whether was retiming.
-    pub is_retimed: bool,
+    /// Retimed parts of the track, if any.
+    pub retimed: Option<TrackOrderItemRetimed>,
+}
 
-    /// Retimed segments of the track, if any.
-    pub retimed: Option<Vec<PathBuf>>,
+#[derive(Clone, Debug)]
+pub struct TrackOrderItemRetimed {
+    pub parts: Vec<PathBuf>,
+    pub no_retiming: Vec<bool>,
+    pub ty: TrackType,
 }
 
 crate::deref_singleton_tuple_struct!(TrackOrder, Vec<TrackOrderItem>);
@@ -287,5 +291,16 @@ crate::deref_singleton_tuple_struct!(TrackOrder, Vec<TrackOrderItem>);
 impl TrackOrder {
     pub(crate) fn iter_first_entries(&self) -> impl Iterator<Item = &TrackOrderItem> {
         self.0.iter().filter(|m| m.is_first_entry)
+    }
+}
+
+impl TrackOrderItemRetimed {
+    pub(crate) fn new(parts: Vec<PathBuf>, no_retiming: bool, ty: TrackType) -> Self {
+        let no_retiming = vec![no_retiming; parts.len()];
+        Self {
+            parts,
+            no_retiming,
+            ty,
+        }
     }
 }

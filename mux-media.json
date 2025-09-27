@@ -12,8 +12,10 @@
   "--depth",
   "16",
   "--verbose",
-  "--save-config",
   "--exit-on-err",
+  "--save-config",
+  "--threads",
+  "4",
   "--pro",
   "--auto-defaults",
   "--auto-forceds",
@@ -41,7 +43,7 @@
   "--max-enableds",
   "9999",
   "--names",
-  "0:u serious read it man,1-10:u crazy",
+  "0:your cool name,1-10:could be here",
   "--langs",
   "0:eng,1:jpn"
 ]

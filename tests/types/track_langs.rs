@@ -65,8 +65,6 @@ fn test_get() {
     }
 }
 
-fn_variants_of_args!("--langs" => vec!["--languages"]);
-
 fn build_test_x1_to_mkvmerge_args(file: &str) {
     let cases = [
         (vec![], vec!["--pro"]),
@@ -87,7 +85,7 @@ fn build_test_x1_to_mkvmerge_args(file: &str) {
         (vec!["--language", "0:rus"], vec!["--langs", "0:rus"]),
     ];
 
-    compare_arg_cases!(cases, variants_of_args, file, MCTrackLangs, MITracksInfo);
+    compare_arg_cases!(cases, file, MCTrackLangs, MITracksInfo);
 }
 
 #[test]
@@ -134,7 +132,7 @@ fn build_test_x8_to_mkvmerge_args(file: &str) {
         ),
     ];
 
-    compare_arg_cases!(cases, variants_of_args, file, MCTrackLangs, MITracksInfo);
+    compare_arg_cases!(cases, file, MCTrackLangs, MITracksInfo);
 }
 
 #[test]

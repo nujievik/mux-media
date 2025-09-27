@@ -35,8 +35,6 @@ fn test_err_messages() {
     assert!(try_new("missing").is_err());
 }
 
-fn_variants_of_args!();
-
 #[test]
 fn test_to_mvkmerge_args() {
     ["srt.srt", "audio_x1.mka", "sub_x8.mks"]
@@ -51,7 +49,7 @@ fn test_to_mvkmerge_args() {
                 (vec!["--chapters", path], vec!["--chapters", path]),
             ];
 
-            compare_arg_cases!(cases, variants_of_args, file, MCChapters,);
+            compare_arg_cases!(cases, file, MCChapters,);
         })
 }
 

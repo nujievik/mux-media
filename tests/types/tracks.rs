@@ -170,15 +170,6 @@ test_save_track!(AudioTracks, test_audio_save_track, MCAudioTracks, "-A");
 test_save_track!(SubTracks, test_subs_save_track, MCSubTracks, "-S");
 test_save_track!(VideoTracks, test_video_save_track, MCVideoTracks, "-D");
 
-fn_variants_of_args!(
-    "-a" => vec!["--audio", "--audio-tracks", "--atracks"],
-    "-A" => vec!["--no-audio", "--noaudio"],
-    "-s" => vec!["--subs", "--subtitle-tracks", "--subtitles", "--sub-tracks", "--stracks"],
-    "-S" => vec!["--no-subs", "--no-subtitles", "--nosubtitles", "--nosubs"],
-    "-d" => vec!["--video", "--video-tracks", "--vtracks"],
-    "-D" => vec!["--no-video", "--novideo"],
-);
-
 macro_rules! test_x8_file_to_mkvmerge_arg {
     ( $( $test_fn:ident, $file:expr, $field:ident, $arg:expr, $no_arg:expr );* ) => {
         $(
@@ -200,7 +191,7 @@ macro_rules! test_x8_file_to_mkvmerge_arg {
                 (vec![$arg, "1,2,3,4,7"], vec![$arg, "!0,5-6"]),
             ];
 
-            compare_arg_cases!(cases, variants_of_args, $file, $field, MITracksInfo);
+            compare_arg_cases!(cases, $file, $field, MITracksInfo);
         }
         )*
     };
@@ -233,7 +224,7 @@ macro_rules! test_x1_file_to_mkvmerge_arg {
                 (vec![$no_arg], vec![$arg, "!0,5-6"]),
             ];
 
-            compare_arg_cases!(cases, variants_of_args, $file, $field, MITracksInfo);
+            compare_arg_cases!(cases, $file, $field, MITracksInfo);
         }
         )*
     };

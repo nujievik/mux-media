@@ -2,15 +2,14 @@ mod command_factory;
 pub(crate) mod fields;
 mod mux;
 mod new;
-pub(crate) mod parseable_args;
 mod to_json_args;
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
 use crate::{
     AudioTracks, AutoFlags, Chapters, DefaultTrackFlags, EnabledTrackFlags, FontAttachs,
-    ForcedTrackFlags, Input, IsDefault, LangCode, Muxer, OtherAttachs, Output, RetimingOptions,
-    Specials, SubTracks, Target, ToolPaths, TrackLangs, TrackNames, Verbosity, VideoTracks,
+    ForcedTrackFlags, Input, IsDefault, LangCode, Muxer, OtherAttachs, Output, Raws,
+    RetimingOptions, SubTracks, Target, ToolPaths, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
 use std::collections::HashMap;
 
@@ -20,7 +19,7 @@ use std::collections::HashMap;
 ///
 /// This struct is not fully initialized after construction.
 /// You **must** call [MuxConfig::try_finalize_init] before using some methods.
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct MuxConfig {
     pub input: Input,
     pub output: Output,
@@ -42,7 +41,7 @@ pub struct MuxConfig {
     pub enabled_track_flags: EnabledTrackFlags,
     pub track_names: TrackNames,
     pub track_langs: TrackLangs,
-    pub specials: Specials,
+    pub raws: Raws,
     pub retiming: RetimingOptions,
     pub targets: Option<HashMap<Target, MuxConfigTarget>>,
     pub tool_paths: ToolPaths,
@@ -64,5 +63,5 @@ pub struct MuxConfigTarget {
     pub enabled_track_flags: Option<EnabledTrackFlags>,
     pub track_names: Option<TrackNames>,
     pub track_langs: Option<TrackLangs>,
-    pub specials: Option<Specials>,
+    pub raws: Option<Raws>,
 }

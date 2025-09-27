@@ -1,5 +1,5 @@
 use super::from_arg_matches::{get_locale, printable_args, tool_args};
-use crate::{Input, Msg, MuxConfig, MuxConfigArg, ParseableArg, Result};
+use crate::{Input, Msg, MuxConfig, Result, undashed};
 use clap::{ArgMatches, Command, CommandFactory, FromArgMatches, Parser};
 use std::{
     env::args_os,
@@ -33,7 +33,7 @@ impl MuxConfig {
         }
 
         fn get_json_matches(cmd: Command, cli_matches: &ArgMatches) -> Result<Option<ArgMatches>> {
-            let m = match cli_matches.get_one::<PathBuf>(MuxConfigArg::Json.undashed()) {
+            let m = match cli_matches.get_one::<PathBuf>(undashed!(Json)) {
                 Some(j) => {
                     let args = try_read_json_args(j)?;
                     let m = cmd.try_get_matches_from(args)?;
@@ -51,12 +51,12 @@ impl MuxConfig {
             let input_json = json_matches
                 .as_ref()
                 .and_then(|m| {
-                    m.get_one::<PathBuf>(MuxConfigArg::Input.undashed())
+                    m.get_one::<PathBuf>(undashed!(Input))
                         .map(|d| d.join(MuxConfig::JSON_NAME))
                 })
                 .or_else(|| {
                     cli_matches
-                        .get_one::<PathBuf>(MuxConfigArg::Input.undashed())
+                        .get_one::<PathBuf>(undashed!(Input))
                         .map(|d| d.join(MuxConfig::JSON_NAME))
                 })
                 .or_else(|| {

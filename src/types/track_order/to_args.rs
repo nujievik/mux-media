@@ -1,7 +1,6 @@
-use super::TrackOrder;
+use super::{TrackOrder, TrackOrderItemRetimed};
 use crate::{
-    MUXER_CODECS, MediaInfo, MuxConfigArg, Muxer, ParseableArg, Result, ToFfmpegArgs,
-    ToMkvmergeArgs, TrackType,
+    MUXER_CODECS, MediaInfo, Muxer, Result, ToFfmpegArgs, ToMkvmergeArgs, TrackType, dashed,
     markers::{MICmnTrackOrder, MITICodec},
 };
 use std::{ffi::OsString, fmt::Write, path::Path};
@@ -24,10 +23,53 @@ impl ToMkvmergeArgs for TrackOrder {
             let _ = write!(order_arg, "{}{}:{}", comma, m.number, track);
         }
 
-        args.push(MuxConfigArg::TrackOrder.dashed().into());
+        args.push(dashed!(TrackOrder).into());
         args.push(order_arg.into());
 
         Ok(())
+    }
+}
+
+impl ToMkvmergeArgs for TrackOrderItemRetimed {
+    fn try_append_mkvmerge_args(
+        &self,
+        args: &mut Vec<OsString>,
+        _: &mut MediaInfo,
+        _: &Path,
+    ) -> Result<()> {
+        self.parts.iter().enumerate().for_each(|(i, p)| {
+            if self.no_retiming[i] {
+                push_no_retiming_args(self.ty, args);
+            }
+            if i > 0 {
+                args.push("+".into());
+            }
+            args.push(p.into());
+        });
+
+        return Ok(());
+
+        fn push_no_retiming_args(ty: TrackType, args: &mut Vec<OsString>) {
+            match ty {
+                TrackType::Audio => {
+                    args.push(dashed!(NoSubtitles).into());
+                    args.push(dashed!(NoVideo).into());
+                }
+                TrackType::Video => {
+                    args.push(dashed!(NoAudio).into());
+                    args.push(dashed!(NoSubtitles).into());
+                }
+                TrackType::Sub => {
+                    args.push(dashed!(NoAudio).into());
+                    args.push(dashed!(NoVideo).into());
+                }
+                _ => (),
+            }
+
+            args.push(dashed!(NoChapters).into());
+            args.push(dashed!(NoAttachments).into());
+            args.push(dashed!(NoGlobalTags).into());
+        }
     }
 }
 

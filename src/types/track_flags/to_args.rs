@@ -1,7 +1,7 @@
 use super::{DefaultTrackFlags, EnabledTrackFlags, ForcedTrackFlags, TrackFlags};
 use crate::{
-    IsDefault, LangCode, MediaInfo, MuxConfigArg, ParseableArg, Result, ToFfmpegArgs, ToJsonArgs,
-    ToMkvmergeArgs, TrackFlagType, TrackFlagsCounts, TrackType, immut,
+    IsDefault, LangCode, MediaInfo, Result, ToFfmpegArgs, ToJsonArgs, ToMkvmergeArgs,
+    TrackFlagType, TrackFlagsCounts, TrackType, dashed, immut,
     markers::{MICmnTrackOrder, MISavedTracks, MITIItSigns, MITITrackIDs, MITargets},
     to_json_args, unwrap_or_return,
 };
@@ -22,12 +22,7 @@ impl MediaInfo<'_> {
             let track = order[i].track;
             flags.into_iter().for_each(|(flag, val)| {
                 if let Some(s) = TrackFlags::val_to_mkvmerge_arg(track, val) {
-                    let arg = match flag {
-                        TrackFlagType::Default => MuxConfigArg::DefaultTrackFlag,
-                        TrackFlagType::Forced => MuxConfigArg::ForcedDisplayFlag,
-                        TrackFlagType::Enabled => MuxConfigArg::TrackEnabledFlag,
-                    };
-                    args[number].push(arg.dashed().into());
+                    args[number].push(flag.as_cli_arg().dashed().into());
                     args[number].push(s.into());
                 }
             })
@@ -62,7 +57,7 @@ macro_rules! flags_to_mkvmerge_args {
                         let val = self.get_manual_val(mi, media, track);
 
                         if let Some(arg) = TrackFlags::val_to_mkvmerge_arg(track, val) {
-                            args.push(MuxConfigArg::$arg.dashed().into());
+                            args.push(dashed!($arg).into());
                             args.push(arg.into());
                         }
                     });

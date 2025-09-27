@@ -1,6 +1,6 @@
 use crate::{
-    EXTENSIONS, MediaInfo, Msg, MuxConfigArg, MuxError, ParseableArg, Result, ToMkvmergeArgs,
-    TrackType, markers::MISavedTracks,
+    EXTENSIONS, MediaInfo, Msg, MuxError, Result, ToMkvmergeArgs, TrackType, dashed,
+    markers::MISavedTracks,
 };
 use std::{ffi::OsString, io::Read, path::Path};
 
@@ -31,7 +31,7 @@ impl ToMkvmergeArgs for SubCharset {
         mi.try_get::<MISavedTracks>(media)?[TrackType::Sub]
             .iter()
             .for_each(|track| {
-                args.push(MuxConfigArg::SubCharset.dashed().into());
+                args.push(dashed!(SubCharset).into());
                 args.push(format!("{}:{}", track, enc).into());
             });
 

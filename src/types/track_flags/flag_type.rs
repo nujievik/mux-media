@@ -1,6 +1,8 @@
 use enum_map::Enum;
 use strum_macros::EnumIter;
 
+use crate::CliArg;
+
 /// Flag type of media track.
 #[derive(Copy, Clone, Debug, PartialEq, Enum, EnumIter)]
 pub enum TrackFlagType {
@@ -16,6 +18,14 @@ impl TrackFlagType {
 
     pub(crate) fn iter_ffmpeg_supported() -> impl Iterator<Item = Self> {
         [Self::Default, Self::Forced].into_iter()
+    }
+
+    pub(crate) fn as_cli_arg(self) -> CliArg {
+        match self {
+            Self::Default => CliArg::DefaultTrackFlag,
+            Self::Forced => CliArg::ForcedDisplayFlag,
+            Self::Enabled => CliArg::TrackEnabledFlag,
+        }
     }
 
     pub(crate) fn as_str_ffmpeg(self) -> &'static str {

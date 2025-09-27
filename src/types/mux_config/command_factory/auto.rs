@@ -1,5 +1,5 @@
 use super::Blocks;
-use crate::{Msg, MuxConfigArg, ParseableArg};
+use crate::{CliArg, Msg, undashed};
 use clap::{Arg, ArgAction};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;
@@ -10,15 +10,14 @@ impl Blocks {
             .0
             .next_help_heading(Msg::HelpAutoFlags.as_str_localized())
             .arg(
-                Arg::new(MuxConfigArg::Pro.undashed())
+                Arg::new(undashed!(Pro))
                     .short('p')
-                    .long(MuxConfigArg::Pro.undashed())
-                    .alias("pro-mode")
+                    .long(undashed!(Pro))
                     .help(Msg::HelpPro.as_str_localized())
                     .action(ArgAction::SetTrue),
             );
 
-        for flag in OffFlag::iter() {
+        for flag in AutoFlag::iter() {
             let help_arg = flag.as_help_arg();
             let arg = flag.as_arg();
             let no_arg = flag.as_no_arg();
@@ -51,7 +50,7 @@ impl Blocks {
 }
 
 #[derive(Copy, Clone, Debug, EnumIter)]
-enum OffFlag {
+enum AutoFlag {
     AutoDefaults,
     AutoForceds,
     AutoEnableds,
@@ -60,37 +59,37 @@ enum OffFlag {
     AutoCharsets,
 }
 
-impl OffFlag {
-    fn as_help_arg(self) -> MuxConfigArg {
+impl AutoFlag {
+    const fn as_help_arg(self) -> CliArg {
         match self {
-            Self::AutoDefaults => MuxConfigArg::HelpAutoDefaults,
-            Self::AutoForceds => MuxConfigArg::HelpAutoForceds,
-            Self::AutoEnableds => MuxConfigArg::HelpAutoEnableds,
-            Self::AutoNames => MuxConfigArg::HelpAutoNames,
-            Self::AutoLangs => MuxConfigArg::HelpAutoLangs,
-            Self::AutoCharsets => MuxConfigArg::HelpAutoCharsets,
+            Self::AutoDefaults => CliArg::HelpAutoDefaults,
+            Self::AutoForceds => CliArg::HelpAutoForceds,
+            Self::AutoEnableds => CliArg::HelpAutoEnableds,
+            Self::AutoNames => CliArg::HelpAutoNames,
+            Self::AutoLangs => CliArg::HelpAutoLangs,
+            Self::AutoCharsets => CliArg::HelpAutoCharsets,
         }
     }
 
-    fn as_arg(self) -> MuxConfigArg {
+    const fn as_arg(self) -> CliArg {
         match self {
-            Self::AutoDefaults => MuxConfigArg::AutoDefaults,
-            Self::AutoForceds => MuxConfigArg::AutoForceds,
-            Self::AutoEnableds => MuxConfigArg::AutoEnableds,
-            Self::AutoNames => MuxConfigArg::AutoNames,
-            Self::AutoLangs => MuxConfigArg::AutoLangs,
-            Self::AutoCharsets => MuxConfigArg::AutoCharsets,
+            Self::AutoDefaults => CliArg::AutoDefaults,
+            Self::AutoForceds => CliArg::AutoForceds,
+            Self::AutoEnableds => CliArg::AutoEnableds,
+            Self::AutoNames => CliArg::AutoNames,
+            Self::AutoLangs => CliArg::AutoLangs,
+            Self::AutoCharsets => CliArg::AutoCharsets,
         }
     }
 
-    fn as_no_arg(self) -> MuxConfigArg {
+    const fn as_no_arg(self) -> CliArg {
         match self {
-            Self::AutoDefaults => MuxConfigArg::NoAutoDefaults,
-            Self::AutoForceds => MuxConfigArg::NoAutoForceds,
-            Self::AutoEnableds => MuxConfigArg::NoAutoEnableds,
-            Self::AutoNames => MuxConfigArg::NoAutoNames,
-            Self::AutoLangs => MuxConfigArg::NoAutoLangs,
-            Self::AutoCharsets => MuxConfigArg::NoAutoCharsets,
+            Self::AutoDefaults => CliArg::NoAutoDefaults,
+            Self::AutoForceds => CliArg::NoAutoForceds,
+            Self::AutoEnableds => CliArg::NoAutoEnableds,
+            Self::AutoNames => CliArg::NoAutoNames,
+            Self::AutoLangs => CliArg::NoAutoLangs,
+            Self::AutoCharsets => CliArg::NoAutoCharsets,
         }
     }
 

@@ -1,5 +1,5 @@
 use super::{Blocks, val_parsers::ConfigParser};
-use crate::{LangCode, Msg, MuxConfigArg, ParseableArg};
+use crate::{LangCode, Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
 
@@ -9,59 +9,59 @@ impl Blocks {
             .0
             .next_help_heading(Msg::HelpGlobalOptions.as_str_localized())
             .arg(
-                Arg::new(MuxConfigArg::Locale.undashed())
+                Arg::new(undashed!(Locale))
                     .short('l')
-                    .long(MuxConfigArg::Locale.undashed())
+                    .long(undashed!(Locale))
                     .value_name("lng")
                     .help(Msg::HelpLocale.as_str_localized())
                     .value_parser(ValueParser::new(LangCode::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Verbose.undashed())
+                Arg::new(undashed!(Verbose))
                     .short('v')
-                    .long(MuxConfigArg::Verbose.undashed())
+                    .long(undashed!(Verbose))
                     .help(Msg::HelpVerbosity.as_str_localized())
                     .action(ArgAction::Count),
             )
             .arg(
-                Arg::new(MuxConfigArg::Quiet.undashed())
+                Arg::new(undashed!(Quiet))
                     .short('q')
-                    .long(MuxConfigArg::Quiet.undashed())
+                    .long(undashed!(Quiet))
                     .help(Msg::HelpQuiet.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(MuxConfigArg::Verbose.undashed()),
+                    .conflicts_with(undashed!(Verbose)),
             )
             .arg(
-                Arg::new(MuxConfigArg::ExitOnErr.undashed())
+                Arg::new(undashed!(ExitOnErr))
                     .short('e')
-                    .long(MuxConfigArg::ExitOnErr.undashed())
+                    .long(undashed!(ExitOnErr))
                     .alias("exit-on-error")
                     .help(Msg::HelpExitOnErr.as_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(MuxConfigArg::Json.undashed())
+                Arg::new(undashed!(Json))
                     .short('j')
-                    .long(MuxConfigArg::Json.undashed())
+                    .long(undashed!(Json))
                     .help(Msg::HelpJson.as_str_localized())
                     .value_parser(ValueParser::new(ConfigParser)),
             )
             .arg(
-                Arg::new(MuxConfigArg::SaveConfig.undashed())
-                    .long(MuxConfigArg::SaveConfig.undashed())
+                Arg::new(undashed!(SaveConfig))
+                    .long(undashed!(SaveConfig))
                     .help(Msg::HelpSaveConfig.as_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(MuxConfigArg::Reencode.undashed())
-                    .long(MuxConfigArg::Reencode.undashed())
+                Arg::new(undashed!(Reencode))
+                    .long(undashed!(Reencode))
                     .alias("re-encode")
                     .help(Msg::HelpReencode.as_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(MuxConfigArg::Threads.undashed())
-                    .long(MuxConfigArg::Threads.undashed())
+                Arg::new(undashed!(Threads))
+                    .long(undashed!(Threads))
                     .value_name("n")
                     .help(Msg::HelpThreads.as_str_localized())
                     .value_parser(clap::value_parser!(u8).range(1..)),

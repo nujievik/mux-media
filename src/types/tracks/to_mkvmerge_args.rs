@@ -1,7 +1,6 @@
 use super::{AudioTracks, SubTracks, VideoTracks};
 use crate::{
-    IsDefault, MediaInfo, MuxConfigArg, MuxError, ParseableArg, ToMkvmergeArgs, TrackType,
-    markers::MISavedTracks,
+    IsDefault, MediaInfo, MuxError, ToMkvmergeArgs, TrackType, dashed, markers::MISavedTracks,
 };
 use std::{ffi::OsString, path::Path};
 
@@ -14,7 +13,7 @@ macro_rules! tracks_to_mkvmerge_args {
                 }
 
                 if self.no_flag {
-                    args.push(MuxConfigArg::$no_arg.dashed().into());
+                    args.push(dashed!($no_arg).into());
                     return Ok(());
                 }
 
@@ -23,7 +22,7 @@ macro_rules! tracks_to_mkvmerge_args {
 
                 let factor = match tracks_len {
                     0 => {
-                        args.push(MuxConfigArg::$no_arg.dashed().into());
+                        args.push(dashed!($no_arg).into());
                         return Ok(());
                     }
                     _ => (tracks_len as f64).log10().floor() as usize + 2,
@@ -38,7 +37,7 @@ macro_rules! tracks_to_mkvmerge_args {
                     let _ = write!(arg, "{}", track);
                 });
 
-                args.push(MuxConfigArg::$arg.dashed().into());
+                args.push(dashed!($arg).into());
                 args.push(arg.into());
 
                 Ok(())

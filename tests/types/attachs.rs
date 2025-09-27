@@ -126,13 +126,6 @@ macro_rules! test_save_attach {
 test_save_attach!(test_fonts_save_attach, fonts_str);
 test_save_attach!(test_other_save_attach, other_str);
 
-fn_variants_of_args!(
-    "-f" => vec!["--fonts"],
-    "-F" => vec!["--no-fonts"],
-    "-m" => vec!["--attachs", "--attachments"],
-    "-M" => vec!["--no-attachs", "--no-attachments"],
-);
-
 fn current_args(at: AttachType) -> (&'static str, &'static str, &'static str, &'static str) {
     match at {
         AttachType::Font => ("-f", "-F", "-m", "-M"),
@@ -155,14 +148,7 @@ fn build_test_to_mkvmerge_args(file: &str, at: AttachType) {
         (vec!["--attachments", "1"], vec![arg, "!2-"]),
     ];
 
-    compare_arg_cases!(
-        cases,
-        variants_of_args,
-        file,
-        MCFontAttachs,
-        MIAttachsInfo,
-        MITargets
-    );
+    compare_arg_cases!(cases, file, MCFontAttachs, MIAttachsInfo, MITargets);
 }
 
 #[test]
@@ -210,14 +196,7 @@ fn build_test_mix_to_mvkmerge_args(file: &str, at: AttachType) {
         ),
     ];
 
-    compare_arg_cases!(
-        cases,
-        variants_of_args,
-        file,
-        MCFontAttachs,
-        MIAttachsInfo,
-        MITargets
-    );
+    compare_arg_cases!(cases, file, MCFontAttachs, MIAttachsInfo, MITargets);
 }
 
 #[test]

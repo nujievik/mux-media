@@ -8,7 +8,7 @@ use std::{
 
 /// A wrapper around [`Arc<PathBuf>`].
 #[derive(Debug, Ord, PartialOrd)]
-pub struct ArcPathBuf(Arc<PathBuf>);
+pub struct ArcPathBuf(pub Arc<PathBuf>);
 
 crate::deref_singleton_tuple_struct!(ArcPathBuf, Arc<PathBuf>);
 
@@ -39,33 +39,12 @@ impl Clone for ArcPathBuf {
     }
 }
 
-impl From<&Path> for ArcPathBuf {
-    fn from(path: &Path) -> Self {
-        ArcPathBuf(Arc::new(path.to_path_buf()))
-    }
-}
-
-impl From<PathBuf> for ArcPathBuf {
-    fn from(pb: PathBuf) -> Self {
-        ArcPathBuf(Arc::new(pb))
-    }
-}
-
-impl From<&PathBuf> for ArcPathBuf {
-    fn from(path: &PathBuf) -> Self {
-        ArcPathBuf(Arc::new(path.to_path_buf()))
-    }
-}
-
-impl From<Arc<PathBuf>> for ArcPathBuf {
-    fn from(arc: Arc<PathBuf>) -> Self {
-        Self(arc)
-    }
-}
-
-impl From<ArcPathBuf> for Arc<PathBuf> {
-    fn from(pa: ArcPathBuf) -> Self {
-        pa.0
+impl<P> From<P> for ArcPathBuf
+where
+    P: Into<PathBuf>,
+{
+    fn from(p: P) -> ArcPathBuf {
+        ArcPathBuf(Arc::new(p.into()))
     }
 }
 

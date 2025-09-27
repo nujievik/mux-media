@@ -13,17 +13,18 @@ impl Input {
 impl Default for Input {
     /// Returns a [`Input`] with 16 [`Input::depth`] and all other default fields.
     /// ```
-    /// # use mux_media::{Input, IsDefault};
+    /// # use mux_media::Input;
+    /// # use std::path::PathBuf;
+    /// #
     /// let i = Input::default();
-    /// assert!(i.is_default());
-    /// assert!(i.dir.is_default());
-    /// assert!(i.range.is_default());
-    /// assert!(i.skip.is_default());
+    /// assert_eq!(i.dir, PathBuf::default());
+    /// assert_eq!(i.range, None);
+    /// assert_eq!(i.skip, None);
     /// assert_eq!(i.depth, 16);
-    /// assert!(i.solo.is_default());
-    /// assert!(i.need_num.is_default());
-    /// assert!(i.out_need_num.is_default());
-    /// assert!(i.dirs.values().all(|v| v.is_default()));
+    /// assert_eq!(i.solo, false);
+    /// assert_eq!(i.need_num, false);
+    /// assert_eq!(i.out_need_num, false);
+    /// assert_eq!(i.dirs, Default::default());
     /// ```
     fn default() -> Input {
         Input {
@@ -40,11 +41,24 @@ impl Default for Input {
 }
 
 impl IsDefault for Input {
-    /// Returns `true` if all [`Input`] fields eq [`Input::default`].
+    /// Returns `true` if all `self` fields eq [`Input::default`] fields.
     /// ```
-    /// # use mux_media::{Input, IsDefault};
+    /// # use mux_media::*;
+    /// # use enum_map::EnumMap;
+    /// #
     /// assert!(Input::default().is_default());
+    ///
     /// assert!(!Input { dir: "x".into(), ..Default::default() }.is_default());
+    /// assert!(!Input { range: Some("1".parse().unwrap()), ..Default::default() }.is_default());
+    /// assert!(!Input { skip: Some("x".parse().unwrap()), ..Default::default() }.is_default());
+    /// assert!(!Input { depth: 1, ..Default::default() }.is_default());
+    /// assert!(!Input { solo: true, ..Default::default() }.is_default());
+    /// assert!(!Input { need_num: true, ..Default::default() }.is_default());
+    /// assert!(!Input { out_need_num: true, ..Default::default() }.is_default());
+    ///
+    /// let mut dirs: EnumMap<FileType, Vec<ArcPathBuf>> = Default::default();
+    /// dirs[FileType::Media].push("x".into());
+    /// assert!(!Input { dirs, ..Default::default() }.is_default());
     /// ```
     fn is_default(&self) -> bool {
         self.dir.is_default()

@@ -7,13 +7,13 @@ macro_rules! to_ffmpeg_args {
                 args: &mut Vec<std::ffi::OsString>,
                 mi: &mut $crate::MediaInfo,
             ) -> $crate::Result<()> {
-                use $crate::{MuxConfigArg, ParseableArg, markers::MICmnTrackOrder};
+                use $crate::{markers::MICmnTrackOrder, undashed};
 
                 let order = mi.try_take_cmn::<MICmnTrackOrder>()?;
 
                 let auto = mi.auto_flags.$auto;
-                let metadata = MuxConfigArg::Metadata.undashed();
-                let mtd_marker = MuxConfigArg::$arg.undashed();
+                let metadata = undashed!(Metadata);
+                let mtd_marker = undashed!($arg);
 
                 order.iter().enumerate().for_each(|(i, m)| {
                     let val = $crate::unwrap_or_return!(
@@ -38,11 +38,11 @@ macro_rules! to_ffmpeg_args {
                 track: u64,
                 out_stream: usize,
             ) {
-                use $crate::{MuxConfigArg, ParseableArg};
+                use $crate::undashed;
 
                 let auto = mi.auto_flags.$auto;
-                let metadata = MuxConfigArg::Metadata.undashed();
-                let mtd_marker = MuxConfigArg::$arg.undashed();
+                let metadata = undashed!(Metadata);
+                let mtd_marker = undashed!($arg);
 
                 let val =
                     $crate::unwrap_or_return!(mi.get_ti::<$crate::markers::$marker>(media, track));

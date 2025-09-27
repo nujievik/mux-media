@@ -6,9 +6,9 @@ use std::collections::HashMap;
 /// Settings for track names.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct TrackNames {
-    unmapped: Option<String>,
-    map_hashed: Option<HashMap<TrackID, String>>,
-    map_unhashed: Option<Vec<(TrackID, String)>>,
+    pub unmapped: Option<String>,
+    pub map_hashed: Option<HashMap<TrackID, String>>,
+    pub map_unhashed: Option<Vec<(TrackID, String)>>,
 }
 
 impl TrackNames {

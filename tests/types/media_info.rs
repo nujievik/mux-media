@@ -140,7 +140,7 @@ fn test_cmn_external_fonts() {
         assert_eq!(expected_len, expected.len());
 
         let collected = cfg.input.collect_fonts_with_filter_and_sort();
-        assert_eq!(expected, collected);
+        assert_eq!(expected, collected.into());
     })
 }
 
@@ -368,6 +368,28 @@ fn test_targets_all() {
             assert_eq!(&left, mi.try_get::<MITargets>(&f).unwrap());
         })
     })
+}
+
+#[test]
+fn test_audio_duration() {
+    let mut mi = new();
+
+    let d = mi.try_get::<MIAudioDuration>(&data("audio_x1.mka"));
+    assert_eq!(*d.unwrap(), Duration::new(0, 989_743_000));
+
+    mi.try_take::<MIAudioDuration>(&data("video_x1.mkv"))
+        .unwrap_err();
+}
+
+#[test]
+fn test_video_duration() {
+    let mut mi = new();
+
+    let d = mi.try_take::<MIVideoDuration>(&data("video_x1.mkv"));
+    assert_eq!(d.unwrap(), Duration::new(0, 960_000_000));
+
+    mi.try_take::<MIVideoDuration>(&data("audio_x1.mka"))
+        .unwrap_err();
 }
 
 #[test]

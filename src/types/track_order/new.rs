@@ -1,6 +1,6 @@
 use super::{TrackOrder, TrackOrderItem};
 use crate::{
-    ArcPathBuf, LangCode, MediaInfo, MuxError, Result, Retiming, TrackType, immut,
+    ArcPathBuf, LangCode, MediaInfo, MuxError, Result, Retiming, TrackType, immut, IsDefault,
     markers::{
         MCDefaultTrackFlags, MCEnabledTrackFlags, MCForcedTrackFlags, MISavedTracks, MITIItSigns,
         MITITrackIDs, MITargets,
@@ -114,7 +114,6 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
                     is_first_entry,
                     track,
                     ty,
-                    is_retimed: false,
                     retimed: None,
                 })
             }
@@ -143,6 +142,10 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
         fn try_order(mi: &mut MediaInfo, raw_items: Vec<TrackOrderItem>) -> Result<TrackOrder> {
             let exit_on_err = mi.cfg.exit_on_err;
             let mut order = TrackOrder(raw_items);
+
+            if !mi.cfg.muxer.is_default() {
+                return Ok(order);
+            }
 
             let rtm = match Retiming::try_new(mi, &order) {
                 Ok(rtm) => rtm,
@@ -177,7 +180,6 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
                 i_retimed.into_iter().for_each(|(i, rtm)| {
                     let item = &mut order.0[i];
                     item.is_first_entry = true;
-                    item.is_retimed = true;
                     item.retimed = Some(rtm);
                 });
                 return Ok(order);
@@ -192,7 +194,6 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
                     is_first_entry: true,
                     track: order[i].track,
                     ty: order[i].ty,
-                    is_retimed: true,
                     retimed: Some(rtm),
                 })
                 .collect();

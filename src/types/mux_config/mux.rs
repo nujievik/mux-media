@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
-    sync::Mutex,
+    sync::{Arc, Mutex},
 };
 
 impl MuxConfig {
@@ -28,26 +28,23 @@ impl MuxConfig {
         let it = Mutex::new(self.input.iter_media_grouped_by_stem());
 
         (0..self.threads).into_par_iter().try_for_each(|t| {
+            let mut mi = init_media_info(self, &cache, t);
             loop {
-                let mut mi = init_media_info(self, &cache, t);
-
-                match it.lock().map(|mut it| it.next()) {
-                    Ok(Some(m)) => mux_media_group(self, &cnt, &mut mi, m)?,
-                    Ok(None) => return Ok::<(), MuxError>(()),
-                    Err(e) => panic!("{}", e),
+                let g = { it.lock().unwrap().next() };
+                match g {
+                    Some(g) => mux_media_group(self, &cnt, &mut mi, g)?,
+                    None => return Ok::<(), MuxError>(()),
                 }
+                mi.clear_current();
             }
         })?;
 
-        return Ok(cnt.lock().map(|c| *c).unwrap_or(0));
+        return Ok(cnt.lock().map_or(0, |c| *c));
 
         fn init_cache_common(cfg: &MuxConfig) -> CacheMICommon {
-            let mi = MediaInfo::from(cfg);
-            let external_fonts = CacheState::from_res(mi.build_external_fonts());
-
+            let fonts = cfg.input.collect_fonts_with_filter_and_sort();
             CacheMICommon {
-                external_segments: Default::default(),
-                external_fonts,
+                external_fonts: CacheState::Cached(Arc::new(fonts)),
             }
         }
 
@@ -89,7 +86,6 @@ impl MuxConfig {
                 MuxCurrent::Err(e) => error!("{}", e),
             };
 
-            mi.clear_current();
             Ok(())
         }
 

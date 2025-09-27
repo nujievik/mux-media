@@ -1,46 +1,30 @@
 use crate::common::*;
 use clap::{error::ErrorKind, *};
 use mux_media::{markers::*, *};
+use std::sync::LazyLock;
 
-#[test]
-fn test_default() {
-    let cfg = MuxConfig::default();
-    assert!(cfg.is_default());
-    assert!(cfg.input.is_default());
-    assert!(cfg.output.is_default());
-    assert!(cfg.locale.is_default());
-    assert!(cfg.exit_on_err.is_default());
-    assert!(cfg.save_config.is_default());
-    assert!(cfg.reencode.is_default());
-    assert_eq!(cfg.threads, 4);
-    assert!(cfg.auto_flags.is_default());
-    assert!(cfg.audio_tracks.is_default());
-    assert!(cfg.sub_tracks.is_default());
-    assert!(cfg.video_tracks.is_default());
-    assert!(cfg.chapters.is_default());
-    assert!(cfg.font_attachs.is_default());
-    assert!(cfg.other_attachs.is_default());
-    assert!(cfg.default_track_flags.is_default());
-    assert!(cfg.forced_track_flags.is_default());
-    assert!(cfg.enabled_track_flags.is_default());
-    assert!(cfg.track_names.is_default());
-    assert!(cfg.track_langs.is_default());
-    assert!(cfg.specials.is_default());
-    assert!(cfg.targets.is_default());
-    assert!(cfg.tool_paths.is_default());
-    assert!(cfg.muxer.is_default());
-    assert!(cfg.is_output_constructed_from_input.is_default());
+static EMPTY_ARGS: LazyLock<MuxConfig> = LazyLock::new(|| cfg::<_, &str>([]));
+
+fn assert_eq_wo_locale(mut left: MuxConfig, right: &MuxConfig) {
+    left.locale = right.locale;
+    assert_eq!(&left, right);
 }
 
 #[test]
-fn test_empty_input() {
-    let parsed = cfg::<_, &str>([]);
-    let mut exp = MuxConfig::default();
-    exp.input.dir = parsed.input.dir.clone();
-    exp.output.dir = parsed.output.dir.clone();
-    exp.locale = parsed.locale;
-    exp.is_output_constructed_from_input = true;
-    assert_eq!(parsed, exp);
+fn test_empty_args() {
+    let exp = MuxConfig {
+        input: Input {
+            dir: EMPTY_ARGS.input.dir.clone(),
+            ..Default::default()
+        },
+        output: Output {
+            dir: EMPTY_ARGS.output.dir.clone(),
+            ..Default::default()
+        },
+        is_output_constructed_from_input: true,
+        ..Default::default()
+    };
+    assert_eq_wo_locale(exp, &*EMPTY_ARGS);
 }
 
 fn assert_ok_exit(args: &[&str]) {
@@ -83,6 +67,210 @@ fn test_ok_exit_mkvmerge_help() {
     assert_ok_exit(&["--mkvmerge", "-h"]);
 }
 
+macro_rules! test_parse {
+    ($args:expr, $( $field:ident $( .$sub_field:ident )? , $exp:expr ),* ) => {{
+        let mut exp = (*EMPTY_ARGS).clone();
+        $( exp.$field $( .$sub_field )? = $exp; )*
+
+        assert_eq_wo_locale(cfg($args), &exp);
+    }};
+}
+
+#[test]
+fn test_parse() {
+    let i = data("");
+    let o = data("muxed/");
+    test_parse!(
+        [p("-i"), &i],
+        input.dir,
+        i.clone(),
+        output.dir,
+        o.clone(),
+        is_output_constructed_from_input,
+        true
+    );
+    test_parse!(
+        [p("-o"), &o],
+        output.dir,
+        o.clone(),
+        is_output_constructed_from_input,
+        false
+    );
+    test_parse!(
+        ["-r", "1-1"],
+        input.range,
+        Some(RangeU64::try_from((1, 1)).unwrap()),
+        input.need_num,
+        true
+    );
+
+    let x_globset = Some("x".parse::<GlobSetPattern>().unwrap());
+
+    test_parse!(["--skip", "x"], input.skip, x_globset.clone());
+    test_parse!(["--depth", "1"], input.depth, 1);
+    test_parse!(["--solo"], input.solo, true);
+
+    test_parse!(["-v"], verbosity, Verbosity::Verbose);
+    test_parse!(["-vv"], verbosity, Verbosity::Debug);
+    test_parse!(["-q"], verbosity, Verbosity::Quiet);
+    test_parse!(["-e"], exit_on_err, true);
+    test_parse!(["--save-config"], save_config, true);
+    test_parse!(["--reencode"], reencode, true);
+    test_parse!(["--threads", "1"], threads, 1);
+
+    let t = Tracks {
+        no_flag: true,
+        ..Default::default()
+    };
+    test_parse!(["-A"], audio_tracks, AudioTracks(t.clone()));
+    test_parse!(["-S"], sub_tracks, SubTracks(t.clone()));
+    test_parse!(["-D"], video_tracks, VideoTracks(t.clone()));
+
+    let id = TrackID::Num(1);
+    let t = Tracks {
+        ids_hashed: Some([id.clone()].into()),
+        ..Default::default()
+    };
+    test_parse!(["-a", "1"], audio_tracks, AudioTracks(t.clone()));
+    test_parse!(["-s", "1"], sub_tracks, SubTracks(t.clone()));
+    test_parse!(["-d", "1"], video_tracks, VideoTracks(t.clone()));
+
+    test_parse!(["-C"], chapters.no_flag, true);
+    test_parse!(
+        [p("-c"), &data("srt.srt")],
+        chapters.file,
+        Some(data("srt.srt"))
+    );
+
+    let a = Attachs {
+        no_flag: true,
+        ..Default::default()
+    };
+    test_parse!(["-F"], font_attachs, FontAttachs(a.clone()));
+    test_parse!(["-M"], other_attachs, OtherAttachs(a.clone()));
+
+    let id = AttachID::Num(1);
+    let a = Attachs {
+        ids_hashed: Some([id.clone()].into()),
+        ..Default::default()
+    };
+    test_parse!(["-f", "1"], font_attachs, FontAttachs(a.clone()));
+    test_parse!(["-m", "1"], other_attachs, OtherAttachs(a.clone()));
+
+    let f = TrackFlags {
+        unmapped: Some(true),
+        ..Default::default()
+    };
+    test_parse!(
+        ["--defaults", "true"],
+        default_track_flags,
+        DefaultTrackFlags(f.clone())
+    );
+    test_parse!(
+        ["--forceds", "true"],
+        forced_track_flags,
+        ForcedTrackFlags(f.clone())
+    );
+    test_parse!(
+        ["--enableds", "true"],
+        enabled_track_flags,
+        EnabledTrackFlags(f.clone())
+    );
+
+    let f = TrackFlags {
+        lim_for_unset: Some(1),
+        ..Default::default()
+    };
+    test_parse!(
+        ["--max-defaults", "1"],
+        default_track_flags,
+        DefaultTrackFlags(f.clone())
+    );
+    test_parse!(
+        ["--max-forceds", "1"],
+        forced_track_flags,
+        ForcedTrackFlags(f.clone())
+    );
+    test_parse!(
+        ["--max-enableds", "1"],
+        enabled_track_flags,
+        EnabledTrackFlags(f.clone())
+    );
+
+    test_parse!(
+        ["--names", "x"],
+        track_names.unmapped,
+        Some(String::from("x"))
+    );
+    test_parse!(
+        ["--langs", "eng"],
+        track_langs.unmapped,
+        Some(LangCode::Eng)
+    );
+
+    test_parse!(["--raws", "-A"], raws, Raws(Some(vec!["-A".into()])));
+
+    test_parse!(
+        ["--rm-segments", "x"],
+        retiming.rm_segments,
+        x_globset.clone()
+    );
+    test_parse!(["--no-linked"], retiming.no_linked, true);
+}
+
+#[test]
+fn test_aliases_of_args() {
+    [
+        vec!["-v", "--verbose"],
+        vec!["-vv", "-vvv", "-vvvvvvv"],
+        vec!["-q", "--quiet"],
+        vec!["-e", "--exit-on-err", "--exit-on-error"],
+        vec!["--reencode", "--re-encode"],
+        vec!["-p", "--pro"],
+        vec!["-A", "--no-audio"],
+        vec!["-S", "--no-subs", "--no-subtitles"],
+        vec!["-D", "--no-video"],
+        vec!["-C", "--no-chapters"],
+        vec!["-F", "--no-fonts"],
+        vec!["-M", "--no-attachs", "--no-attachments"],
+    ]
+    .iter()
+    .for_each(|args| {
+        let first = cfg([args[0]]);
+        for arg in &args[1..] {
+            assert_eq_wo_locale(cfg([arg]), &first)
+        }
+    });
+
+    [
+        (vec!["-i", "--input"], data("").to_str().unwrap()),
+        (vec!["-o", "--output"], data("").to_str().unwrap()),
+        (vec!["-r", "--range"], "1-1"),
+        (vec!["-a", "--audio", "--audio-tracks"], "1"),
+        (vec!["-s", "--subs", "--subtitle-tracks"], "1"),
+        (vec!["-d", "--video", "--video-tracks"], "1"),
+        (vec!["-c", "--chapters"], data("srt.srt").to_str().unwrap()),
+        (vec!["-f", "--fonts"], "1"),
+        (vec!["-m", "--attachs", "--attachments"], "1"),
+    ]
+    .iter()
+    .for_each(|(args, val)| {
+        let first = cfg([args[0], val]);
+        for arg in &args[1..] {
+            assert_eq_wo_locale(cfg([arg, val]), &first)
+        }
+    });
+
+    [["on", "1", "true"], ["off", "0", "false"]]
+        .iter()
+        .for_each(|args| {
+            let first = cfg(["--defaults", args[0]]);
+            for arg in &args[1..] {
+                assert_eq_wo_locale(cfg(["--defaults", arg]), &first)
+            }
+        });
+}
+
 #[test]
 fn test_target_switching() {
     let cfg = cfg([
@@ -114,104 +302,3 @@ fn test_target_switching() {
     // Sure that global audio_tracks has not true no_flag.
     assert!(!cfg.audio_tracks.0.no_flag);
 }
-
-#[test]
-fn test_locale() {
-    [
-        ("rus", LangCode::Rus),
-        ("jpn", LangCode::Jpn),
-        ("eng", LangCode::Eng),
-    ]
-    .into_iter()
-    .for_each(|(arg, lang)| assert_eq!(cfg(["--locale", arg]).locale, lang))
-}
-
-crate::build_test_parseable_args!(
-    test_parseable_args, MuxConfig;
-    Input => "input",
-    Output => "output",
-    Range => "range",
-    Skip => "skip",
-    Depth => "depth",
-    Solo => "solo",
-    Locale => "locale",
-    Verbose => "verbose",
-    Quiet => "quiet",
-    ExitOnErr => "exit-on-err",
-    Json => "json",
-    SaveConfig => "save-config",
-    Reencode => "reencode",
-    Threads => "threads",
-    RmSegments => "rm-segments",
-    NoLinked => "no-linked",
-    LessRetiming => "less-retiming",
-    Pro => "pro",
-    HelpAutoDefaults => "auto-defaults / --no-auto-defaults",
-    AutoDefaults => "auto-defaults",
-    NoAutoDefaults => "no-auto-defaults",
-    HelpAutoForceds => "auto-forceds / --no-auto-forceds",
-    AutoForceds => "auto-forceds",
-    NoAutoForceds => "no-auto-forceds",
-    HelpAutoEnableds => "auto-enableds / --no-auto-enableds",
-    AutoEnableds => "auto-enableds",
-    NoAutoEnableds => "no-auto-enableds",
-    HelpAutoNames => "auto-names / --no-auto-names",
-    AutoNames => "auto-names",
-    NoAutoNames => "no-auto-names",
-    HelpAutoLangs => "auto-langs / --no-auto-langs",
-    AutoLangs => "auto-langs",
-    NoAutoLangs => "no-auto-langs",
-    HelpAutoCharsets => "auto-charsets / --no-auto-charsets",
-    AutoCharsets => "auto-charsets",
-    NoAutoCharsets => "no-auto-charsets",
-    Target => "target",
-    TargetHelp => "target <trg> [options]",
-    ListTargets => "list-targets",
-    Audio => "audio",
-    AudioTracks => "audio-tracks",
-    NoAudio => "no-audio",
-    Subs => "subs",
-    SubtitleTracks => "subtitle-tracks",
-    NoSubs => "no-subs",
-    NoSubtitles => "no-subtitles",
-    Video => "video",
-    VideoTracks => "video-tracks",
-    NoVideo => "no-video",
-    Chapters => "chapters",
-    NoChapters => "no-chapters",
-    Attachments => "attachments",
-    NoAttachments => "no-attachments",
-    Fonts => "fonts",
-    NoFonts => "no-fonts",
-    Attachs => "attachs",
-    NoAttachs => "no-attachs",
-    DefaultTrackFlag => "default-track-flag",
-    Defaults => "defaults",
-    MaxDefaults => "max-defaults",
-    ForcedDisplayFlag => "forced-display-flag",
-    Forceds => "forceds",
-    MaxForceds => "max-forceds",
-    Enableds => "enableds",
-    MaxEnableds => "max-enableds",
-    TrackEnabledFlag => "track-enabled-flag",
-    Metadata => "metadata",
-    Names => "names",
-    Title => "title",
-    TrackName => "track-name",
-    Langs => "langs",
-    Language => "language",
-    Specials => "specials",
-    ListContainers => "list-containers",
-    ListLangs => "list-langs",
-    UserTools => "user-tools",
-    Ffmpeg => "ffmpeg",
-    FfmpegHelp => "ffmpeg [options]",
-    Ffprobe => "ffprobe",
-    FfprobeHelp => "ffprobe [options]",
-    Mkvmerge => "mkvmerge",
-    MkvmergeHelp => "mkvmerge [options]",
-    Version => "version",
-    Help => "help",
-    SubCharset => "sub-charset",
-    TrackOrder => "track-order",
-);

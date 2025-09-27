@@ -1,3 +1,4 @@
+use crate::CliArg;
 use enum_map::Enum;
 use std::fmt;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
@@ -27,6 +28,14 @@ impl Tool {
     /// ```
     pub fn iter() -> impl Iterator<Item = Self> {
         <Self as strum::IntoEnumIterator>::iter()
+    }
+
+    pub(crate) fn as_cli_arg(self) -> CliArg {
+        match self {
+            Self::Ffmpeg => CliArg::Ffmpeg,
+            Self::Ffprobe => CliArg::Ffprobe,
+            Self::Mkvmerge => CliArg::Mkvmerge,
+        }
     }
 
     /// Returns `true` if the tool belongs to the mkvtoolnix suite.

@@ -3,21 +3,22 @@ mod saved;
 
 use super::MediaInfo;
 use crate::{
-    ArcPathBuf, CacheMIOfFileAttach, CacheMIOfFileTrack, Duration, EXTENSIONS, ExternalSegments,
-    LangCode, RawTrackCache, Result, SubCharset, Target, TargetGroup, Tool, TrackID, TrackOrder,
-    TrackType, immut,
-    markers::{MIMatroska, MIMkvmergeI, MITICache, MITILang, MITargetGroup, MITracksInfo},
+    CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState, Duration, EXTENSIONS, LangCode,
+    RawTrackCache, Result, SubCharset, Target, TargetGroup, Tool, TrackID, TrackOrder, TrackType,
+    immut,
+    markers::{
+        MIAudioDuration, MIMatroska, MIMkvmergeI, MIPlayableDuration, MITICache, MITILang,
+        MITargetGroup, MITracksInfo, MIVideoDuration,
+    },
     mux_err,
 };
 use lazy_regex::{Lazy, Regex, regex};
-use log::{trace, warn};
 use matroska::Matroska;
-use rayon::prelude::*;
 use std::{
     collections::HashMap,
     ffi::OsString,
     path::{Path, PathBuf},
-    sync::RwLock,
+    sync::Arc,
 };
 
 static REGEX_ATTACH_ID: &Lazy<Regex> = regex!(r"Attachment ID (\d+):");
@@ -26,54 +27,10 @@ static REGEX_TRACK_ID: &Lazy<Regex> = regex!(r"Track ID (\d+):");
 static REGEX_WORD: &Lazy<Regex> = regex!(r"[a-zA-Z]+|[а-яА-ЯёЁ]+");
 
 impl MediaInfo<'_> {
-    pub(crate) fn build_external_fonts(&self) -> Result<Vec<PathBuf>> {
-        Ok(self.cfg.input.collect_fonts_with_filter_and_sort())
-    }
-
-    pub fn find_external_segment(&self, dir: &Path, uid: &[u8]) -> Option<ArcPathBuf> {
-        if let Some(opt) = get_cached(self, dir, uid) {
-            return opt;
-        }
-
-        let es = &self.cache.common.external_segments;
-        insert_all_in_dir(self, dir, es);
-
-        return match es.write() {
-            Ok(mut es) => {
-                es.dir_set.insert(dir.to_owned());
-                es.map.get(uid).cloned()
-            }
-            Err(_) => None,
-        };
-
-        fn get_cached(mi: &MediaInfo, dir: &Path, uid: &[u8]) -> Option<Option<ArcPathBuf>> {
-            if let Ok(es) = mi.cache.common.external_segments.read() {
-                if let Some(p) = es.map.get(uid) {
-                    return Some(Some(p.clone()));
-                }
-                if es.dir_set.contains(dir) {
-                    return Some(None);
-                }
-            }
-            None
-        }
-
-        fn insert_all_in_dir(mi: &MediaInfo, dir: &Path, es: &RwLock<ExternalSegments>) {
-            mi.cfg
-                .input
-                .iter_matroska_in_dir(dir)
-                .par_bridge()
-                .for_each(|m| {
-                    if let Some(u) = match mi.immut::<MIMatroska>(&m) {
-                        Some(mat) => mat.info.uid.clone(),
-                        None => mi.build_matroska(&m).map_or(None, |mat| mat.info.uid),
-                    } {
-                        if let Ok(mut es) = es.write() {
-                            es.map.insert(u.into(), m.into());
-                        }
-                    }
-                });
-        }
+    pub(crate) fn build_external_fonts(&self) -> Result<Arc<Vec<PathBuf>>> {
+        Ok(Arc::new(
+            self.cfg.input.collect_fonts_with_filter_and_sort(),
+        ))
     }
 
     pub(super) fn build_stem(&self) -> Result<OsString> {
@@ -88,7 +45,7 @@ impl MediaInfo<'_> {
         Ok(shortest.to_owned())
     }
 
-    pub(super) fn build_media_order(&mut self) -> Result<TrackOrder> {
+    pub(super) fn build_track_order(&mut self) -> Result<TrackOrder> {
         TrackOrder::try_from(self)
     }
 
@@ -149,20 +106,50 @@ impl MediaInfo<'_> {
         Ok(targets)
     }
 
-    // The playable duration is the longest duration of any video or audio track, not a subtitle track.
-    pub(super) fn build_playable_duration(&mut self, media: &Path) -> Result<Duration> {
-        trace!("Trying get playable duration of '{}'", media.display());
+    fn try_cache_durations(&mut self, media: &Path) -> Result<()> {
+        let _ = self.try_init::<MITracksInfo>(media)?;
+        let cache = self.cache.of_files.get(media).unwrap();
 
-        let tracks = immut!(self, MITracksInfo, media);
-        let p: fn(&str) -> &Path = Path::new;
+        let a = TrackType::Audio;
+        let v = TrackType::Video;
+        let durations = rayon::join(
+            || (!cache.audio_duration.is_cached()).then(|| try_duration(self, media, a)),
+            || (!cache.video_duration.is_cached()).then(|| try_duration(self, media, v)),
+        );
 
-        let get_time = |ty: TrackType| {
-            if !tracks.map_or(false, |map| {
-                map.iter().any(|(_, cache)| ty == cache.track_type)
-            }) {
-                return None;
+        let cache = self.cache.of_files.get_mut(media).unwrap();
+
+        if let Some(res) = durations.0 {
+            cache.audio_duration = CacheState::from_res(res);
+        }
+        if let Some(res) = durations.1 {
+            cache.video_duration = CacheState::from_res(res);
+        }
+
+        let audio = self.immut::<MIAudioDuration>(media).copied();
+        let video = self.immut::<MIVideoDuration>(media).copied();
+
+        // The playable duration is the longest duration of any video or audio track,
+        // not a subtitle track.
+        let playable = audio
+            .into_iter()
+            .chain(video)
+            .max()
+            .ok_or_else(|| "Not found playable time".into());
+
+        let cache = self.cache.of_files.get_mut(media).unwrap();
+        cache.playable_duration = CacheState::from_res(playable);
+
+        return Ok(());
+
+        fn try_duration(mi: &MediaInfo<'_>, media: &Path, ty: TrackType) -> Result<Duration> {
+            let tracks = mi.try_immut::<MITracksInfo>(media)?;
+
+            if !tracks.values().any(|cache| ty == cache.track_type) {
+                return Err(mux_err!("Not found any '{}' track", ty.as_str_mkvtoolnix()));
             }
 
+            let p: fn(&str) -> &Path = Path::new;
             let args = [
                 p("-select_streams"),
                 p(ty.as_first_s()),
@@ -176,36 +163,33 @@ impl MediaInfo<'_> {
                 media,
             ];
 
-            self.tools.run(Tool::Ffprobe, &args).ok().and_then(|out| {
-                out.as_str_stdout()
-                    .rsplit_once("frame,")
-                    .and_then(|(_, secs)| {
-                        let secs = secs.trim();
-                        secs.parse::<Duration>().ok()
-                    })
-            })
-        };
+            let out = mi.tools.run(Tool::Ffprobe, &args)?;
 
-        let durations: [Option<Duration>; 2] =
-            rayon::join(|| get_time(TrackType::Audio), || get_time(TrackType::Video)).into();
+            let secs = out
+                .as_str_stdout()
+                .rsplit_once("frame,")
+                .ok_or_else(|| "Unexpected no 'frame,' in command output")?;
 
-        durations
-            .into_iter()
-            .flatten()
-            .max()
-            .or_else(|| {
-                self.get::<MIMatroska>(media)
-                    .and_then(|m| m.info.duration.map(|d| Duration(d)))
-                    .inspect(|_| {
-                        warn!(
-                            "Failed to get the duration of any video or audio track. Using Matroska
-duration instead. This may cause sync issues if a subtitle track has the longest duration: Matroska
-uses the longest track duration, but the actual playable duration is limited to the longest video
-or audio track."
-                        )
-                    })
-            })
-            .ok_or_else(|| mux_err!("Not found playable time"))
+            secs.1.trim().parse::<Duration>()
+        }
+    }
+
+    pub(super) fn build_audio_duration(&mut self, media: &Path) -> Result<Duration> {
+        self.try_cache_durations(media)?;
+        let d = *self.try_get::<MIAudioDuration>(media)?;
+        Ok(d)
+    }
+
+    pub(super) fn build_video_duration(&mut self, media: &Path) -> Result<Duration> {
+        self.try_cache_durations(media)?;
+        let d = *self.try_get::<MIVideoDuration>(media)?;
+        Ok(d)
+    }
+
+    pub(super) fn build_playable_duration(&mut self, media: &Path) -> Result<Duration> {
+        self.try_cache_durations(media)?;
+        let d = *self.try_get::<MIPlayableDuration>(media)?;
+        Ok(d)
     }
 
     pub(super) fn build_tracks_info(

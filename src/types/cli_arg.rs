@@ -1,7 +1,31 @@
-use crate::{MuxConfig, parseable_args};
+macro_rules! enum_cli_arg {
+    ($( $var:ident => $s:expr ),* $(,)?) => {
+        /// An enum of CLI arguments.
+        #[derive(Copy, Clone, Debug)]
+        pub enum CliArg {
+            $( $var ),*
+        }
 
-parseable_args!(
-    MuxConfig, MuxConfigArg;
+        impl CliArg {
+            /// Returns argument with leading dashes (e.g. `"--input"`).
+            pub const fn dashed(self) -> &'static str {
+                match self {
+                    $( Self::$var => concat!("--", $s) ),*
+                }
+            }
+
+            /// Returns argument without leading dashes (e.g. `"input"`).
+            pub const fn undashed(self) -> &'static str {
+                match self {
+                    $( Self::$var => $s ),*
+                }
+            }
+        }
+    };
+}
+
+enum_cli_arg! {
+    // visible in help
     Input => "input",
     Output => "output",
     Range => "range",
@@ -36,56 +60,73 @@ parseable_args!(
     AutoCharsets => "auto-charsets",
     NoAutoCharsets => "no-auto-charsets",
     Target => "target",
-    TargetHelp => "target <trg> [options]",
     ListTargets => "list-targets",
     Audio => "audio",
-    AudioTracks => "audio-tracks",
     NoAudio => "no-audio",
     Subs => "subs",
-    SubtitleTracks => "subtitle-tracks",
     NoSubs => "no-subs",
-    NoSubtitles => "no-subtitles",
     Video => "video",
-    VideoTracks => "video-tracks",
     NoVideo => "no-video",
     Chapters => "chapters",
     NoChapters => "no-chapters",
-    Attachments => "attachments",
-    NoAttachments => "no-attachments",
     Fonts => "fonts",
     NoFonts => "no-fonts",
     Attachs => "attachs",
     NoAttachs => "no-attachs",
-    DefaultTrackFlag => "default-track-flag",
     Defaults => "defaults",
     MaxDefaults => "max-defaults",
-    ForcedDisplayFlag => "forced-display-flag",
     Forceds => "forceds",
     MaxForceds => "max-forceds",
     Enableds => "enableds",
     MaxEnableds => "max-enableds",
-    TrackEnabledFlag => "track-enabled-flag",
-    Metadata => "metadata",
     Names => "names",
-    Title => "title",
-    TrackName => "track-name",
     Langs => "langs",
-    Language => "language",
-    Specials => "specials",
+    Raws => "raws",
     RmSegments => "rm-segments",
     NoLinked => "no-linked",
-    LessRetiming => "less-retiming",
     ListContainers => "list-containers",
     ListLangs => "list-langs",
     UserTools => "user-tools",
     Ffmpeg => "ffmpeg",
-    FfmpegHelp => "ffmpeg [options]",
     Ffprobe => "ffprobe",
-    FfprobeHelp => "ffprobe [options]",
     Mkvmerge => "mkvmerge",
-    MkvmergeHelp => "mkvmerge [options]",
     Version => "version",
     Help => "help",
+
+    // mkvmerge
+    Attachments => "attachments",
+    AudioTracks => "audio-tracks",
+    DefaultTrackFlag => "default-track-flag",
+    ForcedDisplayFlag => "forced-display-flag",
+    Language => "language",
+    ListLanguages => "list-languages",
+    NoAttachments => "no-attachments",
+    NoGlobalTags => "no-global-tags",
+    NoSubtitles => "no-subtitles",
     SubCharset => "sub-charset",
+    SubtitleTracks => "subtitle-tracks",
+    TrackEnabledFlag => "track-enabled-flag",
+    TrackName => "track-name",
     TrackOrder => "track-order",
-);
+    VideoTracks => "video-tracks",
+
+    // ffmpeg
+    Metadata => "metadata",
+    Title => "title",
+}
+
+/// Returns an [`CliArg`] string with leading dashes (e.g. `"--input"`).
+#[macro_export]
+macro_rules! dashed {
+    ($arg:ident) => {
+        $crate::CliArg::$arg.dashed()
+    };
+}
+
+/// Returns an [`CliArg`] string without leading dashes (e.g. `"input"`).
+#[macro_export]
+macro_rules! undashed {
+    ($arg:ident) => {
+        $crate::CliArg::$arg.undashed()
+    };
+}

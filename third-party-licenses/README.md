@@ -31,6 +31,14 @@ project.
   License: Unlicense OR MIT
   Source: https://crates.io/crates/globset
   
+- **is_default**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/is_default
+  
+- **lazy-regex**
+  License: MIT
+  https://crates.io/crates/lazy-regex
+  
 - **log**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/log
@@ -39,10 +47,6 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/matroska
   
-- **once-cell**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/once_cell
-  
 - **phf**
   License: MIT
   Source: https://crates.io/crates/phf
@@ -50,10 +54,6 @@ project.
 - **rayon**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/rayon
-  
-- **regex**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/regex
   
 - **serde_json**
   License: MIT OR Apache-2.0
@@ -70,6 +70,10 @@ project.
 - **supports-color**
   License: Apache-2.0
   Source: https://crates.io/crates/supports-color
+  
+- **time**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/time
   
 - **walkdir**
   License: Unlicense OR MIT
@@ -100,24 +104,6 @@ Following components is not include in Release but uses in the project:
 - **which**
   License: MIT
   Source: https://crates.io/crates/which
-  
-#### Macros
-
-- **proc-macro-crate**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/proc-macro-crate
-  
-- **proc-macro2**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/proc-macro2
-  
-- **quote**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/quote
-  
-- **syn**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/syn
   
 #### Tests
 

@@ -1,5 +1,5 @@
 use super::Blocks;
-use crate::{Msg, MuxConfigArg, ParseableArg};
+use crate::{Msg, Tool, undashed};
 use clap::{Arg, ArgAction};
 
 impl Blocks {
@@ -8,48 +8,38 @@ impl Blocks {
             .0
             .next_help_heading(Msg::HelpOtherOptions.as_str_localized())
             .arg(
-                Arg::new(MuxConfigArg::ListContainers.undashed())
-                    .long(MuxConfigArg::ListContainers.undashed())
+                Arg::new(undashed!(ListContainers))
+                    .long(undashed!(ListContainers))
                     .help(Msg::HelpListContainers.as_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(MuxConfigArg::ListLangs.undashed())
-                    .long(MuxConfigArg::ListLangs.undashed())
-                    .alias("list-languages")
+                Arg::new(undashed!(ListLangs))
+                    .long(undashed!(ListLangs))
+                    .alias(undashed!(ListLanguages))
                     .help(Msg::HelpListLangs.as_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(MuxConfigArg::UserTools.undashed())
-                    .long(MuxConfigArg::UserTools.undashed())
+                Arg::new(undashed!(UserTools))
+                    .long(undashed!(UserTools))
                     .help(Msg::HelpUserTools.as_str_localized())
                     .hide(hide_tool_arg())
                     .action(ArgAction::SetTrue),
             );
 
-        self.tool_arg(
-            MuxConfigArg::Ffmpeg,
-            MuxConfigArg::FfmpegHelp,
-            Msg::HelpFfmpegHelp,
-        )
-        .tool_arg(
-            MuxConfigArg::Ffprobe,
-            MuxConfigArg::FfprobeHelp,
-            Msg::HelpFfprobeHelp,
-        )
-        .tool_arg(
-            MuxConfigArg::Mkvmerge,
-            MuxConfigArg::MkvmergeHelp,
-            Msg::HelpMkvmergeHelp,
-        )
+        for t in Tool::iter() {
+            self = self.tool_arg(t);
+        }
+
+        self
     }
 
     pub fn version(mut self) -> Self {
         self.0 = self.0.arg(
-            Arg::new(MuxConfigArg::Version.undashed())
+            Arg::new(undashed!(Version))
                 .short('V')
-                .long(MuxConfigArg::Version.undashed())
+                .long(undashed!(Version))
                 .help_heading(Msg::HelpOtherOptions.as_str_localized())
                 .help(Msg::HelpVersion.as_str_localized())
                 .action(ArgAction::SetTrue),
@@ -60,9 +50,9 @@ impl Blocks {
 
     pub fn help(mut self) -> Self {
         self.0 = self.0.arg(
-            Arg::new(MuxConfigArg::Help.undashed())
+            Arg::new(undashed!(Help))
                 .short('h')
-                .long(MuxConfigArg::Help.undashed())
+                .long(undashed!(Help))
                 .help_heading(Msg::HelpOtherOptions.as_str_localized())
                 .help(Msg::HelpHelp.as_str_localized())
                 .action(ArgAction::SetTrue),
@@ -73,24 +63,18 @@ impl Blocks {
 }
 
 impl Blocks {
-    fn tool_arg(mut self, long: MuxConfigArg, help_long: MuxConfigArg, help: Msg) -> Blocks {
-        self.0 = self
-            .0
-            .arg(
-                Arg::new(long.undashed())
-                    .long(long.undashed())
-                    .hide(true)
-                    .trailing_var_arg(true)
-                    .allow_hyphen_values(true)
-                    .num_args(..),
-            )
-            .arg(
-                Arg::new(help_long.undashed())
-                    .long(help_long.undashed())
-                    .help(help.as_str_localized())
-                    .hide(hide_tool_arg())
-                    .action(ArgAction::SetTrue),
-            );
+    fn tool_arg(mut self, tool: Tool) -> Blocks {
+        let arg = tool.as_cli_arg();
+        self.0 = self.0.arg(
+            Arg::new(arg.undashed())
+                .long(arg.undashed())
+                .value_name("options")
+                .help(Msg::RunCommand.as_str_localized())
+                .hide(hide_tool_arg())
+                .trailing_var_arg(true)
+                .allow_hyphen_values(true)
+                .num_args(..),
+        );
 
         self
     }

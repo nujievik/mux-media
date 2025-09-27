@@ -1,10 +1,10 @@
 use crate::{
-    ArcPathBuf, MediaInfo, MuxConfigArg, MuxCurrent, MuxError, Muxer, ParseableArg, ToMkvmergeArgs,
-    Tool, ToolOutput,
+    ArcPathBuf, MediaInfo, MuxCurrent, MuxError, Muxer, ToMkvmergeArgs, Tool, ToolOutput,
+    TrackOrder, dashed,
     i18n::logs,
     markers::{
         MCAudioTracks, MCChapters, MCDefaultTrackFlags, MCEnabledTrackFlags, MCFontAttachs,
-        MCForcedTrackFlags, MCSpecials, MCSubTracks, MCTrackLangs, MCTrackNames, MCVideoTracks,
+        MCForcedTrackFlags, MCRaws, MCSubTracks, MCTrackLangs, MCTrackNames, MCVideoTracks,
         MICmnExternalFonts, MICmnTrackOrder, MISubCharset, MITargets,
     },
 };
@@ -20,11 +20,10 @@ impl Muxer {
 
         if args.len() < 4 {
             logs::warn_not_out_change(out);
-            mi.clear_current();
             return MuxCurrent::Continue;
         }
 
-        args[0] = MuxConfigArg::Output.dashed().into();
+        args[0] = dashed!(Output).into();
         args[1] = OsString::from(out);
 
         mi.tools.run(Tool::Mkvmerge, &args).into()
@@ -33,8 +32,8 @@ impl Muxer {
 
 #[inline(always)]
 fn append_mkvmerge_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) {
-    let mut flag_args = match mi.try_to_mkvmerge_args_of_flags() {
-        Ok(flag_args) => flag_args,
+    let flag_args = match mi.try_to_mkvmerge_args_of_flags() {
+        Ok(args) => args,
         Err(e) => return fallback_append_mkvmerge_args(args, mi, e),
     };
 
@@ -43,30 +42,34 @@ fn append_mkvmerge_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) {
         Err(e) => return fallback_append_mkvmerge_args(args, mi, e),
     };
 
-    let is_retimed = order[0].is_retimed;
+    if order.iter().next().map_or(false, |m| m.retimed.is_none()) {
+        normal(args, mi, &order, flag_args);
+    } else {
+        retimed(args, mi, &order);
+    }
 
-    order.append_mkvmerge_args(args, mi, "".as_ref());
+    mi.set_cmn::<MICmnTrackOrder>(order);
 
-    order.iter_first_entries().for_each(|m| {
-        if is_retimed {
-            //args.append(&mut mem::take(&mut flag_args[m.number as usize]));
-            match &m.retimed {
-                Some(parts) => parts.iter().enumerate().for_each(|(i, p)| {
-                    if i > 0 {
-                        args.push("+".into());
-                    }
-                    args.push(p.into());
-                }),
-                None => args.push(m.media.as_path().into()),
-            }
-        } else {
+    fn normal(
+        args: &mut Vec<OsString>,
+        mi: &mut MediaInfo,
+        order: &TrackOrder,
+        mut flag_args: Vec<Vec<OsString>>,
+    ) {
+        order.append_mkvmerge_args(args, mi, "".as_ref());
+        order.iter_first_entries().for_each(|m| {
             append_target_args(args, mi, &m.media);
             args.append(&mut mem::take(&mut flag_args[m.number as usize]));
             args.push(m.media.as_path().into());
-        }
-    });
+        });
+    }
 
-    mi.set_cmn::<MICmnTrackOrder>(order);
+    fn retimed(args: &mut Vec<OsString>, mi: &mut MediaInfo, order: &TrackOrder) {
+        order.iter().for_each(|m| {
+            let rtm = m.retimed.as_ref().unwrap();
+            rtm.append_mkvmerge_args(args, mi, "".as_ref());
+        })
+    }
 }
 
 #[inline]
@@ -112,7 +115,7 @@ fn append_target_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, media: &Path
         args, mi, media;
         MCAudioTracks, MCSubTracks, MCVideoTracks,
         MCChapters, MCFontAttachs, MCTrackNames, MCTrackLangs,
-        MCSpecials
+        MCRaws
     );
 
     if !mi.auto_flags.charsets {

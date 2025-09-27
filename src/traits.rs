@@ -9,20 +9,6 @@ pub trait TryFinalizeInit {
     fn try_finalize_init(&mut self) -> Result<()>;
 }
 
-/// Associates a type with its parseable arguments.
-pub trait ParseableArgs {
-    type Arg: ParseableArg;
-}
-
-/// Represents a parseable argument.
-pub trait ParseableArg: Copy {
-    /// Returns argument with leading dashes (e.g. `"--output"`).
-    fn dashed(self) -> &'static str;
-
-    /// Returns argument without leading dashes (e.g. `"output"`).
-    fn undashed(self) -> &'static str;
-}
-
 /// Converts a [`MediaInfo`] value to ffmpeg-compatible arguments.
 pub trait ToFfmpegArgs {
     /// Attempts append arguments to the given `args` vector.

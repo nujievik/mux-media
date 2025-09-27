@@ -6,9 +6,9 @@ use std::collections::HashMap;
 /// Settings for track languages.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct TrackLangs {
-    unmapped: Option<LangCode>,
-    map_hashed: Option<HashMap<TrackID, LangCode>>,
-    map_unhashed: Option<Vec<(TrackID, LangCode)>>,
+    pub unmapped: Option<LangCode>,
+    pub map_hashed: Option<HashMap<TrackID, LangCode>>,
+    pub map_unhashed: Option<Vec<(TrackID, LangCode)>>,
 }
 
 impl TrackLangs {

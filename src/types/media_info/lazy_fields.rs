@@ -12,6 +12,7 @@ use std::{
     ffi::OsString,
     mem,
     path::{Path, PathBuf},
+    sync::Arc,
 };
 
 macro_rules! lazy_fields_methods {
@@ -539,10 +540,10 @@ macro_rules! lazy_path_num_fields {
 }
 
 lazy_fields!(
-    common, external_fonts, Vec<PathBuf>, build_external_fonts, "common" => MICmnExternalFonts;
+    common, external_fonts, Arc<Vec<PathBuf>>, build_external_fonts, "common" => MICmnExternalFonts;
 
     of_group, stem, OsString, build_stem, "stem-grouped media" => MICmnStem;
-    of_group, media_order, TrackOrder, build_media_order, "stem-grouped media" => MICmnTrackOrder;
+    of_group, track_order, TrackOrder, build_track_order, "stem-grouped media" => MICmnTrackOrder;
 );
 
 lazy_path_fields!(
@@ -559,6 +560,8 @@ lazy_path_fields!(
     target_group, TargetGroup, build_target_group => MITargetGroup;
     targets, Vec<Target>, build_targets => MITargets;
 
+    audio_duration, Duration, build_audio_duration => MIAudioDuration;
+    video_duration, Duration, build_video_duration => MIVideoDuration;
     playable_duration, Duration, build_playable_duration => MIPlayableDuration;
 
     tracks_info, HashMap<u64, CacheMIOfFileTrack>, build_tracks_info => MITracksInfo;

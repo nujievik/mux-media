@@ -73,7 +73,7 @@ impl ToJsonArgs for MuxConfig {
             enabled_track_flags,
             track_names,
             track_langs,
-            specials
+            raws
         );
 
         if let Some(targets) = &self.targets {
@@ -125,7 +125,7 @@ impl ToJsonArgs for MuxConfigTarget {
             enabled_track_flags,
             track_names,
             track_langs,
-            specials
+            raws
         );
     }
 }

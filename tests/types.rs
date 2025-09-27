@@ -9,6 +9,8 @@ mod auto_flags;
 mod chapters;
 #[path = "types/char_encoding.rs"]
 mod char_encoding;
+#[path = "types/cli_arg.rs"]
+mod cli_arg;
 #[path = "types/extensions.rs"]
 mod extensions;
 #[path = "types/input.rs"]
@@ -29,8 +31,8 @@ mod muxer;
 mod output;
 #[path = "types/range.rs"]
 mod range;
-#[path = "types/specials.rs"]
-mod specials;
+#[path = "types/raws.rs"]
+mod raws;
 #[path = "types/targets.rs"]
 mod targets;
 #[path = "types/tools.rs"]

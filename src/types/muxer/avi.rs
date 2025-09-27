@@ -16,7 +16,6 @@ impl Muxer {
 
         if args.len() < 3 {
             logs::warn_not_out_save_any(out);
-            mi.clear_current();
             return MuxCurrent::Continue;
         }
 

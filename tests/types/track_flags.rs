@@ -99,14 +99,6 @@ fn test_flag_type_iter() {
     }
 }
 
-fn_variants_of_args!(
-    "defaults" => vec!["--default-track-flags", "--default-tracks"],
-    "forceds" => vec!["--forced-display-flags", "--forced-tracks"],
-    "enableds" => vec!["track-enabled-flags"],
-    "on" => vec!["1", "true"],
-    "off" => vec!["0", "false"],
-);
-
 macro_rules! build_test_to_mvkmerge_args_fallback {
     ( $( $fn:ident, $mkvmerge_arg:expr, $arg:expr, $mc_field:ident );* ) => {
         $(
@@ -130,7 +122,6 @@ macro_rules! build_test_to_mvkmerge_args_fallback {
 
             compare_arg_cases!(
                 cases,
-                variants_of_args,
                 "sub_x8.mks",
                 $mc_field,
                 MITargets,

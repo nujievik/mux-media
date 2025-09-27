@@ -1,10 +1,10 @@
 use crate::{GlobSetPattern, IsDefault, ToJsonArgs, to_json_args};
 
+/// Retiming options.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct RetimingOptions {
     pub rm_segments: Option<GlobSetPattern>,
     pub no_linked: bool,
-    pub less_retiming: bool,
 }
 
 impl ToJsonArgs for RetimingOptions {
@@ -16,6 +16,6 @@ impl ToJsonArgs for RetimingOptions {
             }
         }
 
-        to_json_args!(@push_true, self, args; no_linked, NoLinked, less_retiming, LessRetiming);
+        to_json_args!(@push_true, self, args; no_linked, NoLinked);
     }
 }

@@ -17,20 +17,17 @@ fn test_empty() {
     let rtm = new(&[]);
     assert!(rtm.rm_segments.is_none());
     assert!(!rtm.no_linked);
-    assert!(!rtm.less);
 }
 
 #[test]
 fn test_args() {
     assert!(new(&["--rm-segments", "*.srt"]).rm_segments.is_some());
     assert!(new(&["--no-linked"]).no_linked);
-    assert!(new(&["--less-retiming"]).less);
 }
 
 crate::build_test_to_json_args!(
     test_to_json_args, retiming, "retiming";
     vec!["--no-linked"],
-    vec!["--less-retiming"],
     vec!["--rm-segments", "*.srt"],
-    vec!["--no-linked", "--less-retiming"]
+    vec!["--rm-segments", "*.srt", "--no-linked"],
 );

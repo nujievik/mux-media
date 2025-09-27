@@ -22,8 +22,8 @@ macro_rules! to_mkvmerge_args {
                 mi: &mut $crate::MediaInfo,
                 media: &std::path::Path,
             ) -> $crate::Result<()> {
+                use $crate::dashed;
                 use $crate::markers::{MISavedTracks, MITITrackIDs};
-                use $crate::{MuxConfigArg, ParseableArg};
 
                 let tracks = mi.try_take::<MISavedTracks>(media)?;
                 let add = mi.auto_flags.$add_marker;
@@ -49,7 +49,7 @@ macro_rules! to_mkvmerge_args {
                         None
                     })
                     .for_each(|val| {
-                        args.push(MuxConfigArg::$arg.dashed().into());
+                        args.push(dashed!($arg).into());
                         args.push(val.into());
                     });
 

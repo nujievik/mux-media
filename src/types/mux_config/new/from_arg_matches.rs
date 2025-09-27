@@ -1,17 +1,17 @@
 use super::super::{MuxConfig, MuxConfigTarget};
 use crate::{
-    AudioTracks, AutoFlags, Chapters, DefaultTrackFlags, EnabledTrackFlags, FontAttachs,
-    ForcedTrackFlags, GlobSetPattern, Input, LangCode, Msg, MuxConfigArg, MuxError,
-    OtherAttachs, Output, ParseableArg, RangeU64, RetimingOptions, Specials, SubTracks, Target,
-    TargetGroup, Tool, ToolPaths, Tools, TrackFlagType, TrackLangs, TrackNames, TryFinalizeInit,
-    Verbosity, VideoTracks, TrackFlags,
+    AudioTracks, AutoFlags, Chapters, CliArg, DefaultTrackFlags, EnabledTrackFlags, FontAttachs,
+    ForcedTrackFlags, GlobSetPattern, Input, LangCode, Msg, MuxError, OtherAttachs, Output,
+    RangeU64, Raws, RetimingOptions, SubTracks, Target, TargetGroup, Tool, ToolPaths, Tools,
+    TrackFlagType, TrackFlags, TrackLangs, TrackNames, TryFinalizeInit, Verbosity, VideoTracks,
+    undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use std::path::PathBuf;
 
 macro_rules! rm {
     ($matches:ident, $arg:ident, $ty:ty) => {
-        $matches.remove_one::<$ty>(MuxConfigArg::$arg.undashed())
+        $matches.remove_one::<$ty>(undashed!($arg))
     };
 }
 
@@ -22,7 +22,9 @@ macro_rules! rm_or {
 }
 
 macro_rules! flag {
-    ($matches:ident, $arg:ident) => { $matches.get_flag(MuxConfigArg::$arg.undashed()) };
+    ($matches:ident, $arg:ident) => {
+        $matches.get_flag(undashed!($arg))
+    };
 }
 
 macro_rules! get_tracks_or_attachs {
@@ -50,7 +52,10 @@ macro_rules! get_track_flags {
             val.0.lim_for_unset = lim;
             Some(val)
         } else if let Some(lim) = lim {
-            Some($ty( TrackFlags { lim_for_unset: Some(lim), ..Default::default() } ))
+            Some($ty(TrackFlags {
+                lim_for_unset: Some(lim),
+                ..Default::default()
+            }))
         } else {
             None
         }
@@ -106,7 +111,6 @@ macro_rules! upd_track_flags {
     }};
 }
 
-
 impl Parser for MuxConfig {}
 
 impl FromArgMatches for MuxConfig {
@@ -124,7 +128,7 @@ impl FromArgMatches for MuxConfig {
         tool_args(&m)?;
         let mut cfg = cfg(m, locale)?;
 
-        if m.contains_id(MuxConfigArg::Target.undashed()) {
+        if m.contains_id(undashed!(Target)) {
             cfg.update_from_arg_matches_mut(m)?;
         }
 
@@ -159,7 +163,7 @@ impl FromArgMatches for MuxConfig {
                 enabled_track_flags: track_flags!(m, Enableds, MaxEnableds, EnabledTrackFlags),
                 track_names: rm_or!(m, Names, TrackNames, TrackNames::default),
                 track_langs: rm_or!(m, Langs, TrackLangs, TrackLangs::default),
-                specials: rm_or!(m, Specials, Specials, Specials::default),
+                raws: rm_or!(m, Raws, Raws, Raws::default),
                 retiming: retiming(m),
                 targets: None,
                 tool_paths: tool_paths(m),
@@ -210,7 +214,6 @@ impl FromArgMatches for MuxConfig {
             RetimingOptions {
                 rm_segments: rm!(m, RmSegments, GlobSetPattern),
                 no_linked: flag!(m, NoLinked),
-                less_retiming: flag!(m, LessRetiming),
             }
         }
 
@@ -244,18 +247,36 @@ impl FromArgMatches for MuxConfig {
         upd_tracks_or_attachs!(self.font_attachs, m, Fonts, NoFonts, FontAttachs);
         upd_tracks_or_attachs!(self.other_attachs, m, Attachs, NoAttachs, OtherAttachs);
 
-        upd_track_flags!(self.default_track_flags, m, Defaults, MaxDefaults, DefaultTrackFlags);
-        upd_track_flags!(self.forced_track_flags, m, Forceds, MaxForceds, ForcedTrackFlags);
-        upd_track_flags!(self.enabled_track_flags, m, Enableds, MaxEnableds, EnabledTrackFlags);
+        upd_track_flags!(
+            self.default_track_flags,
+            m,
+            Defaults,
+            MaxDefaults,
+            DefaultTrackFlags
+        );
+        upd_track_flags!(
+            self.forced_track_flags,
+            m,
+            Forceds,
+            MaxForceds,
+            ForcedTrackFlags
+        );
+        upd_track_flags!(
+            self.enabled_track_flags,
+            m,
+            Enableds,
+            MaxEnableds,
+            EnabledTrackFlags
+        );
 
-        upd!(self.specials.0, m, Specials, Vec<String>, @opt);
+        upd!(self.raws.0, m, Raws, Vec<String>, @opt);
         retiming(self, m);
         upd_flag!(self.tool_paths.user_tools, m, UserTools);
 
         let mut m: &mut ArgMatches = m;
         let mut _owned_m: Option<ArgMatches> = None;
         let mut cmd: Option<Command> = None;
-        while let Some(mut t_args) = m.get_raw(MuxConfigArg::Target.undashed()) {
+        while let Some(mut t_args) = m.get_raw(undashed!(Target)) {
             // unwrap is safe: target require as min 1 argument.
             let t = t_args.next().unwrap();
             let t = match self.get_key(t) {
@@ -366,8 +387,6 @@ impl FromArgMatches for MuxConfig {
                 auto.charsets,
             );
 
-            return;
-
             fn val(arg: bool, no_arg: bool, pro: bool, old: bool) -> bool {
                 if arg {
                     true
@@ -382,13 +401,12 @@ impl FromArgMatches for MuxConfig {
         fn retiming(cfg: &mut MuxConfig, m: &mut ArgMatches) {
             upd!(cfg.retiming.rm_segments, m, RmSegments, GlobSetPattern, @opt);
             upd_flag!(cfg.retiming.no_linked, m, NoLinked);
-            upd_flag!(cfg.retiming.less_retiming, m, LessRetiming);
         }
     }
 }
 
 pub(super) fn get_locale(m: &ArgMatches) -> Option<LangCode> {
-    match m.get_one::<LangCode>(MuxConfigArg::Locale.undashed()) {
+    match m.get_one::<LangCode>(undashed!(Locale)) {
         Some(&l) => {
             Msg::upd_lang_or_warn(l);
             Some(l)
@@ -398,17 +416,17 @@ pub(super) fn get_locale(m: &ArgMatches) -> Option<LangCode> {
 }
 
 pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
-    arg(m, MuxConfigArg::ListTargets, Target::print_list_targets)?;
-    arg(m, MuxConfigArg::ListContainers, || {
+    arg(m, CliArg::ListTargets, Target::print_list_targets)?;
+    arg(m, CliArg::ListContainers, || {
         println!("{}", Msg::ListContainers)
     })?;
-    arg(m, MuxConfigArg::ListLangs, LangCode::print_list_langs)?;
+    arg(m, CliArg::ListLangs, LangCode::print_list_langs)?;
 
-    arg(m, MuxConfigArg::Version, || {
+    arg(m, CliArg::Version, || {
         let v = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
         println!("{}", v);
     })?;
-    arg(m, MuxConfigArg::Help, || {
+    arg(m, CliArg::Help, || {
         let mut cmd = MuxConfig::command();
         if let Err(_) = cmd.print_help() {
             println!("{}", cmd.render_help());
@@ -417,7 +435,7 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
 
     return Ok(());
 
-    fn arg<F>(m: &ArgMatches, arg: MuxConfigArg, print: F) -> Result<(), Error>
+    fn arg<F>(m: &ArgMatches, arg: CliArg, print: F) -> Result<(), Error>
     where
         F: FnOnce(),
     {
@@ -440,7 +458,7 @@ pub(super) fn tool_args(m: &ArgMatches) -> Result<(), Error> {
         let mut output = Output::try_from(&input)?;
         output.try_finalize_init()?;
 
-        let user_tools = m.get_flag(MuxConfigArg::UserTools.undashed());
+        let user_tools = m.get_flag(undashed!(UserTools));
         let paths = ToolPaths {
             user_tools,
             ..Default::default()
@@ -540,7 +558,7 @@ impl FromArgMatches for MuxConfigTarget {
             enabled_track_flags: get_track_flags!(m, Enableds, MaxEnableds, EnabledTrackFlags),
             track_names: rm!(m, Names, TrackNames),
             track_langs: rm!(m, Langs, TrackLangs),
-            specials: rm!(m, Specials, Specials),
+            raws: rm!(m, Raws, Raws),
         })
     }
 
@@ -553,13 +571,31 @@ impl FromArgMatches for MuxConfigTarget {
         trg_upd_tracks_or_attachs!(self.font_attachs, m, Fonts, NoFonts, FontAttachs);
         trg_upd_tracks_or_attachs!(self.other_attachs, m, Attachs, NoAttachs, OtherAttachs);
 
-        trg_upd_track_flags!(self.default_track_flags, m, Defaults, MaxDefaults, DefaultTrackFlags);
-        trg_upd_track_flags!(self.forced_track_flags, m, Forceds, MaxForceds, ForcedTrackFlags);
-        trg_upd_track_flags!(self.enabled_track_flags, m, Enableds, MaxEnableds, EnabledTrackFlags);
+        trg_upd_track_flags!(
+            self.default_track_flags,
+            m,
+            Defaults,
+            MaxDefaults,
+            DefaultTrackFlags
+        );
+        trg_upd_track_flags!(
+            self.forced_track_flags,
+            m,
+            Forceds,
+            MaxForceds,
+            ForcedTrackFlags
+        );
+        trg_upd_track_flags!(
+            self.enabled_track_flags,
+            m,
+            Enableds,
+            MaxEnableds,
+            EnabledTrackFlags
+        );
 
         upd!(self.track_names, m, Names, TrackNames, @opt);
         upd!(self.track_langs, m, Langs, TrackLangs, @opt);
-        upd!(self.specials, m, Specials, Specials, @opt);
+        upd!(self.raws, m, Raws, Raws, @opt);
 
         Ok(())
     }

@@ -1,5 +1,8 @@
 use super::Retiming;
-use crate::{Duration, MediaInfo, Result, Tool, Tools, markers::MITICodec, mux_err};
+use crate::{
+    Duration, MediaInfo, Result, Tool, Tools, TrackOrderItemRetimed, TrackType, markers::MITICodec,
+    mux_err,
+};
 use log::warn;
 use rsubs_lib::{SRT, SRTLine, SSA, SSAEvent, VTT, VTTLine};
 use std::{
@@ -12,7 +15,20 @@ use std::{
 use time::Time;
 
 impl Retiming<'_, '_> {
-    pub(crate) fn try_sub(&self, i: usize, src: &Path, track: u64) -> Result<Vec<PathBuf>> {
+    pub(crate) fn try_sub(
+        &self,
+        i: usize,
+        src: &Path,
+        track: u64,
+    ) -> Result<TrackOrderItemRetimed> {
+        if self.parts.len() == 1 && src == **self.base && self.parts[0].no_retiming {
+            return Ok(TrackOrderItemRetimed::new(
+                vec![src.into()],
+                true,
+                TrackType::Sub,
+            ));
+        }
+
         let fall = |dest: &mut PathBuf, ty, err| -> Result<()> {
             if matches!(ty, SubType::Srt) {
                 return Err(err);
@@ -54,7 +70,11 @@ impl Retiming<'_, '_> {
             dest
         };
 
-        Ok(vec![dest])
+        Ok(TrackOrderItemRetimed::new(
+            vec![dest],
+            false,
+            TrackType::Sub,
+        ))
     }
 }
 
@@ -82,7 +102,7 @@ impl Retiming<'_, '_> {
             .iter()
             .enumerate()
             .filter_map(|(i, p)| {
-                let src = self.src(p);
+                let src = p.src.as_path();
                 get_idxs_offset(self, &old[src], i).map(|(xs, t)| (src, xs, t))
             })
             .collect();
@@ -171,7 +191,7 @@ impl Retiming<'_, '_> {
         ) -> Result<HashMap<&'a Path, RSub>> {
             let mut map: HashMap<&Path, RSub> = HashMap::new();
             for p in rtm.parts.iter() {
-                let src = rtm.src(p);
+                let src = p.src.as_path();
                 if !map.contains_key(&src) {
                     let _ = fs::remove_file(dest);
                     try_extract(&rtm.tools, src, track, dest)?;

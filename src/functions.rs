@@ -123,7 +123,7 @@ pub fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
         return path;
     }
 
-    let mut prf_path = OsString::from("\\\\?\\");
+    let mut prf_path = std::ffi::OsString::from("\\\\?\\");
     prf_path.push(path.as_os_str());
     prf_path.into()
 }

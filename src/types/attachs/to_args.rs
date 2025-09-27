@@ -1,6 +1,6 @@
 use super::{Attachs, FontAttachs, OtherAttachs};
 use crate::{
-    AttachType, IsDefault, MediaInfo, MuxConfigArg, ParseableArg, Result, ToMkvmergeArgs, immut,
+    AttachType, IsDefault, MediaInfo, Result, ToMkvmergeArgs, dashed, immut,
     markers::{MCFontAttachs, MCOtherAttachs, MIAttachsInfo, MITargets},
     to_json_args,
 };
@@ -71,7 +71,7 @@ impl ToMkvmergeArgs for Attachs {
         let cnt = nums.len();
 
         if cnt == 0 {
-            args.push(MuxConfigArg::NoAttachments.dashed().into());
+            args.push(dashed!(NoAttachments).into());
             return Ok(());
         }
 
@@ -79,7 +79,7 @@ impl ToMkvmergeArgs for Attachs {
             return Ok(());
         }
 
-        args.push(MuxConfigArg::Attachments.dashed().into());
+        args.push(dashed!(Attachments).into());
         args.push(shortest_track_of_nums(nums, cnt, cnt_init).into());
 
         Ok(())

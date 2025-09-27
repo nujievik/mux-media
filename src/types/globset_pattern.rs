@@ -3,7 +3,7 @@ use globset::{Glob, GlobSet, GlobSetBuilder};
 use std::{ops::Deref, str::FromStr};
 
 /// A wrapper around [`GlobSet`] with its raw pattern string.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct GlobSetPattern {
     pub glob_set: GlobSet,
     pub raw: String,

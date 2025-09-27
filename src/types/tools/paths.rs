@@ -25,7 +25,7 @@ impl Deref for ToolPaths {
 
 impl IsDefault for ToolPaths {
     fn is_default(&self) -> bool {
-        self.map.values().all(|v| v.is_default())
+        self.user_tools.is_default() && self.map.values().all(|v| v.is_default())
     }
 }
 
@@ -56,7 +56,7 @@ impl ToolPaths {
             return Ok(());
         }
         let p = resolve(tool, temp_dir.as_ref(), self.user_tools)?;
-        self[tool].set(p).unwrap();
+        let _ = self[tool].set(p);
 
         Ok(())
     }
@@ -87,7 +87,7 @@ fn resolve(tool: Tool, temp_dir: &Path, user_tools: bool) -> Result<PathBuf> {
     #[cfg(windows)]
     {
         #[cfg(all(feature = "with_embedded_bins", target_arch = "x86_64"))]
-        if let Some(Some(path)) = !user_tools.then(|| get_bundled_path(tool, temp_dir)) {
+        if let Some(Some(path)) = (!user_tools).then(|| get_bundled_path(tool, temp_dir)) {
             return Ok(path);
         }
 

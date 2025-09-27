@@ -13,7 +13,7 @@ pub use functions::{ensure_long_path_prefix, ensure_trailing_sep, run};
 pub use i18n::Msg;
 
 pub use traits::{
-    Field, ParseableArg, ParseableArgs, ToFfmpegArgs, ToJsonArgs, ToMkvmergeArgs, TryFinalizeInit,
+    Field, ToFfmpegArgs, ToJsonArgs, ToMkvmergeArgs, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField, LazyPathNumField},
 };
 
@@ -23,6 +23,7 @@ pub use types::{
     auto_flags::AutoFlags,
     chapters::Chapters,
     char_encoding::{CharEncoding, SubCharset},
+    cli_arg::CliArg,
     duration::Duration,
     extensions::{EXTENSIONS, Extensions},
     file_type::FileType,
@@ -41,8 +42,8 @@ pub use types::{
     muxer::Muxer,
     output::Output,
     range::RangeU64,
+    raws::Raws,
     retiming::options::RetimingOptions,
-    specials::Specials,
     target::{Target, group::TargetGroup},
     tools::{Tools, output::ToolOutput, paths::ToolPaths, tool::Tool},
     track_flags::{
@@ -51,7 +52,7 @@ pub use types::{
     },
     track_langs::TrackLangs,
     track_names::TrackNames,
-    track_order::{TrackOrder, TrackOrderItem},
+    track_order::{TrackOrder, TrackOrderItem, TrackOrderItemRetimed},
     tracks::{AudioTracks, SubTracks, Tracks, VideoTracks, id::TrackID, track_type::TrackType},
     value::Value,
     verbosity::Verbosity,
@@ -69,8 +70,5 @@ pub use types::media_info::cache::{
 };
 
 pub(crate) use types::{
-    media_info::cache::{ExternalSegments, track::RawTrackCache},
-    mux_config::parseable_args::MuxConfigArg,
-    muxer::codecs::MUXER_CODECS,
-    retiming::Retiming,
+    media_info::cache::track::RawTrackCache, muxer::codecs::MUXER_CODECS, retiming::Retiming,
 };

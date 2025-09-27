@@ -1,6 +1,6 @@
-pub(crate) mod iters;
 mod default;
 mod finalize;
+pub(crate) mod iters;
 mod to_args;
 
 #[allow(unused_imports)]

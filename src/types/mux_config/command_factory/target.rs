@@ -1,8 +1,7 @@
 use super::{Blocks, val_parsers::ChaptersParser};
 use crate::{
     AudioTracks, DefaultTrackFlags, EnabledTrackFlags, FontAttachs, ForcedTrackFlags, Msg,
-    MuxConfigArg, OtherAttachs, ParseableArg, Specials, SubTracks, TrackLangs, TrackNames,
-    VideoTracks,
+    OtherAttachs, Raws, SubTracks, TrackLangs, TrackNames, VideoTracks, undashed,
 };
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
@@ -13,9 +12,9 @@ impl Blocks {
             .0
             .next_help_heading(Msg::HelpTargetOptions.as_str_localized())
             .arg(
-                Arg::new(MuxConfigArg::Target.undashed())
+                Arg::new(undashed!(Target))
                     .short('t')
-                    .long(MuxConfigArg::Target.undashed())
+                    .long(undashed!(Target))
                     .value_name("trg")
                     .help(Msg::HelpTargetHelp.as_str_localized())
                     .trailing_var_arg(true)
@@ -23,184 +22,176 @@ impl Blocks {
                     .num_args(1..),
             )
             .arg(
-                Arg::new(MuxConfigArg::ListTargets.undashed())
-                    .long(MuxConfigArg::ListTargets.undashed())
+                Arg::new(undashed!(ListTargets))
+                    .long(undashed!(ListTargets))
                     .help(Msg::HelpListTargets.as_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(MuxConfigArg::Audio.undashed())
+                Arg::new(undashed!(Audio))
                     .short('a')
-                    .long(MuxConfigArg::Audio.undashed())
-                    .aliases(&["audio-tracks", "atracks"])
+                    .long(undashed!(Audio))
+                    .alias(undashed!(AudioTracks))
                     .value_name("[!]n[,m]...")
                     .help(Msg::HelpAudio.as_str_localized())
                     .value_parser(ValueParser::new(AudioTracks::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::NoAudio.undashed())
+                Arg::new(undashed!(NoAudio))
                     .short('A')
-                    .long(MuxConfigArg::NoAudio.undashed())
-                    .alias("noaudio")
+                    .long(undashed!(NoAudio))
                     .help(Msg::HelpNoAudio.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(MuxConfigArg::Audio.undashed()),
+                    .conflicts_with(undashed!(Audio)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Subs.undashed())
+                Arg::new(undashed!(Subs))
                     .short('s')
-                    .long(MuxConfigArg::Subs.undashed())
-                    .aliases(&["subtitle-tracks", "subtitles", "sub-tracks", "stracks"])
+                    .long(undashed!(Subs))
+                    .alias(undashed!(SubtitleTracks))
                     .value_name("[!]n[,m]...")
                     .help(Msg::HelpSubs.as_str_localized())
                     .value_parser(ValueParser::new(SubTracks::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::NoSubs.undashed())
+                Arg::new(undashed!(NoSubs))
                     .short('S')
-                    .long(MuxConfigArg::NoSubs.undashed())
-                    .aliases(&["no-subtitles", "nosubtitles", "nosubs"])
+                    .long(undashed!(NoSubs))
+                    .alias(undashed!(NoSubtitles))
                     .help(Msg::HelpNoSubs.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(MuxConfigArg::Subs.undashed()),
+                    .conflicts_with(undashed!(Subs)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Video.undashed())
+                Arg::new(undashed!(Video))
                     .short('d')
-                    .long(MuxConfigArg::Video.undashed())
-                    .aliases(&["video-tracks", "vtracks"])
+                    .long(undashed!(Video))
+                    .alias(undashed!(VideoTracks))
                     .value_name("[!]n[,m]...")
                     .help(Msg::HelpVideo.as_str_localized())
                     .value_parser(ValueParser::new(VideoTracks::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::NoVideo.undashed())
+                Arg::new(undashed!(NoVideo))
                     .short('D')
-                    .long(MuxConfigArg::NoVideo.undashed())
-                    .alias("novideo")
+                    .long(undashed!(NoVideo))
                     .help(Msg::HelpNoVideo.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(MuxConfigArg::Video.undashed()),
+                    .conflicts_with(undashed!(Video)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Chapters.undashed())
+                Arg::new(undashed!(Chapters))
                     .short('c')
-                    .long(MuxConfigArg::Chapters.undashed())
+                    .long(undashed!(Chapters))
                     .value_name("file")
                     .help(Msg::HelpChapters.as_str_localized())
                     .value_parser(ValueParser::new(ChaptersParser)),
             )
             .arg(
-                Arg::new(MuxConfigArg::NoChapters.undashed())
+                Arg::new(undashed!(NoChapters))
                     .short('C')
-                    .long(MuxConfigArg::NoChapters.undashed())
+                    .long(undashed!(NoChapters))
                     .help(Msg::HelpNoChapters.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(MuxConfigArg::Chapters.undashed()),
+                    .conflicts_with(undashed!(Chapters)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Fonts.undashed())
+                Arg::new(undashed!(Fonts))
                     .short('f')
-                    .long(MuxConfigArg::Fonts.undashed())
+                    .long(undashed!(Fonts))
                     .value_name("[!]n[,m]...")
                     .help(Msg::HelpFonts.as_str_localized())
                     .value_parser(ValueParser::new(FontAttachs::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::NoFonts.undashed())
+                Arg::new(undashed!(NoFonts))
                     .short('F')
-                    .long(MuxConfigArg::NoFonts.undashed())
-                    .alias("nofonts")
+                    .long(undashed!(NoFonts))
                     .help(Msg::HelpNoFonts.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(MuxConfigArg::Fonts.undashed()),
+                    .conflicts_with(undashed!(Fonts)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Attachs.undashed())
+                Arg::new(undashed!(Attachs))
                     .short('m')
-                    .long(MuxConfigArg::Attachs.undashed())
-                    .alias("attachments")
+                    .long(undashed!(Attachs))
+                    .alias(undashed!(Attachments))
                     .value_name("[!]n[,m]...")
                     .help(Msg::HelpAttachs.as_str_localized())
                     .value_parser(ValueParser::new(OtherAttachs::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::NoAttachs.undashed())
+                Arg::new(undashed!(NoAttachs))
                     .short('M')
-                    .long(MuxConfigArg::NoAttachs.undashed())
-                    .aliases(&["no-attachments", "noattachments", "noattachs"])
+                    .long(undashed!(NoAttachs))
+                    .alias(undashed!(NoAttachments))
                     .help(Msg::HelpNoAttachs.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(MuxConfigArg::Attachs.undashed()),
+                    .conflicts_with(undashed!(Attachs)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Defaults.undashed())
-                    .long(MuxConfigArg::Defaults.undashed())
-                    .aliases(&["default-track-flags", "default-tracks"])
+                Arg::new(undashed!(Defaults))
+                    .long(undashed!(Defaults))
                     .value_name("[n:]B[,m:B]...")
                     .help(Msg::HelpDefaults.as_str_localized())
                     .value_parser(ValueParser::new(DefaultTrackFlags::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::MaxDefaults.undashed())
-                    .long(MuxConfigArg::MaxDefaults.undashed())
+                Arg::new(undashed!(MaxDefaults))
+                    .long(undashed!(MaxDefaults))
                     .value_name("n")
                     .help(Msg::HelpMaxDefaults.as_str_localized())
                     .value_parser(clap::value_parser!(u64)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Forceds.undashed())
-                    .long(MuxConfigArg::Forceds.undashed())
-                    .aliases(&["forced-display-flags", "forced-tracks"])
+                Arg::new(undashed!(Forceds))
+                    .long(undashed!(Forceds))
                     .value_name("[n:]B[,m:B]...")
                     .help(Msg::HelpForceds.as_str_localized())
                     .value_parser(ValueParser::new(ForcedTrackFlags::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::MaxForceds.undashed())
-                    .long(MuxConfigArg::MaxForceds.undashed())
+                Arg::new(undashed!(MaxForceds))
+                    .long(undashed!(MaxForceds))
                     .value_name("n")
                     .help(Msg::HelpMaxForceds.as_str_localized())
                     .value_parser(clap::value_parser!(u64)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Enableds.undashed())
-                    .long(MuxConfigArg::Enableds.undashed())
-                    .alias("track-enabled-flags")
+                Arg::new(undashed!(Enableds))
+                    .long(undashed!(Enableds))
                     .value_name("[n:]B[,m:B]...")
                     .help(Msg::HelpEnableds.as_str_localized())
                     .value_parser(ValueParser::new(EnabledTrackFlags::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::MaxEnableds.undashed())
-                    .long(MuxConfigArg::MaxEnableds.undashed())
+                Arg::new(undashed!(MaxEnableds))
+                    .long(undashed!(MaxEnableds))
                     .value_name("n")
                     .help(Msg::HelpMaxEnableds.as_str_localized())
                     .value_parser(clap::value_parser!(u64)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Names.undashed())
-                    .long(MuxConfigArg::Names.undashed())
-                    .alias("track-names")
+                Arg::new(undashed!(Names))
+                    .long(undashed!(Names))
                     .value_name("[n:]N[,m:N]...")
                     .help(Msg::HelpNames.as_str_localized())
                     .value_parser(ValueParser::new(TrackNames::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Langs.undashed())
-                    .long(MuxConfigArg::Langs.undashed())
-                    .alias("languages")
+                Arg::new(undashed!(Langs))
+                    .long(undashed!(Langs))
                     .value_name("[n:]L[,m:L]...")
                     .help(Msg::HelpLangs.as_str_localized())
                     .value_parser(ValueParser::new(TrackLangs::from_str)),
             )
             .arg(
-                Arg::new(MuxConfigArg::Specials.undashed())
-                    .long(MuxConfigArg::Specials.undashed())
+                Arg::new(undashed!(Raws))
+                    .long(undashed!(Raws))
                     .value_name("\"n[ m]...\"")
                     .allow_hyphen_values(true)
-                    .help(Msg::HelpSpecials.as_str_localized())
-                    .value_parser(ValueParser::new(Specials::from_str)),
+                    .help(Msg::HelpRaws.as_str_localized())
+                    .value_parser(ValueParser::new(Raws::from_str)),
             );
 
         self

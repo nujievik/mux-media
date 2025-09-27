@@ -8,13 +8,7 @@ use crate::{
 use attach::CacheMIOfFileAttach;
 use enum_map::EnumMap;
 use matroska::Matroska;
-use std::{
-    collections::{HashMap, HashSet},
-    ffi::OsString,
-    mem,
-    path::PathBuf,
-    sync::{Arc, RwLock},
-};
+use std::{collections::HashMap, ffi::OsString, mem, path::PathBuf, sync::Arc};
 use track::CacheMIOfFileTrack;
 
 /// A state of cache field.
@@ -37,16 +31,14 @@ pub struct CacheMI {
 /// Cache of [`MediaInfo`](crate::MediaInfo) is common for all.
 #[derive(Clone, Debug, Default, IsDefault)]
 pub struct CacheMICommon {
-    pub external_segments: Arc<RwLock<ExternalSegments>>,
-    //pub fonts = Arc<RwLock>
-    pub external_fonts: CacheState<Vec<PathBuf>>,
+    pub external_fonts: CacheState<Arc<Vec<PathBuf>>>,
 }
 
 /// Cache of [`MediaInfo`](crate::MediaInfo) common for stem-grouped media.
 #[derive(Clone, Debug, Default, IsDefault)]
 pub struct CacheMIOfGroup {
     pub stem: CacheState<OsString>,
-    pub media_order: CacheState<TrackOrder>,
+    pub track_order: CacheState<TrackOrder>,
 }
 
 /// Cache of [`MediaInfo`](crate::MediaInfo) is separate for each media.
@@ -65,16 +57,12 @@ pub struct CacheMIOfFile {
     pub target_group: CacheState<TargetGroup>,
     pub targets: CacheState<Vec<Target>>,
 
+    pub audio_duration: CacheState<Duration>,
+    pub video_duration: CacheState<Duration>,
     pub playable_duration: CacheState<Duration>,
 
     pub tracks_info: CacheState<HashMap<u64, CacheMIOfFileTrack>>,
     pub attachs_info: CacheState<HashMap<u64, CacheMIOfFileAttach>>,
-}
-
-#[derive(Clone, Debug, Default, IsDefault)]
-pub struct ExternalSegments {
-    pub map: HashMap<Box<[u8]>, ArcPathBuf>,
-    pub dir_set: HashSet<PathBuf>,
 }
 
 impl<T> CacheState<T> {

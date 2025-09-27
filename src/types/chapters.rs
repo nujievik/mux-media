@@ -1,7 +1,4 @@
-use crate::{
-    IsDefault, MediaInfo, MuxConfigArg, MuxError, ParseableArg, ToJsonArgs, ToMkvmergeArgs,
-    to_json_args, types::helpers,
-};
+use crate::{IsDefault, MediaInfo, MuxError, ToJsonArgs, ToMkvmergeArgs, dashed, types::helpers};
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
@@ -51,12 +48,12 @@ impl ToMkvmergeArgs for Chapters {
         }
 
         if self.no_flag {
-            args.push(MuxConfigArg::NoChapters.dashed().into());
+            args.push(dashed!(NoChapters).into());
             return Ok(());
         }
 
         if let Some(f) = &self.file {
-            args.push(MuxConfigArg::Chapters.dashed().into());
+            args.push(dashed!(Chapters).into());
             args.push(f.into());
         }
 
@@ -67,12 +64,12 @@ impl ToMkvmergeArgs for Chapters {
 impl ToJsonArgs for Chapters {
     fn append_json_args(&self, args: &mut Vec<String>) {
         if self.no_flag {
-            args.push(to_json_args!(NoChapters));
+            args.push(dashed!(NoChapters).into());
             return;
         }
 
         if let Some(s) = self.file.as_ref().and_then(|f| f.to_str()) {
-            args.push(to_json_args!(Chapters));
+            args.push(dashed!(Chapters).into());
             args.push(s.to_owned());
         }
     }

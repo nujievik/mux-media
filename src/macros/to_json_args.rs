@@ -1,10 +1,9 @@
 #[doc(hidden)]
 #[macro_export]
 macro_rules! to_json_args {
-    ($arg:ident) => {{
-        use $crate::{MuxConfigArg, ParseableArg};
-        MuxConfigArg::$arg.dashed().to_owned()
-    }};
+    ($arg:ident) => {
+        $crate::dashed!($arg).to_owned()
+    };
 
     (@push_true, $self:ident, $args:ident; $( $field:ident, $arg:ident ),*) => {{
         $(

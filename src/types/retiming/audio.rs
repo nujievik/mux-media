@@ -1,14 +1,25 @@
 use super::Retiming;
-use crate::{Duration, Result, TrackType};
+use crate::{Duration, Result, TrackOrderItemRetimed, TrackType};
 use std::path::{Path, PathBuf};
 
 impl Retiming<'_, '_> {
-    pub(crate) fn try_audio(&self, i: usize, src: &Path, track: u64) -> Result<Vec<PathBuf>> {
-        if src == **self.base {
+    pub(crate) fn try_audio(
+        &self,
+        i: usize,
+        src: &Path,
+        track: u64,
+    ) -> Result<TrackOrderItemRetimed> {
+        let parts = if src == **self.base {
             self.try_base_audio(track)
         } else {
             self.try_external_audio(i, src, track)
-        }
+        }?;
+
+        Ok(TrackOrderItemRetimed {
+            no_retiming: vec![false; parts.len()],
+            parts,
+            ty: TrackType::Audio,
+        })
     }
 
     fn try_base_audio(&self, track: u64) -> Result<Vec<PathBuf>> {
@@ -19,7 +30,6 @@ impl Retiming<'_, '_> {
             .iter()
             .enumerate()
             .map(|(i, p)| {
-                let src = self.src(p);
                 let dest = self
                     .temp_dir
                     .join(format!("{}-aud-base-{}-{}.mka", self.thread, track, i));
@@ -30,7 +40,7 @@ impl Retiming<'_, '_> {
                 };
                 let end = p.end;
 
-                let dur = self.try_split_audio(src, track, &dest, start, end)?;
+                let dur = self.try_split_audio(&p.src, track, &dest, start, end)?;
                 len_offset += p.end.as_secs_f64() - p.start.as_secs_f64() - dur;
 
                 Ok(dest)
