@@ -1,4 +1,4 @@
-name: Push and pull request Tests
+name: Cargo Build & Test
 
 on:
   push:
@@ -6,86 +6,60 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  test-linux:
-    name: Test and Build on Ubuntu
-    runs-on: ubuntu-latest
+  build_and_test:
+    name: Rust project - latest
+    runs-on: ${{ matrix.os }}
 
-    env:
-      TARGET: x86_64-unknown-linux-gnu
+    strategy:
+      matrix:
+        toolchain: [stable, beta, nightly]
+        include:
+          # Linux
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: ubuntu-latest
+            target: i686-unknown-linux-gnu
+
+          # Windows
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+
+          # macOS
+          - os: macos-latest
+            target: x86_64-apple-darwin
+          - os: macos-latest
+            target: aarch64-apple-darwin
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install mkvtoolnix & FFmpeg
+      - name: Install mkvtoolnix & FFmpeg (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y mkvtoolnix ffmpeg
-          mkvmerge -V
-          ffmpeg -h
 
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Test
-        run: cargo test --target ${{ env.TARGET }}
-
-      - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Release Test
-        run: cargo test --release --target ${{ env.TARGET }}
-
-  test-linux-32bit:
-    name: Test and Build on Ubuntu (32-bit)
-    runs-on: ubuntu-latest
-
-    env:
-      TARGET: i686-unknown-linux-gnu
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install mkvtoolnix & FFmpeg
+      - name: Install mkvtoolnix (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
         run: |
-          sudo apt-get update
-          sudo apt-get install -y mkvtoolnix ffmpeg
-          mkvmerge -V
-          ffmpeg -h
+          choco install mkvtoolnix -y
+          "C:\Program Files\MKVToolNix" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Install 32-bit dependencies
-        run: |
-          sudo apt-get install -y gcc-multilib
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Test
-        run: cargo test --target ${{ env.TARGET }}
-
-      - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Release Test
-        run: cargo test --release --target ${{ env.TARGET }}
-
-  test-windows:
-    name: Test and Build on Windows
-    runs-on: windows-latest
-
-    env:
-      TARGET: x86_64-pc-windows-msvc
-    
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install ffmpeg (gyan.dev build)
+      - name: Install FFmpeg (Windows 64-bit)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: pwsh
         run: |
           $url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
           $archive = "$env:RUNNER_TEMP\\ffmpeg.7z"
           $extractPath = "$env:RUNNER_TEMP\\ffmpeg"
-          
+
           Invoke-WebRequest -Uri $url -OutFile $archive
 
           if (-Not (Test-Path $extractPath)) {
@@ -108,157 +82,59 @@ jobs:
             exit 1
           }
 
-          $ffmpegBin = Join-Path $ffmpegDir.FullName "bin"
+          $binPath = Join-Path $ffmpegDir.FullName "bin"
+          Write-Host "Adding ffmpeg/ffprobe bin path: $binPath"
+          echo $binPath | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-          Write-Host "Adding ffmpeg bin path: $ffmpegBin"
-          echo $ffmpegBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: Check ffmpeg
-        run: ffmpeg -h
-
-      - name: Install mkvtoolnix
+      - name: Install FFmpeg (Windows 32-bit)
+        if: matrix.target == 'i686-pc-windows-msvc'
         shell: powershell
+        run: choco install ffmpeg -y
+
+      - name: Install mkvtoolnix & FFmpeg (macOS)
+        if: matrix.os == 'macos-latest'
+        run: brew install mkvtoolnix ffmpeg
+
+      - name: Check installed mkvtoolnix & FFmpeg
         run: |
-          choco install mkvtoolnix -y
-          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
+          mkvmerge -V
+          ffmpeg -h
+          ffprobe -h
 
-      - name: Check mkvmerge
-        run: mkvmerge -V
+      - name: Install 32-bit dependencies (Linux)
+        if: matrix.target == 'i686-unknown-linux-gnu'
+        run: sudo apt-get install -y gcc-multilib
 
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
+      - name: Update Rust
+        run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
 
-      - name: Test
-        run: cargo test --target ${{ env.TARGET }}
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
 
       - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
+        run: cargo build --verbose --target ${{ matrix.target }}
 
-      - name: Release Test
-        run: cargo test --release --target ${{ env.TARGET }}
+      - name: Test
+        run: cargo test --verbose --target ${{ matrix.target }}
 
-      - name: Test with_embedded_bins
-        run: cargo test --target ${{ env.TARGET }} --features with_embedded_bins
+      - name: Build Release
+        run: cargo build --verbose --release --target ${{ matrix.target }}
+
+      - name: Test Release
+        run: cargo test --verbose --release --target ${{ matrix.target }}
 
       - name: Build with_embedded_bins
-        run: cargo build --release --target ${{ env.TARGET }} --features with_embedded_bins
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo build --verbose --features with_embedded_bins --target ${{ matrix.target }}
 
-      - name: Release Test with_embedded_bins
-        run: cargo test --release --target ${{ env.TARGET }} --features with_embedded_bins
+      - name: Test with_embedded_bins
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo test --verbose --features with_embedded_bins --target ${{ matrix.target }}
 
-  test-windows-32bit:
-    name: Test and Build on Windows (32-bit)
-    runs-on: windows-latest
+      - name: Build Release with_embedded_bins
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo build --verbose --release --features with_embedded_bins --target ${{ matrix.target }}
 
-    env:
-      TARGET: i686-pc-windows-msvc
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install mkvtoolnix
-        shell: powershell
-        run: |
-          choco install mkvtoolnix -y
-          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
-
-      - name: Check mkvmerge
-        run: mkvmerge -V
-
-      - name: Install ffmpeg
-        shell: powershell
-        run: |
-          choco install ffmpeg -y
-
-      - name: Check ffmpeg
-        run: ffmpeg -h
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Test
-        run: cargo test --target ${{ env.TARGET }}
-
-      - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Release Test
-        run: cargo test --release --target ${{ env.TARGET }}
-
-  test-macos:
-    name: Test and Build on macOS
-    runs-on: macos-latest
-
-    env:
-      TARGET: aarch64-apple-darwin
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Ensure Homebrew is installed
-        run: |
-          if ! command -v brew &>/dev/null; then
-            echo "Homebrew not found. Installing..."
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-          else
-            echo "Homebrew is already installed."
-          fi
-
-      - name: Install mkvtoolnix & FFmpeg
-        run: |
-          brew install mkvtoolnix ffmpeg
-          mkvmerge -V
-          ffmpeg -h
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Test
-        run: cargo test --target ${{ env.TARGET }}
-
-      - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Release Test
-        run: cargo test --release --target ${{ env.TARGET }}
-
-  test-macos-x64:
-    name: Test and Build on macOS (x86_64)
-    runs-on: macos-latest
-
-    env:
-      TARGET: x86_64-apple-darwin
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Ensure Homebrew is installed
-        run: |
-          if ! command -v brew &>/dev/null; then
-            echo "Homebrew not found. Installing..."
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> "$HOME/.zprofile"
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-          else
-            echo "Homebrew is already installed."
-          fi
-
-      - name: Install mkvtoolnix & FFmpeg
-        run: |
-          brew install mkvtoolnix ffmpeg
-          mkvmerge -V
-          ffmpeg -h
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Test
-        run: cargo test --target ${{ env.TARGET }}
-
-      - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Release Test
-        run: cargo test --release --target ${{ env.TARGET }}
+      - name: Test Release with_embedded_bins
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        run: cargo test --verbose --release --features with_embedded_bins --target ${{ matrix.target }}
