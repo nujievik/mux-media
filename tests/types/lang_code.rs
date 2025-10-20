@@ -44,6 +44,6 @@ fn test_from_slice_string() {
 
 #[test]
 fn test_multiple_ok_slice() {
-    assert!(LangCode::Eng == slice(&["und", "alb", "alu", "eng", "kud"]));
-    assert!(LangCode::Rus == slice(&["und", "rus", "alu", "eng", "kud"]));
+    assert_eq!(LangCode::Eng, slice(&["und", "eng", "kud"]));
+    assert_eq!(LangCode::Rus, slice(&["und", "rus", "eng", "kud"]));
 }

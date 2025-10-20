@@ -1,6 +1,6 @@
 use super::{TrackOrder, TrackOrderItem};
 use crate::{
-    ArcPathBuf, LangCode, MediaInfo, MuxError, Result, Retiming, TrackType, immut, IsDefault,
+    ArcPathBuf, IsDefault, LangCode, MediaInfo, MuxError, Result, Retiming, TrackType, immut,
     markers::{
         MCDefaultTrackFlags, MCEnabledTrackFlags, MCForcedTrackFlags, MISavedTracks, MITIItSigns,
         MITITrackIDs, MITargets,

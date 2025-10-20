@@ -34,6 +34,7 @@ crate::impl_msg_as_localized_str!(
     HelpLangs => "Set track languages",
     HelpListContainers => "Show supported output containers",
     HelpListLangs => "Show supported language codes",
+    HelpListLangsFull => "Show full supported language codes",
     HelpListTargets => "Show supported targets",
     HelpLocale => "Locale language (for logging and sort)",
     HelpMaxDefaults => "Max auto-enabled default-track-flags",

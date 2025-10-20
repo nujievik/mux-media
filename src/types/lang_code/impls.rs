@@ -1,6 +1,8 @@
 use super::{
-    LangCode, list_langs::LIST_LANGS, map_from_str::MAP_FROM_STR,
-    set_multiple_priority::SET_MULTIPLE_PRIORITY,
+    LangCode,
+    has_duo_code::has_duo_code,
+    list_langs::{LIST_LANGS, LIST_LANGS_REMAINDER},
+    map_from_str::MAP_FROM_STR,
 };
 use crate::{IsDefault, MuxError, TrackID};
 use std::{env, fmt, str::FromStr};
@@ -8,13 +10,23 @@ use std::{env, fmt, str::FromStr};
 impl LangCode {
     /// Returns [`LangCode`] parsed from the system locale if successful;
     /// otherwise, returns [`LangCode::Und`] (undeterminated).
-    pub fn init() -> Self {
+    pub(crate) fn init() -> Self {
         Self::try_from_system_locale().unwrap_or(Self::Und)
     }
 
     /// Prints the list of supported language codes to stdout.
-    pub fn print_list_langs() {
+    pub(crate) fn print_list_langs() {
         println!("{}", LIST_LANGS)
+    }
+
+    /// Prints the full list of supported language codes to stdout.
+    pub(crate) fn print_list_langs_full() {
+        println!("{}", LIST_LANGS);
+        println!("{}", LIST_LANGS_REMAINDER)
+    }
+
+    pub(crate) fn has_duo_code(self) -> bool {
+        has_duo_code(self)
     }
 
     pub(crate) fn try_priority(slice: &[String]) -> Result<Self, MuxError> {
@@ -22,9 +34,7 @@ impl LangCode {
             .iter()
             .find_map(|s| {
                 let s = s.to_lowercase();
-                s.parse::<Self>()
-                    .ok()
-                    .filter(|lang| SET_MULTIPLE_PRIORITY.contains(&lang))
+                s.parse::<Self>().ok().filter(|&l| l.has_duo_code())
             })
             .ok_or_else(|| "Not found a priority language".into())
     }
@@ -77,16 +87,16 @@ impl TryFrom<&[String]> for LangCode {
         for s in slice {
             let s = s.to_lowercase();
 
-            if let Ok(code) = s.parse::<Self>() {
-                if SET_MULTIPLE_PRIORITY.contains(&code) {
-                    return Ok(code);
+            if let Ok(lang) = s.parse::<Self>() {
+                if lang.has_duo_code() {
+                    return Ok(lang);
                 }
 
-                unpriority = Some(code);
+                unpriority = Some(lang);
             }
         }
 
-        unpriority.ok_or("Not found any language code".into())
+        unpriority.ok_or_else(|| "Not found any language code".into())
     }
 }
 

@@ -421,6 +421,7 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
         println!("{}", Msg::ListContainers)
     })?;
     arg(m, CliArg::ListLangs, LangCode::print_list_langs)?;
+    arg(m, CliArg::ListLangsFull, LangCode::print_list_langs_full)?;
 
     arg(m, CliArg::Version, || {
         let v = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));

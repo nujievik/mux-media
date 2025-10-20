@@ -45,6 +45,7 @@ fn test_ok_exit() {
         "--list-targets",
         "--list-containers",
         "--list-langs",
+        "--list-langs-full",
     ]
     .iter()
     .for_each(|arg| {

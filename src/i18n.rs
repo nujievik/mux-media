@@ -41,6 +41,7 @@ pub enum Msg {
     HelpLangs,
     HelpListContainers,
     HelpListLangs,
+    HelpListLangsFull,
     HelpListTargets,
     HelpLocale,
     HelpMaxDefaults,

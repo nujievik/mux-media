@@ -1,4 +1,4 @@
-use crate::{IsDefault, MuxConfig, Muxer, Msg, Output, Result, Tool, TryFinalizeInit, MuxLogger};
+use crate::{IsDefault, Msg, MuxConfig, MuxLogger, Muxer, Output, Result, Tool, TryFinalizeInit};
 
 impl TryFinalizeInit for MuxConfig {
     fn try_finalize_init(&mut self) -> Result<()> {

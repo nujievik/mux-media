@@ -34,6 +34,7 @@ crate::impl_msg_as_localized_str!(
     HelpLangs => "Установить языки дорожек",
     HelpListContainers => "Показать поддерживаемые выходные контейнеры",
     HelpListLangs => "Показать поддерживаемые языковые коды",
+    HelpListLangsFull => "Показать все поддерживаемые языковые коды",
     HelpListTargets => "Показать поддерживаемые цели",
     HelpLocale => "Язык локали (для логирования и сортировки)",
     HelpMaxDefaults => "Максимум включаемых в авто default флагов",

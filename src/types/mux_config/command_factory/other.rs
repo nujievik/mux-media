@@ -21,6 +21,12 @@ impl Blocks {
                     .action(ArgAction::SetTrue),
             )
             .arg(
+                Arg::new(undashed!(ListLangsFull))
+                    .long(undashed!(ListLangsFull))
+                    .help(Msg::HelpListLangsFull.as_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
                 Arg::new(undashed!(UserTools))
                     .long(undashed!(UserTools))
                     .help(Msg::HelpUserTools.as_str_localized())
