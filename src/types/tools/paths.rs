@@ -141,7 +141,6 @@ fn get_bundled_path(tool: Tool, temp_dir: &Path) -> Option<PathBuf> {
 
     let bytes = match tool {
         Tool::Ffmpeg => FFMPEG_BUNDLED,
-        Tool::Ffprobe => FFPROBE_BUNDLED,
         Tool::Mkvmerge => MKVMERGE_BUNDLED,
     };
 
@@ -158,5 +157,4 @@ macro_rules! embed_tool_bin {
 }
 
 embed_tool_bin!(FFMPEG_BUNDLED, "/assets/win64/ffmpeg.exe");
-embed_tool_bin!(FFPROBE_BUNDLED, "/assets/win64/ffprobe.exe");
 embed_tool_bin!(MKVMERGE_BUNDLED, "/assets/win64/mkvmerge.exe");

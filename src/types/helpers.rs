@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::{Result, TrackType, ffmpeg};
 use std::{
     ffi::{OsStr, OsString},
     fs::{File, canonicalize},
@@ -62,11 +62,31 @@ pub(crate) fn os_str_tail(prefix: &OsStr, longer: &OsStr) -> Result<OsString> {
         return Ok(OsString::new());
     }
 
+    let bytes = &longer_b[prefix_len..];
     // Safety: `bytes` is a suffix of `longer_b`, which was originally obtained from a valid `OsStr`.
     // Since `prefix_b` is a valid prefix, the remaining bytes (`bytes`) are also guaranteed
     // to form a valid `OsStr` on this platform.
-    unsafe {
-        let bytes = &longer_b[prefix_len..];
-        Ok(OsStr::from_encoded_bytes_unchecked(bytes).into())
-    }
+    unsafe { Ok(OsStr::from_encoded_bytes_unchecked(bytes).into()) }
+}
+
+pub(crate) fn try_ffmpeg_opened(
+    ty: TrackType,
+    stream: &ffmpeg::Stream,
+) -> Result<ffmpeg::decoder::Opened> {
+    let d = ffmpeg::codec::context::Context::from_parameters(stream.parameters())?.decoder();
+
+    let d = if matches!(ty, TrackType::Audio) {
+        d.audio()?.0
+    } else {
+        d.video()?.0
+    };
+
+    Ok(d)
+}
+
+pub(crate) fn ffmpeg_stream_i_tb(stream: &ffmpeg::Stream) -> (usize, f64) {
+    let i = stream.index();
+    let tb = stream.time_base();
+    let tb_f64 = tb.numerator() as f64 / tb.denominator() as f64;
+    (i, tb_f64)
 }

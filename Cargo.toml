@@ -1,6 +1,6 @@
 [package]
 name = "mux-media"
-version = "0.15.0"
+version = "0.16.0-dev"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
@@ -27,6 +27,7 @@ atty = "0.2"
 chardet = "0.2"
 clap = "4"
 enum-map = "2"
+ffmpeg-next = { version = "8", features = ["static"] }
 globset = "0.4"
 is_default = { version = "0.1", features = ["derive"] }
 lazy-regex = "3"

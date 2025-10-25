@@ -51,9 +51,6 @@ impl TryFinalizeInit for MuxConfig {
             if !cfg.muxer.is_default() || !cfg.retiming.is_default() {
                 tools.push(Tool::Ffmpeg);
             }
-            if !cfg.retiming.is_default() {
-                tools.push(Tool::Ffprobe);
-            }
 
             cfg.tool_paths.try_resolve_many(tools, &cfg.output.temp_dir)
         }

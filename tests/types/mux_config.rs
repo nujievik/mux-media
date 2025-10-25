@@ -59,11 +59,6 @@ fn test_ok_exit_ffmpeg_help() {
 }
 
 #[test]
-fn test_ok_exit_ffprobe_help() {
-    assert_ok_exit(&["--ffprobe", "-h"]);
-}
-
-#[test]
 fn test_ok_exit_mkvmerge_help() {
     assert_ok_exit(&["--mkvmerge", "-h"]);
 }

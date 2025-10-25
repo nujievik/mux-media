@@ -40,6 +40,7 @@ pub const SEP_STR: &str = match str::from_utf8(SEP_BYTES) {
 ///    - Errors while processing current media return an error if `--exit-on-err` is set;
 ///      otherwise, muxing continues with the next media.
 pub fn run() -> Result<()> {
+    crate::ffmpeg::init()?;
     let cfg = init_cfg()?;
     MuxLogger::init_with_filter(cfg.verbosity.into());
 

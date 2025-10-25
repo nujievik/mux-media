@@ -233,3 +233,4 @@ impl_from_any!(matroska::MatroskaError);
 impl_from_any!(rsubs_lib::SRTError);
 impl_from_any!(rsubs_lib::SSAError);
 impl_from_any!(rsubs_lib::VTTError);
+impl_from_any!(crate::ffmpeg::Error);

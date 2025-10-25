@@ -1,9 +1,10 @@
 use super::{Retiming, RetimingChapter, RetimingPart};
 use crate::{
     ArcPathBuf, Duration, IsDefault, MediaInfo, MuxConfig, MuxError, Result, Tool, ToolPaths,
-    Tools, TrackOrder, TrackType,
+    Tools, TrackOrder, TrackType, ffmpeg,
     markers::{MIMatroska, MIPlayableDuration, MITICodec, MIVideoDuration},
     mux_err,
+    types::helpers::{ffmpeg_stream_i_tb, try_ffmpeg_opened},
 };
 use log::warn;
 use rayon::prelude::*;
@@ -127,8 +128,7 @@ impl Retiming<'_, '_> {
         }
 
         fn try_resolve_tool_paths(ps: &ToolPaths, temp_dir: &Path) -> Result<()> {
-            ps.try_resolve(Tool::Ffmpeg, temp_dir)?;
-            ps.try_resolve(Tool::Ffprobe, temp_dir)
+            ps.try_resolve(Tool::Ffmpeg, temp_dir)
         }
 
         fn cache_sub_codecs(mi: &mut MediaInfo, order: &TrackOrder) {
@@ -207,24 +207,23 @@ impl Retiming<'_, '_> {
                 ));
             }
 
-            let (start, start_offset) = try_nearest_time_offset(mi, src, tid, start, duration)?;
-            let (end, end_offset) = try_nearest_time_offset(mi, src, tid, end, duration)?;
+            let (start, start_offset) = try_nearest_time_offset(src, tid, start, duration)?;
+            let (end, end_offset) = try_nearest_time_offset(src, tid, end, duration)?;
 
             Ok((start, start_offset, end, end_offset, false))
         }
 
         fn try_nearest_time_offset(
-            mi: &MediaInfo,
             src: &Path,
             tid: u64,
             target: Duration,
             duration: Duration,
         ) -> Result<(Duration, f64)> {
             let t = target.as_secs_f64();
-            let first = try_i_frame(mi, src, tid, target)?;
+            let first = try_i_frame(src, tid, target)?;
             let second = {
                 let t = Duration::from_secs_f64(t + t - first.as_secs_f64());
-                try_i_frame(mi, src, tid, t)?
+                try_i_frame(src, tid, t)?
             };
 
             // unwraps safe
@@ -241,39 +240,40 @@ impl Retiming<'_, '_> {
             Ok((nearest, offset))
         }
 
-        fn try_i_frame(
-            mi: &MediaInfo,
-            media: &Path,
-            tid: u64,
-            target: Duration,
-        ) -> Result<Duration> {
-            let p: fn(&str) -> &Path = Path::new;
+        fn try_i_frame(media: &Path, tid: u64, target: Duration) -> Result<Duration> {
+            let mut ictx = ffmpeg::format::input(media)?;
+            let stream = ictx
+                .stream(tid as usize)
+                .ok_or(ffmpeg::Error::StreamNotFound)?;
+            let (i, tb) = ffmpeg_stream_i_tb(&stream);
 
-            let args = [
-                p("-select_streams"),
-                &PathBuf::from(format!("v:{}", tid)),
-                p("-read_intervals"),
-                &PathBuf::from(format!("{}%+0.000001", target.as_secs())),
-                p("-show_entries"),
-                p("frame=pict_type,pts_time"),
-                p("-of"),
-                p("csv"),
-                media,
-            ];
+            let mut opened = try_ffmpeg_opened(TrackType::Video, &stream)?;
+            let seek_target = (target.as_secs_f64() * f64::from(ffmpeg::ffi::AV_TIME_BASE)) as i64;
+            ictx.seek(seek_target, ..)?;
+            opened.flush();
 
-            mi.tools
-                .run(Tool::Ffprobe, args)
-                .ok()
-                .and_then(|out| {
-                    out.as_str_stdout()
-                        .splitn(3, ',')
-                        .skip(1)
-                        .next()
-                        .and_then(|secs| {
-                            secs.parse::<f64>().ok().map(|s| Duration::from_secs_f64(s))
-                        })
-                })
-                .ok_or_else(|| mux_err!("Not found I frame"))
+            for (s, packet) in ictx.packets() {
+                if s.index() != i {
+                    continue;
+                }
+
+                opened.send_packet(&packet)?;
+
+                loop {
+                    let mut frame = ffmpeg::util::frame::Video::empty();
+                    match opened.receive_frame(&mut frame) {
+                        Ok(_) => {
+                            let pts_time = frame.pts().map(|pts| pts as f64 * tb).unwrap_or(0.0);
+                            return Ok(Duration::from_secs_f64(pts_time));
+                        }
+                        Err(ffmpeg::Error::Other { errno: 11 }) => break,
+                        Err(ffmpeg::Error::Eof) => break,
+                        Err(e) => return Err(mux_err!("Decoder error: {}", e)),
+                    }
+                }
+            }
+
+            Err(mux_err!("Not found I frame"))
         }
     }
 }

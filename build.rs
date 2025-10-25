@@ -21,7 +21,6 @@ fn main() {
     assets.push("win64");
 
     copy_tool_to_dir(&assets, "ffmpeg");
-    copy_tool_to_dir(&assets, "ffprobe");
     copy_tool_to_dir(&assets, "mkvmerge");
 }
 

@@ -8,7 +8,6 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[strum(serialize_all = "kebab-case")]
 pub enum Tool {
     Ffmpeg,
-    Ffprobe,
     Mkvmerge,
 }
 
@@ -22,7 +21,6 @@ impl Tool {
     /// #
     /// let mut it = Tool::iter();
     /// assert_eq!(it.next(), Some(Tool::Ffmpeg));
-    /// assert_eq!(it.next(), Some(Tool::Ffprobe));
     /// assert_eq!(it.next(), Some(Tool::Mkvmerge));
     /// assert_eq!(it.next(), None);
     /// ```
@@ -33,7 +31,6 @@ impl Tool {
     pub(crate) fn as_cli_arg(self) -> CliArg {
         match self {
             Self::Ffmpeg => CliArg::Ffmpeg,
-            Self::Ffprobe => CliArg::Ffprobe,
             Self::Mkvmerge => CliArg::Mkvmerge,
         }
     }

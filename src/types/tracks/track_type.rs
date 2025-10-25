@@ -1,3 +1,4 @@
+use crate::ffmpeg::media::Type as FfmpegMediaType;
 use enum_map::{Enum, EnumMap};
 use strum_macros::EnumIter;
 
@@ -68,6 +69,15 @@ impl TrackType {
             Self::Video => "video",
             Self::Audio => "audio",
             Self::Sub => "subtitles",
+            _ => unreachable!("Non-customizable flag"),
+        }
+    }
+
+    pub(crate) fn as_ffmpeg_mty(self) -> FfmpegMediaType {
+        match self {
+            Self::Video => FfmpegMediaType::Video,
+            Self::Audio => FfmpegMediaType::Audio,
+            Self::Sub => FfmpegMediaType::Subtitle,
             _ => unreachable!("Non-customizable flag"),
         }
     }

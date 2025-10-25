@@ -30,7 +30,6 @@ pub enum Msg {
     HelpEnableds,
     HelpExitOnErr,
     HelpFfmpegHelp,
-    HelpFfprobeHelp,
     HelpFonts,
     HelpForceds,
     HelpGlobalOptions,

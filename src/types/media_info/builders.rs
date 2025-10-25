@@ -5,12 +5,13 @@ use super::MediaInfo;
 use crate::{
     CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState, Duration, EXTENSIONS, LangCode,
     RawTrackCache, Result, SubCharset, Target, TargetGroup, Tool, TrackID, TrackOrder, TrackType,
-    immut,
+    ffmpeg, immut,
     markers::{
         MIAudioDuration, MIMatroska, MIMkvmergeI, MIPlayableDuration, MITICache, MITILang,
         MITargetGroup, MITracksInfo, MIVideoDuration,
     },
     mux_err,
+    types::helpers::{ffmpeg_stream_i_tb, try_ffmpeg_opened},
 };
 use lazy_regex::{Lazy, Regex, regex};
 use matroska::Matroska;
@@ -149,28 +150,52 @@ impl MediaInfo<'_> {
                 return Err(mux_err!("Not found any '{}' track", ty.as_str_mkvtoolnix()));
             }
 
-            let p: fn(&str) -> &Path = Path::new;
-            let args = [
-                p("-select_streams"),
-                p(ty.as_first_s()),
-                p("-read_intervals"),
-                p("99999999999"),
-                p("-show_entries"),
-                p("frame=pts_time"),
-                p("-sexagesimal"),
-                p("-of"),
-                p("csv"),
-                media,
-            ];
+            let mut dur = 0f64;
+            let mty = ty.as_ffmpeg_mty();
+            let mut ictx = ffmpeg::format::input(media)?;
 
-            let out = mi.tools.run(Tool::Ffprobe, &args)?;
+            for i in collect_stream_idxs(&ictx) {
+                let stream = match ictx.stream(i) {
+                    Some(s) => s,
+                    None => continue,
+                };
+                if mty != stream.parameters().medium() {
+                    continue;
+                }
 
-            let secs = out
-                .as_str_stdout()
-                .rsplit_once("frame,")
-                .ok_or_else(|| "Unexpected no 'frame,' in command output")?;
+                let (i, tb) = ffmpeg_stream_i_tb(&stream);
+                let mut opened = try_ffmpeg_opened(ty, &stream)?;
 
-            secs.1.trim().parse::<Duration>()
+                let seek_target = (99999999999.0 * f64::from(ffmpeg::ffi::AV_TIME_BASE)) as i64;
+                ictx.seek(seek_target, ..)?;
+                opened.flush();
+
+                for (s, packet) in ictx.packets() {
+                    if s.index() != i {
+                        continue;
+                    }
+
+                    opened.send_packet(&packet)?;
+                    let mut frame = ffmpeg::util::frame::Video::empty();
+
+                    while let Ok(_) = opened.receive_frame(&mut frame) {
+                        let pts_time = frame.pts().map(|pts| pts as f64 * tb).unwrap_or(0.0);
+                        if pts_time > dur {
+                            dur = pts_time;
+                        }
+                    }
+                }
+            }
+
+            return if dur > 0.0 {
+                Ok(Duration::from_secs_f64(dur))
+            } else {
+                Err(mux_err!("Not found duration"))
+            };
+
+            fn collect_stream_idxs(ictx: &ffmpeg::format::context::Input) -> Vec<usize> {
+                ictx.streams().map(|s| s.index()).collect()
+            }
         }
     }
 

@@ -23,7 +23,6 @@ crate::impl_msg_as_localized_str!(
     HelpEnableds => "Установить enabled флаги",
     HelpExitOnErr => "Пропустить мукс следующих файлов при ошибке",
     HelpFfmpegHelp => "Выполнить команду ffmpeg",
-    HelpFfprobeHelp => "Выполнить команду ffprobe",
     HelpFonts => "[!]Копировать вложенные шрифты",
     HelpForceds => "Установить forced флаги",
     HelpGlobalOptions => "Глобальные опции",

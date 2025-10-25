@@ -23,7 +23,6 @@ crate::impl_msg_as_localized_str!(
     HelpEnableds => "Set track-enabled-flags",
     HelpExitOnErr => "Skip muxing next files if error occurs",
     HelpFfmpegHelp => "Run ffmpeg command",
-    HelpFfprobeHelp => "Run ffprobe command",
     HelpFonts => "[!]Copy font attachments",
     HelpForceds => "Set forced-display-flags",
     HelpGlobalOptions => "Global options",

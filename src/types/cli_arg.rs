@@ -89,7 +89,6 @@ enum_cli_arg! {
     ListLangsFull => "list-langs-full",
     UserTools => "user-tools",
     Ffmpeg => "ffmpeg",
-    Ffprobe => "ffprobe",
     Mkvmerge => "mkvmerge",
     Version => "version",
     Help => "help",

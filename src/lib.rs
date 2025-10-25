@@ -69,6 +69,8 @@ pub use types::media_info::cache::{
     CacheMICommon, CacheMIOfFile, attach::CacheMIOfFileAttach, track::CacheMIOfFileTrack,
 };
 
-pub(crate) use types::{
+use types::{
     media_info::cache::track::RawTrackCache, muxer::codecs::MUXER_CODECS, retiming::Retiming,
 };
+
+use ffmpeg_next as ffmpeg;
