@@ -808,9 +808,8 @@ checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
 
 [[package]]
 name = "rsubs-lib"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96d8ef921b51166efbdcb17529727299e78d9ea28b35af63218422d2d6594c9f"
+version = "0.3.3-mux-media-fixes"
+source = "git+https://github.com/nujievik/rsubs-lib?branch=mux-media#4f1dd3cdeac3ea687533cad4035464c7738be1a2"
 dependencies = [
  "regex",
  "serde",
