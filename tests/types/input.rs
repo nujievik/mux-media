@@ -5,8 +5,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-fn new(args: &[&str]) -> Input {
-    let mut input = cfg::<_, &&str>(args).input;
+fn new(args: &[&Path]) -> Input {
+    let mut input = cfg::<_, &&Path>(args).input;
     input.try_finalize_init().unwrap();
     input
 }
@@ -63,9 +63,7 @@ fn iter_media_and_assert(input: &Input, dir: &PathBuf, expected: &Vec<Vec<PathBu
 fn test_iter_media_grouped_by_stem() {
     TEST_INPUT_MEDIA.iter().for_each(|(dir, files)| {
         let dir = data_media(dir);
-        let s_dir = dir.to_str().unwrap();
-
-        let input = new(&["-i", s_dir]);
+        let input = new(&[p("-i"), &dir]);
 
         let expected: Vec<Vec<PathBuf>> = files
             .iter()
@@ -83,9 +81,7 @@ fn test_skip_media() {
     skip_patterns.iter().for_each(|(skip, not_contains)| {
         TEST_INPUT_MEDIA.iter().for_each(|(dir, files)| {
             let dir = data_media(dir);
-            let s_dir = dir.to_str().unwrap();
-
-            let input = new(&["-i", s_dir, "--skip", skip]);
+            let input = new(&[p("-i"), &dir, p("--skip"), p(skip)]);
 
             let expected: Vec<Vec<PathBuf>> = files
                 .iter()
@@ -126,36 +122,18 @@ pub fn data_font(s: &str) -> PathBuf {
     data(s)
 }
 
-fn collect_fonts_and_assert_eq(input: &Input, dir: &PathBuf, expected: &HashSet<PathBuf>) {
-    let collected = input.collect_fonts();
-
-    assert_eq!(
-        expected.len(),
-        collected.len(),
-        "Less or more fonts than expected collected from '{}'",
-        dir.display()
-    );
-
-    collected.iter().for_each(|f| {
-        assert!(
-            expected.contains(f),
-            "Collected fonts from dir '{}' not contains '{}'",
-            dir.display(),
-            f.display()
-        )
-    });
+fn collect_fonts_and_assert_eq(input: &Input, expected: &[&str]) {
+    let expected: HashSet<_> = expected.iter().map(|f| data_font(f)).collect();
+    let collected = HashSet::from_iter(input.collect_fonts());
+    assert_eq!(expected, collected);
 }
 
 #[test]
 fn test_collect_fonts() {
     TEST_INPUT_FONTS.iter().for_each(|(dir, files)| {
         let dir = data_font(dir);
-        let s_dir = dir.to_str().unwrap();
-
-        let input = new(&["-i", s_dir]);
-        let expected: HashSet<PathBuf> = files.iter().map(|f| data_font(f)).collect();
-
-        collect_fonts_and_assert_eq(&input, &dir, &expected);
+        let input = new(&[p("-i"), &dir]);
+        collect_fonts_and_assert_eq(&input, files);
     })
 }
 
@@ -171,30 +149,46 @@ fn test_skip_fonts() {
     skip_patterns.iter().for_each(|(skip, not_contains)| {
         TEST_INPUT_FONTS.iter().for_each(|(dir, files)| {
             let dir = data_font(dir);
-            let s_dir = dir.to_str().unwrap();
+            let input = new(&[p("-i"), &dir, p("--skip"), p(skip)]);
 
-            let input = new(&["-i", s_dir, "--skip", skip]);
-
-            let expected: HashSet<PathBuf> = files
+            let expected: Vec<_> = files
                 .iter()
                 .filter(|f| !not_contains.iter().any(|ext| f.contains(ext)))
-                .map(|f| data_font(f))
+                .map(|s| *s)
                 .collect();
 
-            collect_fonts_and_assert_eq(&input, &dir, &expected);
+            collect_fonts_and_assert_eq(&input, &expected);
         })
     })
+}
+
+fn body_sort(dir: &str, order: &[&str]) {
+    let dir = data_font(dir);
+    let input = new(&[p("-i"), &dir]);
+    let fonts = input.collect_fonts_with_filter_and_sort();
+    fonts.iter().enumerate().for_each(|(i, f)| {
+        assert_eq!(order[i], f.file_stem().unwrap());
+    })
+}
+
+#[test]
+fn test_fonts_sort_depth_independent() {
+    body_sort("sort/depth_independent/", &["first", "second", "third"]);
+}
+
+#[test]
+fn test_fonts_sort_case_insensitive() {
+    body_sort("sort/case_insensitive/", &["first", "Second", "THIRD"]);
 }
 
 #[test]
 fn test_depth() {
     let dir = data_font("5/");
-    let s_dir = dir.to_str().unwrap();
 
     [(1, "0"), (2, "4"), (3, "10"), (4, "16"), (5, "17")]
         .into_iter()
         .for_each(|(expected_len, depth)| {
-            let input = new(&["-i", s_dir, "--depth", depth]);
+            let input = new(&[p("-i"), &dir, p("--depth"), p(depth)]);
             assert_eq!(expected_len, input.collect_fonts().len());
         })
 }
@@ -202,12 +196,10 @@ fn test_depth() {
 #[test]
 fn test_solo() {
     let dir = data_media("solo/");
-    let s_dir = dir.to_str().unwrap();
-
-    let input = new(&["-i", s_dir]);
+    let input = new(&[p("-i"), &dir]);
     assert_eq!(None, input.iter_media_grouped_by_stem().next());
 
-    let input = new(&["-i", s_dir, "--solo"]);
+    let input = new(&[p("-i"), &dir, p("--solo")]);
     let exp = vec![dir.join("srt.srt")];
     assert_eq!(
         exp,

@@ -98,7 +98,15 @@ impl Input {
             })
             .collect();
 
-        fonts.sort_by(|a, b| a.file_stem().cmp(&b.file_stem()));
+        fonts.sort_by(|a, b| {
+            let sa = a.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+            let sb = b.file_stem().and_then(|s| s.to_str()).unwrap_or("");
+            sa.chars()
+                .map(|c| c.to_ascii_lowercase())
+                .cmp(sb.chars().map(|c| c.to_ascii_lowercase()))
+                .then_with(|| sa.cmp(sb))
+        });
+
         fonts
     }
 
