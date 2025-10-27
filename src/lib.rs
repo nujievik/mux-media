@@ -1,3 +1,9 @@
+macro_rules! err {
+    ( $($arg:tt)* ) => {
+        crate::MuxError::from(format!($($arg)*))
+    };
+}
+
 mod functions;
 mod i18n;
 mod macros;

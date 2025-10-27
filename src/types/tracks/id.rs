@@ -1,4 +1,4 @@
-use crate::{LangCode, MuxError, RangeU64, mux_err};
+use crate::{LangCode, MuxError, RangeU64};
 use std::fmt;
 
 /// Media track identifier.
@@ -80,7 +80,7 @@ impl std::str::FromStr for TrackID {
 
         match s.parse::<LangCode>() {
             Ok(code) => Ok(Self::Lang(code)),
-            Err(_) => Err(mux_err!(
+            Err(_) => Err(err!(
                 "Invalid track ID '{}' (must be num, range (n-m) of num or lang code)",
                 s
             )),

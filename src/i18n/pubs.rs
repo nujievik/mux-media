@@ -1,6 +1,6 @@
 use super::Msg;
 
-use crate::{LangCode, MuxLogger, Result, mux_err};
+use crate::{LangCode, MuxLogger, Result};
 use std::{
     fmt,
     sync::{LazyLock, RwLock},
@@ -88,9 +88,7 @@ impl Msg {
                 .into());
         }
 
-        let mut l = LANG
-            .write()
-            .map_err(|_| mux_err!("Fail LANG_CODE.write()"))?;
+        let mut l = LANG.write().map_err(|_| err!("Fail LANG_CODE.write()"))?;
 
         *l = lang;
 

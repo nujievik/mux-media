@@ -1,4 +1,4 @@
-use crate::{MuxError, Result, mux_err};
+use crate::{MuxError, Result};
 use std::{fmt, ops, str::FromStr};
 
 const MAX_MINUS_ONE: u64 = !0 - 1;
@@ -36,7 +36,7 @@ impl TryFrom<(u64, u64)> for RangeU64 {
         let (start, mut end) = start_end;
 
         if end < start {
-            return Err(mux_err!(
+            return Err(err!(
                 "End of range ({}) must be greater than or equal to start ({})",
                 end,
                 start
@@ -44,7 +44,7 @@ impl TryFrom<(u64, u64)> for RangeU64 {
         }
 
         if end == u64::MAX {
-            return Err(mux_err!(
+            return Err(err!(
                 "End of range ({}) must be lesser than MAX ({})",
                 end,
                 u64::MAX
@@ -65,7 +65,7 @@ impl FromStr for RangeU64 {
 
         let (start, end) = match detect_delimiter(s) {
             Some((delimiter, count)) if count > 1 => {
-                return Err(mux_err!(
+                return Err(err!(
                     "Too many '{}' delimiters in input: '{}'",
                     delimiter,
                     s
@@ -103,7 +103,7 @@ impl FromStr for RangeU64 {
                 Ok(val_on_empty)
             } else {
                 part.parse::<u64>()
-                    .map_err(|e| mux_err!("invalid value '{}': {}", part, e))
+                    .map_err(|e| err!("invalid value '{}': {}", part, e))
             }
         }
     }

@@ -1,5 +1,5 @@
 use super::Retiming;
-use crate::{Duration, IsDefault, MediaInfo, Result, Tool, ToolOutput, Tools, TrackType, mux_err};
+use crate::{Duration, IsDefault, MediaInfo, Result, Tool, ToolOutput, Tools, TrackType};
 use lazy_regex::{Lazy, Regex, regex};
 use std::path::Path;
 
@@ -39,7 +39,7 @@ impl Retiming<'_, '_> {
                 .map(|cap| {
                     cap[1]
                         .parse::<Duration>()
-                        .or_else(|e| Err(mux_err!("Unexpected fail parse timestamp: {}", e)))
+                        .or_else(|e| Err(err!("Unexpected fail parse timestamp: {}", e)))
                 });
 
             let first = it.next();
@@ -54,7 +54,7 @@ impl Retiming<'_, '_> {
                     .info
                     .duration
                     .map(|d| Duration::from(d))
-                    .ok_or_else(|| mux_err!("Unexpected None duration"))
+                    .ok_or_else(|| err!("Unexpected None duration"))
             };
 
             match first {

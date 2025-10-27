@@ -3,7 +3,6 @@ use crate::{
     ArcPathBuf, Duration, IsDefault, MediaInfo, MuxConfig, MuxError, Result, Tool, ToolPaths,
     Tools, TrackOrder, TrackType, ffmpeg,
     markers::{MIMatroska, MIPlayableDuration, MITICodec, MIVideoDuration},
-    mux_err,
     types::helpers::{ffmpeg_stream_i_tb, try_ffmpeg_opened},
 };
 use log::warn;
@@ -268,12 +267,12 @@ impl Retiming<'_, '_> {
                         }
                         Err(ffmpeg::Error::Other { errno: 11 }) => break,
                         Err(ffmpeg::Error::Eof) => break,
-                        Err(e) => return Err(mux_err!("Decoder error: {}", e)),
+                        Err(e) => return Err(err!("Decoder error: {}", e)),
                     }
                 }
             }
 
-            Err(mux_err!("Not found I frame"))
+            Err(err!("Not found I frame"))
         }
     }
 }
@@ -371,7 +370,7 @@ fn find_external_segment(mi: &MediaInfo, dir: &Path, uid: &[u8]) -> Result<ArcPa
     }
 
     fn error(dir: &Path, uid: &[u8]) -> MuxError {
-        mux_err!(
+        err!(
             "Not found external matroska segment '{:?}' in the directory '{}'",
             uid,
             dir.display()

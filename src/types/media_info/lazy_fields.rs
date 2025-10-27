@@ -3,7 +3,7 @@ use crate::{
     ArcPathBuf, CacheMIOfFile, CacheMIOfFileAttach, CacheMIOfFileTrack,
     CacheState::{self, Cached, Failed, NotCached},
     Duration, LangCode, LazyField, LazyPathField, LazyPathNumField, Result, SubCharset, Target,
-    TargetGroup, TrackID, TrackOrder, TrackType, Value, mux_err,
+    TargetGroup, TrackID, TrackOrder, TrackType, Value,
 };
 use enum_map::EnumMap;
 use matroska::Matroska;
@@ -394,7 +394,7 @@ impl LazyPathNumField<MITICache> for MediaInfo<'_> {
         <Self as LazyPathField<MITracksInfo>>::try_mut(self, media)?
             .get_mut(&track)
             .ok_or_else(|| {
-                mux_err!(
+                err!(
                     "Not found track {} cache: track not exists or not saves",
                     track
                 )
@@ -411,7 +411,7 @@ impl LazyPathNumField<MITICache> for MediaInfo<'_> {
         <Self as LazyPathField<MITracksInfo>>::try_immut(self, media)?
             .get(&track)
             .ok_or_else(|| {
-                mux_err!(
+                err!(
                     "Not found track {} cache: track not exists or not saves",
                     track
                 )

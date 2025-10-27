@@ -1,7 +1,6 @@
 use super::Retiming;
 use crate::{
     Duration, MediaInfo, Result, Tool, Tools, TrackOrderItemRetimed, TrackType, markers::MITICodec,
-    mux_err,
 };
 use log::warn;
 use rsubs_lib::{SRT, SRTLine, SSA, SSAEvent, VTT, VTTLine};
@@ -108,7 +107,7 @@ impl Retiming<'_, '_> {
             .collect();
 
         return if src_idxs_offset.is_empty() {
-            Err(mux_err!("Not saved any subtitle line"))
+            Err(err!("Not saved any subtitle line"))
         } else {
             let new = retime(old, src_idxs_offset);
             new.try_write(dest)
@@ -223,7 +222,7 @@ impl Retiming<'_, '_> {
         }
 
         return if idxs_offset.is_empty() {
-            Err(mux_err!("Not saved any subtitle line"))
+            Err(err!("Not saved any subtitle line"))
         } else {
             let new = retime(old, idxs_offset);
             new.try_write(dest)
@@ -409,7 +408,7 @@ impl SubType {
         let ext = file
             .extension()
             .and_then(|ext| ext.to_str())
-            .ok_or_else(|| mux_err!("Not found extension"))?;
+            .ok_or_else(|| err!("Not found extension"))?;
 
         if ext.eq_ignore_ascii_case("ssa") || ext.eq_ignore_ascii_case("ass") {
             Ok(Self::Ssa)
@@ -418,7 +417,7 @@ impl SubType {
         } else if ext.eq_ignore_ascii_case("vtt") {
             Ok(Self::Vtt)
         } else {
-            Err(mux_err!("Unsupported extension ({})", ext))
+            Err(err!("Unsupported extension ({})", ext))
         }
     }
 

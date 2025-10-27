@@ -3,8 +3,7 @@ pub(crate) mod paths;
 pub(crate) mod tool;
 
 use crate::{
-    MuxConfig, Result, Tool, ToolOutput, i18n::logs, mux_err,
-    types::helpers::try_write_args_to_json,
+    MuxConfig, Result, Tool, ToolOutput, i18n::logs, types::helpers::try_write_args_to_json,
 };
 use paths::ToolPaths;
 use std::{
@@ -84,7 +83,7 @@ impl Tools<'_> {
 
         match command.output() {
             Ok(out) => ToolOutput::from((tool, out)).ok_or_err(),
-            Err(e) => Err(mux_err!("Running error: {}", e)),
+            Err(e) => Err(err!("Running error: {}", e)),
         }
     }
 }

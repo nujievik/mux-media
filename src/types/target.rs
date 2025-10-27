@@ -1,6 +1,6 @@
 pub(crate) mod group;
 
-use crate::{ArcPathBuf, Msg, MuxError, TargetGroup, mux_err};
+use crate::{ArcPathBuf, Msg, MuxError, TargetGroup};
 use std::{
     borrow::Borrow,
     ffi::{OsStr, OsString},
@@ -46,7 +46,7 @@ impl TryFrom<&OsStr> for Target {
         }
 
         let path = fs::canonicalize(oss).map_err(|e| {
-            mux_err!(
+            err!(
                 "Incorrect path target '{}': {}",
                 Path::new(oss).display(),
                 e

@@ -1,4 +1,4 @@
-use crate::{MuxError, RangeU64, mux_err};
+use crate::{MuxError, RangeU64};
 use std::{fmt, str::FromStr};
 
 /// Media attachment identifier.
@@ -65,7 +65,7 @@ impl FromStr for AttachID {
             return if n != 0 {
                 Ok(Self::Num(n))
             } else {
-                Err(mux_err!("Attach ID '{}' must be >= 1", s))
+                Err(err!("Attach ID '{}' must be >= 1", s))
             };
         }
 
@@ -73,14 +73,11 @@ impl FromStr for AttachID {
             return if rng.start != 0 {
                 Ok(Self::Range(rng))
             } else {
-                Err(mux_err!("Attach ID '{}' must be >= 1", s))
+                Err(err!("Attach ID '{}' must be >= 1", s))
             };
         }
 
-        Err(mux_err!(
-            "Attach ID '{}' must be num or range (n-m) of num",
-            s
-        ))
+        Err(err!("Attach ID '{}' must be num or range (n-m) of num", s))
     }
 }
 

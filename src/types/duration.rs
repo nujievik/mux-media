@@ -1,4 +1,4 @@
-use crate::{IsDefault, MuxError, mux_err};
+use crate::{IsDefault, MuxError};
 use std::{fmt, ops::Add, str::FromStr, time};
 
 /// A wrapper around [`std::time::Duration`].
@@ -48,7 +48,7 @@ impl FromStr for Duration {
     /// Attempts construct [`Duration`] from str of view HH:MM:SS.nnnnnnnnn
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         if s.matches(':').count() != 2 {
-            return Err(mux_err!("Invalid time str ({}), must be HH:MM:SS[.nn]", s));
+            return Err(err!("Invalid time str ({}), must be HH:MM:SS[.nn]", s));
         }
 
         let mut parts = s.split(':');

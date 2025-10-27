@@ -10,7 +10,6 @@ use crate::{
         MIAudioDuration, MIMatroska, MIMkvmergeI, MIPlayableDuration, MITICache, MITILang,
         MITargetGroup, MITracksInfo, MIVideoDuration,
     },
-    mux_err,
     types::helpers::{ffmpeg_stream_i_tb, try_ffmpeg_opened},
 };
 use lazy_regex::{Lazy, Regex, regex};
@@ -147,7 +146,7 @@ impl MediaInfo<'_> {
             let tracks = mi.try_immut::<MITracksInfo>(media)?;
 
             if !tracks.values().any(|cache| ty == cache.track_type) {
-                return Err(mux_err!("Not found any '{}' track", ty.as_str_mkvtoolnix()));
+                return Err(err!("Not found any '{}' track", ty.as_str_mkvtoolnix()));
             }
 
             let mut dur = 0f64;
@@ -190,7 +189,7 @@ impl MediaInfo<'_> {
             return if dur > 0.0 {
                 Ok(Duration::from_secs_f64(dur))
             } else {
-                Err(mux_err!("Not found duration"))
+                Err(err!("Not found duration"))
             };
 
             fn collect_stream_idxs(ictx: &ffmpeg::format::context::Input) -> Vec<usize> {
@@ -309,7 +308,7 @@ impl MediaInfo<'_> {
             RawTrackCache::Mkvmerge(raw) => REGEX_CODEC
                 .captures(raw)
                 .and_then(|caps| caps.get(1).map(|m| m.as_str().to_owned()))
-                .ok_or_else(|| mux_err!("Not found codec string")),
+                .ok_or_else(|| err!("Not found codec string")),
         }
     }
 }

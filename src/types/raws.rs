@@ -1,7 +1,7 @@
 mod raw;
 mod to_args;
 
-use crate::{IsDefault, MuxError, mux_err};
+use crate::{IsDefault, MuxError};
 use raw::Raw;
 use std::str::FromStr;
 
@@ -18,7 +18,7 @@ impl FromStr for Raws {
         for part in s.split_whitespace() {
             if part.starts_with('-') {
                 Raw::from_str(part.trim_start_matches('-'))
-                    .map_err(|_| mux_err!("unexpected argument: '{}'", part))?;
+                    .map_err(|_| err!("unexpected argument: '{}'", part))?;
                 raws.push(part.to_string());
             } else {
                 raws.push(part.to_string());
