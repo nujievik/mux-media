@@ -100,30 +100,30 @@ fn test_skip_media() {
 }
 
 pub static TEST_INPUT_FONTS: &[(&str, &[&str])] = &[
-    ("1", &["1/ttf.ttf"]),
-    ("2", &["2/a b c.ttf", "2/other.ttf", "2/ttf.ttf"]),
-    ("3", &["3/abc.tTf", "3/other.ttf", "3/ttf.TTF"]),
-    ("4", &["4/otf.otf"]),
+    ("ttf", &["ttf.ttf"]),
+    ("name_insensitive", &["a b c.ttf", "other.ttf", "ttf.ttf"]),
+    ("case_insensitive", &["abc.tTf", "other.ttf", "ttf.TTF"]),
+    ("otf", &["otf.otf"]),
     (
-        "5",
+        "depth",
         &[
-            "5/ttf.ttf",
-            "5/1/2/3/4/ttf.ttf",
-            "5/1/2/3/4/5/6/7/8/9/10/ttf.ttf",
-            "5/1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/ttf.ttf",
+            "ttf.ttf",
+            "1/2/3/4/ttf.ttf",
+            "1/2/3/4/5/6/7/8/9/10/ttf.ttf",
+            "1/2/3/4/5/6/7/8/9/10/11/12/13/14/15/16/ttf.ttf",
             // ttf. in .../17/ttf.ttf not be collect by default because default
             // max_depth is 16
         ],
     ),
 ];
 
-pub fn data_font(s: &str) -> PathBuf {
-    let s = format!("input/fonts/{}", s);
-    data(s)
+pub fn data_font(tail: impl AsRef<Path>) -> PathBuf {
+    let p = p("input/fonts/").join(tail);
+    data(p)
 }
 
-fn collect_fonts_and_assert_eq(input: &Input, expected: &[&str]) {
-    let expected: HashSet<_> = expected.iter().map(|f| data_font(f)).collect();
+fn collect_fonts_and_assert_eq(dir: &Path, expected: &[&str], input: &Input) {
+    let expected: HashSet<_> = expected.iter().map(|f| data_font(dir.join(f))).collect();
     let collected = HashSet::from_iter(input.collect_fonts());
     assert_eq!(expected, collected);
 }
@@ -133,7 +133,7 @@ fn test_collect_fonts() {
     TEST_INPUT_FONTS.iter().for_each(|(dir, files)| {
         let dir = data_font(dir);
         let input = new(&[p("-i"), &dir]);
-        collect_fonts_and_assert_eq(&input, files);
+        collect_fonts_and_assert_eq(&dir, files, &input);
     })
 }
 
@@ -157,33 +157,40 @@ fn test_skip_fonts() {
                 .map(|s| *s)
                 .collect();
 
-            collect_fonts_and_assert_eq(&input, &expected);
+            collect_fonts_and_assert_eq(&dir, &expected, &input);
         })
     })
 }
 
-fn body_sort(dir: &str, order: &[&str]) {
+fn body_filter_and_sort(dir: &str, order: &[&str]) {
     let dir = data_font(dir);
     let input = new(&[p("-i"), &dir]);
     let fonts = input.collect_fonts_with_filter_and_sort();
+
+    assert_eq!(order.len(), fonts.len());
     fonts.iter().enumerate().for_each(|(i, f)| {
         assert_eq!(order[i], f.file_stem().unwrap());
     })
 }
 
 #[test]
+fn test_fonts_filter_name_duplicates() {
+    body_filter_and_sort("depth", &["ttf"]);
+}
+
+#[test]
 fn test_fonts_sort_depth_independent() {
-    body_sort("sort/depth_independent/", &["first", "second", "third"]);
+    body_filter_and_sort("sort/depth_independent/", &["first", "second", "third"]);
 }
 
 #[test]
 fn test_fonts_sort_case_insensitive() {
-    body_sort("sort/case_insensitive/", &["first", "Second", "THIRD"]);
+    body_filter_and_sort("sort/case_insensitive/", &["first", "Second", "THIRD"]);
 }
 
 #[test]
 fn test_depth() {
-    let dir = data_font("5/");
+    let dir = data_font("depth/");
 
     [(1, "0"), (2, "4"), (3, "10"), (4, "16"), (5, "17")]
         .into_iter()

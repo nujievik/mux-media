@@ -1,8 +1,6 @@
 use crate::{char_encoding, common::*, input};
 use mux_media::{markers::*, *};
 use std::{
-    collections::HashSet,
-    ffi::OsString,
     mem,
     path::{Path, PathBuf},
     sync::LazyLock,
@@ -124,23 +122,15 @@ fn test_try_insert_many() {
 
 #[test]
 fn test_cmn_external_fonts() {
-    input::TEST_INPUT_FONTS.iter().for_each(|(dir, files)| {
+    input::TEST_INPUT_FONTS.iter().for_each(|(dir, _)| {
         let dir = input::data_font(dir);
         let mut cfg = cfg([Path::new("-i"), &dir]);
         cfg.try_finalize_init().unwrap();
         let mut mi = MediaInfo::from(&cfg);
 
-        let expected_len = files
-            .iter()
-            .map(|f| input::data_font(f).file_stem().unwrap().to_owned())
-            .collect::<HashSet<OsString>>()
-            .len();
-
-        let expected = mi.try_take_cmn::<MICmnExternalFonts>().unwrap();
-        assert_eq!(expected_len, expected.len());
-
-        let collected = cfg.input.collect_fonts_with_filter_and_sort();
-        assert_eq!(expected, collected.into());
+        let collected = mi.try_take_cmn::<MICmnExternalFonts>().unwrap();
+        let expected = cfg.input.collect_fonts_with_filter_and_sort();
+        assert_eq!(collected, expected.into());
     })
 }
 
