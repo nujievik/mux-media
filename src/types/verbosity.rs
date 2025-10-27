@@ -1,4 +1,4 @@
-use crate::{IsDefault, ToJsonArgs, to_json_args};
+use crate::{IsDefault, ToJsonArgs};
 use log::LevelFilter;
 
 /// Defines logging level.

@@ -3,7 +3,7 @@ pub(crate) mod flag_type;
 mod new;
 mod to_args;
 
-use crate::{IsDefault, TrackID, deref_singleton_tuple_struct};
+use crate::{IsDefault, TrackID};
 use flag_type::TrackFlagType;
 use std::collections::HashMap;
 

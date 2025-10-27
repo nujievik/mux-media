@@ -5,7 +5,7 @@ use std::{fmt, ops::Add, str::FromStr, time};
 #[derive(Copy, Clone, Debug, Default, Eq, Ord, PartialEq, PartialOrd, IsDefault)]
 pub struct Duration(pub time::Duration);
 
-crate::deref_singleton_tuple_struct!(Duration, time::Duration);
+deref_singleton_tuple_struct!(Duration, time::Duration);
 
 impl Duration {
     pub const fn new(secs: u64, nanos: u32) -> Duration {

@@ -1,4 +1,4 @@
-use crate::{IsDefault, ToJsonArgs, TrackFlagType, to_json_args};
+use crate::{IsDefault, ToJsonArgs, TrackFlagType};
 use enum_map::{EnumMap, enum_map};
 
 /// Values of auto-settings flags.

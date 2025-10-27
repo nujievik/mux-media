@@ -2,7 +2,6 @@ use super::{Attachs, FontAttachs, OtherAttachs};
 use crate::{
     AttachType, IsDefault, MediaInfo, Result, ToMkvmergeArgs, dashed, immut,
     markers::{MCFontAttachs, MCOtherAttachs, MIAttachsInfo, MITargets},
-    to_json_args,
 };
 use std::{collections::BTreeSet, ffi::OsString, path::Path};
 

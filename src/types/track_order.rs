@@ -286,7 +286,7 @@ pub struct TrackOrderItemRetimed {
     pub ty: TrackType,
 }
 
-crate::deref_singleton_tuple_struct!(TrackOrder, Vec<TrackOrderItem>);
+deref_singleton_tuple_struct!(TrackOrder, Vec<TrackOrderItem>);
 
 impl TrackOrder {
     pub(crate) fn iter_first_entries(&self) -> impl Iterator<Item = &TrackOrderItem> {

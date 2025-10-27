@@ -1,7 +1,6 @@
 use crate::{
     MediaInfo, Result, TrackType, Tracks, immut,
     markers::{MCAudioTracks, MCSubTracks, MCVideoTracks, MITITrackIDs, MITargets, MITracksInfo},
-    unwrap_or_return,
 };
 use enum_map::EnumMap;
 use std::{collections::BTreeSet, path::Path};

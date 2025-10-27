@@ -1,5 +1,5 @@
 use super::{MuxConfig, MuxConfigTarget};
-use crate::{Result, Target, ToJsonArgs, to_json_args, types::helpers::try_write_args_to_json};
+use crate::{Result, Target, ToJsonArgs, types::helpers::try_write_args_to_json};
 
 impl MuxConfig {
     /// Tries save mux config to JSON in the input directory.

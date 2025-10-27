@@ -1,4 +1,4 @@
-use crate::{GlobSetPattern, IsDefault, ToJsonArgs, to_json_args};
+use crate::{GlobSetPattern, IsDefault, ToJsonArgs};
 
 /// Retiming options.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]

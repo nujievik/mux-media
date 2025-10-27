@@ -4,7 +4,7 @@ pub(crate) mod id;
 mod save;
 mod to_args;
 
-use crate::{IsDefault, deref_singleton_tuple_struct};
+use crate::IsDefault;
 use id::AttachID;
 use std::collections::HashSet;
 

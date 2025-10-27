@@ -1,4 +1,4 @@
-use crate::{Input, ToJsonArgs, to_json_args};
+use crate::{Input, ToJsonArgs};
 
 impl ToJsonArgs for Input {
     fn append_json_args(&self, args: &mut Vec<String>) {

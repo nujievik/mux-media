@@ -6,7 +6,6 @@ macro_rules! err {
 
 mod functions;
 mod i18n;
-mod macros;
 mod traits;
 mod types;
 

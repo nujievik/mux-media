@@ -1,4 +1,4 @@
-crate::impl_msg_as_localized_str!(
+impl_msg_as_str!(
     as_rus,
     ArgsInJson => "Аргументы в JSON",
     ContainerDoesNotSupport => "Контейнер не поддерживает",

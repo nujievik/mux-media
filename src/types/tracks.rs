@@ -4,7 +4,7 @@ mod to_json_args;
 mod to_mkvmerge_args;
 pub(crate) mod track_type;
 
-use crate::{IsDefault, deref_singleton_tuple_struct};
+use crate::IsDefault;
 use id::TrackID;
 use std::collections::HashSet;
 

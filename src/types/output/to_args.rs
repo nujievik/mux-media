@@ -1,4 +1,4 @@
-use crate::{Output, ToJsonArgs, to_json_args};
+use crate::{Output, ToJsonArgs};
 
 macro_rules! push_or_return {
     ($out:ident, $( $as_os_str:expr ),*) => {{

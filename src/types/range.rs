@@ -7,7 +7,7 @@ const MAX_MINUS_ONE: u64 = !0 - 1;
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub struct RangeU64(ops::Range<u64>);
 
-crate::deref_singleton_tuple_struct!(RangeU64, ops::Range<u64>);
+deref_singleton_tuple_struct!(RangeU64, ops::Range<u64>);
 
 impl RangeU64 {
     pub fn contains_range(&self, other: &Self) -> bool {
