@@ -1,7 +1,7 @@
 use std::{fmt, ops::Deref};
 
 /// A value marked as either auto or user-defined.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Value<T> {
     Auto(T),
     User(T),
@@ -54,6 +54,14 @@ impl<T> Value<T> {
     #[inline]
     pub const fn is_user(&self) -> bool {
         !self.is_auto()
+    }
+}
+
+impl<T: Copy> Copy for Value<T> {}
+
+impl<T: Default> Default for Value<T> {
+    fn default() -> Self {
+        Self::Auto(Default::default())
     }
 }
 

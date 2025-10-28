@@ -118,7 +118,7 @@ fn append_target_args(args: &mut Vec<OsString>, mi: &mut MediaInfo, media: &Path
         MCRaws
     );
 
-    if !mi.auto_flags.charsets {
+    if !*mi.auto_flags.charsets {
         return;
     }
 

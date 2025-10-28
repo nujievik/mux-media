@@ -3,8 +3,8 @@ use crate::{
     AudioTracks, AutoFlags, Chapters, CliArg, DefaultTrackFlags, EnabledTrackFlags, FontAttachs,
     ForcedTrackFlags, GlobSetPattern, Input, LangCode, Msg, MuxError, OtherAttachs, Output,
     RangeU64, Raws, RetimingOptions, SubTracks, Target, TargetGroup, Tool, ToolPaths, Tools,
-    TrackFlagType, TrackFlags, TrackLangs, TrackNames, TryFinalizeInit, Verbosity, VideoTracks,
-    undashed,
+    TrackFlagType, TrackFlags, TrackLangs, TrackNames, TryFinalizeInit, Value, Verbosity,
+    VideoTracks, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use std::path::PathBuf;
@@ -184,28 +184,32 @@ impl FromArgMatches for MuxConfig {
 
         fn auto_flags(m: &mut ArgMatches) -> AutoFlags {
             let mut new = AutoFlags::default();
-            new.pro = flag!(m, Pro);
+
+            if flag!(m, Pro) {
+                new.pro = Value::User(true);
+            }
+            let pro = *new.pro;
 
             new.track[TrackFlagType::Default] =
-                val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), new.pro);
+                val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), pro);
             new.track[TrackFlagType::Forced] =
-                val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), new.pro);
+                val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), pro);
             new.track[TrackFlagType::Enabled] =
-                val(flag!(m, AutoEnableds), flag!(m, NoAutoEnableds), new.pro);
+                val(flag!(m, AutoEnableds), flag!(m, NoAutoEnableds), pro);
 
-            new.names = val(flag!(m, AutoNames), flag!(m, NoAutoNames), new.pro);
-            new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), new.pro);
-            new.charsets = val(flag!(m, AutoCharsets), flag!(m, NoAutoCharsets), new.pro);
+            new.names = val(flag!(m, AutoNames), flag!(m, NoAutoNames), pro);
+            new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), pro);
+            new.charsets = val(flag!(m, AutoCharsets), flag!(m, NoAutoCharsets), pro);
 
             return new;
 
-            fn val(arg: bool, no_arg: bool, pro: bool) -> bool {
+            fn val(arg: bool, no_arg: bool, pro: bool) -> Value<bool> {
                 if arg {
-                    true
+                    Value::User(true)
                 } else if no_arg {
-                    false
+                    Value::User(false)
                 } else {
-                    !pro
+                    Value::Auto(!pro)
                 }
             }
         }
@@ -347,53 +351,57 @@ impl FromArgMatches for MuxConfig {
 
         fn auto_flags(cfg: &mut MuxConfig, m: &mut ArgMatches) {
             let auto = &mut cfg.auto_flags;
-            upd_flag!(auto.pro, m, Pro);
 
-            auto.track[TrackFlagType::Default] = val(
+            if flag!(m, Pro) {
+                auto.pro = Value::User(true);
+            }
+            let pro = *auto.pro;
+
+            upd(
                 flag!(m, AutoDefaults),
                 flag!(m, NoAutoDefaults),
-                auto.pro,
-                auto.track[TrackFlagType::Default],
+                pro,
+                &mut auto.track[TrackFlagType::Default],
             );
-            auto.track[TrackFlagType::Forced] = val(
+            upd(
                 flag!(m, AutoForceds),
                 flag!(m, NoAutoForceds),
-                auto.pro,
-                auto.track[TrackFlagType::Forced],
+                pro,
+                &mut auto.track[TrackFlagType::Forced],
             );
-            auto.track[TrackFlagType::Enabled] = val(
+            upd(
                 flag!(m, AutoEnableds),
                 flag!(m, NoAutoEnableds),
-                auto.pro,
-                auto.track[TrackFlagType::Default],
+                pro,
+                &mut auto.track[TrackFlagType::Enabled],
             );
 
-            auto.names = val(
+            upd(
                 flag!(m, AutoNames),
                 flag!(m, NoAutoNames),
-                auto.pro,
-                auto.names,
+                pro,
+                &mut auto.names,
             );
-            auto.langs = val(
+            upd(
                 flag!(m, AutoLangs),
                 flag!(m, NoAutoLangs),
-                auto.pro,
-                auto.langs,
+                pro,
+                &mut auto.langs,
             );
-            auto.charsets = val(
+            upd(
                 flag!(m, AutoCharsets),
                 flag!(m, NoAutoCharsets),
-                auto.pro,
-                auto.charsets,
+                pro,
+                &mut auto.charsets,
             );
 
-            fn val(arg: bool, no_arg: bool, pro: bool, old: bool) -> bool {
+            fn upd(arg: bool, no_arg: bool, pro: bool, val: &mut Value<bool>) {
                 if arg {
-                    true
-                } else if no_arg || pro {
-                    false
-                } else {
-                    old
+                    *val = Value::User(true)
+                } else if no_arg {
+                    *val = Value::User(false)
+                } else if val.is_auto() {
+                    *val = Value::User(!pro)
                 }
             }
         }

@@ -1,43 +1,47 @@
-use crate::{IsDefault, ToJsonArgs, TrackFlagType};
+use crate::{IsDefault, ToJsonArgs, TrackFlagType, Value};
 use enum_map::{EnumMap, enum_map};
 
 /// Values of auto-settings flags.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct AutoFlags {
-    pub pro: bool,
-    pub track: EnumMap<TrackFlagType, bool>,
-    pub names: bool,
-    pub langs: bool,
-    pub charsets: bool,
+    pub pro: Value<bool>,
+    pub track: EnumMap<TrackFlagType, Value<bool>>,
+    pub names: Value<bool>,
+    pub langs: Value<bool>,
+    pub charsets: Value<bool>,
 }
 
 impl Default for AutoFlags {
     fn default() -> AutoFlags {
         AutoFlags {
-            pro: false,
+            pro: Value::Auto(false),
             track: enum_map! {
-                TrackFlagType::Default | TrackFlagType::Forced | TrackFlagType::Enabled => true,
+                TrackFlagType::Default | TrackFlagType::Forced | TrackFlagType::Enabled => Value::Auto(true),
             },
-            names: true,
-            langs: true,
-            charsets: true,
+            names: Value::Auto(true),
+            langs: Value::Auto(true),
+            charsets: Value::Auto(true),
         }
     }
 }
 
 impl IsDefault for AutoFlags {
     fn is_default(&self) -> bool {
-        !self.pro && self.names && self.langs && self.charsets && self.track.values().all(|&v| v)
+        matches!(self.pro, Value::Auto(false))
+            && matches!(self.names, Value::Auto(true))
+            && matches!(self.langs, Value::Auto(true))
+            && matches!(self.charsets, Value::Auto(true))
+            && self.track.values().all(|&v| matches!(v, Value::Auto(true)))
     }
 }
 
 macro_rules! push_json_args {
-    ($args:ident, $pro:expr; $( $val:expr, $arg:ident, $no_arg:ident ),*) => {{
+    ($args:ident; $( $val:expr, $arg:ident, $no_arg:ident ),*) => {{
         $(
-            if $pro && $val {
-                $args.push(to_json_args!($arg));
-            } else if !$pro && !$val {
-                $args.push(to_json_args!($no_arg));
+            match $val {
+                Value::User(true) => $args.push(to_json_args!($arg)),
+                Value::User(false) => $args.push(to_json_args!($no_arg)),
+                _ => (),
             }
         )*
     }};
@@ -45,12 +49,12 @@ macro_rules! push_json_args {
 
 impl ToJsonArgs for AutoFlags {
     fn append_json_args(&self, args: &mut Vec<String>) {
-        if self.pro {
+        if *self.pro {
             args.push(to_json_args!(Pro));
         }
 
         push_json_args!(
-            args, self.pro;
+            args;
             self.track[TrackFlagType::Default], AutoDefaults, NoAutoDefaults,
             self.track[TrackFlagType::Forced], AutoForceds, NoAutoForceds,
             self.track[TrackFlagType::Enabled], AutoEnableds, NoAutoEnableds,

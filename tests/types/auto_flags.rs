@@ -8,55 +8,73 @@ fn new(args: &[&str]) -> AutoFlags {
 #[test]
 fn test_empty() {
     let f = new(&[]);
-    assert!(!f.pro);
-    assert!(f.track[TrackFlagType::Default]);
-    assert!(f.track[TrackFlagType::Forced]);
-    assert!(f.track[TrackFlagType::Enabled]);
-    assert!(f.names);
-    assert!(f.langs);
-    assert!(f.charsets);
+    assert_eq!(Value::Auto(false), f.pro);
+    assert_eq!(Value::Auto(true), f.track[TrackFlagType::Default]);
+    assert_eq!(Value::Auto(true), f.track[TrackFlagType::Forced]);
+    assert_eq!(Value::Auto(true), f.track[TrackFlagType::Enabled]);
+    assert_eq!(Value::Auto(true), f.names);
+    assert_eq!(Value::Auto(true), f.langs);
+    assert_eq!(Value::Auto(true), f.charsets);
 }
 
 #[test]
 fn test_pro() {
     let f = new(&["--pro"]);
-    assert!(f.pro);
-    assert!(!f.track[TrackFlagType::Default]);
-    assert!(!f.track[TrackFlagType::Forced]);
-    assert!(!f.track[TrackFlagType::Enabled]);
-    assert!(!f.names);
-    assert!(!f.langs);
-    assert!(!f.charsets);
+    assert_eq!(Value::User(true), f.pro);
+    assert_eq!(Value::Auto(false), f.track[TrackFlagType::Default]);
+    assert_eq!(Value::Auto(false), f.track[TrackFlagType::Forced]);
+    assert_eq!(Value::Auto(false), f.track[TrackFlagType::Enabled]);
+    assert_eq!(Value::Auto(false), f.names);
+    assert_eq!(Value::Auto(false), f.langs);
+    assert_eq!(Value::Auto(false), f.charsets);
 }
 
 #[test]
 fn test_manual_on() {
-    assert!(new(&["--auto-defaults"]).track[TrackFlagType::Default]);
-    assert!(new(&["--auto-forceds"]).track[TrackFlagType::Forced]);
-    assert!(new(&["--auto-enableds"]).track[TrackFlagType::Enabled]);
-    assert!(new(&["--auto-names"]).names);
-    assert!(new(&["--auto-langs"]).langs);
-    assert!(new(&["--auto-charsets"]).charsets);
+    let v = Value::User(true);
+    assert_eq!(v, new(&["--auto-defaults"]).track[TrackFlagType::Default]);
+    assert_eq!(v, new(&["--auto-forceds"]).track[TrackFlagType::Forced]);
+    assert_eq!(v, new(&["--auto-enableds"]).track[TrackFlagType::Enabled]);
+    assert_eq!(v, new(&["--auto-names"]).names);
+    assert_eq!(v, new(&["--auto-langs"]).langs);
+    assert_eq!(v, new(&["--auto-charsets"]).charsets);
 }
 
 #[test]
 fn test_manual_off() {
-    assert!(!new(&["--no-auto-defaults"]).track[TrackFlagType::Default]);
-    assert!(!new(&["--no-auto-forceds"]).track[TrackFlagType::Forced]);
-    assert!(!new(&["--no-auto-enableds"]).track[TrackFlagType::Enabled]);
-    assert!(!new(&["--no-auto-names"]).names);
-    assert!(!new(&["--no-auto-langs"]).langs);
-    assert!(!new(&["--no-auto-charsets"]).charsets);
+    let v = Value::User(false);
+    assert_eq!(
+        v,
+        new(&["--no-auto-defaults"]).track[TrackFlagType::Default]
+    );
+    assert_eq!(v, new(&["--no-auto-forceds"]).track[TrackFlagType::Forced]);
+    assert_eq!(
+        v,
+        new(&["--no-auto-enableds"]).track[TrackFlagType::Enabled]
+    );
+    assert_eq!(v, new(&["--no-auto-names"]).names);
+    assert_eq!(v, new(&["--no-auto-langs"]).langs);
+    assert_eq!(v, new(&["--no-auto-charsets"]).charsets);
 }
 
 #[test]
 fn test_manual_on_with_pro() {
-    assert!(new(&["--pro", "--auto-defaults"]).track[TrackFlagType::Default]);
-    assert!(new(&["--pro", "--auto-forceds"]).track[TrackFlagType::Forced]);
-    assert!(new(&["--pro", "--auto-enableds"]).track[TrackFlagType::Enabled]);
-    assert!(new(&["--pro", "--auto-names"]).names);
-    assert!(new(&["--pro", "--auto-langs"]).langs);
-    assert!(new(&["--pro", "--auto-charsets"]).charsets);
+    let v = Value::User(true);
+    assert_eq!(
+        v,
+        new(&["--pro", "--auto-defaults"]).track[TrackFlagType::Default]
+    );
+    assert_eq!(
+        v,
+        new(&["--pro", "--auto-forceds"]).track[TrackFlagType::Forced]
+    );
+    assert_eq!(
+        v,
+        new(&["--pro", "--auto-enableds"]).track[TrackFlagType::Enabled]
+    );
+    assert_eq!(v, new(&["--pro", "--auto-names"]).names);
+    assert_eq!(v, new(&["--pro", "--auto-langs"]).langs);
+    assert_eq!(v, new(&["--pro", "--auto-charsets"]).charsets);
 }
 
 crate::build_test_to_json_args!(

@@ -90,7 +90,7 @@ impl IsDefault for MuxConfig {
     /// assert!(!MuxConfig { reencode: true, ..Default::default() }.is_default());
     /// assert!(!MuxConfig { threads: 1, ..Default::default() }.is_default());
     ///
-    /// let auto_flags = AutoFlags { pro: true, ..Default::default() };
+    /// let auto_flags = AutoFlags { pro: Value::User(true), ..Default::default() };
     /// assert!(!MuxConfig { auto_flags, ..Default::default() }.is_default());
     ///
     /// let t = Tracks { no_flag: true, ..Default::default() };

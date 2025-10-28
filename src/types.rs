@@ -53,7 +53,7 @@ macro_rules! to_ffmpeg_args {
                     let val =
                         unwrap_or_return!(mi.get_ti::<$crate::markers::$marker>(&m.media, m.track));
 
-                    if auto || val.is_user() {
+                    if *auto || val.is_user() {
                         args.push(format!("-{}:s:{}", metadata, i).into());
                         args.push(format!("{}={}", mtd_marker, val).into());
                     }
@@ -79,7 +79,7 @@ macro_rules! to_ffmpeg_args {
 
                 let val = unwrap_or_return!(mi.get_ti::<$crate::markers::$marker>(media, track));
 
-                if auto || val.is_user() {
+                if *auto || val.is_user() {
                     args.push(format!("-{}:s:{}", metadata, out_stream).into());
                     args.push(format!("{}={}", mtd_marker, val).into());
                 }
@@ -229,7 +229,7 @@ macro_rules! to_mkvmerge_args {
                             return Some(format!("{}:{}", track, val));
                         }
 
-                        if !add {
+                        if !*add {
                             return None;
                         }
 
