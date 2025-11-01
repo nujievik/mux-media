@@ -63,27 +63,6 @@ macro_rules! to_ffmpeg_args {
 
                 Ok(())
             }
-
-            fn append_stream(
-                args: &mut Vec<std::ffi::OsString>,
-                mi: &mut $crate::MediaInfo,
-                media: &std::path::Path,
-                track: u64,
-                out_stream: usize,
-            ) {
-                use $crate::undashed;
-
-                let auto = mi.auto_flags.$auto;
-                let metadata = undashed!(Metadata);
-                let mtd_marker = undashed!($arg);
-
-                let val = unwrap_or_return!(mi.get_ti::<$crate::markers::$marker>(media, track));
-
-                if *auto || val.is_user() {
-                    args.push(format!("-{}:s:{}", metadata, out_stream).into());
-                    args.push(format!("{}={}", mtd_marker, val).into());
-                }
-            }
         }
     };
 }
@@ -204,62 +183,16 @@ macro_rules! unwrap_or_return {
     };
 }
 
-macro_rules! to_mkvmerge_args {
-    (@names_or_langs, $ty:ty, $arg:ident, $add_marker:ident, $tic_marker:ident) => {
-        impl $crate::ToMkvmergeArgs for $ty {
-            fn try_append_mkvmerge_args(
-                &self,
-                args: &mut Vec<std::ffi::OsString>,
-                mi: &mut $crate::MediaInfo,
-                media: &std::path::Path,
-            ) -> $crate::Result<()> {
-                use $crate::dashed;
-                use $crate::markers::{MISavedTracks, MITITrackIDs};
-
-                let tracks = mi.try_take::<MISavedTracks>(media)?;
-                let add = mi.auto_flags.$add_marker;
-
-                tracks
-                    .values()
-                    .flat_map(|tracks| tracks.iter())
-                    .filter_map(|&track| {
-                        let tids = $crate::immut!(mi, MITITrackIDs, media, track)?;
-
-                        if let Some(val) = self.get(&tids[0]).or_else(|| self.get(&tids[1])) {
-                            return Some(format!("{}:{}", track, val));
-                        }
-
-                        if !*add {
-                            return None;
-                        }
-
-                        if let Some(val) = mi.get_ti::<$crate::markers::$tic_marker>(media, track) {
-                            return Some(format!("{}:{}", track, val));
-                        }
-
-                        None
-                    })
-                    .for_each(|val| {
-                        args.push(dashed!($arg).into());
-                        args.push(val.into());
-                    });
-
-                mi.set::<MISavedTracks>(media, tracks);
-
-                Ok(())
-            }
-        }
-    };
-}
-
 pub(crate) mod arc_path_buf;
 pub(crate) mod attachs;
 pub(crate) mod auto_flags;
 pub(crate) mod chapters;
 pub(crate) mod char_encoding;
 pub(crate) mod cli_arg;
+pub(crate) mod codec_id;
 pub(crate) mod duration;
 pub(crate) mod extensions;
+pub(crate) mod ffmpeg_stream;
 pub(crate) mod file_type;
 pub(crate) mod globset_pattern;
 mod helpers;

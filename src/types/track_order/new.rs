@@ -1,6 +1,9 @@
 use super::{TrackOrder, TrackOrderItem};
 use crate::{
-    ArcPathBuf, IsDefault, LangCode, MediaInfo, MuxError, Result, Retiming, TrackType, immut,
+    ArcPathBuf, IsDefault, LangCode, MediaInfo, MuxError, Muxer, Result, Retiming, SupportedTracks,
+    TrackType,
+    i18n::logs,
+    immut,
     markers::{
         MCDefaultTrackFlags, MCEnabledTrackFlags, MCForcedTrackFlags, MISavedTracks, MITIItSigns,
         MITITrackIDs, MITargets,
@@ -47,7 +50,7 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
 
         let raw_media = raw_media(mi);
         let raw_ittk = try_raw_i_track_type_key(mi, &raw_media)?;
-        let raw_items = raw_items(raw_media, raw_ittk);
+        let raw_items = raw_items(mi.cfg.muxer, raw_media, raw_ittk);
 
         return try_order(mi, raw_items);
 
@@ -99,14 +102,21 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
         }
 
         fn raw_items(
+            muxer: Muxer,
             raw_media: Vec<ArcPathBuf>,
             ittk: Vec<(usize, u64, TrackType, OrderSortKey)>,
         ) -> Vec<TrackOrderItem> {
             let mut items: Vec<TrackOrderItem> = Vec::with_capacity(ittk.len());
             let mut numbers = vec![Option::<u64>::None; raw_media.len()];
             let mut num = 0u64;
+            let mut supported = SupportedTracks::new(muxer);
 
             for (i, track, ty, _) in ittk {
+                if !supported.is_supported(ty) {
+                    logs::warn_container_does_not_support(muxer, &raw_media[i], track);
+                    continue;
+                }
+
                 let (is_first_entry, number) = is_first_num(i, &mut numbers, &mut num);
                 items.push(TrackOrderItem {
                     media: raw_media[i].clone(),

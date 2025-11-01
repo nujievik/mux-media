@@ -29,7 +29,7 @@ impl MediaInfo<'_> {
         self.try_immut::<MITracksInfo>(media)?
             .iter()
             .for_each(|(&num, cache)| {
-                let ty = cache.track_type;
+                let ty = cache.ty;
                 let tids = unwrap_or_return!(self.immut_ti::<MITITrackIDs>(media, num));
 
                 let tracks =

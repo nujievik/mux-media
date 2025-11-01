@@ -1,11 +1,11 @@
 pub(crate) mod counts;
-pub(crate) mod flag_type;
 mod new;
 mod to_args;
+pub(crate) mod ty;
 
 use crate::{IsDefault, TrackID};
-use flag_type::TrackFlagType;
 use std::collections::HashMap;
+use ty::TrackFlagType;
 
 /// Settings for `default` track flags.
 #[derive(Clone, Debug, PartialEq, IsDefault)]

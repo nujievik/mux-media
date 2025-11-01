@@ -29,14 +29,14 @@ fn test_set_paths() {
     })
 }
 
-#[cfg(all(feature = "with_embedded_bins", windows, target_arch = "x86_64"))]
+#[cfg(feature = "static")]
 #[test]
 fn test_set_bundled_paths() {
     let d = data("");
     let dir = data("tools_bundled/");
     let temp_dir = dir.join(".temp-mux-media");
 
-    let with_args = |args, ext: &str| {
+    let with_args = |args, is_bundled| {
         let mut mc = cfg(args);
         mc.try_finalize_init().unwrap();
         mc.tool_paths
@@ -45,20 +45,21 @@ fn test_set_bundled_paths() {
         let tools = Tools::from(&mc);
 
         Tool::iter().for_each(|t| {
-            let exp = if ext.is_empty() {
-                PathBuf::from(t.as_ref())
-            } else {
-                let s = format!("{}{}", t.as_ref(), ext);
+            let s = t.as_ref();
+            let exp = if is_bundled {
                 temp_dir.join(s)
+            } else {
+                PathBuf::from(s)
             };
             assert_eq!(tools.paths[t].get().unwrap(), &exp);
         })
     };
 
-    with_args(vec![p("-i"), &d, p("-o"), &dir], ".exe");
-    with_args(vec![p("-i"), &d, p("-o"), &dir, p("--user-tools")], "");
+    with_args(vec![p("-i"), &d, p("-o"), &dir], true);
+    with_args(vec![p("-i"), &d, p("-o"), &dir, p("--user-tools")], false);
 }
 
+/*
 #[test]
 fn test_write_json() {
     let json = data("output/write_json.json");
@@ -77,6 +78,7 @@ fn test_write_json() {
 
     assert_eq!(json_args, args);
 }
+*/
 
 #[test]
 fn test_tool_helps() {
@@ -86,22 +88,15 @@ fn test_tool_helps() {
 }
 
 #[test]
-fn test_mkvmerge_i() {
-    let path = data("srt.srt");
-    let args = [OsStr::new("-i"), path.as_os_str()];
-    assert!(TOOLS.run(Tool::Mkvmerge, &args).is_ok());
-}
-
-#[test]
 fn test_errs() {
-    assert!(TOOLS.run(Tool::Mkvmerge, &["incorrect"]).is_err());
+    assert!(TOOLS.run(Tool::Ffmpeg, &["incorrect"]).is_err());
     let path = data("missing_file.srt");
-    assert!(TOOLS.run(Tool::Mkvmerge, [p("-i"), &path]).is_err());
+    assert!(TOOLS.run(Tool::Ffmpeg, [p("-i"), &path]).is_err());
 }
 
 #[test]
 fn test_tool_output() {
-    let out = TOOLS.run(Tool::Mkvmerge, ["-h"]).unwrap();
-    assert!(out.as_str_stdout().contains("Global options:"));
+    let out = TOOLS.run(Tool::Ffmpeg, ["-h"]).unwrap();
+    assert!(out.as_str_stdout().contains("Global options"));
     assert!(out.as_str_stderr().is_empty());
 }

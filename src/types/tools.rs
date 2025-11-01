@@ -81,6 +81,10 @@ impl Tools<'_> {
 
         logs::debug_running_command(&command, json_args);
 
+        if matches!(tool, Tool::Ffmpeg) {
+            command.arg("-hide_banner");
+        }
+
         match command.output() {
             Ok(out) => ToolOutput::from((tool, out)).ok_or_err(),
             Err(e) => Err(err!("Running error: {}", e)),

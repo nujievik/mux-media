@@ -5,28 +5,14 @@ subtitles).
 
 [![Cargo Build & Test](https://github.com/nujievik/mux-media/actions/workflows/tests.yml/badge.svg)](https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
 
+
 ## Quick Start
 
-### Windows
-
-1. [Download](https://github.com/nujievik/mux-media/releases) the
-**full** archive for your Windows system
-(`mux-media-win64-full.zip`).
+1. [Download](https://github.com/nujievik/mux-media/releases) the archive for system.
 
 2. Unpack it.
 
-3. Run the unpacked `mux-media.exe` in a media directory.
-
-### Other Systems
-
-1. Install [MKVToolNix](https://mkvtoolnix.download/).
-
-2. [Download](https://github.com/nujievik/mux-media/releases) the
-archive for your system.
-
-3. Unpack it.
-
-4. Run the unpacked `mux-media` in a media directory.
+3. Run the unpacked `mux-media` in a media directory.
 
 
 ## Notices

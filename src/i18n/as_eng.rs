@@ -39,7 +39,6 @@ impl_msg_as_str!(
     HelpMaxDefaults => "Max auto-enabled default-track-flags",
     HelpMaxEnableds => "Max auto-enabled track-enabled-flags",
     HelpMaxForceds => "Max auto-enabled forced-display-flags",
-    HelpMkvmergeHelp => "Run mkvmerge command",
     HelpNames => "Set track names",
     HelpNoAttachs => "Don't copy any other attachment",
     HelpNoAudio => "Don't copy any audio track",

@@ -45,4 +45,3 @@ impl TrackLangs {
 
 to_ffmpeg_args!(@names_or_langs, TrackLangs, Language, langs, MITILang);
 to_json_args!(@names_or_langs, TrackLangs, Langs);
-to_mkvmerge_args!(@names_or_langs, TrackLangs, Language, langs, MITILang);

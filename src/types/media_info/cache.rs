@@ -2,8 +2,8 @@ pub(crate) mod attach;
 pub(crate) mod track;
 
 use crate::{
-    ArcPathBuf, Duration, IsDefault, MuxError, Result, SubCharset, Target, TargetGroup, TrackOrder,
-    TrackType,
+    ArcPathBuf, Duration, FfmpegStream, IsDefault, MuxError, Result, SubCharset, Target,
+    TargetGroup, TrackOrder, TrackType,
 };
 use attach::CacheMIOfFileAttach;
 use enum_map::EnumMap;
@@ -44,8 +44,8 @@ pub struct CacheMIOfGroup {
 /// Cache of [`MediaInfo`](crate::MediaInfo) is separate for each media.
 #[derive(Clone, Debug, Default, IsDefault)]
 pub struct CacheMIOfFile {
+    pub ffmpeg_streams: CacheState<Vec<FfmpegStream>>,
     pub matroska: CacheState<Matroska>,
-    pub mkvmerge_i: CacheState<Vec<String>>,
 
     pub path_tail: CacheState<String>,
     pub words_path_tail: CacheState<Vec<String>>,

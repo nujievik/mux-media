@@ -39,7 +39,6 @@ impl_msg_as_str!(
     HelpMaxDefaults => "Максимум включаемых в авто default флагов",
     HelpMaxEnableds => "Максимум включаемых в авто enabled флагов",
     HelpMaxForceds => "Максимум включаемых в авто forced флагов",
-    HelpMkvmergeHelp => "Выполнить команду mkvmerge",
     HelpNames => "Установить имена дорожек",
     HelpNoAttachs => "Не копировать другие вложения",
     HelpNoAudio => "Не копировать аудио дорожки",

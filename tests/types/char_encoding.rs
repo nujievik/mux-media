@@ -22,7 +22,6 @@ macro_rules! test_file {
 
             assert_eq!($exp, CharEncoding::from(path));
             assert_eq!(SubCharset($exp), sc);
-            assert_eq!($exp_args, sc.to_mkvmerge_args(&mut mi, path));
         }
     };
 }

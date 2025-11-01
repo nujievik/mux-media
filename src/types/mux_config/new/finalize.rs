@@ -46,13 +46,8 @@ impl TryFinalizeInit for MuxConfig {
         }
 
         fn tool_paths(cfg: &mut MuxConfig) -> Result<()> {
-            let mut tools: Vec<Tool> = Vec::with_capacity(Tool::LENGTH);
-            tools.push(Tool::Mkvmerge);
-            if !cfg.muxer.is_default() || !cfg.retiming.is_default() {
-                tools.push(Tool::Ffmpeg);
-            }
-
-            cfg.tool_paths.try_resolve_many(tools, &cfg.output.temp_dir)
+            cfg.tool_paths
+                .try_resolve(Tool::Ffmpeg, &cfg.output.temp_dir)
         }
     }
 }

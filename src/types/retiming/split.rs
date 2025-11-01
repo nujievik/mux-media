@@ -71,36 +71,32 @@ impl Retiming<'_, '_> {
             tools: &Tools,
             src: &Path,
             tid: u64,
-            ty: TrackType,
+            _ty: TrackType,
             dest: &Path,
             trg_start: Duration,
             trg_end: Duration,
         ) -> Result<ToolOutput> {
             let p: fn(&str) -> &Path = Path::new;
 
-            let s_parts = format!("parts:{}-{}", trg_start, trg_end);
-            let s_tid = format!("{}", tid);
+            let trg_start = trg_start.to_string();
+            let trg_end = trg_end.to_string();
+            let map = format!("0:{}", tid);
 
             let args = [
-                p("-o"),
-                dest,
-                p("--split"),
-                p(&s_parts),
-                p("--no-chapters"),
-                p("--no-global-tags"),
-                p("--no-subtitles"),
-                p("--no-attachments"),
-                p(ty.as_mkvmerge_arg()),
-                p(&s_tid),
-                if matches!(ty, TrackType::Audio) {
-                    p("--no-video")
-                } else {
-                    p("--no-audio")
-                },
+                p("-i"),
                 src,
+                p("-ss"),
+                p(&trg_start),
+                p("-to"),
+                p(&trg_end),
+                p("-map"),
+                p(&map),
+                p("-c"),
+                p("copy"),
+                dest,
             ];
 
-            tools.run(Tool::Mkvmerge, &args)
+            tools.run(Tool::Ffmpeg, &args)
         }
     }
 }

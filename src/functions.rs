@@ -1,4 +1,4 @@
-use crate::{Msg, MuxConfig, MuxLogger, Result, TryFinalizeInit};
+use crate::{Msg, MuxConfig, MuxLogger, Result, TryFinalizeInit, ffmpeg};
 use log::{info, warn};
 use std::path::{MAIN_SEPARATOR, PathBuf};
 
@@ -40,9 +40,9 @@ pub const SEP_STR: &str = match str::from_utf8(SEP_BYTES) {
 ///    - Errors while processing current media return an error if `--exit-on-err` is set;
 ///      otherwise, muxing continues with the next media.
 pub fn run() -> Result<()> {
-    crate::ffmpeg::init()?;
     let cfg = init_cfg()?;
     MuxLogger::init_with_filter(cfg.verbosity.into());
+    init_ffmpeg(&cfg)?;
 
     let result = cfg.mux();
     cfg.output.remove_created_dirs();
@@ -62,6 +62,16 @@ pub fn run() -> Result<()> {
             Err(e)
         } else {
             Ok(cfg)
+        }
+    }
+
+    fn init_ffmpeg(cfg: &MuxConfig) -> Result<()> {
+        if let Err(e) = ffmpeg::init() {
+            cfg.output.remove_created_dirs();
+            Err(e.into())
+        } else {
+            ffmpeg::log::set_level(ffmpeg::log::Level::Quiet);
+            Ok(())
         }
     }
 }

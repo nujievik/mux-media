@@ -1,16 +1,17 @@
-use crate::{Msg, MuxError};
+use crate::{Msg, MuxError, Muxer};
 use log::{debug, warn};
 use std::{ffi::OsStr, fmt, path::Path, process::Command};
 
-#[inline(always)]
-pub(crate) fn avi_container_does_not_support(path: &Path, num: u64) {
+#[inline]
+pub(crate) fn warn_container_does_not_support(muxer: Muxer, path: &Path, track: u64) {
     warn!(
-        "AVI {} {}. {} '{}' track {}",
+        "{} {} {}. {} '{}' track {}",
+        muxer,
         Msg::ContainerDoesNotSupport,
         Msg::LMultipleTracksOrTypeTrack,
         Msg::Skipping,
         path.display(),
-        num
+        track
     );
 }
 
@@ -55,6 +56,7 @@ pub(crate) fn warn_not_out_save_any(out: &Path) {
     )
 }
 
+/*
 #[inline(always)]
 pub(crate) fn warn_not_out_change(out: &Path) {
     warn!(
@@ -64,6 +66,7 @@ pub(crate) fn warn_not_out_change(out: &Path) {
         out.display()
     )
 }
+*/
 
 /*
 #[inline(always)]

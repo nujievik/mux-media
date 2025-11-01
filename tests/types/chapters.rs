@@ -35,6 +35,7 @@ fn test_err_messages() {
     assert!(try_new("missing").is_err());
 }
 
+/*
 #[test]
 fn test_to_mvkmerge_args() {
     ["srt.srt", "audio_x1.mka", "sub_x8.mks"]
@@ -52,6 +53,7 @@ fn test_to_mvkmerge_args() {
             compare_arg_cases!(cases, file, MCChapters,);
         })
 }
+*/
 
 build_test_to_json_args!(
     test_to_json_args, chapters, "chapters";

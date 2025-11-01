@@ -44,13 +44,8 @@ impl TrackType {
         matches!(self, TrackType::Sub)
     }
 
-    pub(crate) fn as_mkvmerge_arg(self) -> &'static str {
-        match self {
-            Self::Video => "--video-tracks",
-            Self::Audio => "--audio-tracks",
-            Self::Sub => "--subtitle-tracks",
-            _ => unreachable!("Non-customizable flag"),
-        }
+    pub(crate) fn is_customizable(self) -> bool {
+        matches!(self, TrackType::Audio | TrackType::Sub | TrackType::Video)
     }
 
     /// Returns first string symbol of [`TrackType`].

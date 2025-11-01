@@ -234,7 +234,7 @@ fn test_matroska() {
 }
 
 #[test]
-fn test_mkvmerge_i() {
+fn test_ffmpeg_streams() {
     let mut mi = new();
 
     [
@@ -247,7 +247,7 @@ fn test_mkvmerge_i() {
     ]
     .iter()
     .for_each(|f| {
-        mi.try_get::<MIMkvmergeI>(data(f).as_path()).unwrap();
+        mi.try_get::<MIFfmpegStreams>(data(f).as_path()).unwrap();
     })
 }
 
@@ -431,6 +431,8 @@ fn test_attachs_info() {
     ]
     .into_iter()
     .for_each(|(f, len)| {
+        mi.init::<MIAttachsInfo>(data(f).as_path());
+        dbg!(&mi.cache.of_files.get(data(f).as_path()).unwrap());
         assert_eq!(
             len,
             mi.get::<MIAttachsInfo>(data(f).as_path()).unwrap().len()

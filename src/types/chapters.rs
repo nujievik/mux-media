@@ -1,8 +1,5 @@
-use crate::{IsDefault, MediaInfo, MuxError, ToJsonArgs, ToMkvmergeArgs, dashed, types::helpers};
-use std::{
-    ffi::OsString,
-    path::{Path, PathBuf},
-};
+use crate::{IsDefault, MuxError, ToJsonArgs, dashed, types::helpers};
+use std::path::{Path, PathBuf};
 
 /// Settings for media chapters.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
@@ -33,31 +30,6 @@ impl Chapters {
             no_flag: false,
             file: Some(file),
         })
-    }
-}
-
-impl ToMkvmergeArgs for Chapters {
-    fn try_append_mkvmerge_args(
-        &self,
-        args: &mut Vec<OsString>,
-        _: &mut MediaInfo,
-        _: &Path,
-    ) -> Result<(), MuxError> {
-        if self.is_default() {
-            return Ok(());
-        }
-
-        if self.no_flag {
-            args.push(dashed!(NoChapters).into());
-            return Ok(());
-        }
-
-        if let Some(f) = &self.file {
-            args.push(dashed!(Chapters).into());
-            args.push(f.into());
-        }
-
-        Ok(())
     }
 }
 

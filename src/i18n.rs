@@ -59,7 +59,6 @@ pub enum Msg {
     HelpMaxDefaults,
     HelpMaxEnableds,
     HelpMaxForceds,
-    HelpMkvmergeHelp,
     HelpNames,
     HelpNoAttachs,
     HelpNoAudio,

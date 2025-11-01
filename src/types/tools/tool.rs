@@ -8,20 +8,15 @@ use strum_macros::{AsRefStr, EnumIter, EnumString};
 #[strum(serialize_all = "kebab-case")]
 pub enum Tool {
     Ffmpeg,
-    Mkvmerge,
 }
 
 impl Tool {
-    /// Length of the enum.
-    pub(crate) const LENGTH: usize = <Self as Enum>::LENGTH;
-
     /// Returns an iterator over all tools.
     /// ```
     /// # use mux_media::Tool;
     /// #
     /// let mut it = Tool::iter();
     /// assert_eq!(it.next(), Some(Tool::Ffmpeg));
-    /// assert_eq!(it.next(), Some(Tool::Mkvmerge));
     /// assert_eq!(it.next(), None);
     /// ```
     pub fn iter() -> impl Iterator<Item = Self> {
@@ -31,13 +26,12 @@ impl Tool {
     pub(crate) fn as_cli_arg(self) -> CliArg {
         match self {
             Self::Ffmpeg => CliArg::Ffmpeg,
-            Self::Mkvmerge => CliArg::Mkvmerge,
         }
     }
 
     /// Returns `true` if the tool belongs to the mkvtoolnix suite.
     pub(super) fn is_mkvtoolnix(self) -> bool {
-        matches!(self, Self::Mkvmerge)
+        false
     }
 
     /// Returns the associated package name (`"mkvtoolnix"` or `"ffmpeg"`).

@@ -65,89 +65,40 @@ fn test_get() {
     }
 }
 
-fn build_test_x1_to_mkvmerge_args(file: &str) {
+fn build_test_x1_to_ffmpeg_args(file: &str) {
+    let eng = vec!["-metadata:s:0", "language=eng"];
+
     let cases = [
-        (vec![], vec!["--pro"]),
-        (vec![], vec!["--pro", "--langs", "eng:en"]),
-        (vec![], vec!["--pro", "--langs", "2:en"]),
+        (&vec![], vec!["--pro"]),
+        (&vec![], vec!["--pro", "--langs", "eng:en"]),
+        (&vec![], vec!["--pro", "--langs", "2:en"]),
+        (&eng, vec!["--pro", "--langs", "0:eng"]),
+        (&eng, vec!["--langs", "en"]),
+        (&eng, vec!["--langs", "0:en"]),
+        (&eng, vec!["--langs", "0-8:en"]),
+        (&eng, vec!["--langs", "0:en,1:ru,2:en"]),
         (
-            vec!["--language", "0:eng"],
-            vec!["--pro", "--langs", "0:eng"],
+            &vec!["-metadata:s:0", "language=rus"],
+            vec!["--langs", "0:rus"],
         ),
-        (vec!["--language", "0:eng"], vec!["--langs", "en"]),
-        (vec!["--language", "0:eng"], vec!["--langs", "0:en"]),
-        (vec!["--language", "0:eng"], vec!["--langs", "und:en"]),
-        (vec!["--language", "0:eng"], vec!["--langs", "0-8:en"]),
-        (
-            vec!["--language", "0:eng"],
-            vec!["--langs", "0:en,1:ru,2:en"],
-        ),
-        (vec!["--language", "0:rus"], vec!["--langs", "0:rus"]),
     ];
 
-    compare_arg_cases!(cases, file, MCTrackLangs, MITracksInfo);
+    compare_arg_cases!(cases, file, TrackLangs, MITracksInfo);
 }
 
 #[test]
-fn test_x1_audio_to_mkvmerge_args() {
-    build_test_x1_to_mkvmerge_args("audio_x1.mka");
+fn test_x1_audio_to_ffmpeg_args() {
+    build_test_x1_to_ffmpeg_args("audio_x1.mka");
 }
 
 #[test]
 fn test_x1_sub_to_mkvmerge_args() {
-    build_test_x1_to_mkvmerge_args("sub_x1.mks");
+    build_test_x1_to_ffmpeg_args("sub_x1.mks");
 }
 
 #[test]
-fn test_x1_video_to_mkvmerge_args() {
-    build_test_x1_to_mkvmerge_args("video_x1.mkv");
-}
-
-fn build_test_x8_to_mkvmerge_args(file: &str) {
-    let cases = [
-        (vec![], vec!["--pro"]),
-        (vec![], vec!["--pro", "--langs", "eng:en"]),
-        (
-            to_args(["--language", "0:eng"]),
-            vec!["--pro", "--langs", "0:en"],
-        ),
-        (
-            to_args(["--language", "2:eng", "--language", "4:rus"]),
-            vec!["--pro", "--langs", "2:en,4:ru"],
-        ),
-        (
-            repeat_track_arg("--language", ":eng", "0-7"),
-            vec!["--langs", "eng"],
-        ),
-        (
-            repeat_track_arg("--language", ":rus", "0-7"),
-            vec!["--langs", "rus"],
-        ),
-        (
-            append_str_vecs([
-                repeat_track_arg("--language", ":eng", "0-2"),
-                repeat_track_arg("--language", ":rus", "3-7"),
-            ]),
-            vec!["--langs", "0-2:en,und:rus"],
-        ),
-    ];
-
-    compare_arg_cases!(cases, file, MCTrackLangs, MITracksInfo);
-}
-
-#[test]
-fn test_x8_audio_to_mkvmerge_args() {
-    build_test_x8_to_mkvmerge_args("audio_x8.mka");
-}
-
-#[test]
-fn test_x8_sub_to_mkvmerge_args() {
-    build_test_x8_to_mkvmerge_args("sub_x8.mks");
-}
-
-#[test]
-fn test_x8_video_to_mkvmerge_args() {
-    build_test_x8_to_mkvmerge_args("video_x8.mkv");
+fn test_x1_video_to_ffmpeg_args() {
+    build_test_x1_to_ffmpeg_args("video_x1.mkv");
 }
 
 build_test_to_json_args!(

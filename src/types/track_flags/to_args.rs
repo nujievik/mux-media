@@ -1,77 +1,11 @@
 use super::{DefaultTrackFlags, EnabledTrackFlags, ForcedTrackFlags, TrackFlags};
 use crate::{
-    IsDefault, LangCode, MediaInfo, Result, ToFfmpegArgs, ToJsonArgs, ToMkvmergeArgs,
-    TrackFlagType, TrackFlagsCounts, TrackType, dashed, immut,
-    markers::{MICmnTrackOrder, MISavedTracks, MITIItSigns, MITITrackIDs, MITargets},
+    IsDefault, LangCode, MediaInfo, Result, ToFfmpegArgs, ToJsonArgs, TrackFlagType,
+    TrackFlagsCounts, TrackType, immut,
+    markers::{MICmnTrackOrder, MITIItSigns, MITITrackIDs, MITargets},
 };
 use enum_map::EnumMap;
-use std::{collections::HashSet, ffi::OsString, path::Path};
-
-impl MediaInfo<'_> {
-    /// Converts a values of all track flags to mkvmerge-compatible arguments.
-    pub fn try_to_mkvmerge_args_of_flags(&mut self) -> Result<Vec<Vec<OsString>>> {
-        let flags = self.try_to_flag_values()?;
-        let order = self.try_get_cmn::<MICmnTrackOrder>()?;
-
-        let len = order.iter_first_entries().count();
-        let mut args: Vec<Vec<OsString>> = vec![Vec::new(); len];
-
-        flags.into_iter().enumerate().for_each(|(i, flags)| {
-            let number = order[i].number as usize;
-            let track = order[i].track;
-            flags.into_iter().for_each(|(flag, val)| {
-                if let Some(s) = TrackFlags::val_to_mkvmerge_arg(track, val) {
-                    args[number].push(flag.as_cli_arg().dashed().into());
-                    args[number].push(s.into());
-                }
-            })
-        });
-
-        Ok(args)
-    }
-}
-
-macro_rules! flags_to_mkvmerge_args {
-    ($flags:ident, $arg:ident) => {
-        /// Returns arguments based on user-defined values only.
-        ///
-        /// If you need auto-values too, use [`MediaInfo::try_to_mkvmerge_args_of_flags`].
-        impl ToMkvmergeArgs for $flags {
-            fn try_append_mkvmerge_args(
-                &self,
-                args: &mut Vec<OsString>,
-                mi: &mut MediaInfo,
-                media: &Path,
-            ) -> Result<()> {
-                if self.is_default() {
-                    return Ok(());
-                }
-
-                let tracks = mi.try_take::<MISavedTracks>(media)?;
-
-                tracks
-                    .values()
-                    .flat_map(|vals| vals.iter())
-                    .for_each(|&track| {
-                        let val = self.get_manual_val(mi, media, track);
-
-                        if let Some(arg) = TrackFlags::val_to_mkvmerge_arg(track, val) {
-                            args.push(dashed!($arg).into());
-                            args.push(arg.into());
-                        }
-                    });
-
-                mi.set::<MISavedTracks>(media, tracks);
-
-                Ok(())
-            }
-        }
-    };
-}
-
-flags_to_mkvmerge_args!(DefaultTrackFlags, DefaultTrackFlag);
-flags_to_mkvmerge_args!(ForcedTrackFlags, ForcedDisplayFlag);
-flags_to_mkvmerge_args!(EnabledTrackFlags, TrackEnabledFlag);
+use std::{collections::HashSet, ffi::OsString};
 
 impl ToFfmpegArgs for TrackFlags {
     fn try_append_ffmpeg_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) -> Result<()> {
@@ -103,49 +37,10 @@ impl ToFfmpegArgs for TrackFlags {
             }
 
             args.push(format!("-disposition:{}", stream).into());
-            args.push(arg.into())
+            args.push(arg.into());
         });
 
         Ok(())
-    }
-
-    fn append_stream(
-        args: &mut Vec<OsString>,
-        mi: &mut MediaInfo,
-        media: &Path,
-        track: u64,
-        out_stream: usize,
-    ) {
-        unwrap_or_return!(mi.init::<MITargets>(media));
-        let tids = unwrap_or_return!(immut!(mi, MITITrackIDs, media, track));
-        let targets = unwrap_or_return!(mi.immut::<MITargets>(media));
-
-        let mut arg = String::with_capacity(14);
-
-        TrackFlagType::iter_ffmpeg_supported().for_each(|flag| {
-            let flags = mi.cfg.target_track_flags(targets, flag);
-            let val = flags.get(&tids[0]).or_else(|| flags.get(&tids[1]));
-
-            match val {
-                Some(false) => return,
-                None if flag != TrackFlagType::Default => return,
-                _ => {}
-            }
-
-            if arg.is_empty() {
-                arg.push_str(flag.as_str_ffmpeg());
-            } else {
-                arg.push('+');
-                arg.push_str(flag.as_str_ffmpeg());
-            }
-        });
-
-        if arg.is_empty() {
-            return;
-        }
-
-        args.push(format!("-disposition:{}", out_stream).into());
-        args.push(arg.into())
     }
 }
 
@@ -263,23 +158,5 @@ impl MediaInfo<'_> {
 
         self.set_cmn::<MICmnTrackOrder>(order);
         Ok(values)
-    }
-}
-
-impl TrackFlags {
-    #[inline]
-    fn val_to_mkvmerge_arg(track: u64, opt: Option<bool>) -> Option<String> {
-        match opt {
-            Some(true) => Some(track.to_string()),
-            Some(false) => Some(format!("{}:0", track)),
-            None => None,
-        }
-    }
-
-    #[inline(always)]
-    fn get_manual_val(&self, mi: &mut MediaInfo, path: &Path, num: u64) -> Option<bool> {
-        mi.get_ti::<MITITrackIDs>(path, num)?
-            .iter()
-            .find_map(|tid| self.get(tid))
     }
 }

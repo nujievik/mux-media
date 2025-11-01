@@ -99,45 +99,6 @@ fn test_flag_type_iter() {
     }
 }
 
-macro_rules! build_test_to_mvkmerge_args_fallback {
-    ( $( $fn:ident, $mkvmerge_arg:expr, $arg:expr, $mc_field:ident );* ) => {
-        $(
-        #[test]
-        fn $fn() {
-            let cases = [
-                (vec![], vec![]),
-                (vec![], vec!["--pro"]),
-                (repeat_track_arg($mkvmerge_arg, "", "0-7"), vec![$arg, "on"]),
-                (
-                    repeat_track_arg($mkvmerge_arg, ":0", "0-7"),
-                    vec![$arg, "off"],
-                ),
-                (to_args([$mkvmerge_arg, "1"]), vec![$arg, "1:on"]),
-                (to_args([$mkvmerge_arg, "1:0"]), vec![$arg, "1:off"]),
-                (
-                    append_str_vecs([vec![$mkvmerge_arg, "0:0"], vec![$mkvmerge_arg, "1"]]),
-                    vec![$arg, "1:on,0:off"],
-                ),
-            ];
-
-            compare_arg_cases!(
-                cases,
-                "sub_x8.mks",
-                $mc_field,
-                MITargets,
-                MITracksInfo
-            );
-        }
-        )*
-    };
-}
-
-build_test_to_mvkmerge_args_fallback!(
-    test_defaults_to_mvkmerge_args_fallback, "--default-track-flag", "--defaults", MCDefaultTrackFlags;
-    test_forceds_to_mvkmerge_args_fallback, "--forced-display-flag", "--forceds", MCForcedTrackFlags;
-    test_enableds_to_mvkmerge_args_fallback, "--track-enabled-flag", "--enableds", MCEnabledTrackFlags
-);
-
 macro_rules! build_test_flags_to_json_args {
     ( $( $fn:ident, $field:ident, $json_dir:expr, $arg:expr, $lim_arg:expr );* ) => {
         $(

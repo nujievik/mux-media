@@ -155,23 +155,19 @@ impl MediaInfo<'_> {
         let m = media.as_ref();
 
         if !cache_is_empty
-            && self.cache.of_files.get(m).map_or(false, |c| {
-                c.matroska.is_cached() || c.mkvmerge_i.is_cached()
-            })
+            && self
+                .cache
+                .of_files
+                .get(m)
+                .map_or(false, |c| c.ffmpeg_streams.is_cached())
         {
             return Ok(None);
         }
 
-        if let Ok(mat) = self.build_matroska(m) {
-            let mut cache = CacheMIOfFile::default();
-            cache.matroska = CacheState::Cached(mat);
-            return Ok(Some((media.into(), cache)));
-        }
-
-        match self.build_mkvmerge_i(m) {
-            Ok(mkvmerge) => {
+        match self.build_ffmpeg_streams(m) {
+            Ok(streams) => {
                 let mut cache = CacheMIOfFile::default();
-                cache.mkvmerge_i = CacheState::Cached(mkvmerge);
+                cache.ffmpeg_streams = CacheState::Cached(streams);
                 Ok(Some((media.into(), cache)))
             }
             Err(e) if exit_on_err => Err(e),

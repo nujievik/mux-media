@@ -1,9 +1,9 @@
 use super::REGEX_WORD;
 use crate::{
-    LangCode, MediaInfo, MuxError, RawTrackCache, TrackID, TrackType, Value, immut,
+    LangCode, MediaInfo, MuxError, TrackID, TrackType, Value, immut,
     markers::{
-        MCTrackLangs, MCTrackNames, MICmnStem, MIPathTail, MIRelativeUpmost, MITICache, MITIName,
-        MITIWordsName, MITargets, MITracksInfo, MIWordsPathTail, MIWordsRelativeUpmost,
+        MCTrackLangs, MCTrackNames, MICmnStem, MIMatroska, MIPathTail, MIRelativeUpmost, MITICache,
+        MITIName, MITIWordsName, MITargets, MIWordsPathTail, MIWordsRelativeUpmost,
     },
     types::helpers,
 };
@@ -68,12 +68,10 @@ impl MediaInfo<'_> {
         }
 
         // From matroska tags
-        if let Some(name) = self.try_get::<MITracksInfo>(media).ok().and_then(|ti| {
-            match ti.get(&track).map(|cache| &cache.raw) {
-                Some(RawTrackCache::Matroska(mat)) => mat.name.clone(),
-                _ => None,
-            }
-        }) {
+        if let Some(name) = self
+            .get::<MIMatroska>(media)
+            .and_then(|mat| mat.tracks.get(track as usize).and_then(|t| t.name.clone()))
+        {
             return Ok(Value::Auto(name));
         }
 
@@ -122,24 +120,21 @@ impl MediaInfo<'_> {
             return Ok(Value::User(lang));
         }
 
-        // Matroska tags
-        if let Some(lang) = self.try_get::<MITracksInfo>(media).ok().and_then(|ti| {
-            match ti.get(&track).map(|cache| &cache.raw) {
-                Some(RawTrackCache::Matroska(mat)) => mat
-                    .language
+        // From matroska tags
+        if let Some(lang) = self.get::<MIMatroska>(media).and_then(|mat| {
+            mat.tracks.get(track as usize).and_then(|t| {
+                t.language
                     .as_ref()
-                    .and_then(|lang| {
-                        match lang {
+                    .map_or(Some(LangCode::Eng), |l| {
+                        match l {
                             matroska::Language::ISO639(s) => s,
                             matroska::Language::IETF(s) => s,
                         }
                         .parse::<LangCode>()
                         .ok()
                     })
-                    .filter(|lang| lang != &LangCode::Und),
-
-                _ => None,
-            }
+                    .filter(|l| !matches!(l, LangCode::Und))
+            })
         }) {
             return Ok(Value::Auto(lang));
         }
@@ -161,10 +156,7 @@ impl MediaInfo<'_> {
     }
 
     pub(crate) fn build_ti_it_signs(&mut self, media: &Path, track: u64) -> Result<bool, MuxError> {
-        match self
-            .get_ti::<MITICache>(media, track)
-            .map(|cache| cache.track_type)
-        {
+        match self.get_ti::<MITICache>(media, track).map(|cache| cache.ty) {
             Some(TrackType::Sub) => {}
             _ => return Ok(false),
         }

@@ -12,25 +12,29 @@ mod types;
 /// Field markers for [`MuxConfig`] and [`MediaInfo`].
 pub mod markers;
 
+pub use ffmpeg_next as ffmpeg;
+
 pub type Result<T> = std::result::Result<T, MuxError>;
 
 pub use functions::{ensure_long_path_prefix, ensure_trailing_sep, run};
 pub use i18n::Msg;
 
 pub use traits::{
-    Field, ToFfmpegArgs, ToJsonArgs, ToMkvmergeArgs, TryFinalizeInit,
+    Field, ToFfmpegArgs, ToJsonArgs, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField, LazyPathNumField},
 };
 
 pub use types::{
     arc_path_buf::ArcPathBuf,
-    attachs::{Attachs, FontAttachs, OtherAttachs, attach_type::AttachType, id::AttachID},
+    attachs::{Attachs, FontAttachs, OtherAttachs, id::AttachID, ty::AttachType},
     auto_flags::AutoFlags,
     chapters::Chapters,
     char_encoding::{CharEncoding, SubCharset},
     cli_arg::CliArg,
+    codec_id::CodecID,
     duration::Duration,
     extensions::{EXTENSIONS, Extensions},
+    ffmpeg_stream::FfmpegStream,
     file_type::FileType,
     globset_pattern::GlobSetPattern,
     input::Input,
@@ -53,12 +57,12 @@ pub use types::{
     tools::{Tools, output::ToolOutput, paths::ToolPaths, tool::Tool},
     track_flags::{
         DefaultTrackFlags, EnabledTrackFlags, ForcedTrackFlags, TrackFlags,
-        counts::TrackFlagsCounts, flag_type::TrackFlagType,
+        counts::TrackFlagsCounts, ty::TrackFlagType,
     },
     track_langs::TrackLangs,
     track_names::TrackNames,
     track_order::{TrackOrder, TrackOrderItem, TrackOrderItemRetimed},
-    tracks::{AudioTracks, SubTracks, Tracks, VideoTracks, id::TrackID, track_type::TrackType},
+    tracks::{AudioTracks, SubTracks, Tracks, VideoTracks, id::TrackID, ty::TrackType},
     value::Value,
     verbosity::Verbosity,
 };
@@ -74,8 +78,4 @@ pub use types::media_info::cache::{
     CacheMICommon, CacheMIOfFile, attach::CacheMIOfFileAttach, track::CacheMIOfFileTrack,
 };
 
-use types::{
-    media_info::cache::track::RawTrackCache, muxer::codecs::MUXER_CODECS, retiming::Retiming,
-};
-
-use ffmpeg_next as ffmpeg;
+use types::{muxer::supported::SupportedTracks, retiming::Retiming};

@@ -43,4 +43,3 @@ impl TrackNames {
 
 to_ffmpeg_args!(@names_or_langs, TrackNames, Title, names, MITIName);
 to_json_args!(@names_or_langs, TrackNames, Names);
-to_mkvmerge_args!(@names_or_langs, TrackNames, TrackName, names, MITIName);

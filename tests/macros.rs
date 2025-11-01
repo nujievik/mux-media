@@ -11,13 +11,13 @@ macro_rules! take_mi_cache {
 
 #[macro_export]
 macro_rules! compare_arg_cases {
-    ($cases:expr, $file:expr, $field:ident, $( $cache_field:ident ),* $(,)?) => {{
+    ($cases:expr, $file:expr, $ty:ty, $( $cache_field:ident ),* $(,)?) => {{
         let path = $crate::common::data($file);
         let cache = $crate::take_mi_cache!(&path, $( $cache_field, )*);
 
         for (exp, args) in $cases {
             let exp = $crate::common::to_os_args(exp);
-            assert_eq!(exp, $crate::common::cfg_args::<$field, _, _>(args, &path, cache.clone()));
+            assert_eq!(exp, $crate::common::cfg_args::<_, _, $ty>(args, cache.clone()));
         }
     }};
 }

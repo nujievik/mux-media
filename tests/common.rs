@@ -60,17 +60,16 @@ where
     <MuxConfig as Field<F>>::field(&mc).clone()
 }
 
-pub fn cfg_args<F, I, S>(args: I, path: &Path, cache: CacheMI) -> Vec<OsString>
+pub fn cfg_args<I, S, T>(args: I, cache: CacheMI) -> Vec<OsString>
 where
-    MuxConfig: Field<F>,
-    <MuxConfig as Field<F>>::FieldType: ToMkvmergeArgs,
     I: IntoIterator<Item = S>,
     S: Into<OsString> + Clone,
+    T: ToFfmpegArgs,
 {
     let mc = cfg(args);
     let mut mi = MediaInfo::from(&mc);
     mi.cache = cache;
-    <MuxConfig as Field<F>>::field(&mc).to_mkvmerge_args(&mut mi, path)
+    T::to_ffmpeg_args(&mut mi)
 }
 
 pub fn to_args<I, S>(args: I) -> Vec<String>

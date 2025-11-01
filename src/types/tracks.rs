@@ -1,8 +1,7 @@
 pub(crate) mod id;
 mod impls;
 mod to_json_args;
-mod to_mkvmerge_args;
-pub(crate) mod track_type;
+pub(crate) mod ty;
 
 use crate::IsDefault;
 use id::TrackID;

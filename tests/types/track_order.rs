@@ -11,8 +11,8 @@ static CACHE_LANGS_MKV: LazyLock<CacheMI> = LazyLock::new(|| {
 });
 
 fn body_test_order(args: &[&str], expected: [u64; 3]) {
-    let mux_config = cfg(args);
-    let mut mi = MediaInfo::from(&mux_config);
+    let cfg = cfg(args);
+    let mut mi = MediaInfo::from(&cfg);
     mi.cache = CACHE_LANGS_MKV.clone();
 
     let order = mi.try_take_cmn::<MICmnTrackOrder>().unwrap();
@@ -20,12 +20,6 @@ fn body_test_order(args: &[&str], expected: [u64; 3]) {
     expected.iter().enumerate().for_each(|(i, exp)| {
         assert_eq!(exp, &order[i].track);
     });
-
-    let mut exp_mkvmerge: Vec<OsString> = Vec::with_capacity(2);
-    exp_mkvmerge.push("--track-order".into());
-    exp_mkvmerge.push(format!("0:{},0:{},0:{}", expected[0], expected[1], expected[2]).into());
-
-    assert_eq!(exp_mkvmerge, order.to_mkvmerge_args(&mut mi, Path::new("")));
 
     let mut exp_ffmpeg: Vec<OsString> = Vec::with_capacity(8);
     exp_ffmpeg.push("-i".into());

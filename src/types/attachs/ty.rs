@@ -8,6 +8,7 @@ pub enum AttachType {
     Other,
 }
 
+/*
 impl AttachType {
     /// Returns an iterator over all variants of `AttachType`.
     pub(crate) fn iter() -> impl Iterator<Item = Self> {
@@ -41,3 +42,4 @@ mod tests {
         assert_eq!(AttachType::Other.as_str_mkvtoolnix(), "");
     }
 }
+*/

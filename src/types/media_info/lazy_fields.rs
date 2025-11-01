@@ -2,8 +2,8 @@ use super::MediaInfo;
 use crate::{
     ArcPathBuf, CacheMIOfFile, CacheMIOfFileAttach, CacheMIOfFileTrack,
     CacheState::{self, Cached, Failed, NotCached},
-    Duration, LangCode, LazyField, LazyPathField, LazyPathNumField, Result, SubCharset, Target,
-    TargetGroup, TrackID, TrackOrder, TrackType, Value,
+    Duration, FfmpegStream, LangCode, LazyField, LazyPathField, LazyPathNumField, Result,
+    SubCharset, Target, TargetGroup, TrackID, TrackOrder, TrackType, Value,
 };
 use enum_map::EnumMap;
 use matroska::Matroska;
@@ -311,6 +311,41 @@ macro_rules! lazy_fields {
     )* };
 }
 
+/// Marker of [`MediaInfo`] fields, that stores
+pub struct MICache;
+
+impl LazyPathField<MICache> for MediaInfo<'_> {
+    type FieldType = CacheMIOfFile;
+
+    fn try_init(&mut self, media: &Path) -> Result<()> {
+        if let None = self.cache.of_files.get(media) {
+            let _ = self.cache.of_files.insert(media.into(), Default::default());
+        }
+        Ok(())
+    }
+
+    fn try_mut(&mut self, media: &Path) -> Result<&mut Self::FieldType> {
+        <Self as LazyPathField<MICache>>::try_init(self, media).unwrap();
+        Ok(self.cache.of_files.get_mut(media).unwrap())
+    }
+
+    fn try_immut(&self, media: &Path) -> Result<&Self::FieldType> {
+        self.cache
+            .of_files
+            .get(media)
+            .ok_or_else(|| "Not cached media".into())
+    }
+
+    fn try_take(&mut self, media: &Path) -> Result<Self::FieldType> {
+        <Self as LazyPathField<MICache>>::try_init(self, media).unwrap();
+        Ok(mem::take(self.cache.of_files.get_mut(media).unwrap()))
+    }
+
+    fn set(&mut self, media: &Path, value: CacheMIOfFile) {
+        let _ = self.cache.of_files.insert(media.into(), value);
+    }
+}
+
 macro_rules! lazy_path_fields {
     ($( $map_field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
         #[doc = concat!("Marker of [`MediaInfo`] fields, that stores [`", stringify!($ty), "`].")]
@@ -594,7 +629,7 @@ lazy_fields!(
 
 lazy_path_fields!(
     matroska, Matroska, build_matroska => MIMatroska;
-    mkvmerge_i, Vec<String>, build_mkvmerge_i => MIMkvmergeI;
+    ffmpeg_streams, Vec<FfmpegStream>, build_ffmpeg_streams => MIFfmpegStreams;
 
     path_tail, String, build_path_tail => MIPathTail;
     words_path_tail, Vec<String>, build_words_path_tail => MIWordsPathTail;
@@ -619,6 +654,5 @@ lazy_path_num_fields!(
     tracks_info, name, Value<String>, build_ti_name => MITIName;
     tracks_info, words_name, Vec<String>, build_ti_words_name => MITIWordsName;
     tracks_info, track_ids, [TrackID; 2], build_ti_track_ids => MITITrackIDs;
-    tracks_info, codec, String, build_ti_codec => MITICodec;
     tracks_info, it_signs, bool, build_ti_it_signs => MITIItSigns;
 );

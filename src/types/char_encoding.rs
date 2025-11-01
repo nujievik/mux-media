@@ -1,8 +1,5 @@
-use crate::{
-    EXTENSIONS, MediaInfo, Msg, MuxError, Result, ToMkvmergeArgs, TrackType, dashed,
-    markers::MISavedTracks,
-};
-use std::{ffi::OsString, io::Read, path::Path};
+use crate::{EXTENSIONS, Msg, MuxError, Result};
+use std::{io::Read, path::Path};
 
 /// A wrapper around [`CharEncoding`] with mkvmerge impl.
 #[derive(Clone, Debug, PartialEq)]
@@ -14,29 +11,6 @@ pub enum CharEncoding {
     MkvmergeNotRecognizable(String),
     MkvmergeRecognizable,
     NotRecognized,
-}
-
-impl ToMkvmergeArgs for SubCharset {
-    fn try_append_mkvmerge_args(
-        &self,
-        args: &mut Vec<OsString>,
-        mi: &mut MediaInfo,
-        media: &Path,
-    ) -> Result<()> {
-        let enc = match &self.0 {
-            CharEncoding::MkvmergeNotRecognizable(s) if !s.is_empty() => s,
-            _ => return Ok(()),
-        };
-
-        mi.try_get::<MISavedTracks>(media)?[TrackType::Sub]
-            .iter()
-            .for_each(|track| {
-                args.push(dashed!(SubCharset).into());
-                args.push(format!("{}:{}", track, enc).into());
-            });
-
-        Ok(())
-    }
 }
 
 impl TryFrom<&Path> for SubCharset {

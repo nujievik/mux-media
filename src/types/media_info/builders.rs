@@ -3,12 +3,12 @@ mod saved;
 
 use super::MediaInfo;
 use crate::{
-    CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState, Duration, EXTENSIONS, LangCode,
-    RawTrackCache, Result, SubCharset, Target, TargetGroup, Tool, TrackID, TrackOrder, TrackType,
-    ffmpeg, immut,
+    AttachType, CacheMIOfFileAttach, CacheMIOfFileTrack, CacheState, CodecID, Duration, EXTENSIONS,
+    FfmpegStream, LangCode, Result, SubCharset, Target, TargetGroup, TrackID, TrackOrder,
+    TrackType, ffmpeg,
     markers::{
-        MIAudioDuration, MIMatroska, MIMkvmergeI, MIPlayableDuration, MITICache, MITILang,
-        MITargetGroup, MITracksInfo, MIVideoDuration,
+        MIAudioDuration, MICache, MIFfmpegStreams, MIPlayableDuration, MITILang, MITargetGroup,
+        MITracksInfo, MIVideoDuration,
     },
     types::helpers::{ffmpeg_stream_i_tb, try_ffmpeg_opened},
 };
@@ -21,9 +21,6 @@ use std::{
     sync::Arc,
 };
 
-static REGEX_ATTACH_ID: &Lazy<Regex> = regex!(r"Attachment ID (\d+):");
-static REGEX_CODEC: &Lazy<Regex> = regex!(r"Track ID\s*\d+:\s*.*?\(([^)]+)\)");
-static REGEX_TRACK_ID: &Lazy<Regex> = regex!(r"Track ID (\d+):");
 static REGEX_WORD: &Lazy<Regex> = regex!(r"[a-zA-Z]+|[а-яА-ЯёЁ]+");
 
 impl MediaInfo<'_> {
@@ -63,11 +60,18 @@ impl MediaInfo<'_> {
         matroska::open(media).map_err(|e| e.into())
     }
 
-    pub(super) fn build_mkvmerge_i(&self, media: &Path) -> Result<Vec<String>> {
-        let args = &[Path::new("-i"), media];
-        let out = self.tools.run(Tool::Mkvmerge, args)?;
-        let out = out.as_str_stdout().lines().map(String::from).collect();
-        Ok(out)
+    pub(super) fn build_ffmpeg_streams(&self, media: &Path) -> Result<Vec<FfmpegStream>> {
+        let ictx = ffmpeg::format::input(media)?;
+        let streams = ictx
+            .streams()
+            .map(|stream| {
+                let p = stream.parameters();
+                let ty = p.medium();
+                let id = p.id();
+                FfmpegStream { ty, id }
+            })
+            .collect();
+        Ok(streams)
     }
 
     pub(super) fn build_sub_charset(&self, media: &Path) -> Result<SubCharset> {
@@ -80,10 +84,10 @@ impl MediaInfo<'_> {
         TrackType::iter_customizable()
             .find_map(|ty| {
                 map.iter()
-                    .find(|(_, cache)| ty == cache.track_type)
+                    .find(|(_, cache)| ty == cache.ty)
                     .and_then(|_| TargetGroup::try_from(ty).ok())
             })
-            .ok_or_else(|| "Not found any Media Track".into())
+            .ok_or_else(|| "Not found customizable media track".into())
     }
 
     pub(super) fn build_targets(&mut self, media: &Path) -> Result<Vec<Target>> {
@@ -145,7 +149,7 @@ impl MediaInfo<'_> {
         fn try_duration(mi: &MediaInfo<'_>, media: &Path, ty: TrackType) -> Result<Duration> {
             let tracks = mi.try_immut::<MITracksInfo>(media)?;
 
-            if !tracks.values().any(|cache| ty == cache.track_type) {
+            if !tracks.values().any(|cache| ty == cache.ty) {
                 return Err(err!("Not found any '{}' track", ty.as_str_mkvtoolnix()));
             }
 
@@ -216,80 +220,81 @@ impl MediaInfo<'_> {
         Ok(d)
     }
 
+    fn help_build_tracks_attachs_info(
+        &mut self,
+        media: &Path,
+        need_tracks: bool,
+    ) -> Result<(
+        Option<HashMap<u64, CacheMIOfFileTrack>>,
+        Option<HashMap<u64, CacheMIOfFileAttach>>,
+    )> {
+        use crate::ffmpeg::util::media::Type;
+
+        let streams = self.try_get::<MIFfmpegStreams>(media)?;
+
+        let mut num_track = 0u64;
+        let mut num_attach = 1u64;
+        let mut tracks = HashMap::new();
+        let mut attachs = HashMap::new();
+
+        let mut push_track = |stream_i, codec_id, ty| {
+            let v = CacheMIOfFileTrack {
+                stream_i,
+                codec_id,
+                ty,
+                ..Default::default()
+            };
+            let _ = tracks.insert(num_track, v);
+            num_track += 1;
+        };
+        let mut push_attach = |stream_i, codec_id, ty| {
+            let v = CacheMIOfFileAttach {
+                stream_i,
+                codec_id,
+                ty,
+            };
+            let _ = attachs.insert(num_attach, v);
+            num_attach += 1;
+        };
+
+        streams.iter().enumerate().for_each(|(i, stream)| {
+            let id = CodecID(stream.id);
+            match stream.ty {
+                Type::Audio => push_track(i, id, TrackType::Audio),
+                Type::Subtitle => push_track(i, id, TrackType::Sub),
+                Type::Video if id.is_attach_other() => push_attach(i, id, AttachType::Other),
+                Type::Video => push_track(i, id, TrackType::Video),
+                Type::Attachment if id.is_font() => push_attach(i, id, AttachType::Font),
+                Type::Attachment => push_attach(i, id, AttachType::Other),
+                _ => push_track(i, id, TrackType::NonCustomizable),
+            }
+        });
+
+        let cache = self.try_mut::<MICache>(media)?;
+
+        if need_tracks {
+            cache.attachs_info = CacheState::Cached(attachs);
+            Ok((Some(tracks), None))
+        } else {
+            cache.tracks_info = CacheState::Cached(tracks);
+            Ok((None, Some(attachs)))
+        }
+    }
+
     pub(super) fn build_tracks_info(
         &mut self,
         media: &Path,
     ) -> Result<HashMap<u64, CacheMIOfFileTrack>> {
-        if let Some(matroska) = self.get::<MIMatroska>(media) {
-            let map = matroska
-                .tracks
-                .iter()
-                .map(|track| {
-                    // track num in Matroska has 1-based indexing
-                    // crate is used 0-based indexing
-                    let num = track.number - 1;
-                    CacheMIOfFileTrack::try_from(track).map(|cache| (num, cache))
-                })
-                .collect::<Result<HashMap<_, _>>>()?;
-
-            return Ok(map);
-        }
-
-        let mkvmerge_i = immut!(@try, self, MIMkvmergeI, media)?;
-
-        let map: HashMap<u64, CacheMIOfFileTrack> = mkvmerge_i
-            .iter()
-            .filter_map(|line| {
-                REGEX_TRACK_ID.captures(line).and_then(|caps| {
-                    caps.get(1)?
-                        .as_str()
-                        .parse::<u64>()
-                        .ok()
-                        .map(|num| (num, line.to_owned()))
-                })
-            })
-            .map(|(num, line)| CacheMIOfFileTrack::try_from(line).map(|cache| (num, cache)))
-            .collect::<Result<_>>()?;
-
-        Ok(map)
+        self.help_build_tracks_attachs_info(media, true)
+            .map(|v| v.0.unwrap())
     }
 
     pub(super) fn build_attachs_info(
         &mut self,
         media: &Path,
     ) -> Result<HashMap<u64, CacheMIOfFileAttach>> {
-        if let Some(matroska) = self.get::<MIMatroska>(media) {
-            let map: HashMap<u64, CacheMIOfFileAttach> = matroska
-                .attachments
-                .iter()
-                .enumerate()
-                .filter_map(|(i, raw)| {
-                    // attach nums in Matroska has 1-based indexing
-                    let num = i as u64 + 1;
-                    match CacheMIOfFileAttach::try_init(num, &raw.mime_type) {
-                        Ok(cache) => Some((num, cache)),
-                        Err(_) => None,
-                    }
-                })
-                .collect();
-
-            return Ok(map);
-        }
-
-        let mkvmerge_i = immut!(@try, self, MIMkvmergeI, media)?;
-
-        let map: HashMap<u64, CacheMIOfFileAttach> = mkvmerge_i
-            .into_iter()
-            .filter_map(|line| {
-                REGEX_ATTACH_ID.captures(line).and_then(|caps| {
-                    let num = caps.get(1)?.as_str().parse::<u64>().ok()?;
-                    let cache = CacheMIOfFileAttach::try_init(num, line).ok()?;
-                    Some((num, cache))
-                })
-            })
-            .collect();
-
-        Ok(map)
+        self.help_build_tracks_attachs_info(media, false)
+            .map(|v| v.1.unwrap())
     }
 
     pub(super) fn build_ti_track_ids(&mut self, media: &Path, track: u64) -> Result<[TrackID; 2]> {
@@ -299,130 +304,5 @@ impl MediaInfo<'_> {
             .unwrap_or(&LangCode::Und);
 
         Ok([TrackID::Num(track), TrackID::Lang(*lang)])
-    }
-
-    pub(super) fn build_ti_codec(&mut self, media: &Path, track: u64) -> Result<String> {
-        let cache = immut!(@try, self, MITICache, media, track)?;
-        match &cache.raw {
-            RawTrackCache::Matroska(raw) => Ok(raw.codec_id.clone()),
-            RawTrackCache::Mkvmerge(raw) => REGEX_CODEC
-                .captures(raw)
-                .and_then(|caps| caps.get(1).map(|m| m.as_str().to_owned()))
-                .ok_or_else(|| err!("Not found codec string")),
-        }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    macro_rules! test_a_regex_id {
-        ($fn:ident, $re:ident, $begin_pattern: expr) => {
-            #[test]
-            fn $fn() {
-                [
-                    vec!["1", "2", "3", "4"],
-                    vec!["4", "2", "3", "1"],
-                    vec!["10", "99", "100", "999", "1000", "9999"],
-                ]
-                .into_iter()
-                .for_each(|s_aids| {
-                    let compare_with = |sep: &str| {
-                        let s: String = s_aids
-                            .iter()
-                            .map(|s| format!("{} {}:", $begin_pattern, s))
-                            .collect::<Vec<_>>()
-                            .join(sep);
-
-                        let extracted: Vec<&str> = $re
-                            .captures_iter(&s)
-                            .map(|m| m.get(1).unwrap().as_str())
-                            .collect();
-
-                        assert_eq!(s_aids, extracted);
-                    };
-
-                    compare_with("\n");
-                    compare_with(" ");
-                    compare_with("abc");
-                    compare_with("ID");
-                    compare_with("12345");
-                })
-            }
-        };
-    }
-
-    test_a_regex_id!(test_regex_attach_id, REGEX_ATTACH_ID, "Attachment ID");
-    test_a_regex_id!(test_regex_track_id, REGEX_TRACK_ID, "Track ID");
-
-    #[test]
-    fn test_regex_word() {
-        [
-            vec!["ab", "c", "def", "xyz"],
-            vec!["def", "xyz", "ab", "c"],
-            vec!["AB", "C", "dEf", "XYZ"],
-            vec!["аб", "в", "где", "эюя"],
-            vec!["АБ", "В", "ГдЕ", "ЭЮЯ"],
-            vec!["ё", "Ё"],
-        ]
-        .into_iter()
-        .for_each(|s_words| {
-            let compare_with = |sep: &str| {
-                let s: String = s_words.join(sep);
-                let extracted: Vec<&str> = REGEX_WORD.find_iter(&s).map(|m| m.as_str()).collect();
-                assert_eq!(s_words, extracted);
-            };
-
-            compare_with("\n");
-            compare_with(" ");
-            compare_with(".");
-            compare_with(",");
-            compare_with(":");
-            compare_with("123");
-        })
-    }
-
-    #[test]
-    fn test_regex_codec() {
-        [
-            "ab",
-            "c",
-            "def",
-            "xyz",
-            "def",
-            "xyz",
-            "ab",
-            "c",
-            "AAC",
-            "AC-3",
-            "AVC/H.264/MPEG-4p10",
-            "A_AC3",
-            "A_VORBIS",
-            "MP3",
-            "V_MPEG4/ISO/AVC",
-            "Vorbis",
-        ]
-        .into_iter()
-        .for_each(|codec| {
-            let compare_with = |track: &str, add: &str| {
-                let s = format!("Track ID {}:{}({})", track, add, codec);
-                let extracted = REGEX_CODEC.captures(&s).unwrap().get(1).unwrap().as_str();
-
-                assert_eq!(codec, extracted);
-            };
-
-            ["1", "2", "3", "4", "999", "1000", "9999"]
-                .iter()
-                .for_each(|track| {
-                    compare_with(track, "\n");
-                    compare_with(track, " ");
-                    compare_with(track, "");
-                    compare_with(track, ".");
-                    compare_with(track, ",");
-                    compare_with(track, ":");
-                    compare_with(track, "123");
-                })
-        })
     }
 }

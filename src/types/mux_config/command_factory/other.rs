@@ -2,6 +2,8 @@ use super::Blocks;
 use crate::{Msg, Tool, undashed};
 use clap::{Arg, ArgAction};
 
+const HIDE_TOOL_ARG: bool = cfg!(feature = "static");
+
 impl Blocks {
     pub fn other(mut self) -> Self {
         self.0 = self
@@ -30,7 +32,7 @@ impl Blocks {
                 Arg::new(undashed!(UserTools))
                     .long(undashed!(UserTools))
                     .help(Msg::HelpUserTools.as_str_localized())
-                    .hide(hide_tool_arg())
+                    .hide(HIDE_TOOL_ARG)
                     .action(ArgAction::SetTrue),
             );
 
@@ -76,24 +78,12 @@ impl Blocks {
                 .long(arg.undashed())
                 .value_name("options")
                 .help(Msg::RunCommand.as_str_localized())
-                .hide(hide_tool_arg())
+                .hide(HIDE_TOOL_ARG)
                 .trailing_var_arg(true)
                 .allow_hyphen_values(true)
                 .num_args(..),
         );
 
         self
-    }
-}
-
-const fn hide_tool_arg() -> bool {
-    if cfg!(all(
-        feature = "with_embedded_bins",
-        windows,
-        target_arch = "x86_64"
-    )) {
-        false
-    } else {
-        true
     }
 }

@@ -2,7 +2,7 @@ use super::{Retiming, RetimingChapter, RetimingPart};
 use crate::{
     ArcPathBuf, Duration, IsDefault, MediaInfo, MuxConfig, MuxError, Result, Tool, ToolPaths,
     Tools, TrackOrder, TrackType, ffmpeg,
-    markers::{MIMatroska, MIPlayableDuration, MITICodec, MIVideoDuration},
+    markers::{MIMatroska, MIPlayableDuration, MITracksInfo, MIVideoDuration},
     types::helpers::{ffmpeg_stream_i_tb, try_ffmpeg_opened},
 };
 use log::warn;
@@ -62,7 +62,7 @@ impl Retiming<'_, '_> {
             return Err(MuxError::new_ok());
         }
 
-        cache_sub_codecs(mi, order);
+        cache_tracks_info(mi, order);
 
         return Ok(Retiming {
             tools: Tools::from(mi.tools.paths),
@@ -130,9 +130,9 @@ impl Retiming<'_, '_> {
             ps.try_resolve(Tool::Ffmpeg, temp_dir)
         }
 
-        fn cache_sub_codecs(mi: &mut MediaInfo, order: &TrackOrder) {
+        fn cache_tracks_info(mi: &mut MediaInfo, order: &TrackOrder) {
             order.iter().filter(|m| m.ty.is_sub()).for_each(|m| {
-                let _ = mi.init_ti::<MITICodec>(&m.media, m.track);
+                let _ = mi.init::<MITracksInfo>(&m.media);
             })
         }
 

@@ -58,11 +58,6 @@ fn test_ok_exit_ffmpeg_help() {
     assert_ok_exit(&["--ffmpeg", "-h"]);
 }
 
-#[test]
-fn test_ok_exit_mkvmerge_help() {
-    assert_ok_exit(&["--mkvmerge", "-h"]);
-}
-
 macro_rules! test_parse {
     ($args:expr, $( $field:ident $( .$sub_field:ident )? , $exp:expr ),* ) => {{
         let mut exp = (*EMPTY_ARGS).clone();

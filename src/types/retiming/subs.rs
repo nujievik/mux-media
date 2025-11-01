@@ -1,6 +1,6 @@
 use super::Retiming;
 use crate::{
-    Duration, MediaInfo, Result, Tool, Tools, TrackOrderItemRetimed, TrackType, markers::MITICodec,
+    Duration, MediaInfo, Result, Tool, Tools, TrackOrderItemRetimed, TrackType, markers::MITICache,
 };
 use log::warn;
 use rsubs_lib::{SRT, SRTLine, SSA, SSAEvent, VTT, VTTLine};
@@ -422,15 +422,19 @@ impl SubType {
     }
 
     fn from_codec_id(mi: &MediaInfo, file: &Path, track: u64) -> SubType {
+        use crate::ffmpeg::codec::id::Id;
+
         let c = mi
-            .immut_ti::<MITICodec>(file, track)
-            .map_or("", |c| c.as_str());
-        match c {
-            "SubStationAlpha" | "S_TEXT/ASS" => SubType::Ssa,
-            "SubRip/SRT" | "S_TEXT/UTF8" => SubType::Srt,
-            "WebVTT" | "S_TEXT/WEBVTT" => SubType::Vtt,
+            .immut_ti::<MITICache>(file, track)
+            .map(|c| c.codec_id)
+            .unwrap_or_default();
+
+        match c.0 {
+            Id::ASS | Id::SSA => SubType::Ssa,
+            Id::SRT | Id::SUBRIP => SubType::Srt,
+            Id::WEBVTT => SubType::Vtt,
             _ => {
-                warn!("Unsupported codec: {}. Try use .srt", c);
+                warn!("Unsupported codec: {:?}. Try use .srt", c);
                 SubType::Srt
             }
         }

@@ -261,6 +261,9 @@ pub struct TrackOrderItem {
     /// A media file existing before the program started.
     pub media: ArcPathBuf,
 
+    /// The track number within the media.
+    pub track: u64,
+
     /// A unique number assigned to the media at its first appearance in the [`TrackOrder`] vector.
     /// NOT an index in the vector.
     /// For example, `vec[2].number == 1` if `vec[0].media == vec[1].media`.
@@ -268,9 +271,6 @@ pub struct TrackOrderItem {
 
     /// Whether this is the first occurrence of the media in the vector.
     pub is_first_entry: bool,
-
-    /// The track number within the media.
-    pub track: u64,
 
     /// The type of the track.
     pub ty: TrackType,

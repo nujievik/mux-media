@@ -1,8 +1,8 @@
-pub(crate) mod attach_type;
 mod from_str;
 pub(crate) mod id;
 mod save;
 mod to_args;
+pub(crate) mod ty;
 
 use crate::IsDefault;
 use id::AttachID;
