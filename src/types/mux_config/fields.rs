@@ -1,7 +1,7 @@
 use super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, Chapters, DefaultTrackFlags, EnabledTrackFlags, Field, FontAttachs,
-    ForcedTrackFlags, OtherAttachs, Raws, SubTracks, Target, TrackFlagType, TrackFlags, TrackLangs,
+    ForcedTrackFlags, OtherAttachs, SubTracks, Target, TrackFlagType, TrackFlags, TrackLangs,
     TrackNames, VideoTracks,
 };
 use std::path::Path;
@@ -94,5 +94,4 @@ fields! {
     enabled_track_flags, EnabledTrackFlags => MCEnabledTrackFlags,
     track_names, TrackNames => MCTrackNames,
     track_langs, TrackLangs => MCTrackLangs,
-    raws, Raws => MCRaws,
 }

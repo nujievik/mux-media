@@ -81,7 +81,6 @@ enum_cli_arg! {
     MaxEnableds => "max-enableds",
     Names => "names",
     Langs => "langs",
-    Raws => "raws",
     RmSegments => "rm-segments",
     NoLinked => "no-linked",
     ListContainers => "list-containers",

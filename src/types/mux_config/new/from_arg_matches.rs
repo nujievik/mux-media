@@ -2,7 +2,7 @@ use super::super::{MuxConfig, MuxConfigTarget};
 use crate::{
     AudioTracks, AutoFlags, Chapters, CliArg, DefaultTrackFlags, EnabledTrackFlags, FontAttachs,
     ForcedTrackFlags, GlobSetPattern, Input, LangCode, Msg, MuxError, OtherAttachs, Output,
-    RangeU64, Raws, RetimingOptions, SubTracks, Target, TargetGroup, Tool, ToolPaths, Tools,
+    RangeU64, RetimingOptions, SubTracks, Target, TargetGroup, Tool, ToolPaths, Tools,
     TrackFlagType, TrackFlags, TrackLangs, TrackNames, TryFinalizeInit, Value, Verbosity,
     VideoTracks, undashed,
 };
@@ -163,7 +163,6 @@ impl FromArgMatches for MuxConfig {
                 enabled_track_flags: track_flags!(m, Enableds, MaxEnableds, EnabledTrackFlags),
                 track_names: rm_or!(m, Names, TrackNames, TrackNames::default),
                 track_langs: rm_or!(m, Langs, TrackLangs, TrackLangs::default),
-                raws: rm_or!(m, Raws, Raws, Raws::default),
                 retiming: retiming(m),
                 targets: None,
                 tool_paths: tool_paths(m),
@@ -273,7 +272,6 @@ impl FromArgMatches for MuxConfig {
             EnabledTrackFlags
         );
 
-        upd!(self.raws.0, m, Raws, Vec<String>, @opt);
         retiming(self, m);
         upd_flag!(self.tool_paths.user_tools, m, UserTools);
 
@@ -567,7 +565,6 @@ impl FromArgMatches for MuxConfigTarget {
             enabled_track_flags: get_track_flags!(m, Enableds, MaxEnableds, EnabledTrackFlags),
             track_names: rm!(m, Names, TrackNames),
             track_langs: rm!(m, Langs, TrackLangs),
-            raws: rm!(m, Raws, Raws),
         })
     }
 
@@ -604,7 +601,6 @@ impl FromArgMatches for MuxConfigTarget {
 
         upd!(self.track_names, m, Names, TrackNames, @opt);
         upd!(self.track_langs, m, Langs, TrackLangs, @opt);
-        upd!(self.raws, m, Raws, Raws, @opt);
 
         Ok(())
     }

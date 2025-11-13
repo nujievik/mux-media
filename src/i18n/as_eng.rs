@@ -52,7 +52,6 @@ impl_msg_as_str!(
     HelpPro => "Disable all auto flags below",
     HelpQuiet => "Suppress logging",
     HelpRange => "Number range of media-files",
-    HelpRaws => "Add raw mkvmerge options",
     HelpReencode => "Force reencode for custom output (e.g., .mp4)",
     HelpRetimingOptions => "Retiming options (Matroska only)",
     HelpRmSegments => "Remove segments with name patterns",

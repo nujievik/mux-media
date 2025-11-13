@@ -8,8 +8,8 @@ mod to_json_args;
 use crate::TryFinalizeInit;
 use crate::{
     AudioTracks, AutoFlags, Chapters, DefaultTrackFlags, EnabledTrackFlags, FontAttachs,
-    ForcedTrackFlags, Input, IsDefault, LangCode, Muxer, OtherAttachs, Output, Raws,
-    RetimingOptions, SubTracks, Target, ToolPaths, TrackLangs, TrackNames, Verbosity, VideoTracks,
+    ForcedTrackFlags, Input, IsDefault, LangCode, Muxer, OtherAttachs, Output, RetimingOptions,
+    SubTracks, Target, ToolPaths, TrackLangs, TrackNames, Verbosity, VideoTracks,
 };
 use std::collections::HashMap;
 
@@ -41,7 +41,6 @@ pub struct MuxConfig {
     pub enabled_track_flags: EnabledTrackFlags,
     pub track_names: TrackNames,
     pub track_langs: TrackLangs,
-    pub raws: Raws,
     pub retiming: RetimingOptions,
     pub targets: Option<HashMap<Target, MuxConfigTarget>>,
     pub tool_paths: ToolPaths,
@@ -63,5 +62,4 @@ pub struct MuxConfigTarget {
     pub enabled_track_flags: Option<EnabledTrackFlags>,
     pub track_names: Option<TrackNames>,
     pub track_langs: Option<TrackLangs>,
-    pub raws: Option<Raws>,
 }

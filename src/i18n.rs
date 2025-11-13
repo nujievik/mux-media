@@ -72,7 +72,6 @@ pub enum Msg {
     HelpPro,
     HelpQuiet,
     HelpRange,
-    HelpRaws,
     HelpReencode,
     HelpRetimingOptions,
     HelpRmSegments,

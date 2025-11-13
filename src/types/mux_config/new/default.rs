@@ -31,7 +31,6 @@ impl Default for MuxConfig {
     /// assert_eq!(c.enabled_track_flags, Default::default());
     /// assert_eq!(c.track_names, Default::default());
     /// assert_eq!(c.track_langs, Default::default());
-    /// assert_eq!(c.raws, Default::default());
     /// assert_eq!(c.retiming, Default::default());
     /// assert_eq!(c.targets, None);
     /// assert_eq!(c.tool_paths, Default::default());
@@ -60,7 +59,6 @@ impl Default for MuxConfig {
             enabled_track_flags: Default::default(),
             track_names: Default::default(),
             track_langs: Default::default(),
-            raws: Default::default(),
             retiming: Default::default(),
             targets: Default::default(),
             tool_paths: Default::default(),
@@ -116,9 +114,6 @@ impl IsDefault for MuxConfig {
     /// let track_langs = TrackLangs { unmapped: Some(LangCode::Eng), ..Default::default() };
     /// assert!(!MuxConfig { track_langs, ..Default::default() }.is_default());
     ///
-    /// let raws = Raws(Some(Vec::new()));
-    /// assert!(!MuxConfig { raws, ..Default::default() }.is_default());
-    ///
     /// let retiming = RetimingOptions { no_linked: true, ..Default::default() };
     /// assert!(!MuxConfig { retiming, ..Default::default() }.is_default());
     ///
@@ -150,7 +145,6 @@ impl IsDefault for MuxConfig {
             && self.enabled_track_flags.is_default()
             && self.track_names.is_default()
             && self.track_langs.is_default()
-            && self.raws.is_default()
             && self.retiming.is_default()
             && self.targets.is_default()
             && self.tool_paths.is_default()

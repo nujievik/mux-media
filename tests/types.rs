@@ -31,8 +31,6 @@ mod muxer;
 mod output;
 #[path = "types/range.rs"]
 mod range;
-#[path = "types/raws.rs"]
-mod raws;
 #[path = "types/targets.rs"]
 mod targets;
 #[path = "types/tools.rs"]

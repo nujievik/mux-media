@@ -1,7 +1,7 @@
 use super::{Blocks, val_parsers::ChaptersParser};
 use crate::{
     AudioTracks, DefaultTrackFlags, EnabledTrackFlags, FontAttachs, ForcedTrackFlags, Msg,
-    OtherAttachs, Raws, SubTracks, TrackLangs, TrackNames, VideoTracks, undashed,
+    OtherAttachs, SubTracks, TrackLangs, TrackNames, VideoTracks, undashed,
 };
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
@@ -184,14 +184,6 @@ impl Blocks {
                     .value_name("[n:]L[,m:L]...")
                     .help(Msg::HelpLangs.as_str_localized())
                     .value_parser(ValueParser::new(TrackLangs::from_str)),
-            )
-            .arg(
-                Arg::new(undashed!(Raws))
-                    .long(undashed!(Raws))
-                    .value_name("\"n[ m]...\"")
-                    .allow_hyphen_values(true)
-                    .help(Msg::HelpRaws.as_str_localized())
-                    .value_parser(ValueParser::new(Raws::from_str)),
             );
 
         self

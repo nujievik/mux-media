@@ -199,8 +199,6 @@ fn test_parse() {
         Some(LangCode::Eng)
     );
 
-    test_parse!(["--raws", "-A"], raws, Raws(Some(vec!["-A".into()])));
-
     test_parse!(
         ["--rm-segments", "x"],
         retiming.rm_segments,
