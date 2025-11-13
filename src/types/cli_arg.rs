@@ -86,7 +86,7 @@ enum_cli_arg! {
     ListContainers => "list-containers",
     ListLangs => "list-langs",
     ListLangsFull => "list-langs-full",
-    UserTools => "user-tools",
+    Sys => "sys",
     Ffmpeg => "ffmpeg",
     Version => "version",
     Help => "help",

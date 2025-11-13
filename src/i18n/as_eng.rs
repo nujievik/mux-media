@@ -63,7 +63,7 @@ impl_msg_as_str!(
     HelpTargetHelp => "Set next options for target",
     HelpTargetOptions => "Target options",
     HelpThreads => "Max parallel muxing",
-    HelpUserTools => "Priority use of user-installed tools",
+    HelpSys => "Priority use of system ffmpeg",
     HelpVerbosity => "Increase logging",
     HelpVersion => "Show version",
     HelpVideo => "[!]Copy video tracks",

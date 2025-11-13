@@ -11,7 +11,7 @@ use std::{
 
 static TOOLS: LazyLock<Tools> = LazyLock::new(|| {
     let paths = Box::new(ToolPaths {
-        user_tools: true,
+        sys: true,
         ..Default::default()
     });
     paths
@@ -56,7 +56,7 @@ fn test_set_bundled_paths() {
     };
 
     with_args(vec![p("-i"), &d, p("-o"), &dir], true);
-    with_args(vec![p("-i"), &d, p("-o"), &dir, p("--user-tools")], false);
+    with_args(vec![p("-i"), &d, p("-o"), &dir, p("--sys")], false);
 }
 
 /*

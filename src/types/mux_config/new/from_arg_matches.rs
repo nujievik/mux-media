@@ -222,7 +222,7 @@ impl FromArgMatches for MuxConfig {
 
         fn tool_paths(m: &mut ArgMatches) -> ToolPaths {
             ToolPaths {
-                user_tools: flag!(m, UserTools),
+                sys: flag!(m, Sys),
                 ..Default::default()
             }
         }
@@ -273,7 +273,7 @@ impl FromArgMatches for MuxConfig {
         );
 
         retiming(self, m);
-        upd_flag!(self.tool_paths.user_tools, m, UserTools);
+        upd_flag!(self.tool_paths.sys, m, Sys);
 
         let mut m: &mut ArgMatches = m;
         let mut _owned_m: Option<ArgMatches> = None;
@@ -465,9 +465,9 @@ pub(super) fn tool_args(m: &ArgMatches) -> Result<(), Error> {
         let mut output = Output::try_from(&input)?;
         output.try_finalize_init()?;
 
-        let user_tools = m.get_flag(undashed!(UserTools));
+        let sys = m.get_flag(undashed!(Sys));
         let paths = ToolPaths {
-            user_tools,
+            sys,
             ..Default::default()
         };
         paths.try_resolve(t, &output.temp_dir)?;

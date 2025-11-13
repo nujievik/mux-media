@@ -2,7 +2,7 @@ use super::Blocks;
 use crate::{Msg, Tool, undashed};
 use clap::{Arg, ArgAction};
 
-const HIDE_TOOL_ARG: bool = cfg!(feature = "static");
+const HIDE_TOOL_ARG: bool = !cfg!(feature = "static");
 
 impl Blocks {
     pub fn other(mut self) -> Self {
@@ -29,9 +29,9 @@ impl Blocks {
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(undashed!(UserTools))
-                    .long(undashed!(UserTools))
-                    .help(Msg::HelpUserTools.as_str_localized())
+                Arg::new(undashed!(Sys))
+                    .long(undashed!(Sys))
+                    .help(Msg::HelpSys.as_str_localized())
                     .hide(HIDE_TOOL_ARG)
                     .action(ArgAction::SetTrue),
             );

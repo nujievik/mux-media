@@ -117,7 +117,7 @@ impl IsDefault for MuxConfig {
     /// let retiming = RetimingOptions { no_linked: true, ..Default::default() };
     /// assert!(!MuxConfig { retiming, ..Default::default() }.is_default());
     ///
-    /// let tool_paths = ToolPaths { user_tools: true, ..Default::default() };
+    /// let tool_paths = ToolPaths { sys: true, ..Default::default() };
     /// assert!(!MuxConfig { tool_paths, ..Default::default() }.is_default());
     ///
     /// assert!(!MuxConfig { targets: Some(Default::default()), ..Default::default() }.is_default());

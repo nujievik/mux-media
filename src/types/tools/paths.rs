@@ -12,7 +12,7 @@ use std::{
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ToolPaths {
     pub map: EnumMap<Tool, OnceLock<PathBuf>>,
-    pub user_tools: bool,
+    pub sys: bool,
 }
 
 impl Deref for ToolPaths {
@@ -25,7 +25,7 @@ impl Deref for ToolPaths {
 
 impl IsDefault for ToolPaths {
     fn is_default(&self) -> bool {
-        self.user_tools.is_default() && self.map.values().all(|v| v.is_default())
+        self.sys.is_default() && self.map.values().all(|v| v.is_default())
     }
 }
 
@@ -55,7 +55,7 @@ impl ToolPaths {
         if self[tool].get().is_some() {
             return Ok(());
         }
-        let p = resolve(tool, temp_dir.as_ref(), self.user_tools)?;
+        let p = resolve(tool, temp_dir.as_ref(), self.sys)?;
         let _ = self[tool].set(p);
 
         Ok(())
@@ -64,9 +64,9 @@ impl ToolPaths {
 
 // unused_variables allowed for cross-system impl.
 #[allow(unused_variables)]
-fn resolve(tool: Tool, temp_dir: &Path, user_tools: bool) -> Result<PathBuf> {
+fn resolve(tool: Tool, temp_dir: &Path, sys: bool) -> Result<PathBuf> {
     #[cfg(feature = "static")]
-    if let Some(Some(path)) = (!user_tools).then(|| get_bundled_path(tool, temp_dir)) {
+    if let Some(Some(path)) = (!sys).then(|| get_bundled_path(tool, temp_dir)) {
         return Ok(path);
     }
 
@@ -102,7 +102,7 @@ fn resolve(tool: Tool, temp_dir: &Path, user_tools: bool) -> Result<PathBuf> {
     }
 
     #[cfg(feature = "static")]
-    if let Some(Some(path)) = user_tools.then(|| get_bundled_path(tool, temp_dir)) {
+    if let Some(Some(path)) = sys.then(|| get_bundled_path(tool, temp_dir)) {
         return Ok(path);
     }
 
