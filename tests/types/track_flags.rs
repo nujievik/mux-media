@@ -5,15 +5,12 @@ use mux_media::{markers::*, *};
 fn test_is_default() {
     assert!(DefaultTrackFlags::default().is_default());
     assert!(ForcedTrackFlags::default().is_default());
-    assert!(EnabledTrackFlags::default().is_default());
 
     assert!(from_cfg::<MCDefaultTrackFlags>(vec![]).is_default());
     assert!(from_cfg::<MCForcedTrackFlags>(vec![]).is_default());
-    assert!(from_cfg::<MCEnabledTrackFlags>(vec![]).is_default());
 
     assert!(!from_cfg::<MCDefaultTrackFlags>(vec!["--max-defaults", "1"]).is_default());
     assert!(!from_cfg::<MCForcedTrackFlags>(vec!["--max-forceds", "0"]).is_default());
-    assert!(!from_cfg::<MCEnabledTrackFlags>(vec!["--max-enableds", MAX_U64_STR]).is_default());
 }
 
 const FROM_STR_CASES: [&'static str; 11] = [
@@ -40,12 +37,6 @@ test_from_str!(
 test_from_str!(
     ForcedTrackFlags,
     test_forceds_from_str,
-    FROM_STR_CASES,
-    FROM_STR_ERR_CASES
-);
-test_from_str!(
-    EnabledTrackFlags,
-    test_enableds_from_str,
     FROM_STR_CASES,
     FROM_STR_ERR_CASES
 );
@@ -89,11 +80,7 @@ fn test_counts_add() {
 
 #[test]
 fn test_flag_type_iter() {
-    let ftypes = [
-        TrackFlagType::Default,
-        TrackFlagType::Forced,
-        TrackFlagType::Enabled,
-    ];
+    let ftypes = [TrackFlagType::Default, TrackFlagType::Forced];
     for ft in TrackFlagType::iter() {
         assert!(ftypes.contains(&ft));
     }
@@ -127,6 +114,5 @@ macro_rules! build_test_flags_to_json_args {
 
 build_test_flags_to_json_args!(
     test_defaults_to_json_args, default_track_flags, "default_track_flags", "--defaults", "--max-defaults";
-    test_forceds_to_json_args, forced_track_flags, "forced_track_flags", "--forceds", "--max-forceds";
-    test_enableds_to_json_args, enabled_track_flags, "enabled_track_flags", "--enableds", "--max-enableds"
+    test_forceds_to_json_args, forced_track_flags, "forced_track_flags", "--forceds", "--max-forceds"
 );

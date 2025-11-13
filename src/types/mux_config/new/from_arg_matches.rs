@@ -1,10 +1,9 @@
 use super::super::{MuxConfig, MuxConfigTarget};
 use crate::{
-    AudioTracks, AutoFlags, Chapters, CliArg, DefaultTrackFlags, EnabledTrackFlags, FontAttachs,
-    ForcedTrackFlags, GlobSetPattern, Input, LangCode, Msg, MuxError, OtherAttachs, Output,
-    RangeU64, RetimingOptions, SubTracks, Target, TargetGroup, Tool, ToolPaths, Tools,
-    TrackFlagType, TrackFlags, TrackLangs, TrackNames, TryFinalizeInit, Value, Verbosity,
-    VideoTracks, undashed,
+    AudioTracks, AutoFlags, Chapters, CliArg, DefaultTrackFlags, FontAttachs, ForcedTrackFlags,
+    GlobSetPattern, Input, LangCode, Msg, MuxError, OtherAttachs, Output, RangeU64,
+    RetimingOptions, SubTracks, Target, TargetGroup, Tool, ToolPaths, Tools, TrackFlagType,
+    TrackFlags, TrackLangs, TrackNames, TryFinalizeInit, Value, Verbosity, VideoTracks, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use std::path::PathBuf;
@@ -160,7 +159,6 @@ impl FromArgMatches for MuxConfig {
                 other_attachs: tracks_or_attachs!(m, Attachs, NoAttachs, OtherAttachs),
                 default_track_flags: track_flags!(m, Defaults, MaxDefaults, DefaultTrackFlags),
                 forced_track_flags: track_flags!(m, Forceds, MaxForceds, ForcedTrackFlags),
-                enabled_track_flags: track_flags!(m, Enableds, MaxEnableds, EnabledTrackFlags),
                 track_names: rm_or!(m, Names, TrackNames, TrackNames::default),
                 track_langs: rm_or!(m, Langs, TrackLangs, TrackLangs::default),
                 retiming: retiming(m),
@@ -193,8 +191,6 @@ impl FromArgMatches for MuxConfig {
                 val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), pro);
             new.track[TrackFlagType::Forced] =
                 val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), pro);
-            new.track[TrackFlagType::Enabled] =
-                val(flag!(m, AutoEnableds), flag!(m, NoAutoEnableds), pro);
 
             new.names = val(flag!(m, AutoNames), flag!(m, NoAutoNames), pro);
             new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), pro);
@@ -263,13 +259,6 @@ impl FromArgMatches for MuxConfig {
             Forceds,
             MaxForceds,
             ForcedTrackFlags
-        );
-        upd_track_flags!(
-            self.enabled_track_flags,
-            m,
-            Enableds,
-            MaxEnableds,
-            EnabledTrackFlags
         );
 
         retiming(self, m);
@@ -366,12 +355,6 @@ impl FromArgMatches for MuxConfig {
                 flag!(m, NoAutoForceds),
                 pro,
                 &mut auto.track[TrackFlagType::Forced],
-            );
-            upd(
-                flag!(m, AutoEnableds),
-                flag!(m, NoAutoEnableds),
-                pro,
-                &mut auto.track[TrackFlagType::Enabled],
             );
 
             upd(
@@ -562,7 +545,6 @@ impl FromArgMatches for MuxConfigTarget {
             other_attachs: get_tracks_or_attachs!(m, Attachs, NoAttachs, OtherAttachs),
             default_track_flags: get_track_flags!(m, Defaults, MaxDefaults, DefaultTrackFlags),
             forced_track_flags: get_track_flags!(m, Forceds, MaxForceds, ForcedTrackFlags),
-            enabled_track_flags: get_track_flags!(m, Enableds, MaxEnableds, EnabledTrackFlags),
             track_names: rm!(m, Names, TrackNames),
             track_langs: rm!(m, Langs, TrackLangs),
         })
@@ -590,13 +572,6 @@ impl FromArgMatches for MuxConfigTarget {
             Forceds,
             MaxForceds,
             ForcedTrackFlags
-        );
-        trg_upd_track_flags!(
-            self.enabled_track_flags,
-            m,
-            Enableds,
-            MaxEnableds,
-            EnabledTrackFlags
         );
 
         upd!(self.track_names, m, Names, TrackNames, @opt);

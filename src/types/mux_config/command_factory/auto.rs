@@ -53,7 +53,6 @@ impl Blocks {
 enum AutoFlag {
     AutoDefaults,
     AutoForceds,
-    AutoEnableds,
     AutoNames,
     AutoLangs,
     AutoCharsets,
@@ -64,7 +63,6 @@ impl AutoFlag {
         match self {
             Self::AutoDefaults => CliArg::HelpAutoDefaults,
             Self::AutoForceds => CliArg::HelpAutoForceds,
-            Self::AutoEnableds => CliArg::HelpAutoEnableds,
             Self::AutoNames => CliArg::HelpAutoNames,
             Self::AutoLangs => CliArg::HelpAutoLangs,
             Self::AutoCharsets => CliArg::HelpAutoCharsets,
@@ -75,7 +73,6 @@ impl AutoFlag {
         match self {
             Self::AutoDefaults => CliArg::AutoDefaults,
             Self::AutoForceds => CliArg::AutoForceds,
-            Self::AutoEnableds => CliArg::AutoEnableds,
             Self::AutoNames => CliArg::AutoNames,
             Self::AutoLangs => CliArg::AutoLangs,
             Self::AutoCharsets => CliArg::AutoCharsets,
@@ -86,7 +83,6 @@ impl AutoFlag {
         match self {
             Self::AutoDefaults => CliArg::NoAutoDefaults,
             Self::AutoForceds => CliArg::NoAutoForceds,
-            Self::AutoEnableds => CliArg::NoAutoEnableds,
             Self::AutoNames => CliArg::NoAutoNames,
             Self::AutoLangs => CliArg::NoAutoLangs,
             Self::AutoCharsets => CliArg::NoAutoCharsets,
@@ -97,7 +93,6 @@ impl AutoFlag {
         match self {
             Self::AutoDefaults => Msg::HelpAutoDefaults,
             Self::AutoForceds => Msg::HelpAutoForceds,
-            Self::AutoEnableds => Msg::HelpAutoEnableds,
             Self::AutoNames => Msg::HelpAutoNames,
             Self::AutoLangs => Msg::HelpAutoLangs,
             Self::AutoCharsets => Msg::HelpAutoCharsets,

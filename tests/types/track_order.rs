@@ -70,11 +70,6 @@ fn test_forceds_order() {
 }
 
 #[test]
-fn test_enableds_order() {
-    body_test_any_flags_order("--enableds");
-}
-
-#[test]
 fn test_it_signs_order() {
     body_test_order(&["--names", "0:signs", "--locale", "eng"], [0, 1, 2]);
     body_test_order(&["--names", "1:signs", "--locale", "eng"], [1, 2, 0]);

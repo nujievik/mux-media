@@ -162,11 +162,6 @@ fn test_parse() {
         forced_track_flags,
         ForcedTrackFlags(f.clone())
     );
-    test_parse!(
-        ["--enableds", "true"],
-        enabled_track_flags,
-        EnabledTrackFlags(f.clone())
-    );
 
     let f = TrackFlags {
         lim_for_unset: Some(1),
@@ -181,11 +176,6 @@ fn test_parse() {
         ["--max-forceds", "1"],
         forced_track_flags,
         ForcedTrackFlags(f.clone())
-    );
-    test_parse!(
-        ["--max-enableds", "1"],
-        enabled_track_flags,
-        EnabledTrackFlags(f.clone())
     );
 
     test_parse!(

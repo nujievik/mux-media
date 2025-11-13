@@ -6,7 +6,6 @@ use strum_macros::EnumIter;
 pub enum TrackFlagType {
     Default,
     Forced,
-    Enabled,
 }
 
 impl TrackFlagType {
@@ -18,21 +17,10 @@ impl TrackFlagType {
         [Self::Default, Self::Forced].into_iter()
     }
 
-    /*
-    pub(crate) fn as_cli_arg(self) -> CliArg {
-        match self {
-            Self::Default => CliArg::DefaultTrackFlag,
-            Self::Forced => CliArg::ForcedDisplayFlag,
-            Self::Enabled => CliArg::TrackEnabledFlag,
-        }
-    }
-    */
-
     pub(crate) fn as_str_ffmpeg(self) -> &'static str {
         match self {
             Self::Default => "default",
             Self::Forced => "forced",
-            Self::Enabled => unreachable!("Unsupported ffmpeg flag: Enabled"),
         }
     }
 }

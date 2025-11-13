@@ -68,7 +68,6 @@ impl ToJsonArgs for MuxConfig {
             other_attachs,
             default_track_flags,
             forced_track_flags,
-            enabled_track_flags,
             track_names,
             track_langs
         );
@@ -119,7 +118,6 @@ impl ToJsonArgs for MuxConfigTarget {
             other_attachs,
             default_track_flags,
             forced_track_flags,
-            enabled_track_flags,
             track_names,
             track_langs
         );

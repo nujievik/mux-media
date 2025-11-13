@@ -1,7 +1,7 @@
 use super::{Blocks, val_parsers::ChaptersParser};
 use crate::{
-    AudioTracks, DefaultTrackFlags, EnabledTrackFlags, FontAttachs, ForcedTrackFlags, Msg,
-    OtherAttachs, SubTracks, TrackLangs, TrackNames, VideoTracks, undashed,
+    AudioTracks, DefaultTrackFlags, FontAttachs, ForcedTrackFlags, Msg, OtherAttachs, SubTracks,
+    TrackLangs, TrackNames, VideoTracks, undashed,
 };
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
@@ -155,20 +155,6 @@ impl Blocks {
                     .long(undashed!(MaxForceds))
                     .value_name("n")
                     .help(Msg::HelpMaxForceds.as_str_localized())
-                    .value_parser(clap::value_parser!(u64)),
-            )
-            .arg(
-                Arg::new(undashed!(Enableds))
-                    .long(undashed!(Enableds))
-                    .value_name("[n:]B[,m:B]...")
-                    .help(Msg::HelpEnableds.as_str_localized())
-                    .value_parser(ValueParser::new(EnabledTrackFlags::from_str)),
-            )
-            .arg(
-                Arg::new(undashed!(MaxEnableds))
-                    .long(undashed!(MaxEnableds))
-                    .value_name("n")
-                    .help(Msg::HelpMaxEnableds.as_str_localized())
                     .value_parser(clap::value_parser!(u64)),
             )
             .arg(

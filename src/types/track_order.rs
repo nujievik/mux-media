@@ -114,42 +114,7 @@ use std::path::PathBuf;
 ///     assert_eq!(&m[1].media, &first);
 ///     ```
 ///
-/// 4. `TrackFlagType::Enabled`:
-///     - User-defined `true`
-///     - Auto
-///     - User-defined `false`
-///
-///     ```
-///     # use mux_media::*;
-///     # use clap::Parser;
-///     # use std::path::Path;
-///     #
-///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-///     #     .join("tests")
-///     #     .join("test_data")
-///     #     .join("order")
-///     #     .join("2");
-///     # let dir = ensure_long_path_prefix(dir);
-///     #
-///     // Hidden steps same as in 2.
-///     #
-///     # let first = ArcPathBuf::from(dir.join("1.srt"));
-///     # let second = ArcPathBuf::from(dir.join("2.srt"));
-///     #
-///     # let p: fn(&str) -> &Path = Path::new;
-///     let args = [p("-i"), &dir, p("--target"), &second, p("--enableds"), p("true")];
-///     # let cfg = MuxConfig::parse_from(args);
-///     #
-///     # let mut mi = MediaInfo::from(&cfg);
-///     # mi.try_insert(first.clone()).unwrap();
-///     # mi.try_insert(second.clone()).unwrap();
-///     #
-///     # let m = TrackOrder::try_from(&mut mi).unwrap();
-///     assert_eq!(&m[0].media, &second);
-///     assert_eq!(&m[1].media, &first);
-///     ```
-///
-/// 5.  It `Sub` track and signs:
+/// 4.  It `Sub` track and signs:
 ///     - `true`
 ///     - `false`.
 ///
@@ -185,7 +150,7 @@ use std::path::PathBuf;
 ///     assert_eq!(&m[1].media, &first);
 ///     ```
 ///
-/// 6. Track language `LangCode`:
+/// 5. Track language `LangCode`:
 ///     - `locale` language
 ///     - `Und` (undefined language)
 ///     - Other languages (excluding `Jpn`)
@@ -222,7 +187,7 @@ use std::path::PathBuf;
 ///     assert_eq!(&m[1].media, &first);
 ///     ```
 ///
-/// 7. Path name.
+/// 6. Path name.
 ///
 ///    ```
 ///     # use mux_media::*;

@@ -28,7 +28,6 @@ impl Default for MuxConfig {
     /// assert_eq!(c.other_attachs, Default::default());
     /// assert_eq!(c.default_track_flags, Default::default());
     /// assert_eq!(c.forced_track_flags, Default::default());
-    /// assert_eq!(c.enabled_track_flags, Default::default());
     /// assert_eq!(c.track_names, Default::default());
     /// assert_eq!(c.track_langs, Default::default());
     /// assert_eq!(c.retiming, Default::default());
@@ -56,7 +55,6 @@ impl Default for MuxConfig {
             other_attachs: Default::default(),
             default_track_flags: Default::default(),
             forced_track_flags: Default::default(),
-            enabled_track_flags: Default::default(),
             track_names: Default::default(),
             track_langs: Default::default(),
             retiming: Default::default(),
@@ -106,7 +104,6 @@ impl IsDefault for MuxConfig {
     /// let f = TrackFlags { unmapped: Some(true), ..Default::default() };
     /// assert!(!MuxConfig { default_track_flags: DefaultTrackFlags(f.clone()), ..Default::default() }.is_default());
     /// assert!(!MuxConfig { forced_track_flags: ForcedTrackFlags(f.clone()), ..Default::default() }.is_default());
-    /// assert!(!MuxConfig { enabled_track_flags: EnabledTrackFlags(f.clone()), ..Default::default() }.is_default());
     ///
     /// let track_names = TrackNames { unmapped: Some("x".into()), ..Default::default() };
     /// assert!(!MuxConfig { track_names, ..Default::default() }.is_default());
@@ -142,7 +139,6 @@ impl IsDefault for MuxConfig {
             && self.other_attachs.is_default()
             && self.default_track_flags.is_default()
             && self.forced_track_flags.is_default()
-            && self.enabled_track_flags.is_default()
             && self.track_names.is_default()
             && self.track_langs.is_default()
             && self.retiming.is_default()

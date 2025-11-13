@@ -16,7 +16,7 @@ impl Default for AutoFlags {
         AutoFlags {
             pro: Value::Auto(false),
             track: enum_map! {
-                TrackFlagType::Default | TrackFlagType::Forced | TrackFlagType::Enabled => Value::Auto(true),
+                TrackFlagType::Default | TrackFlagType::Forced => Value::Auto(true),
             },
             names: Value::Auto(true),
             langs: Value::Auto(true),
@@ -57,7 +57,6 @@ impl ToJsonArgs for AutoFlags {
             args;
             self.track[TrackFlagType::Default], AutoDefaults, NoAutoDefaults,
             self.track[TrackFlagType::Forced], AutoForceds, NoAutoForceds,
-            self.track[TrackFlagType::Enabled], AutoEnableds, NoAutoEnableds,
             self.names, AutoNames, NoAutoNames,
             self.langs, AutoLangs, NoAutoLangs,
             self.charsets, AutoCharsets, NoAutoCharsets

@@ -15,10 +15,6 @@ pub struct DefaultTrackFlags(pub TrackFlags);
 #[derive(Clone, Debug, PartialEq, IsDefault)]
 pub struct ForcedTrackFlags(pub TrackFlags);
 
-/// Settings for `enabled` track flags.
-#[derive(Clone, Debug, PartialEq, IsDefault)]
-pub struct EnabledTrackFlags(pub TrackFlags);
-
 /// Common interface for settings of track flags by type.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct TrackFlags {
@@ -30,7 +26,6 @@ pub struct TrackFlags {
 
 deref_singleton_tuple_struct!(DefaultTrackFlags, TrackFlags, @all);
 deref_singleton_tuple_struct!(ForcedTrackFlags, TrackFlags, @all);
-deref_singleton_tuple_struct!(EnabledTrackFlags, TrackFlags, @all);
 
 impl TrackFlags {
     /// Returns auto-value of flag based on `true` limit.
@@ -66,7 +61,6 @@ impl TrackFlags {
         match ft {
             TrackFlagType::Default => 1,
             TrackFlagType::Forced => 0,
-            TrackFlagType::Enabled => u64::MAX,
         }
     }
 }

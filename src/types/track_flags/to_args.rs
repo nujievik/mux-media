@@ -1,4 +1,4 @@
-use super::{DefaultTrackFlags, EnabledTrackFlags, ForcedTrackFlags, TrackFlags};
+use super::{DefaultTrackFlags, ForcedTrackFlags, TrackFlags};
 use crate::{
     IsDefault, LangCode, MediaInfo, Result, ToFfmpegArgs, ToJsonArgs, TrackFlagType,
     TrackFlagsCounts, TrackType, immut,
@@ -80,7 +80,6 @@ macro_rules! flags_to_json_args {
 
 flags_to_json_args!(DefaultTrackFlags, Defaults, MaxDefaults);
 flags_to_json_args!(ForcedTrackFlags, Forceds, MaxForceds);
-flags_to_json_args!(EnabledTrackFlags, Enableds, MaxEnableds);
 
 impl MediaInfo<'_> {
     // Returns vec len == TrackOrder.len()

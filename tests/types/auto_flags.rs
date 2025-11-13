@@ -11,7 +11,6 @@ fn test_empty() {
     assert_eq!(Value::Auto(false), f.pro);
     assert_eq!(Value::Auto(true), f.track[TrackFlagType::Default]);
     assert_eq!(Value::Auto(true), f.track[TrackFlagType::Forced]);
-    assert_eq!(Value::Auto(true), f.track[TrackFlagType::Enabled]);
     assert_eq!(Value::Auto(true), f.names);
     assert_eq!(Value::Auto(true), f.langs);
     assert_eq!(Value::Auto(true), f.charsets);
@@ -23,7 +22,6 @@ fn test_pro() {
     assert_eq!(Value::User(true), f.pro);
     assert_eq!(Value::Auto(false), f.track[TrackFlagType::Default]);
     assert_eq!(Value::Auto(false), f.track[TrackFlagType::Forced]);
-    assert_eq!(Value::Auto(false), f.track[TrackFlagType::Enabled]);
     assert_eq!(Value::Auto(false), f.names);
     assert_eq!(Value::Auto(false), f.langs);
     assert_eq!(Value::Auto(false), f.charsets);
@@ -34,7 +32,6 @@ fn test_manual_on() {
     let v = Value::User(true);
     assert_eq!(v, new(&["--auto-defaults"]).track[TrackFlagType::Default]);
     assert_eq!(v, new(&["--auto-forceds"]).track[TrackFlagType::Forced]);
-    assert_eq!(v, new(&["--auto-enableds"]).track[TrackFlagType::Enabled]);
     assert_eq!(v, new(&["--auto-names"]).names);
     assert_eq!(v, new(&["--auto-langs"]).langs);
     assert_eq!(v, new(&["--auto-charsets"]).charsets);
@@ -48,10 +45,6 @@ fn test_manual_off() {
         new(&["--no-auto-defaults"]).track[TrackFlagType::Default]
     );
     assert_eq!(v, new(&["--no-auto-forceds"]).track[TrackFlagType::Forced]);
-    assert_eq!(
-        v,
-        new(&["--no-auto-enableds"]).track[TrackFlagType::Enabled]
-    );
     assert_eq!(v, new(&["--no-auto-names"]).names);
     assert_eq!(v, new(&["--no-auto-langs"]).langs);
     assert_eq!(v, new(&["--no-auto-charsets"]).charsets);
@@ -68,10 +61,6 @@ fn test_manual_on_with_pro() {
         v,
         new(&["--pro", "--auto-forceds"]).track[TrackFlagType::Forced]
     );
-    assert_eq!(
-        v,
-        new(&["--pro", "--auto-enableds"]).track[TrackFlagType::Enabled]
-    );
     assert_eq!(v, new(&["--pro", "--auto-names"]).names);
     assert_eq!(v, new(&["--pro", "--auto-langs"]).langs);
     assert_eq!(v, new(&["--pro", "--auto-charsets"]).charsets);
@@ -82,13 +71,11 @@ crate::build_test_to_json_args!(
     vec![],
     vec!["--no-auto-defaults"],
     vec!["--no-auto-forceds"],
-    vec!["--no-auto-enableds"],
     vec!["--no-auto-names"],
     vec!["--no-auto-langs"],
     vec!["--no-auto-charsets"],
     vec!["--pro", "--auto-defaults"],
     vec!["--pro", "--auto-forceds"],
-    vec!["--pro", "--auto-enableds"],
     vec!["--pro", "--auto-names"],
     vec!["--pro", "--auto-langs"],
     vec!["--pro", "--auto-charsets"],

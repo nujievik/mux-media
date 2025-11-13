@@ -5,8 +5,8 @@ use crate::{
     i18n::logs,
     immut,
     markers::{
-        MCDefaultTrackFlags, MCEnabledTrackFlags, MCForcedTrackFlags, MISavedTracks, MITIItSigns,
-        MITITrackIDs, MITargets,
+        MCDefaultTrackFlags, MCForcedTrackFlags, MISavedTracks, MITIItSigns, MITITrackIDs,
+        MITargets,
     },
 };
 use log::warn;
@@ -73,7 +73,6 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
 
                 let defaults = mi.cfg.target(MCDefaultTrackFlags, targets);
                 let forceds = mi.cfg.target(MCForcedTrackFlags, targets);
-                let enableds = mi.cfg.target(MCEnabledTrackFlags, targets);
 
                 for (ty, num) in tracks
                     .iter()
@@ -86,10 +85,8 @@ impl TryFrom<&mut MediaInfo<'_>> for TrackOrder {
 
                     let default = defaults.get(&tids[0]).or_else(|| defaults.get(&tids[1]));
                     let forced = forceds.get(&tids[0]).or_else(|| forceds.get(&tids[1]));
-                    let enabled = enableds.get(&tids[0]).or_else(|| enableds.get(&tids[1]));
 
-                    let key =
-                        OrderSortKey::new(ty, default, forced, enabled, it_signs, lang, locale);
+                    let key = OrderSortKey::new(ty, default, forced, it_signs, lang, locale);
 
                     ittk.push((i, num, ty, key));
                 }
@@ -217,7 +214,6 @@ struct OrderSortKey {
     track_type: u8,
     default: u8,
     forced: u8,
-    enabled: u8,
     it_signs: u8,
     lang: u8,
 }
@@ -227,7 +223,6 @@ impl OrderSortKey {
         track_type: TrackType,
         default: Option<bool>,
         forced: Option<bool>,
-        enabled: Option<bool>,
         it_signs: bool,
         lang: LangCode,
         locale_lang: LangCode,
@@ -247,7 +242,6 @@ impl OrderSortKey {
 
         let default = flag_order(default);
         let forced = flag_order(forced);
-        let enabled = flag_order(enabled);
 
         let it_signs = if it_signs { 0 } else { 1 };
 
@@ -262,7 +256,6 @@ impl OrderSortKey {
             track_type,
             default,
             forced,
-            enabled,
             it_signs,
             lang,
         }
@@ -274,7 +267,6 @@ impl PartialEq for OrderSortKey {
         self.track_type == other.track_type
             && self.default == other.default
             && self.forced == other.forced
-            && self.enabled == other.enabled
             && self.it_signs == other.it_signs
             && self.lang == other.lang
     }
@@ -292,7 +284,6 @@ impl Ord for OrderSortKey {
             self.track_type,
             self.default,
             self.forced,
-            self.enabled,
             self.it_signs,
             self.lang,
         )
@@ -300,7 +291,6 @@ impl Ord for OrderSortKey {
                 other.track_type,
                 other.default,
                 other.forced,
-                other.enabled,
                 other.it_signs,
                 other.lang,
             ))
