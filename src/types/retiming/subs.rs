@@ -1,7 +1,5 @@
-use super::Retiming;
-use crate::{
-    Duration, MediaInfo, Result, Tool, Tools, TrackOrderItemRetimed, TrackType, markers::MITICache,
-};
+use super::{RetimedStream, Retiming};
+use crate::{CodecId, Duration, MediaInfo, Result, Tool, Tools, markers::*};
 use log::warn;
 use rsubs_lib::{SRT, SRTLine, SSA, SSAEvent, VTT, VTTLine};
 use std::{
@@ -14,18 +12,9 @@ use std::{
 use time::Time;
 
 impl Retiming<'_, '_> {
-    pub(crate) fn try_sub(
-        &self,
-        i: usize,
-        src: &Path,
-        track: u64,
-    ) -> Result<TrackOrderItemRetimed> {
-        if self.parts.len() == 1 && src == **self.base && self.parts[0].no_retiming {
-            return Ok(TrackOrderItemRetimed::new(
-                vec![src.into()],
-                true,
-                TrackType::Sub,
-            ));
+    pub(crate) fn try_sub(&self, i: usize, src: &Path, i_stream: usize) -> Result<RetimedStream> {
+        if self.parts.len() == 1 && src == **self.base {
+            return Ok(self.single_part_base_retimed_stream(src, i_stream));
         }
 
         let fall = |dest: &mut PathBuf, ty, err| -> Result<()> {
@@ -33,9 +22,9 @@ impl Retiming<'_, '_> {
                 return Err(err);
             }
             warn!(
-                "Fail retiming '{}' track {} as .{}: {}. Try retime as .srt",
+                "Fail retiming '{}' stream {} as .{}: {}. Try retime as .srt",
                 src.display(),
-                track,
+                i_stream,
                 ty.as_ext(),
                 err
             );
@@ -44,21 +33,21 @@ impl Retiming<'_, '_> {
         };
 
         let dest = if src == **self.base {
-            let ty = SubType::from_codec_id(self.media_info, src, track);
+            let ty = SubType::from_codec_id(self.media_info, src, i_stream);
             let mut dest = self.temp_dir.join(format!(
                 "{}-sub-base-{}.{}",
                 self.thread,
-                track,
+                i_stream,
                 ty.as_ext()
             ));
-            if let Err(err) = self.try_base_sub(track, &dest) {
+            if let Err(err) = self.try_base_sub(i_stream, &dest) {
                 fall(&mut dest, ty, err)?;
-                self.try_base_sub(track, &dest)?;
+                self.try_base_sub(i_stream, &dest)?;
             }
             dest
         } else {
             let ty = SubType::try_from_extension(src)
-                .unwrap_or_else(|_| SubType::from_codec_id(self.media_info, src, track));
+                .unwrap_or_else(|_| SubType::from_codec_id(self.media_info, src, i_stream));
             let mut dest = self
                 .temp_dir
                 .join(format!("{}-sub-{}.{}", self.thread, i, ty.as_ext()));
@@ -69,11 +58,11 @@ impl Retiming<'_, '_> {
             dest
         };
 
-        Ok(TrackOrderItemRetimed::new(
-            vec![dest],
-            false,
-            TrackType::Sub,
-        ))
+        Ok(RetimedStream {
+            src: Some(dest),
+            i_stream: 0,
+            src_time: None,
+        })
     }
 }
 
@@ -93,8 +82,8 @@ macro_rules! map_internal_rsub {
 }
 
 impl Retiming<'_, '_> {
-    fn try_base_sub(&self, tid: u64, dest: &Path) -> Result<()> {
-        let old = try_map_old(self, tid, &dest)?;
+    fn try_base_sub(&self, i_stream: usize, dest: &Path) -> Result<()> {
+        let old = try_map_old(self, i_stream, &dest)?;
 
         let src_idxs_offset: Vec<_> = self
             .parts
@@ -185,7 +174,7 @@ impl Retiming<'_, '_> {
 
         fn try_map_old<'a>(
             rtm: &'a Retiming<'_, '_>,
-            track: u64,
+            i_stream: usize,
             dest: &Path,
         ) -> Result<HashMap<&'a Path, RSub>> {
             let mut map: HashMap<&Path, RSub> = HashMap::new();
@@ -193,17 +182,21 @@ impl Retiming<'_, '_> {
                 let src = p.src.as_path();
                 if !map.contains_key(&src) {
                     let _ = fs::remove_file(dest);
-                    try_extract(&rtm.tools, src, track, dest)?;
+                    try_extract(&rtm.tools, src, i_stream, dest)?;
                     let sub = RSub::try_from_file(dest)?;
                     map.insert(src, sub);
                 }
             }
             return Ok(map);
 
-            fn try_extract(tools: &Tools<'_>, src: &Path, track: u64, dest: &Path) -> Result<()> {
-                let p: fn(&str) -> &Path = Path::new;
-                let map = format!("0:{}", track);
-                let args = [p("-i"), src, p("-map"), p(&map), dest];
+            fn try_extract(
+                tools: &Tools<'_>,
+                src: &Path,
+                i_stream: usize,
+                dest: &Path,
+            ) -> Result<()> {
+                let map = format!("0:{}", i_stream);
+                let args = [p!("-i"), src, p!("-map"), p!(&map), dest];
                 tools.run(Tool::Ffmpeg, &args).map(|_| ())
             }
         }
@@ -421,20 +414,23 @@ impl SubType {
         }
     }
 
-    fn from_codec_id(mi: &MediaInfo, file: &Path, track: u64) -> SubType {
+    fn from_codec_id(mi: &MediaInfo, src: &Path, i_stream: usize) -> SubType {
         use crate::ffmpeg::codec::id::Id;
 
-        let c = mi
-            .immut_ti::<MITICache>(file, track)
-            .map(|c| c.codec_id)
-            .unwrap_or_default();
+        let c = *mi
+            .immut(MIStreams, src)
+            .map(|xs| &xs[i_stream].codec)
+            .unwrap_or(&CodecId::default());
 
         match c.0 {
             Id::ASS | Id::SSA => SubType::Ssa,
             Id::SRT | Id::SUBRIP => SubType::Srt,
             Id::WEBVTT => SubType::Vtt,
             _ => {
-                warn!("Unsupported codec: {:?}. Try use .srt", c);
+                warn!(
+                    "Unsupported codec {:?} of sub stream {}. Try retime as .srt",
+                    c, i_stream
+                );
                 SubType::Srt
             }
         }

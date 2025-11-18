@@ -97,6 +97,6 @@ fn test_errs() {
 #[test]
 fn test_tool_output() {
     let out = TOOLS.run(Tool::Ffmpeg, ["-h"]).unwrap();
-    assert!(out.as_str_stdout().contains("Global options"));
-    assert!(out.as_str_stderr().is_empty());
+    assert!(out.stdout.contains("Global options"));
+    assert!(out.stderr.is_empty());
 }

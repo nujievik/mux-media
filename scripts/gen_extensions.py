@@ -12,6 +12,7 @@ OUT_PATHS = {
     "matroska": MODULE / "matroska.rs",
     "media": MODULE / "media.rs",
     "mp4": MODULE / "mp4.rs",
+    "otf": MODULE / "otf.rs",
     "subs": MODULE / "subs.rs",
     "webm": MODULE / "webm.rs",
 }
@@ -22,6 +23,8 @@ EXTS = {
     "mp4": { "mp4" },
 
     "webm": { "webm" },
+
+    "otf": ["otf"],
 
     # Common for video and audio
     "container": {

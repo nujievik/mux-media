@@ -1,3 +1,4 @@
+use crate::IsDefault;
 use std::{fmt, ops::Deref};
 
 /// A value marked as either auto or user-defined.
@@ -55,6 +56,13 @@ impl<T> Value<T> {
     pub const fn is_user(&self) -> bool {
         !self.is_auto()
     }
+
+    pub(crate) const fn as_ref(&self) -> Value<&T> {
+        match *self {
+            Value::Auto(ref x) => Value::Auto(x),
+            Value::User(ref x) => Value::User(x),
+        }
+    }
 }
 
 impl<T: Copy> Copy for Value<T> {}
@@ -62,6 +70,11 @@ impl<T: Copy> Copy for Value<T> {}
 impl<T: Default> Default for Value<T> {
     fn default() -> Self {
         Self::Auto(Default::default())
+    }
+}
+impl<T: IsDefault> IsDefault for Value<T> {
+    fn is_default(&self) -> bool {
+        self.is_auto() && (**self).is_default()
     }
 }
 

@@ -1,38 +1,32 @@
 use crate::{MuxError, Result};
 use std::{fmt, ops, str::FromStr};
 
-const MAX_MINUS_ONE: u64 = !0 - 1;
+const MAX_MINUS_ONE: usize = !0 - 1;
 
-/// A wrapper around [`Range<u64>`](ops::Range<u64>).
+/// A wrapper around [`Range<usize>`](ops::Range<usize>).
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct RangeU64(ops::Range<u64>);
+pub struct RangeUsize(ops::Range<usize>);
 
-deref_singleton_tuple_struct!(RangeU64, ops::Range<u64>);
+deref_singleton_tuple_struct!(RangeUsize, ops::Range<usize>);
 
-impl RangeU64 {
-    pub fn contains_range(&self, other: &Self) -> bool {
-        other.start >= self.start && other.end <= self.end
-    }
-}
-
-impl fmt::Display for RangeU64 {
+impl fmt::Display for RangeUsize {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}-{}", self.0.start, self.0.end - 1)
     }
 }
 
-impl Iterator for RangeU64 {
-    type Item = u64;
+impl Iterator for RangeUsize {
+    type Item = usize;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.0.next()
     }
 }
 
-impl TryFrom<(u64, u64)> for RangeU64 {
+impl TryFrom<(usize, usize)> for RangeUsize {
     type Error = MuxError;
 
-    fn try_from(start_end: (u64, u64)) -> Result<Self> {
+    fn try_from(start_end: (usize, usize)) -> Result<Self> {
         let (start, mut end) = start_end;
 
         if end < start {
@@ -43,11 +37,11 @@ impl TryFrom<(u64, u64)> for RangeU64 {
             ));
         }
 
-        if end == u64::MAX {
+        if end == usize::MAX {
             return Err(err!(
                 "End of range ({}) must be lesser than MAX ({})",
                 end,
-                u64::MAX
+                usize::MAX
             ));
         } else {
             end += 1;
@@ -57,7 +51,7 @@ impl TryFrom<(u64, u64)> for RangeU64 {
     }
 }
 
-impl FromStr for RangeU64 {
+impl FromStr for RangeUsize {
     type Err = MuxError;
 
     fn from_str(s: &str) -> Result<Self> {
@@ -86,23 +80,23 @@ impl FromStr for RangeU64 {
             None
         }
 
-        fn parse_with_delimiter(s: &str, delimiter: &str) -> Result<(u64, u64)> {
+        fn parse_with_delimiter(s: &str, delimiter: &str) -> Result<(usize, usize)> {
             let mut ps = s.splitn(2, delimiter);
             let start = parse_part(ps.next().unwrap_or(""), 0)?;
             let end = parse_part(ps.next().unwrap_or(""), MAX_MINUS_ONE)?;
             Ok((start, end))
         }
 
-        fn parse_single_or_empty(s: &str) -> Result<(u64, u64)> {
+        fn parse_single_or_empty(s: &str) -> Result<(usize, usize)> {
             let start = parse_part(s, 0)?;
             Ok((start, MAX_MINUS_ONE))
         }
 
-        fn parse_part(part: &str, val_on_empty: u64) -> Result<u64> {
+        fn parse_part(part: &str, val_on_empty: usize) -> Result<usize> {
             if part.is_empty() {
                 Ok(val_on_empty)
             } else {
-                part.parse::<u64>()
+                part.parse::<usize>()
                     .map_err(|e| err!("invalid value '{}': {}", part, e))
             }
         }

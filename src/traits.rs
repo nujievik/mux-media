@@ -12,18 +12,13 @@ pub trait TryFinalizeInit {
 /// Converts a [`MediaInfo`] value to ffmpeg-compatible arguments.
 pub trait ToFfmpegArgs {
     /// Attempts append arguments to the given `args` vector.
-    fn try_append_ffmpeg_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) -> Result<()>;
-
-    /// Appends arguments to the given `args` vector.
-    fn append_ffmpeg_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) {
-        let _ = Self::try_append_ffmpeg_args(args, mi);
-    }
+    fn append_ffmpeg_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) -> Result<()>;
 
     /// Returns arguments.
-    fn to_ffmpeg_args(mi: &mut MediaInfo) -> Vec<OsString> {
+    fn to_ffmpeg_args(mi: &mut MediaInfo) -> Result<Vec<OsString>> {
         let mut args = Vec::new();
-        Self::append_ffmpeg_args(&mut args, mi);
-        args
+        Self::append_ffmpeg_args(&mut args, mi)?;
+        Ok(args)
     }
 }
 

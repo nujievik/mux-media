@@ -13,9 +13,9 @@ impl Input {
 impl Default for Input {
     /// Returns a [`Input`] with 16 [`Input::depth`] and all other default fields.
     /// ```
-    /// # use mux_media::Input;
-    /// # use std::path::PathBuf;
-    /// #
+    /// use mux_media::Input;
+    /// use std::path::PathBuf;
+    ///
     /// let i = Input::default();
     /// assert_eq!(i.dir, PathBuf::default());
     /// assert_eq!(i.range, None);
@@ -43,9 +43,10 @@ impl Default for Input {
 impl IsDefault for Input {
     /// Returns `true` if all `self` fields eq [`Input::default`] fields.
     /// ```
-    /// # use mux_media::*;
-    /// # use enum_map::EnumMap;
-    /// #
+    /// use mux_media::*;
+    /// use enum_map::EnumMap;
+    /// use is_default::IsDefault;
+    ///
     /// assert!(Input::default().is_default());
     ///
     /// assert!(!Input { dir: "x".into(), ..Default::default() }.is_default());

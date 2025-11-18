@@ -1,37 +1,43 @@
-use crate::{IsDefault, ToJsonArgs, TrackFlagType, Value};
+use crate::{DispositionType, IsDefault, ToJsonArgs, Value};
 use enum_map::{EnumMap, enum_map};
 
 /// Values of auto-settings flags.
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct AutoFlags {
     pub pro: Value<bool>,
-    pub track: EnumMap<TrackFlagType, Value<bool>>,
+    pub defaults: Value<bool>,
+    pub forceds: Value<bool>,
     pub names: Value<bool>,
     pub langs: Value<bool>,
     pub charsets: Value<bool>,
+}
+
+impl AutoFlags {
+    pub(crate) fn map_dispositions(&self) -> EnumMap<DispositionType, bool> {
+        enum_map!(DispositionType::Default => *self.defaults, DispositionType::Forced => *self.forceds )
+    }
 }
 
 impl Default for AutoFlags {
     fn default() -> AutoFlags {
         AutoFlags {
             pro: Value::Auto(false),
-            track: enum_map! {
-                TrackFlagType::Default | TrackFlagType::Forced => Value::Auto(true),
-            },
+            defaults: Value::Auto(true),
+            forceds: Value::Auto(true),
             names: Value::Auto(true),
             langs: Value::Auto(true),
             charsets: Value::Auto(true),
         }
     }
 }
-
 impl IsDefault for AutoFlags {
     fn is_default(&self) -> bool {
         matches!(self.pro, Value::Auto(false))
+            && matches!(self.defaults, Value::Auto(true))
+            && matches!(self.forceds, Value::Auto(true))
             && matches!(self.names, Value::Auto(true))
             && matches!(self.langs, Value::Auto(true))
             && matches!(self.charsets, Value::Auto(true))
-            && self.track.values().all(|&v| matches!(v, Value::Auto(true)))
     }
 }
 
@@ -55,8 +61,8 @@ impl ToJsonArgs for AutoFlags {
 
         push_json_args!(
             args;
-            self.track[TrackFlagType::Default], AutoDefaults, NoAutoDefaults,
-            self.track[TrackFlagType::Forced], AutoForceds, NoAutoForceds,
+            self.defaults, AutoDefaults, NoAutoDefaults,
+            self.forceds, AutoForceds, NoAutoForceds,
             self.names, AutoNames, NoAutoNames,
             self.langs, AutoLangs, NoAutoLangs,
             self.charsets, AutoCharsets, NoAutoCharsets

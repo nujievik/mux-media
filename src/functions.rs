@@ -1,4 +1,4 @@
-use crate::{Msg, MuxConfig, MuxLogger, Result, TryFinalizeInit, ffmpeg};
+use crate::{Config, Msg, MuxLogger, Result, TryFinalizeInit, ffmpeg};
 use log::{info, warn};
 use std::path::{MAIN_SEPARATOR, PathBuf};
 
@@ -22,6 +22,13 @@ pub const SEP_STR: &str = match str::from_utf8(SEP_BYTES) {
     Ok(s) => s,
     Err(_) => panic!("MAIN_SEPARATOR is not valid UTF-8"),
 };
+
+/// Tries perform muxing, returning a count of successfully muxed media files.
+///
+/// Delegates implementation to [`Config::mux`].
+pub fn mux(cfg: &Config) -> Result<usize> {
+    cfg.mux()
+}
 
 /// Runs muxing, invoking all other components.
 ///
@@ -55,8 +62,8 @@ pub fn run() -> Result<()> {
         }
     });
 
-    fn init_cfg() -> Result<MuxConfig> {
-        let mut cfg = MuxConfig::try_init()?;
+    fn init_cfg() -> Result<Config> {
+        let mut cfg = Config::try_init()?;
         if let Err(e) = cfg.try_finalize_init() {
             cfg.output.remove_created_dirs();
             Err(e)
@@ -65,7 +72,7 @@ pub fn run() -> Result<()> {
         }
     }
 
-    fn init_ffmpeg(cfg: &MuxConfig) -> Result<()> {
+    fn init_ffmpeg(cfg: &Config) -> Result<()> {
         if let Err(e) = ffmpeg::init() {
             cfg.output.remove_created_dirs();
             Err(e.into())

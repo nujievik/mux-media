@@ -2,16 +2,15 @@ use crate::{Msg, MuxError, Muxer};
 use log::{debug, warn};
 use std::{ffi::OsStr, fmt, path::Path, process::Command};
 
-#[inline]
-pub(crate) fn warn_container_does_not_support(muxer: Muxer, path: &Path, track: u64) {
+pub(crate) fn warn_container_does_not_support(muxer: Muxer, src: &Path, i_stream: usize) {
     warn!(
-        "{} {} {}. {} '{}' track {}",
+        "{} {} {}. {} '{}' stream {}",
         muxer,
         Msg::ContainerDoesNotSupport,
         Msg::LMultipleTracksOrTypeTrack,
         Msg::Skipping,
-        path.display(),
-        track
+        src.display(),
+        i_stream
     );
 }
 

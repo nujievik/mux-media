@@ -1,68 +1,66 @@
-pub(crate) mod group;
-
-use crate::{ArcPathBuf, Msg, MuxError, TargetGroup};
+use crate::{ArcPathBuf, Msg, Result, StreamType};
 use std::{
     borrow::Borrow,
-    ffi::{OsStr, OsString},
+    ffi::OsStr,
     fs,
     hash::{Hash, Hasher},
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 /// Target of mux settings.
 #[derive(Clone, Debug)]
 pub enum Target {
-    Group(TargetGroup),
+    Global,
+    Stream(StreamType),
     Path(ArcPathBuf),
 }
 
 impl Target {
-    /// Returns a [`Path`] representation.
-    pub fn as_path(&self) -> &Path {
+    /// Parse [`Target`] from a os string.
+    pub fn from_os_str<OS: AsRef<OsStr>>(os: OS) -> Result<Target> {
+        let os = os.as_ref();
+
+        if let Some(t) = os.to_str().and_then(|s| get_from_str(s)) {
+            return Ok(t);
+        }
+
+        let path = fs::canonicalize(os)
+            .map_err(|e| err!("Incorrect path target '{}': {}", Path::new(os).display(), e))?;
+
+        return Ok(Self::Path(path.into()));
+
+        fn get_from_str(s: &str) -> Option<Target> {
+            let s = s.trim().to_ascii_lowercase();
+            if matches!(s.as_str(), "g" | "global") {
+                Some(Target::Global)
+            } else if let Ok(ty) = s.parse::<StreamType>() {
+                Some(Target::Stream(ty))
+            } else {
+                None
+            }
+        }
+    }
+
+    pub(crate) fn to_str(&self) -> Option<&str> {
         match self {
-            Self::Group(g) => g.as_path(),
+            Self::Global => Some("global"),
+            Self::Stream(ty) => Some(ty.as_ref()),
+            Self::Path(p) => p.to_str(),
+        }
+    }
+
+    /// Returns a [`Path`] representation.
+    pub(crate) fn as_path(&self) -> &Path {
+        match self {
+            Self::Global => Path::new("global"),
+            Self::Stream(ty) => ty.as_path(),
             Self::Path(apb) => apb.as_path(),
         }
     }
 
     /// Prints the list of supported targets to stdout.
-    pub fn print_list_targets() {
+    pub(crate) fn print_list_targets() {
         println!("{}", Msg::ListTargets.as_str_localized());
-    }
-}
-
-impl From<PathBuf> for Target {
-    fn from(pb: PathBuf) -> Self {
-        Self::Path(pb.into())
-    }
-}
-
-impl TryFrom<&OsStr> for Target {
-    type Error = MuxError;
-
-    fn try_from(oss: &OsStr) -> Result<Self, Self::Error> {
-        if let Some(group) = oss.to_str().and_then(|s| s.parse::<TargetGroup>().ok()) {
-            return Ok(Target::Group(group));
-        }
-
-        let path = fs::canonicalize(oss).map_err(|e| {
-            err!(
-                "Incorrect path target '{}': {}",
-                Path::new(oss).display(),
-                e
-            )
-        })?;
-
-        Ok(path.into())
-    }
-}
-
-impl TryFrom<&OsString> for Target {
-    type Error = MuxError;
-
-    #[inline(always)]
-    fn try_from(oss: &OsString) -> Result<Self, Self::Error> {
-        Self::try_from(oss.as_os_str())
     }
 }
 

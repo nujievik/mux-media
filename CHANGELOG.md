@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## Unreleased
+
+### Changed
+
+- Decrease default parallel muxing to 1 (was 4)
+
+### Removed
+
+- Tracks (streams) `enableds` flags.
+
+
 ## [0.15.0] - 2025-09-27
 
 ### Added
@@ -37,11 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Button tracks settings.
 
+
 ## [0.14.3] - 2025-08-18
 
 ### Added
 
 - Support for single-media groups with the `--solo` flag.
+
 
 ## [0.14.2] - 2025-08-15
 
@@ -49,17 +63,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Remove created directories on failure.
 
+
 ## [0.14.1] - 2025-08-10
 
 ### Fixed
 
 - Publication on crates.io.
 
+
 ## [0.14.0] - 2025-08-10
 
 ### Added
 
 - Reencoding.
+
 
 ## [0.13.6] - 2025-07-25
 
@@ -84,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 - Retiming.
+
 
 ## [0.12.7] - 2025-04-19 [YANKED]
 

@@ -229,7 +229,6 @@ macro_rules! impl_from_any {
 impl_from_any!(std::io::Error);
 impl_from_any!(std::num::ParseIntError);
 impl_from_any!(serde_json::Error);
-impl_from_any!(matroska::MatroskaError);
 impl_from_any!(rsubs_lib::SRTError);
 impl_from_any!(rsubs_lib::SSAError);
 impl_from_any!(rsubs_lib::VTTError);

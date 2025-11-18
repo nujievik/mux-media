@@ -1,9 +1,9 @@
-use mux_media::RangeU64;
+use mux_media::RangeUsize;
 
-const MAX: u64 = u64::MAX;
+const MAX: usize = usize::MAX;
 
-pub fn new(s: &str) -> RangeU64 {
-    s.parse::<RangeU64>()
+pub fn new(s: &str) -> RangeUsize {
+    s.parse::<RangeUsize>()
         .expect(&format!("Fail range from '{}'", s))
 }
 
@@ -15,7 +15,7 @@ fn test_empty_str() {
 }
 
 crate::test_from_str!(
-    RangeU64,
+    RangeUsize,
     test_from_str,
     [
         "", "5", "0", " 10 ", "5,10", "5,", ",10", "5-10", "5-", "-10", "5..=10"
@@ -89,7 +89,7 @@ fn test_to_string() {
     .iter()
     .for_each(|(s, (start, end))| {
         let exp = format!("{}-{}", start, end);
-        let rng = s.parse::<RangeU64>().unwrap();
+        let rng = s.parse::<RangeUsize>().unwrap();
         assert_eq!(exp, rng.to_string());
     })
 }
@@ -139,57 +139,6 @@ fn test_not_contains() {
 }
 
 #[test]
-fn test_contains_range() {
-    [
-        ("", ["", "5-8", "16-"]),
-        ("5-", ["5-", "5-8", "16-"]),
-        ("10-", ["10-", "16-32", "16-"]),
-        ("5-10", ["5-10", "8-8", "8-10"]),
-        ("-10", ["-10", "5-8", "8-10"]),
-        ("6-6", ["6-6", "6-6", "6-6"]),
-        ("3-7", ["3-7", "4-5", "5-7"]),
-    ]
-    .iter()
-    .for_each(|(s, vals)| {
-        let range = new(s);
-        vals.iter().for_each(|v| {
-            let rng = new(v);
-            assert!(
-                range.contains_range(&rng),
-                "Not contains range '{}' in range from '{}'",
-                v,
-                s
-            );
-        })
-    })
-}
-
-#[test]
-fn test_not_contains_range() {
-    [
-        ("5-", ["", "0-4", "4-"]),
-        ("10-", ["", "5-8", "9-"]),
-        ("5-10", ["", "0-4", "5-"]),
-        ("-10", ["", "5-12", "10-"]),
-        ("6-6", ["", "0-5", "6-"]),
-        ("3-7", ["", "0-2", "7-"]),
-    ]
-    .iter()
-    .for_each(|(s, vals)| {
-        let range = new(s);
-        vals.iter().for_each(|v| {
-            let rng = new(v);
-            assert!(
-                !range.contains_range(&rng),
-                "Not contains range {} in range from {}",
-                v,
-                s
-            );
-        })
-    })
-}
-
-#[test]
 fn test_expected_err_messages() {
     [
         ("x", "invalid digit"),
@@ -201,7 +150,7 @@ fn test_expected_err_messages() {
         ),
     ]
     .iter()
-    .for_each(|(s, expected_msg)| match s.parse::<RangeU64>() {
+    .for_each(|(s, expected_msg)| match s.parse::<RangeUsize>() {
         Err(e) => assert!(
             e.to_string().contains(expected_msg),
             "Expected error contains '{}' for '{}', but got '{}'",

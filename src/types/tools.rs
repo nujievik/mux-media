@@ -2,9 +2,7 @@ pub(crate) mod output;
 pub(crate) mod paths;
 pub(crate) mod tool;
 
-use crate::{
-    MuxConfig, Result, Tool, ToolOutput, i18n::logs, types::helpers::try_write_args_to_json,
-};
+use crate::{Config, Result, Tool, ToolOutput, i18n::logs, types::helpers::try_write_args_to_json};
 use paths::ToolPaths;
 use std::{
     ffi::{OsStr, OsString},
@@ -25,8 +23,8 @@ impl<'a> From<&'a ToolPaths> for Tools<'a> {
     }
 }
 
-impl<'a> From<&'a MuxConfig> for Tools<'a> {
-    fn from(cfg: &'a MuxConfig) -> Tools<'a> {
+impl<'a> From<&'a Config> for Tools<'a> {
+    fn from(cfg: &'a Config) -> Tools<'a> {
         Tools::from(&cfg.tool_paths)
     }
 }

@@ -16,14 +16,14 @@ impl TryFrom<&Input> for Output {
     /// Sets [`Self::dir`] only, other components is default.
     ///
     /// ```
-    /// # use mux_media::{MuxConfig, Output};
+    /// # use mux_media::{Config, Output};
     /// # use clap::Parser;
     /// # use std::{env::current_dir, path::Path};
     /// #
     /// # let input_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
     /// #     .join("tests")
     /// #     .join("test_data");
-    /// # let cfg = MuxConfig::parse_from([Path::new("-i"), &input_dir]);
+    /// # let cfg = Config::parse_from([Path::new("-i"), &input_dir]);
     /// let o = Output::try_from(&cfg.input).unwrap();
     /// let dir = cfg.input.dir.join("muxed");
     ///

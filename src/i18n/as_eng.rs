@@ -9,7 +9,7 @@ impl_msg_as_str!(
     FoundRepeat => "Found repeat",
     FromPackage => "From package",
     HelpAttachs => "[!]Copy other attachments",
-    HelpAudio => "[!]Copy audio tracks",
+    HelpAudio => "[!]Copy audio streams",
     HelpAutoCharsets => "Auto set sub-charsets",
     HelpAutoDefaults => "Auto set default-track-flags",
     HelpAutoFlags => "Auto flags",
@@ -38,12 +38,13 @@ impl_msg_as_str!(
     HelpMaxForceds => "Max auto-enabled forced-display-flags",
     HelpNames => "Set track names",
     HelpNoAttachs => "Don't copy any other attachment",
-    HelpNoAudio => "Don't copy any audio track",
+    HelpNoAudio => "Don't copy any audio stream",
     HelpNoChapters => "Don't copy chapters",
     HelpNoFonts => "Don't copy any font attachment",
     HelpNoLinked => "Remove linked segments",
-    HelpNoSubs => "Don't copy any subtitle track",
-    HelpNoVideo => "Don't copy any video track",
+    HelpNoStreams => "Don't copy any stream",
+    HelpNoSubs => "Don't copy any subtitle stream",
+    HelpNoVideo => "Don't copy any video stream",
     HelpOtherOptions => "Other options",
     HelpOutput => "Output paths pattern: out{num}[put]",
     HelpPro => "Disable all auto flags below",
@@ -56,14 +57,15 @@ impl_msg_as_str!(
     HelpSkip => "Patterns of files to skip",
     HelpSolo => "Allow solo media",
     HelpSortFonts => "On/Off sort in-files fonts",
-    HelpSubs => "[!]Copy subtitle tracks",
+    HelpStreams => "[!]Copy streams",
+    HelpSubs => "[!]Copy subtitle streams",
+    HelpSys => "Priority use of system ffmpeg",
     HelpTargetHelp => "Set next options for target",
     HelpTargetOptions => "Target options",
     HelpThreads => "Max parallel muxing",
-    HelpSys => "Priority use of system ffmpeg",
     HelpVerbosity => "Increase logging",
     HelpVersion => "Show version",
-    HelpVideo => "[!]Copy video tracks",
+    HelpVideo => "[!]Copy video streams",
     InstallIt => "Please install it, add to system PATH and re-run",
     LMedia => "media",
     LMultipleTracksOrTypeTrack => "multiple tracks or type track",
@@ -92,8 +94,8 @@ impl_msg_as_str!(
     ListTargets => r#"Supported targets (in order of priority):
  1. Path to a file
  2. Path to the parent directory of the file
- 3. File group: video, audio, subs (file must contain the corresponding track type),
-    or global (default)"#,
+ 3. Stream type: video, audio, subs, fonts, or attachs
+ 4. Global (default)"#,
     ListContainers => r#"Supported containers:
  1. Matroska (.mkv). Universal default container
  2. AVI (.avi). Legacy

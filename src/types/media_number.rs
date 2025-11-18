@@ -19,8 +19,8 @@ impl MediaNumber {
     }
 
     /// Returns the number as `u64` if parsable; otherwise, returns `0`.
-    pub fn to_u64(&self) -> u64 {
-        self.s.parse::<u64>().unwrap_or(0)
+    pub fn to_usize(&self) -> usize {
+        self.s.parse::<usize>().unwrap_or(0)
     }
 
     /// Updates the internal value based on the new [`OsStr`].

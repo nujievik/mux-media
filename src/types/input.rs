@@ -5,7 +5,7 @@ mod to_args;
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, FileType, GlobSetPattern, RangeU64, Result};
+use crate::{ArcPathBuf, FileType, GlobSetPattern, RangeUsize, Result};
 use enum_map::EnumMap;
 use std::{
     fs,
@@ -21,7 +21,7 @@ use std::{
 #[derive(Clone, Debug, PartialEq)]
 pub struct Input {
     pub dir: PathBuf,
-    pub range: Option<RangeU64>,
+    pub range: Option<RangeUsize>,
     pub skip: Option<GlobSetPattern>,
     pub depth: u8,
     pub solo: bool,

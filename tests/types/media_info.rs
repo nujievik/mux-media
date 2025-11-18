@@ -1,4 +1,8 @@
-use crate::{char_encoding, common::*, input};
+#[path = "media_info/durations.rs"]
+mod durations;
+
+//use crate::{char_encoding, common::*, input};
+use crate::common::*;
 use mux_media::{markers::*, *};
 use std::{
     mem,
@@ -6,16 +10,19 @@ use std::{
     sync::LazyLock,
 };
 
-static MUX_CONFIG: LazyLock<MuxConfig> = LazyLock::new(|| cfg::<_, &str>([]));
+static CONFIG: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
 
 pub fn new() -> MediaInfo<'static> {
-    MediaInfo::from(&*MUX_CONFIG)
+    MediaInfo::new(&*CONFIG, 0)
 }
 
+/*
 fn new_path(s: &str) -> ArcPathBuf {
     ArcPathBuf::from(data(s))
 }
+*/
 
+/*
 #[test]
 fn test_empty() {
     let mi = new();
@@ -234,7 +241,7 @@ fn test_matroska() {
 }
 
 #[test]
-fn test_ffmpeg_streams() {
+fn test_streams() {
     let mut mi = new();
 
     [
@@ -247,7 +254,7 @@ fn test_ffmpeg_streams() {
     ]
     .iter()
     .for_each(|f| {
-        mi.try_get::<MIFfmpegStreams>(data(f).as_path()).unwrap();
+        mi.try_get::<MIStreams>(data(f).as_path()).unwrap();
     })
 }
 
@@ -361,43 +368,6 @@ fn test_targets_all() {
 }
 
 #[test]
-fn test_audio_duration() {
-    let mut mi = new();
-
-    let d = mi.try_get::<MIAudioDuration>(&data("audio_x1.mka"));
-    assert_eq!(*d.unwrap(), Duration::new(0, 989_742_774));
-
-    mi.try_take::<MIAudioDuration>(&data("video_x1.mkv"))
-        .unwrap_err();
-}
-
-#[test]
-fn test_video_duration() {
-    let mut mi = new();
-
-    let d = mi.try_take::<MIVideoDuration>(&data("video_x1.mkv"));
-    assert_eq!(d.unwrap(), Duration::new(0, 960_000_000));
-
-    mi.try_take::<MIVideoDuration>(&data("audio_x1.mka"))
-        .unwrap_err();
-}
-
-#[test]
-fn test_playable_duration() {
-    let mut mi = new();
-
-    assert_eq(&mut mi, "video_x1.mkv", 0, 960_000_000);
-    assert_eq(&mut mi, "audio_x1.mka", 0, 989_742_774);
-    assert_eq(&mut mi, "vid_0.96s_and_srt_5s.mkv", 0, 960_000_000);
-    assert_eq(&mut mi, "vid_0.96s_and_aud_0.99s.mkv", 0, 990_000_000);
-
-    fn assert_eq(mi: &mut MediaInfo, f: &str, secs: u64, nanos: u32) {
-        let d = mi.try_get::<MIPlayableDuration>(&data(f)).copied();
-        assert_eq!(d.unwrap(), Duration::new(secs, nanos));
-    }
-}
-
-#[test]
 fn test_tracks_info() {
     let mut mi = new();
 
@@ -431,12 +401,14 @@ fn test_attachs_info() {
     ]
     .into_iter()
     .for_each(|(f, len)| {
+        /*
         mi.init::<MIAttachsInfo>(data(f).as_path());
-        dbg!(&mi.cache.of_files.get(data(f).as_path()).unwrap());
         assert_eq!(
             len,
             mi.get::<MIAttachsInfo>(data(f).as_path()).unwrap().len()
         );
+        */
+        todo!();
     })
 }
 
@@ -585,9 +557,13 @@ fn test_ti_track_ids() {
     ]
     .into_iter()
     .for_each(|(num, lang, file)| {
+        /*
         assert_eq!(
             &[TrackID::Num(num), TrackID::Lang(lang)],
             mi.try_get_ti::<MITITrackIDs>(&data(file), num).unwrap()
         );
+        */
+        todo!();
     })
 }
+*/

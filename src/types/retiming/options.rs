@@ -1,6 +1,6 @@
 use crate::{GlobSetPattern, IsDefault, ToJsonArgs};
 
-/// Retiming options.
+/// Config of retiming options.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct RetimingOptions {
     pub rm_segments: Option<GlobSetPattern>,

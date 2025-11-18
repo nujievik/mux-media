@@ -1,12 +1,12 @@
 mod audio;
+mod concat;
 mod new;
 pub(crate) mod options;
-mod split;
 mod subs;
 mod video;
 
-use crate::{ArcPathBuf, Duration, MediaInfo, Result, Tools, TrackOrderItemRetimed, TrackType};
-use std::path::Path;
+use crate::{ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, Tools};
+use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
 pub struct Retiming<'a, 'b> {
@@ -16,10 +16,11 @@ pub struct Retiming<'a, 'b> {
     pub media_info: &'b MediaInfo<'a>,
     pub thread: u8,
     pub base: ArcPathBuf,
-    pub track: u64,
+    pub i_base_stream: usize,
     pub chapters: Vec<RetimingChapter>,
     // retimed base video parts
     pub parts: Vec<RetimingPart>,
+    pub base_splits: Vec<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -35,26 +36,31 @@ pub struct RetimingPart {
     pub i_start_chp: usize,
     pub i_end_chp: usize,
     pub src: ArcPathBuf,
-    pub no_retiming: bool,
+    pub _no_retiming: bool,
     pub start: Duration,
     pub start_offset: f64,
     pub end: Duration,
     pub end_offset: f64,
 }
 
+#[derive(Debug, Default)]
+pub struct RetimedStream {
+    pub src: Option<PathBuf>,
+    pub i_stream: usize,
+    pub src_time: Option<(Duration, Duration)>,
+}
+
 impl Retiming<'_, '_> {
-    pub(crate) fn try_any(
-        &self,
-        i: usize,
-        src: &Path,
-        track: u64,
-        ty: TrackType,
-    ) -> Result<TrackOrderItemRetimed> {
+    pub(crate) fn try_any(&self, i: usize, item: &StreamsOrderItem) -> Result<RetimedStream> {
+        let src = &item.key;
+        let i_stream = item.i_stream;
+        let ty = item.ty;
+
         match ty {
-            TrackType::Video => self.try_video(src, track),
-            TrackType::Audio => self.try_audio(i, src, track),
-            TrackType::Sub => self.try_sub(i, src, track),
-            _ => Err("Unsupported track".into()),
+            StreamType::Video => self.try_video(src, i_stream),
+            StreamType::Audio => self.try_audio(i, src, i_stream),
+            StreamType::Sub => self.try_sub(i, src, i_stream),
+            _ => Err(err!("Unsupported stream {} {:?}", i_stream, ty)),
         }
     }
 
@@ -74,5 +80,20 @@ impl Retiming<'_, '_> {
             .filter(|p| &p.src != src)
             .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
             .sum()
+    }
+
+    fn single_part_base_retimed_stream(&self, src: &Path, i_stream: usize) -> RetimedStream {
+        let p = &self.parts[0];
+        let src = if p.src.as_path() != src {
+            Some(PathBuf::from(&p.src))
+        } else {
+            None
+        };
+        let src_time = Some((p.start, p.end));
+        RetimedStream {
+            src,
+            i_stream,
+            src_time,
+        }
     }
 }

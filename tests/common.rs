@@ -43,21 +43,21 @@ pub fn data(add: impl AsRef<OsStr>) -> PathBuf {
     path
 }
 
-pub fn cfg<I, S>(args: I) -> MuxConfig
+pub fn cfg<I, S>(args: I) -> Config
 where
     I: IntoIterator<Item = S>,
     S: Into<OsString> + Clone,
 {
-    MuxConfig::try_parse_from(args).unwrap()
+    Config::try_parse_from(args).unwrap()
 }
 
-pub fn from_cfg<F>(args: Vec<&str>) -> <MuxConfig as Field<F>>::FieldType
+pub fn from_cfg<F>(args: Vec<&str>) -> <Config as Field<F>>::FieldType
 where
-    MuxConfig: Field<F>,
-    <MuxConfig as Field<F>>::FieldType: Clone,
+    Config: Field<F>,
+    <Config as Field<F>>::FieldType: Clone,
 {
     let mc = cfg(args);
-    <MuxConfig as Field<F>>::field(&mc).clone()
+    <Config as Field<F>>::field(&mc).clone()
 }
 
 pub fn cfg_args<I, S, T>(args: I, cache: CacheMI) -> Vec<OsString>
@@ -66,10 +66,10 @@ where
     S: Into<OsString> + Clone,
     T: ToFfmpegArgs,
 {
-    let mc = cfg(args);
-    let mut mi = MediaInfo::from(&mc);
+    let cfg = cfg(args);
+    let mut mi = MediaInfo::new(&cfg, 0);
     mi.cache = cache;
-    T::to_ffmpeg_args(&mut mi)
+    T::to_ffmpeg_args(&mut mi).unwrap()
 }
 
 pub fn to_args<I, S>(args: I) -> Vec<String>
@@ -92,7 +92,7 @@ where
 
 pub fn repeat_track_arg(arg: &str, val: &str, range: &str) -> Vec<String> {
     range
-        .parse::<RangeU64>()
+        .parse::<RangeUsize>()
         .unwrap()
         .into_iter()
         .map(|n| [arg.to_string(), format!("{}{}", n, val)])

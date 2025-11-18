@@ -13,9 +13,9 @@ impl Output {
 impl Default for Output {
     /// Returns a [`Output`] with "mkv" extension and all other default fields.
     /// ```
-    /// # use mux_media::Output;
-    /// # use std::path::PathBuf;
-    /// #
+    /// use mux_media::Output;
+    /// use std::path::PathBuf;
+    ///
     /// let o = Output::default();
     /// assert_eq!(o.dir, PathBuf::default());
     /// assert_eq!(o.temp_dir, PathBuf::default());
@@ -39,7 +39,9 @@ impl Default for Output {
 impl IsDefault for Output {
     /// Returns `true` if all [`Output`] fields eq [`Output::default`] fields.
     /// ```
-    /// # use mux_media::{Output, IsDefault};
+    /// use mux_media::Output;
+    /// use is_default::IsDefault;
+    ///
     /// assert!(Output::default().is_default());
     /// assert!(!Output { dir: "x".into(), ..Default::default() }.is_default());
     /// assert!(!Output { temp_dir: "x".into(), ..Default::default() }.is_default());

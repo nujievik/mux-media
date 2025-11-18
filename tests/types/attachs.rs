@@ -3,12 +3,12 @@ use mux_media::{markers::*, *};
 
 fn new_fonts(args: &[&str]) -> FontAttachs {
     let mc = cfg::<_, &str>(args.iter().copied());
-    <MuxConfig as Field<MCFontAttachs>>::field(&mc).clone()
+    <Config as Field<MCFontAttachs>>::field(&mc).clone()
 }
 
 fn new_other(args: &[&str]) -> OtherAttachs {
     let mc = cfg::<_, &str>(args.iter().copied());
-    <MuxConfig as Field<MCOtherAttachs>>::field(&mc).clone()
+    <Config as Field<MCOtherAttachs>>::field(&mc).clone()
 }
 
 #[test]

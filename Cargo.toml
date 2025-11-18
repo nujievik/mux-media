@@ -29,7 +29,7 @@ clap = "4"
 enum-map = "2"
 ffmpeg-next = { version = "8", features = ["static"] }
 globset = "0.4"
-is_default = { version = "0.1", features = ["derive"] }
+is_default = "0.1.1"
 lazy-regex = "3"
 log = "0.4"
 matroska = "0.30"

@@ -1,4 +1,4 @@
-use crate::{Result, TrackType, ffmpeg};
+use crate::{Result, StreamType, ffmpeg};
 use std::{
     ffi::{OsStr, OsString},
     fs::{File, canonicalize},
@@ -70,15 +70,17 @@ pub(crate) fn os_str_tail(prefix: &OsStr, longer: &OsStr) -> Result<OsString> {
 }
 
 pub(crate) fn try_ffmpeg_opened(
-    ty: TrackType,
+    ty: StreamType,
     stream: &ffmpeg::Stream,
 ) -> Result<ffmpeg::decoder::Opened> {
     let d = ffmpeg::codec::context::Context::from_parameters(stream.parameters())?.decoder();
 
-    let d = if matches!(ty, TrackType::Audio) {
+    let d = if ty.is_audio() {
         d.audio()?.0
-    } else {
+    } else if ty.is_video() {
         d.video()?.0
+    } else {
+        unreachable!("Unsupported stream type");
     };
 
     Ok(d)

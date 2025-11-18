@@ -1,0 +1,53 @@
+use crate::{Config, IsDefault, Msg, MuxLogger, Muxer, Output, Result, Tool, TryFinalizeInit};
+
+impl TryFinalizeInit for Config {
+    fn try_finalize_init(&mut self) -> Result<()> {
+        input(self)?;
+        output(self)?;
+        muxer(self);
+        tool_paths(self)?;
+
+        return Ok(());
+
+        fn input(cfg: &mut Config) -> Result<()> {
+            cfg.input.upd_out_need_num(cfg.output.need_num());
+            cfg.input.try_finalize_init()
+        }
+
+        fn output(cfg: &mut Config) -> Result<()> {
+            if cfg.is_output_constructed_from_input
+                && Some(cfg.input.dir.as_path()) != cfg.output.dir.parent()
+            {
+                cfg.output = Output::try_from(&cfg.input)?;
+            }
+
+            cfg.output.try_finalize_init()
+        }
+
+        fn muxer(cfg: &mut Config) {
+            let mut m = Muxer::from(&cfg.output);
+
+            if !m.is_default() && !cfg.retiming_options.is_default() {
+                eprintln!(
+                    "{}{}. {} Matroska (.mkv)",
+                    MuxLogger::color_prefix(log::Level::Warn),
+                    Msg::UnsupRetimingExt,
+                    Msg::Using,
+                );
+                m = Muxer::Matroska;
+            }
+
+            let ext = m.as_ext();
+            if ext != &cfg.output.ext {
+                cfg.output.ext = ext.into();
+            }
+
+            cfg.muxer = m;
+        }
+
+        fn tool_paths(cfg: &mut Config) -> Result<()> {
+            cfg.tool_paths
+                .try_resolve(Tool::Ffmpeg, &cfg.output.temp_dir)
+        }
+    }
+}

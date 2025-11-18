@@ -1,84 +1,41 @@
 pub(crate) mod builders;
 pub(crate) mod cache;
+mod finalize;
+mod it_signs;
 pub(crate) mod lazy_fields;
 
-use crate::{ArcPathBuf, AutoFlags, IsDefault, MuxConfig, Result, Tools, i18n::logs};
-use cache::{CacheMI, CacheMICommon, CacheMIOfFile, CacheMIOfGroup, CacheState};
+use crate::{ArcPathBuf, Config, Result, Tools, i18n::logs};
+use cache::{CacheMI, CacheMIOfFile, CacheMIOfGroup, CacheState};
 use rayon::prelude::*;
 use std::{collections::HashMap, mem, path::Path};
 
 /// Extracts and caches media information.
 ///
-/// User-defined settings from [`MuxConfig`] take precedence over extracted values.
+/// User-defined settings from [`MediaInfo::cfg`] take precedence over extracted values.
 #[derive(Debug)]
 pub struct MediaInfo<'a> {
-    pub cfg: &'a MuxConfig,
+    pub cfg: &'a Config,
     pub tools: Tools<'a>,
     pub cache: CacheMI,
-    pub(crate) auto_flags: &'a AutoFlags,
-    pub(crate) thread: u8,
-}
-
-impl<'a> From<&'a MuxConfig> for MediaInfo<'a> {
-    fn from(cfg: &'a MuxConfig) -> MediaInfo<'a> {
-        MediaInfo {
-            cfg,
-            tools: cfg.into(),
-            cache: CacheMI::default(),
-            auto_flags: &cfg.auto_flags,
-            thread: 0,
-        }
-    }
+    /// Thread number. Separates access to temp files.
+    pub thread: u8,
 }
 
 impl MediaInfo<'_> {
-    /// Clears all caches.
+    pub fn new<'a>(cfg: &'a Config, thread: u8) -> MediaInfo<'a> {
+        MediaInfo {
+            cfg,
+            tools: cfg.into(),
+            cache: Default::default(),
+            thread,
+        }
+    }
+
+    /// Clears caches.
     #[inline(always)]
     pub fn clear(&mut self) {
-        self.cache = CacheMI::default();
-    }
-
-    /// Clears the caches of the current group and files.
-    #[inline(always)]
-    pub fn clear_current(&mut self) {
         self.cache.of_group = CacheMIOfGroup::default();
         self.cache.of_files.clear();
-    }
-
-    /// Clears the common cache.
-    #[inline(always)]
-    pub fn clear_common(&mut self) {
-        self.cache.common = CacheMICommon::default();
-    }
-
-    /// Clears the cache of the current group.
-    #[inline(always)]
-    pub fn clear_group(&mut self) {
-        self.cache.of_group = CacheMIOfGroup::default();
-    }
-
-    /// Clears the cache of the current files.
-    #[inline(always)]
-    pub fn clear_files(&mut self) {
-        self.cache.of_files.clear();
-    }
-
-    /// Returns the length cache of files.
-    #[inline(always)]
-    pub fn len(&self) -> usize {
-        self.cache.of_files.len()
-    }
-
-    /// Returns `true` if not cached any.
-    #[inline(always)]
-    pub fn is_empty(&self) -> bool {
-        self.cache.is_default()
-    }
-
-    /// Returns `true` if cache of files empty.
-    #[inline(always)]
-    pub fn is_no_files(&self) -> bool {
-        self.cache.of_files.is_default()
     }
 
     /// Attempts to insert a `media` file into the cache.
@@ -116,8 +73,8 @@ impl MediaInfo<'_> {
     pub fn try_insert_many(
         &mut self,
         media: impl IntoParallelIterator<Item = impl Into<ArcPathBuf> + AsRef<Path>>,
-        exit_on_err: bool,
     ) -> Result<()> {
+        let exit_on_err = self.cfg.exit_on_err;
         let cache_is_empty = self.cache.of_files.is_empty();
         // take JSON to exclude data race
         let json = mem::take(&mut self.tools.json);
@@ -159,15 +116,15 @@ impl MediaInfo<'_> {
                 .cache
                 .of_files
                 .get(m)
-                .map_or(false, |c| c.ffmpeg_streams.is_cached())
+                .map_or(false, |c| c.streams.is_cached())
         {
             return Ok(None);
         }
 
-        match self.build_ffmpeg_streams(m) {
+        match self.build_streams(m) {
             Ok(streams) => {
                 let mut cache = CacheMIOfFile::default();
-                cache.ffmpeg_streams = CacheState::Cached(streams);
+                cache.streams = CacheState::Cached(streams);
                 Ok(Some((media.into(), cache)))
             }
             Err(e) if exit_on_err => Err(e),

@@ -59,8 +59,8 @@ impl Input {
     /// If it wasn’t this will simply return an empty vector.
     ///
     /// ```
-    /// # use mux_media::MuxConfig;
-    /// let cfg = MuxConfig::default();
+    /// # use mux_media::Config;
+    /// let cfg = Config::default();
     /// assert!(cfg.input.collect_fonts().is_empty());
     /// ```
     pub fn collect_fonts(&self) -> Vec<PathBuf> {
@@ -79,8 +79,8 @@ impl Input {
     /// If it wasn’t this will simply return an empty vector.
     ///
     /// ```
-    /// # use mux_media::MuxConfig;
-    /// let cfg = MuxConfig::default();
+    /// # use mux_media::Config;
+    /// let cfg = Config::default();
     /// assert!(cfg.input.collect_fonts_with_filter_and_sort().is_empty());
     /// ```
     pub fn collect_fonts_with_filter_and_sort(&self) -> Vec<PathBuf> {
@@ -118,8 +118,8 @@ impl Input {
     /// If it wasn’t, the iterator will yield no items.
     ///
     /// ```
-    /// # use mux_media::MuxConfig;
-    /// let cfg = MuxConfig::default();
+    /// # use mux_media::Config;
+    /// let cfg = Config::default();
     /// assert_eq!(None, cfg.input.iter_media_grouped_by_stem().next());
     /// ```
     pub fn iter_media_grouped_by_stem(&self) -> impl Iterator<Item = MediaGroupedByStem> {
@@ -140,7 +140,7 @@ impl Input {
                 if self
                     .range
                     .as_ref()
-                    .map_or(false, |range| !range.contains(&num.to_u64()))
+                    .map_or(false, |range| !range.contains(&num.to_usize()))
                 {
                     logs::debug_media_out_of_range(up_stem);
                     return None;

@@ -1,9 +1,9 @@
+mod is_supported_copy;
 mod new;
-pub(crate) mod supported;
 
 use crate::{
-    IsDefault, MediaInfo, MuxCurrent, Result, ToFfmpegArgs, Tool, ToolOutput, TrackFlags,
-    TrackLangs, TrackNames, TrackOrder, i18n::logs,
+    Dispositions, IsDefault, LangMetadata, MediaInfo, MuxCurrent, NameMetadata, Result,
+    StreamsOrder, ToFfmpegArgs, Tool, ToolOutput, i18n::logs,
 };
 use std::{ffi::OsString, path::Path};
 use strum_macros::Display;
@@ -59,12 +59,10 @@ impl Muxer {
 }
 
 fn try_append_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) -> Result<()> {
-    TrackOrder::try_append_ffmpeg_args(args, mi)?;
-
-    TrackNames::append_ffmpeg_args(args, mi);
-    TrackLangs::append_ffmpeg_args(args, mi);
-
-    TrackFlags::append_ffmpeg_args(args, mi);
+    StreamsOrder::append_ffmpeg_args(args, mi)?;
+    Dispositions::append_ffmpeg_args(args, mi)?;
+    LangMetadata::append_ffmpeg_args(args, mi)?;
+    NameMetadata::append_ffmpeg_args(args, mi)?;
 
     Ok(())
 }

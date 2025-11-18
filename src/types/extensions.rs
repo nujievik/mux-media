@@ -5,6 +5,7 @@ mod fonts;
 mod matroska;
 mod media;
 mod mp4;
+mod otf;
 mod subs;
 mod webm;
 
@@ -17,17 +18,19 @@ pub struct Extensions {
     pub matroska: &'static Set<&'static [u8]>,
     pub media: &'static Set<&'static [u8]>,
     pub mp4: &'static Set<&'static [u8]>,
+    pub otf: &'static Set<&'static [u8]>,
     pub subs: &'static Set<&'static [u8]>,
     pub webm: &'static Set<&'static [u8]>,
 }
 
-/// A static collection of file type extensions.
+/// The static collection of file type extensions.
 pub static EXTENSIONS: Extensions = Extensions {
     avi: &avi::AVI,
     fonts: &fonts::FONTS,
     matroska: &matroska::MATROSKA,
     media: &media::MEDIA,
     mp4: &mp4::MP4,
+    otf: &otf::OTF,
     subs: &subs::SUBS,
     webm: &webm::WEBM,
 };

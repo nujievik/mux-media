@@ -5,24 +5,14 @@ use std::{fmt, process::Output};
 /// Represents the output of an executed [`Command`](std::process::Command).
 #[derive(Debug)]
 pub struct ToolOutput {
-    tool: Tool,
-    success: bool,
-    code: Option<i32>,
-    stdout: String,
-    stderr: String,
+    pub tool: Tool,
+    pub success: bool,
+    pub code: Option<i32>,
+    pub stdout: String,
+    pub stderr: String,
 }
 
 impl ToolOutput {
-    /// Returns the captured stdout as a string slice.
-    pub fn as_str_stdout(&self) -> &str {
-        &self.stdout
-    }
-
-    /// Returns the captured stderr as a string slice.
-    pub fn as_str_stderr(&self) -> &str {
-        &self.stderr
-    }
-
     /// Returns `Ok(Self)` if the tool succeeded, or `Err(MuxError)` otherwise.
     ///
     /// For `mkvtoolnix` tools, a non-zero exit code is tolerated if no `Error:` is found in stdout.

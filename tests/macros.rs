@@ -67,7 +67,7 @@ macro_rules! build_test_to_json_args {
         std::fs::create_dir_all(&dir).unwrap();
 
         let add_args = vec!["--locale", "eng", "--input", in_dir, "--output", &out_dir, "--save-config"];
-        let json = dir.clone().join(mux_media::MuxConfig::JSON_NAME);
+        let json = dir.clone().join(mux_media::Config::JSON_NAME);
 
         $(
             let mc_args = $crate::common::append_str_vecs([add_args.clone(), $right]);
