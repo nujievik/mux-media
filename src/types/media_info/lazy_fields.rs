@@ -2,7 +2,7 @@ use super::MediaInfo;
 use crate::{
     ArcPathBuf, CacheMIOfFile,
     CacheState::{self, Cached, Failed, NotCached},
-    Duration, LazyField, LazyPathField, Result, Stream, StreamsOrder, SubCharset, Target,
+    CharEncoding, Duration, LazyField, LazyPathField, Result, Stream, StreamsOrder, Target,
 };
 use std::{ffi::OsString, mem, path::Path};
 
@@ -434,7 +434,7 @@ lazy_path_fields!(
     path_tail, String, build_path_tail => MIPathTail;
     relative_upmost, String, build_relative_upmost => MIRelativeUpmost;
 
-    sub_charset, SubCharset, build_sub_charset => MISubCharset;
+    sub_char_encoding, CharEncoding, build_sub_char_encoding => MISubCharEncoding;
     target_paths, Vec<Target>, build_target_paths => MITargetPaths;
 
     audio_duration, Duration, build_audio_duration => MIAudioDuration;

@@ -14,7 +14,7 @@ impl TryFinalizeInit for MediaInfo<'_> {
             self.try_finalize_init_streams_src(src)?;
             self.try_init(MIPathTail, src)?;
             self.try_init(MIRelativeUpmost, src)?;
-            self.try_init(MISubCharset, src)?;
+            self.try_init(MISubCharEncoding, src)?;
             self.try_init(MITargetPaths, src)?;
             self.try_init(MIPlayableDuration, src)?;
         }

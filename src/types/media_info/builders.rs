@@ -2,7 +2,7 @@ mod durations;
 mod streams;
 
 use super::MediaInfo;
-use crate::{Result, StreamsOrder, SubCharset, Target, markers::*, types::helpers};
+use crate::{CharEncoding, EXTENSIONS, Result, StreamsOrder, Target, markers::*, types::helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
@@ -40,8 +40,14 @@ impl MediaInfo<'_> {
             })
     }
 
-    pub(super) fn build_sub_charset(&self, src: &Path) -> Result<SubCharset> {
-        SubCharset::try_from(src)
+    pub(super) fn build_sub_char_encoding(&self, src: &Path) -> Result<CharEncoding> {
+        if src.extension().map_or(false, |ext| {
+            EXTENSIONS.subs.contains(ext.as_encoded_bytes())
+        }) {
+            Ok(CharEncoding::new(src))
+        } else {
+            Err(err!("Is not subtitle file"))
+        }
     }
 
     pub(super) fn build_target_paths(&self, src: &Path) -> Result<Vec<Target>> {

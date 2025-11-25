@@ -1,5 +1,5 @@
 use crate::{
-    ArcPathBuf, Duration, IsDefault, MuxError, Result, Stream, StreamsOrder, SubCharset, Target,
+    ArcPathBuf, CharEncoding, Duration, IsDefault, MuxError, Result, Stream, StreamsOrder, Target,
 };
 use std::{collections::HashMap, ffi::OsString, mem};
 
@@ -32,7 +32,7 @@ pub struct CacheMIOfFile {
     pub streams: CacheState<Vec<Stream>>,
     pub path_tail: CacheState<String>,
     pub relative_upmost: CacheState<String>,
-    pub sub_charset: CacheState<SubCharset>,
+    pub sub_char_encoding: CacheState<CharEncoding>,
 
     /// Targets from file path and parent path, existed in [`Config::targets`].
     pub target_paths: CacheState<Vec<Target>>,

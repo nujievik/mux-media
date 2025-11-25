@@ -5,6 +5,8 @@ mod macros;
 mod auto_flags;
 #[path = "types/chapters.rs"]
 mod chapters;
+#[path = "types/char_encoding.rs"]
+mod char_encoding;
 #[path = "types/cli_arg.rs"]
 mod cli_arg;
 #[path = "types/config.rs"]
@@ -33,8 +35,6 @@ mod targets;
 mod tools;
 
 /*
-#[path = "types/char_encoding.rs"]
-mod char_encoding;
 #[path = "types/muxer.rs"]
 mod muxer;
 #[path = "types/track_flags.rs"]

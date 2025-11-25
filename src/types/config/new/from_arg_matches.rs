@@ -152,7 +152,6 @@ impl FromArgMatches for Config {
         printable_args(&m)?;
         tool_args(&m)?;
         let mut cfg = cfg(m, locale)?;
-        dbg!(&cfg);
 
         if m.contains_id(undashed!(Target)) {
             cfg.update_from_arg_matches_mut(m)?;
@@ -272,7 +271,6 @@ impl FromArgMatches for Config {
         if let Some(l) = get_locale(m) {
             self.locale = l;
         }
-        dbg!("upd");
 
         input(self, m);
         output(self, m);
@@ -322,7 +320,7 @@ impl FromArgMatches for Config {
             }
 
             let val = ConfigTarget::from_arg_matches_mut(m)?;
-            dbg!("new trg val");
+
             match self.targets.as_mut() {
                 Some(map) => {
                     map.insert(t, val);
@@ -560,7 +558,6 @@ impl FromArgMatches for ConfigTarget {
     }
 
     fn from_arg_matches_mut(m: &mut ArgMatches) -> Result<Self, Error> {
-        dbg!("trg_new");
         Ok(Self {
             streams: rm!(m, Streams, Streams),
             chapters: get_chapters(m),
@@ -572,7 +569,6 @@ impl FromArgMatches for ConfigTarget {
     }
 
     fn update_from_arg_matches_mut(&mut self, m: &mut ArgMatches) -> Result<(), Error> {
-        dbg!("trg_upd");
         trg_upd_streams(&mut self.streams, m);
         trg_upd_chapters(&mut self.chapters, m);
 

@@ -26,7 +26,7 @@ pub use types::{
     arc_path_buf::ArcPathBuf,
     auto_flags::AutoFlags,
     chapters::Chapters,
-    char_encoding::{CharEncoding, SubCharset},
+    char_encoding::CharEncoding,
     cli_arg::CliArg,
     codec_id::CodecId,
     config::{Config, ConfigTarget},
