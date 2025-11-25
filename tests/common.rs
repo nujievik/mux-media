@@ -43,27 +43,29 @@ pub fn data(add: impl AsRef<OsStr>) -> PathBuf {
     path
 }
 
-pub fn cfg<I, S>(args: I) -> Config
+pub fn cfg<I, OS>(args: I) -> Config
 where
-    I: IntoIterator<Item = S>,
-    S: Into<OsString> + Clone,
+    I: IntoIterator<Item = OS>,
+    OS: Into<OsString> + Clone,
 {
     Config::try_parse_from(args).unwrap()
 }
 
-pub fn from_cfg<F>(args: Vec<&str>) -> <Config as Field<F>>::FieldType
+pub fn cfg_field<F, I, OS>(_: F, args: I) -> <Config as Field<F>>::FieldType
 where
     Config: Field<F>,
     <Config as Field<F>>::FieldType: Clone,
+    I: IntoIterator<Item = OS>,
+    OS: Into<OsString> + Clone,
 {
-    let mc = cfg(args);
-    <Config as Field<F>>::field(&mc).clone()
+    let cfg = cfg(args);
+    <Config as Field<F>>::field(&cfg).clone()
 }
 
-pub fn cfg_args<I, S, T>(args: I, cache: CacheMI) -> Vec<OsString>
+pub fn cfg_args<I, OS, T>(args: I, cache: CacheMI) -> Vec<OsString>
 where
-    I: IntoIterator<Item = S>,
-    S: Into<OsString> + Clone,
+    I: IntoIterator<Item = OS>,
+    OS: Into<OsString> + Clone,
     T: ToFfmpegArgs,
 {
     let cfg = cfg(args);
@@ -80,10 +82,10 @@ where
     args.into_iter().map(|s| s_sep(s.as_ref())).collect()
 }
 
-pub fn to_os_args<I, S>(args: I) -> Vec<OsString>
+pub fn to_os_args<I, OS>(args: I) -> Vec<OsString>
 where
-    I: IntoIterator<Item = S>,
-    S: AsRef<OsStr>,
+    I: IntoIterator<Item = OS>,
+    OS: AsRef<OsStr>,
 {
     args.into_iter()
         .map(|oss| ensure_platform_seps(oss).into_os_string())

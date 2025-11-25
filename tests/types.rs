@@ -27,6 +27,8 @@ mod mux_error;
 mod output;
 #[path = "types/range.rs"]
 mod range;
+#[path = "types/streams.rs"]
+mod streams;
 #[path = "types/streams_order.rs"]
 mod streams_order;
 #[path = "types/targets.rs"]
