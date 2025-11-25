@@ -1,11 +1,12 @@
 use super::super::{Config, ConfigTarget};
 use crate::{
     AutoFlags, Chapters, CliArg, DefaultDispositions, Dispositions, ForcedDispositions,
-    GlobSetPattern, Input, LangCode, LangMetadata, Msg, MuxError, NameMetadata, Output, RangeUsize,
-    RetimingOptions, StreamType, Streams, Target, Tool, ToolPaths, Tools, TryFinalizeInit, Value,
-    Verbosity, undashed,
+    GlobSetPattern, Input, LangCode, LangMetadata, LogLevel, Msg, MuxError, NameMetadata, Output,
+    RangeUsize, RetimingOptions, StreamType, Streams, Target, Tool, ToolPaths, Tools,
+    TryFinalizeInit, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
+use log::LevelFilter;
 use std::{collections::HashMap, path::PathBuf};
 
 macro_rules! rm {
@@ -171,7 +172,7 @@ impl FromArgMatches for Config {
                 input,
                 output,
                 locale,
-                verbosity: verbosity(m),
+                log_level: log_level(m),
                 exit_on_err: flag!(m, ExitOnErr),
                 save_config: flag!(m, SaveConfig),
                 reencode: flag!(m, Reencode),
@@ -191,13 +192,13 @@ impl FromArgMatches for Config {
             })
         }
 
-        fn verbosity(m: &mut ArgMatches) -> Verbosity {
+        fn log_level(m: &mut ArgMatches) -> LogLevel {
             if flag!(m, Quiet) {
-                Verbosity::Quiet
+                LogLevel(LevelFilter::Error)
             } else if let Some(cnt) = rm!(m, Verbose, u8) {
-                Verbosity::from(cnt)
+                LogLevel::from_count(cnt)
             } else {
-                Verbosity::default()
+                LogLevel::default()
             }
         }
 
@@ -274,7 +275,7 @@ impl FromArgMatches for Config {
 
         input(self, m);
         output(self, m);
-        verbosity(self, m);
+        log_level(self, m);
 
         upd_flag!(self.exit_on_err, m, ExitOnErr);
         upd_flag!(self.save_config, m, SaveConfig);
@@ -365,11 +366,11 @@ impl FromArgMatches for Config {
             }
         }
 
-        fn verbosity(cfg: &mut Config, m: &mut ArgMatches) {
+        fn log_level(cfg: &mut Config, m: &mut ArgMatches) {
             if flag!(m, Quiet) {
-                cfg.verbosity = Verbosity::Quiet;
+                cfg.log_level = LogLevel(LevelFilter::Error);
             } else if let Some(cnt) = rm!(m, Verbose, u8) {
-                cfg.verbosity = Verbosity::from(cnt);
+                cfg.log_level = LogLevel::from_count(cnt);
             }
         }
 

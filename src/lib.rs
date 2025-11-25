@@ -37,6 +37,7 @@ pub use types::{
     globset_pattern::GlobSetPattern,
     input::Input,
     lang_code::LangCode,
+    log_level::LogLevel,
     media_info::{
         MediaInfo,
         cache::{CacheMI, CacheMIOfFile, CacheState},
@@ -59,7 +60,6 @@ pub use types::{
     target::Target,
     tools::{Tools, output::ToolOutput, paths::ToolPaths, tool::Tool},
     value::Value,
-    verbosity::Verbosity,
 };
 
 use ffmpeg_next as ffmpeg;

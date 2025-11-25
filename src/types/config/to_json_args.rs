@@ -48,7 +48,7 @@ impl ToJsonArgs for Config {
         args.push(to_json_args!(Locale));
         args.push(self.locale.to_string());
 
-        append_args_from_fields!(self, args; input, output, verbosity);
+        append_args_from_fields!(self, args; input, output, log_level);
 
         to_json_args!(@push_true, self, args; exit_on_err, ExitOnErr, save_config, SaveConfig);
 

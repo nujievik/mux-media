@@ -17,6 +17,8 @@ mod extensions;
 mod input;
 #[path = "types/lang_code.rs"]
 mod lang_code;
+#[path = "types/log_level.rs"]
+mod log_level;
 #[path = "types/media_info.rs"]
 mod media_info;
 #[path = "types/media_number.rs"]
@@ -37,8 +39,6 @@ mod streams_order;
 mod targets;
 #[path = "types/tools.rs"]
 mod tools;
-#[path = "types/verbosity.rs"]
-mod verbosity;
 
 /*
 #[path = "types/track_flags.rs"]

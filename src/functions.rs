@@ -48,7 +48,7 @@ pub fn mux(cfg: &Config) -> Result<usize> {
 ///      otherwise, muxing continues with the next media.
 pub fn run() -> Result<()> {
     let cfg = init_cfg()?;
-    MuxLogger::init_with_filter(cfg.verbosity.into());
+    MuxLogger::init_with_filter(*cfg.log_level);
     init_ffmpeg(&cfg)?;
 
     let result = cfg.mux();

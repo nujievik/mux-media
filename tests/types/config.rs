@@ -105,9 +105,10 @@ fn parse_input_output() {
 
 #[test]
 fn parse_global() {
-    test_parse!(["-v"], verbosity, Verbosity::Verbose);
-    test_parse!(["-vv"], verbosity, Verbosity::Debug);
-    test_parse!(["-q"], verbosity, Verbosity::Quiet);
+    use log::LevelFilter;
+    test_parse!(["-v"], log_level, LogLevel(LevelFilter::Debug));
+    test_parse!(["-vv"], log_level, LogLevel(LevelFilter::Trace));
+    test_parse!(["-q"], log_level, LogLevel(LevelFilter::Error));
     test_parse!(["-e"], exit_on_err, true);
     test_parse!(["--save-config"], save_config, true);
     test_parse!(["--reencode"], reencode, true);

@@ -15,7 +15,7 @@ impl Default for Config {
     /// assert_eq!(c.input, Default::default());
     /// assert_eq!(c.output, Default::default());
     /// assert_eq!(c.locale, Default::default());
-    /// assert_eq!(c.verbosity, Default::default());
+    /// assert_eq!(c.log_level, Default::default());
     /// assert_eq!(c.exit_on_err, false);
     /// assert_eq!(c.save_config, false);
     /// assert_eq!(c.reencode, false);
@@ -38,7 +38,7 @@ impl Default for Config {
             input: Default::default(),
             output: Default::default(),
             locale: Default::default(),
-            verbosity: Default::default(),
+            log_level: Default::default(),
             exit_on_err: Default::default(),
             save_config: Default::default(),
             reencode: Default::default(),
@@ -75,7 +75,7 @@ impl IsDefault for Config {
     /// assert!(!Config { output, ..Default::default() }.is_default());
     ///
     /// assert!(!Config { locale: LangCode::Eng, ..Default::default() }.is_default());
-    /// assert!(!Config { verbosity: Verbosity::Quiet, ..Default::default() }.is_default());
+    /// assert!(!Config { log_level: LogLevel(log::LevelFilter::Error), ..Default::default() }.is_default());
     /// assert!(!Config { exit_on_err: true, ..Default::default() }.is_default());
     /// assert!(!Config { save_config: true, ..Default::default() }.is_default());
     /// assert!(!Config { reencode: true, ..Default::default() }.is_default());
@@ -114,7 +114,7 @@ impl IsDefault for Config {
         self.input.is_default()
             && self.output.is_default()
             && self.locale.is_default()
-            && self.verbosity.is_default()
+            && self.log_level.is_default()
             && self.exit_on_err.is_default()
             && self.save_config.is_default()
             && self.reencode.is_default()

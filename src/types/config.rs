@@ -7,8 +7,8 @@ mod to_json_args;
 use crate::TryFinalizeInit;
 use crate::{
     AutoFlags, Chapters, DefaultDispositions, ForcedDispositions, Input, IsDefault, LangCode,
-    LangMetadata, Muxer, NameMetadata, Output, RetimingOptions, Streams, Target, ToolPaths,
-    Verbosity,
+    LangMetadata, LogLevel, Muxer, NameMetadata, Output, RetimingOptions, Streams, Target,
+    ToolPaths,
 };
 use std::collections::HashMap;
 
@@ -23,7 +23,7 @@ pub struct Config {
     pub input: Input,
     pub output: Output,
     pub locale: LangCode,
-    pub verbosity: Verbosity,
+    pub log_level: LogLevel,
     pub exit_on_err: bool,
     pub save_config: bool,
     pub reencode: bool,
