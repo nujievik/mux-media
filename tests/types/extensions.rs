@@ -75,7 +75,7 @@ test_any_exts_contains!(test_mp4_contains, mp4, ["mp4"]);
 test_any_exts_contains!(
     test_subs_contains,
     subs,
-    ["ass", "mks", "srt", "ssa", "sub", "sup"]
+    ["ass", "mks", "srt", "ssa", "sub", "sup", "vtt"]
 );
 test_any_exts_contains!(test_webm_contains, webm, ["webm"]);
 

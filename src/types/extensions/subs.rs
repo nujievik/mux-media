@@ -49,4 +49,12 @@ pub static SUBS: phf::Set<&[u8]> = phf::phf_set! {
     b"sUp",
     b"suP",
     b"sup",
+    b"VTT",
+    b"VTt",
+    b"VtT",
+    b"Vtt",
+    b"vTT",
+    b"vTt",
+    b"vtT",
+    b"vtt",
 };

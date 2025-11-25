@@ -96,7 +96,8 @@ EXTS = {
         "srt",
         "ssa",
         "sub",
-        "sup"
+        "sup",
+        "vtt",
     ],
 
     "fonts": [
