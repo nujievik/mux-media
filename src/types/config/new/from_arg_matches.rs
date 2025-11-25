@@ -282,7 +282,9 @@ impl FromArgMatches for Config {
         upd!(self.threads, m, Threads, u8);
 
         auto_flags(self, m);
-        upd_streams!(self.streams, m, Streams, NoStreams);
+        if !m.contains_id(undashed!(Target)) {
+            upd_streams!(self.streams, m, Streams, NoStreams);
+        }
         upd_chapters(&mut self.chapters, m);
 
         upd_dispositions!(self.defaults, m, Defaults, MaxDefaults, DefaultDispositions);
@@ -295,6 +297,7 @@ impl FromArgMatches for Config {
         let mut m: &mut ArgMatches = m;
         let mut _owned_m: Option<ArgMatches> = None;
         let mut cmd: Option<Command> = None;
+
         while let Some(mut t_args) = m.get_raw(undashed!(Target)) {
             // unwrap is safe: target require as min 1 argument.
             let t = t_args.next().unwrap();
@@ -304,6 +307,11 @@ impl FromArgMatches for Config {
             };
 
             if let Target::Global = t {
+                if flag!(m, NoStreams) {
+                    self.streams.no_flag = true;
+                } else if let Some(val) = m.get_one::<Streams>(undashed!(Streams)) {
+                    self.streams = val.clone();
+                }
                 return self.try_update_from(t_args);
             }
 
@@ -559,7 +567,7 @@ impl FromArgMatches for ConfigTarget {
 
     fn from_arg_matches_mut(m: &mut ArgMatches) -> Result<Self, Error> {
         Ok(Self {
-            streams: rm!(m, Streams, Streams),
+            streams: get_streams!(m, Streams, NoStreams),
             chapters: get_chapters(m),
             defaults: get_dispositions!(m, Defaults, MaxDefaults, DefaultDispositions),
             forceds: get_dispositions!(m, Forceds, MaxForceds, ForcedDispositions),

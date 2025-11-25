@@ -23,6 +23,8 @@ mod media_info;
 mod media_number;
 #[path = "types/mux_error.rs"]
 mod mux_error;
+#[path = "types/muxer.rs"]
+mod muxer;
 #[path = "types/output.rs"]
 mod output;
 #[path = "types/range.rs"]
@@ -35,10 +37,10 @@ mod streams_order;
 mod targets;
 #[path = "types/tools.rs"]
 mod tools;
+#[path = "types/verbosity.rs"]
+mod verbosity;
 
 /*
-#[path = "types/muxer.rs"]
-mod muxer;
 #[path = "types/track_flags.rs"]
 mod track_flags;
 #[path = "types/track_langs.rs"]
@@ -47,6 +49,4 @@ mod track_langs;
 mod track_names;
 #[path = "types/tracks.rs"]
 mod tracks;
-#[path = "types/verbosity.rs"]
-mod verbosity;
 */

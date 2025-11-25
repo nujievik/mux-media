@@ -28,12 +28,12 @@ macro_rules! test_mux_current_any {
             let in_arg = data($in_arg);
             let out_arg = data($out_arg);
 
-            let mut mc = cfg([p("-i"), &in_arg, p("-o"), &out_arg, p("-e")]);
-            mc.try_finalize_init().unwrap();
+            let mut cfg = cfg([p("-i"), &in_arg, p("-o"), &out_arg, p("-e")]);
+            cfg.try_finalize_init().unwrap();
 
-            let mut media_info = MediaInfo::from(&mc);
-            let media = mc.input.iter_media_grouped_by_stem().next().unwrap();
-            media_info.try_insert_many(media.files, true).unwrap();
+            let mut mi = MediaInfo::new(&cfg, 0);
+            let media = cfg.input.iter_media_grouped_by_stem().next().unwrap();
+            mi.try_insert_many(media.files).unwrap();
 
             let mut oss = OsString::from("other_name.");
             oss.push(Muxer::$muxer.as_ext());
@@ -46,7 +46,7 @@ macro_rules! test_mux_current_any {
                 expected.display()
             );
 
-            match Muxer::$muxer.mux_current(&mut media_info, &expected) {
+            match Muxer::$muxer.mux_current(&mut mi, &expected) {
                 MuxCurrent::Err(e) => panic!("{}", e),
                 MuxCurrent::Continue => panic!("Unexpected MuxCurrent::Continue"),
                 _ => assert!(expected.exists(), "Should exists '{}'", expected.display()),

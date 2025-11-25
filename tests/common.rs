@@ -7,7 +7,7 @@ use std::{
 
 pub const MAX_U64_STR: &str = "18446744073709551615";
 
-pub fn p<P: AsRef<OsStr> + ?Sized>(oss: &P) -> &Path {
+pub fn p<OS: AsRef<OsStr> + ?Sized>(oss: &OS) -> &Path {
     Path::new(oss.as_ref())
 }
 
@@ -49,17 +49,6 @@ where
     OS: Into<OsString> + Clone,
 {
     Config::try_parse_from(args).unwrap()
-}
-
-pub fn cfg_field<F, I, OS>(_: F, args: I) -> <Config as Field<F>>::FieldType
-where
-    Config: Field<F>,
-    <Config as Field<F>>::FieldType: Clone,
-    I: IntoIterator<Item = OS>,
-    OS: Into<OsString> + Clone,
-{
-    let cfg = cfg(args);
-    <Config as Field<F>>::field(&cfg).clone()
 }
 
 pub fn cfg_args<I, OS, T>(args: I, cache: CacheMI) -> Vec<OsString>

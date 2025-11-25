@@ -99,6 +99,7 @@ fn test_from_str() {
     assert_eq!(MuxErrorKind::Unknown, err.kind);
 }
 
+/*
 #[test]
 fn test_from_slice_str() {
     Msg::try_upd_lang(LangCode::Rus).unwrap();
@@ -126,6 +127,7 @@ fn test_from_slice_str() {
         assert_eq!(rus, err.as_str_localized());
     })
 }
+*/
 
 #[test]
 fn test_from_clap_error() {

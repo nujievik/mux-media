@@ -1,9 +1,9 @@
-use crate::{common, *};
+use crate::{common::*, *};
 use mux_media::{markers::*, *};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 fn new(args: &[&str]) -> Streams {
-    common::cfg_field(CfgStreams, args)
+    cfg(args).streams
 }
 
 #[test]
@@ -13,6 +13,31 @@ fn parse_no_flag() {
         ..Default::default()
     };
     assert_eq!(xs, new(&["--no-streams"]));
+}
+
+#[test]
+fn parse_no_flag_aliases() {
+    let xs = Streams {
+        no_flag: true,
+        ..Default::default()
+    };
+
+    for (cli, ty) in [
+        ("-A", StreamType::Audio),
+        ("-S", StreamType::Sub),
+        ("-D", StreamType::Video),
+        ("-F", StreamType::Font),
+        ("-M", StreamType::Attach),
+    ] {
+        let t = Target::Stream(ty);
+        let val = ConfigTarget {
+            streams: Some(xs.clone()),
+            ..Default::default()
+        };
+        let ts = HashMap::from([(t, val)]);
+
+        assert_eq!(ts, cfg([cli]).targets.unwrap());
+    }
 }
 
 #[test]
@@ -48,6 +73,31 @@ fn parse_idxs_inverse() {
         };
         assert_eq!(xs, new(&["--streams", arg]));
     })
+}
+
+#[test]
+fn parse_idxs_aliases() {
+    let xs = Streams {
+        idxs: Some([0].into()),
+        ..Default::default()
+    };
+
+    for (cli, ty) in [
+        ("-a0", StreamType::Audio),
+        ("-s0", StreamType::Sub),
+        ("-d0", StreamType::Video),
+        ("-f0", StreamType::Font),
+        ("-m0", StreamType::Attach),
+    ] {
+        let t = Target::Stream(ty);
+        let val = ConfigTarget {
+            streams: Some(xs.clone()),
+            ..Default::default()
+        };
+        let ts = HashMap::from([(t, val)]);
+
+        assert_eq!(ts, cfg([cli]).targets.unwrap());
+    }
 }
 
 #[test]
@@ -98,6 +148,31 @@ fn parse_ranges_inverse() {
 }
 
 #[test]
+fn parse_ranges_aliases() {
+    let xs = Streams {
+        ranges: Some(vec![range::new("0-1")]),
+        ..Default::default()
+    };
+
+    for (cli, ty) in [
+        ("-a0-1", StreamType::Audio),
+        ("-s0-1", StreamType::Sub),
+        ("-d0-1", StreamType::Video),
+        ("-f0-1", StreamType::Font),
+        ("-m0-1", StreamType::Attach),
+    ] {
+        let t = Target::Stream(ty);
+        let val = ConfigTarget {
+            streams: Some(xs.clone()),
+            ..Default::default()
+        };
+        let ts = HashMap::from([(t, val)]);
+
+        assert_eq!(ts, cfg([cli]).targets.unwrap());
+    }
+}
+
+#[test]
 fn parse_langs() {
     [
         ("eng", vec![LangCode::Eng]),
@@ -137,6 +212,31 @@ fn parse_langs_inverse() {
 }
 
 #[test]
+fn parse_langs_aliases() {
+    let xs = Streams {
+        langs: Some([LangCode::Eng].into()),
+        ..Default::default()
+    };
+
+    for (cli, ty) in [
+        ("-aeng", StreamType::Audio),
+        ("-seng", StreamType::Sub),
+        ("-deng", StreamType::Video),
+        ("-feng", StreamType::Font),
+        ("-meng", StreamType::Attach),
+    ] {
+        let t = Target::Stream(ty);
+        let val = ConfigTarget {
+            streams: Some(xs.clone()),
+            ..Default::default()
+        };
+        let ts = HashMap::from([(t, val)]);
+
+        assert_eq!(ts, cfg([cli]).targets.unwrap());
+    }
+}
+
+#[test]
 fn parse_all() {
     let xs = Streams {
         no_flag: false,
@@ -146,6 +246,56 @@ fn parse_all() {
         langs: Some([LangCode::Eng, LangCode::Und].into()),
     };
     assert_eq!(xs, new(&["--streams", "!1,eng,8,und,2-4"]));
+}
+
+#[test]
+fn parse_target_switching() {
+    let xs = Streams {
+        no_flag: true,
+        ..Default::default()
+    };
+    let args = [
+        "--target",
+        "audio",
+        "--no-streams",
+        "--target",
+        "global",
+        "--no-streams",
+        "--target",
+        "attach",
+        "--no-streams",
+        "--target",
+        "sub",
+        "--no-streams",
+        "--target",
+        "video",
+        "--no-streams",
+        "--target",
+        "font",
+        "--no-streams",
+    ];
+
+    let ts = [
+        StreamType::Audio,
+        StreamType::Attach,
+        StreamType::Sub,
+        StreamType::Video,
+        StreamType::Font,
+    ]
+    .into_iter()
+    .map(|ty| {
+        let t = Target::Stream(ty);
+        let val = ConfigTarget {
+            streams: Some(xs.clone()),
+            ..Default::default()
+        };
+        (t, val)
+    })
+    .collect::<HashMap<_, _>>();
+
+    let cfg = cfg(args);
+    assert_eq!(xs, cfg.streams);
+    assert_eq!(ts, cfg.targets.unwrap());
 }
 
 fn iter_i_lang() -> impl Iterator<Item = (&'static usize, &'static LangCode)> {

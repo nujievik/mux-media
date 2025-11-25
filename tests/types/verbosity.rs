@@ -7,6 +7,7 @@ fn new(args: &[&str]) -> Verbosity {
 
 #[test]
 fn test_is_default() {
+    use is_default::IsDefault;
     assert!(Verbosity::default().is_default());
     assert!(!Verbosity::Quiet.is_default());
 }
