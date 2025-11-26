@@ -25,6 +25,8 @@ mod log_level;
 mod media_info;
 #[path = "types/media_number.rs"]
 mod media_number;
+#[path = "types/metadata.rs"]
+mod metadata;
 #[path = "types/mux_error.rs"]
 mod mux_error;
 #[path = "types/muxer.rs"]
@@ -41,10 +43,3 @@ mod streams_order;
 mod targets;
 #[path = "types/tools.rs"]
 mod tools;
-
-/*
-#[path = "types/track_langs.rs"]
-mod track_langs;
-#[path = "types/track_names.rs"]
-mod track_names;
-*/

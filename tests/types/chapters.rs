@@ -1,5 +1,5 @@
 use crate::{common::*, *};
-use mux_media::{markers::*, *};
+use mux_media::*;
 
 fn new(file: &str) -> Chapters {
     let file = data(file);

@@ -6,7 +6,7 @@ impl<T> Metadata<T>
 where
     T: Clone + Debug + Display + PartialEq + IsDefault,
 {
-    pub(crate) fn get(&self, i: &usize, lang: &LangCode) -> Option<&T> {
+    pub fn get(&self, i: &usize, lang: &LangCode) -> Option<&T> {
         if let Some(v) = self.single_val.as_ref() {
             return Some(v);
         }

@@ -1,7 +1,7 @@
 use crate::common::*;
 use clap::{error::ErrorKind, *};
-use mux_media::{markers::*, *};
-use std::{collections::HashSet, sync::LazyLock};
+use mux_media::*;
+use std::sync::LazyLock;
 
 static EMPTY_ARGS: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
 

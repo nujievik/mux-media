@@ -1,6 +1,6 @@
 use crate::{common::*, *};
 use mux_media::*;
-use std::{ffi::OsString, path::PathBuf, sync::LazyLock};
+use std::{path::PathBuf, sync::LazyLock};
 
 pub fn empty() -> CharEncoding {
     CharEncoding::Utf8Compatible
