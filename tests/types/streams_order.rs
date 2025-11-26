@@ -1,6 +1,6 @@
 use crate::common::*;
 use mux_media::{markers::*, *};
-use std::{ffi::OsString, path::Path, sync::LazyLock};
+use std::{ffi::OsString, sync::LazyLock};
 
 static CACHE_LANGS_MKV: LazyLock<CacheMI> = LazyLock::new(|| {
     let file = data("streams_order/langs.mkv");
@@ -117,5 +117,27 @@ fn test_path_name_order() {
     let order = mi.try_take_cmn(MICmnStreamsOrder).unwrap();
     files.iter().enumerate().for_each(|(i, f)| {
         assert_eq!(&dir.join(f), order[i].src());
+    })
+}
+
+#[test]
+fn test_saved_streams() {
+    [
+        (1, "audio_x1.mka", vec![]),
+        (8, "audio_x8.mka", vec![]),
+        (8, "sub_x8.mks", vec![]),
+        (8, "video_x8.mkv", vec![]),
+        (0, "audio_x8.mka", vec!["-A"]),
+        (0, "sub_x8.mks", vec!["-S"]),
+        (0, "video_x8.mkv", vec!["-D"]),
+        (3, "audio_x8.mka", vec!["-a", "2-4"]),
+    ]
+    .into_iter()
+    .for_each(|(len, f, args)| {
+        let cfg = cfg(args);
+        let mut mi = MediaInfo::new(&cfg, 0);
+        mi.try_insert(data(f)).unwrap();
+        let xs = mi.try_get_cmn(MICmnStreamsOrder).unwrap();
+        assert_eq!(len, xs.len());
     })
 }

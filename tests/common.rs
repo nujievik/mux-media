@@ -5,8 +5,6 @@ use std::{
     path::{MAIN_SEPARATOR, Path, PathBuf},
 };
 
-pub const MAX_U64_STR: &str = "18446744073709551615";
-
 pub fn p<OS: AsRef<OsStr> + ?Sized>(oss: &OS) -> &Path {
     Path::new(oss.as_ref())
 }
@@ -51,18 +49,6 @@ where
     Config::try_parse_from(args).unwrap()
 }
 
-pub fn cfg_args<I, OS, T>(args: I, cache: CacheMI) -> Vec<OsString>
-where
-    I: IntoIterator<Item = OS>,
-    OS: Into<OsString> + Clone,
-    T: ToFfmpegArgs,
-{
-    let cfg = cfg(args);
-    let mut mi = MediaInfo::new(&cfg, 0);
-    mi.cache = cache;
-    T::to_ffmpeg_args(&mut mi).unwrap()
-}
-
 pub fn to_args<I, S>(args: I) -> Vec<String>
 where
     I: IntoIterator<Item = S>,
@@ -78,16 +64,6 @@ where
 {
     args.into_iter()
         .map(|oss| ensure_platform_seps(oss).into_os_string())
-        .collect()
-}
-
-pub fn repeat_track_arg(arg: &str, val: &str, range: &str) -> Vec<String> {
-    range
-        .parse::<RangeUsize>()
-        .unwrap()
-        .into_iter()
-        .map(|n| [arg.to_string(), format!("{}{}", n, val)])
-        .flatten()
         .collect()
 }
 

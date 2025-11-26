@@ -1,6 +1,6 @@
 use crate::common::*;
 use clap::{error::ErrorKind, *};
-use mux_media::*;
+use mux_media::{markers::*, *};
 use std::sync::LazyLock;
 
 static EMPTY_ARGS: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
@@ -290,36 +290,32 @@ fn test_aliases_of_args() {
         });
 }
 
-/*
 #[test]
 fn test_target_switching() {
     let cfg = cfg([
         "--exit-on-err",
         "--target",
         "video",
-        "--no-streams",
+        "--defaults",
+        "true",
         "--target",
         "audio",
-        "--no-streams",
+        "--defaults",
+        "true",
         "--target",
         "global",
         "--reencode",
         "--target",
         "subs",
-        "--no-streams",
-        "--target",
-        "global",
-        "--no-video",
+        "--defaults",
+        "true",
     ]);
 
     assert!(cfg.exit_on_err);
-    assert!(cfg.target(CfgStreams, "video").no_flag);
-    assert!(cfg.target(CfgStreams, "audio").no_flag);
+    assert!(cfg.target(CfgDefaults, "video").single_val.unwrap());
+    assert!(cfg.target(CfgDefaults, "audio").single_val.unwrap());
     assert!(cfg.reencode);
-    assert!(cfg.target(CfgStreams, "subs").no_flag);
-    assert!(cfg.streams.no_flag);
+    assert!(cfg.target(CfgDefaults, "sub").single_val.unwrap());
 
-    // Sure that global audio_tracks has not true no_flag.
-    assert!(!cfg.streams.no_flag);
+    assert!(cfg.defaults.single_val.is_none());
 }
-*/
