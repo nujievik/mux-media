@@ -298,22 +298,6 @@ fn parse_target_switching() {
     assert_eq!(ts, cfg.targets.unwrap());
 }
 
-fn iter_i_lang() -> impl Iterator<Item = (&'static usize, &'static LangCode)> {
-    static I: [usize; 4] = [0, 1, 8, usize::MAX - 1];
-    static LANGS: [LangCode; 3] = [LangCode::Eng, LangCode::Rus, LangCode::Und];
-
-    I.iter()
-        .flat_map(|i| LANGS.iter().map(move |lang| (i, lang)))
-}
-
-fn iter_alt_i_lang() -> impl Iterator<Item = (&'static usize, &'static LangCode)> {
-    static I: [usize; 4] = [5, 10, 11, usize::MAX - 2];
-    static LANGS: [LangCode; 3] = [LangCode::Abk, LangCode::Aar, LangCode::Afr];
-
-    I.iter()
-        .flat_map(|i| LANGS.iter().map(move |lang| (i, lang)))
-}
-
 #[test]
 fn is_save_default() {
     let xs = Streams::default();

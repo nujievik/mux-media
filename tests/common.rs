@@ -108,6 +108,22 @@ pub fn read_json_args(path: &Path) -> Vec<String> {
     serde_json::from_reader(reader).unwrap()
 }
 
+pub fn iter_i_lang() -> impl Iterator<Item = (&'static usize, &'static LangCode)> {
+    static I: [usize; 4] = [0, 1, 8, usize::MAX - 1];
+    static LANGS: [LangCode; 3] = [LangCode::Eng, LangCode::Rus, LangCode::Und];
+
+    I.iter()
+        .flat_map(|i| LANGS.iter().map(move |lang| (i, lang)))
+}
+
+pub fn iter_alt_i_lang() -> impl Iterator<Item = (&'static usize, &'static LangCode)> {
+    static I: [usize; 4] = [5, 10, 11, usize::MAX - 2];
+    static LANGS: [LangCode; 3] = [LangCode::Abk, LangCode::Aar, LangCode::Afr];
+
+    I.iter()
+        .flat_map(|i| LANGS.iter().map(move |lang| (i, lang)))
+}
+
 #[cfg(unix)]
 const ALT_SEP_BYTE: u8 = b'\\';
 #[cfg(windows)]

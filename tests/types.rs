@@ -11,6 +11,8 @@ mod char_encoding;
 mod cli_arg;
 #[path = "types/config.rs"]
 mod config;
+#[path = "types/dispositions.rs"]
+mod dispositions;
 #[path = "types/extensions.rs"]
 mod extensions;
 #[path = "types/input.rs"]
@@ -41,12 +43,8 @@ mod targets;
 mod tools;
 
 /*
-#[path = "types/track_flags.rs"]
-mod track_flags;
 #[path = "types/track_langs.rs"]
 mod track_langs;
 #[path = "types/track_names.rs"]
 mod track_names;
-#[path = "types/tracks.rs"]
-mod tracks;
 */
