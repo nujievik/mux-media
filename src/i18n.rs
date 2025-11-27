@@ -19,6 +19,7 @@ mod pubs;
 
 /// Localized messages.
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub enum Msg {
     ArgsInJson,
     ContainerDoesNotSupport,

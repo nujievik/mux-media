@@ -10,6 +10,7 @@ use strum_macros::Display;
 
 /// Supported muxers.
 #[derive(Copy, Clone, Debug, Default, Display, PartialEq, IsDefault)]
+#[non_exhaustive]
 pub enum Muxer {
     AVI,
     MP4,

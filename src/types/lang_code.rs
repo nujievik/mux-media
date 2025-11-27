@@ -9,6 +9,7 @@ use strum_macros::AsRefStr;
 
 /// Three-letter ISO 639 language codes.
 #[derive(Copy, Clone, Debug, Eq, Hash, PartialEq, AsRefStr)]
+#[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]
 pub enum LangCode {
     Alu,

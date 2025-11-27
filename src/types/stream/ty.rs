@@ -6,6 +6,7 @@ use std::path::Path;
 use strum_macros::{AsRefStr, EnumIter};
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, AsRefStr, Enum, EnumIter)]
+#[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]
 pub enum StreamType {
     Video,

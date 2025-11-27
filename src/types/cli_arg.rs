@@ -2,6 +2,7 @@ macro_rules! enum_cli_arg {
     ($( $var:ident => $s:expr ),* $(,)?) => {
         /// An enum of CLI arguments.
         #[derive(Copy, Clone, Debug)]
+        #[non_exhaustive]
         pub enum CliArg {
             $( $var ),*
         }
