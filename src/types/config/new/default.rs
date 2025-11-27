@@ -7,7 +7,7 @@ impl Config {
 }
 
 impl Default for Config {
-    /// Returns a new [`Config`] with 4 [`Config::threads`] and all other default fields.
+    /// Returns a new [`Config`] with 1 [`Config::threads`] and all other default fields.
     /// ```
     /// use mux_media::Config;
     ///

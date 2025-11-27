@@ -34,7 +34,8 @@ pub struct CacheMIOfFile {
     pub relative_upmost: CacheState<String>,
     pub sub_char_encoding: CacheState<CharEncoding>,
 
-    /// Targets from file path and parent path, existed in [`Config::targets`].
+    /// Targets from file path and parent path, existed in [`Config::targets`](
+    /// crate::Config::targets).
     pub target_paths: CacheState<Vec<Target>>,
 
     pub audio_duration: CacheState<Duration>,

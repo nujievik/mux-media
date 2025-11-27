@@ -6,6 +6,11 @@ use crate::{
 use std::path::Path;
 
 impl Config {
+    /// Returns a field value for marker `F`:
+    ///
+    /// - From the first given target contains in [`Config::targets`], that has a Some value.
+    ///
+    /// - Otherwise, from the common (global) configuration.
     pub fn target<F, T>(&self, _: F, t: T) -> &<Self as Field<F>>::FieldType
     where
         Self: Field<F>,

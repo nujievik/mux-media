@@ -239,10 +239,10 @@ pub struct StreamsOrderItem {
     /// A type of stream.
     pub ty: StreamType,
 
-    /// A file path cached in [`MediaInfo`].
+    /// A file path cached in [`MediaInfo`](crate::MediaInfo).
     pub key: ArcPathBuf,
 
-    /// A stream index of file cached in [`MediaInfo`].
+    /// A stream index of file cached in [`MediaInfo`](crate::MediaInfo).
     pub key_i_stream: usize,
 
     /// A source of stream if the path is different key.

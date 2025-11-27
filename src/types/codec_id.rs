@@ -1,6 +1,6 @@
 use crate::ffmpeg::codec::id::Id;
 
-/// A wrapper around [`ffmpeg::codec::id::Id`].
+/// A wrapper around [`ffmpeg::codec::id::Id`](Id).
 #[derive(Copy, Clone, Debug)]
 pub struct CodecId(pub Id);
 
