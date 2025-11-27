@@ -55,30 +55,6 @@ pub(crate) fn warn_not_out_save_any(out: &Path) {
     )
 }
 
-/*
-#[inline(always)]
-pub(crate) fn warn_not_out_change(out: &Path) {
-    warn!(
-        "{}. {} '{}'",
-        Msg::NotOutChange,
-        Msg::Skipping,
-        out.display()
-    )
-}
-*/
-
-/*
-#[inline(always)]
-pub(crate) fn warn_not_saved_track_or_attach(path: &Path) {
-    warn!(
-        "{}. {} '{}'",
-        Msg::NotSavedTrackOrAttach,
-        Msg::Skipping,
-        path.display()
-    )
-}
-*/
-
 #[inline(always)]
 pub(crate) fn warn_not_recognized_media(path: &Path, e: MuxError) {
     warn!(

@@ -99,36 +99,6 @@ fn test_from_str() {
     assert_eq!(MuxErrorKind::Unknown, err.kind);
 }
 
-/*
-#[test]
-fn test_from_slice_str() {
-    Msg::try_upd_lang(LangCode::Rus).unwrap();
-
-    [
-        ("Using x", "Используется x", vec![(Msg::Using, " x")]),
-        (
-            "Not found a Using bc",
-            "Не найден a Используется bc",
-            vec![(Msg::NotFound, " a "), (Msg::Using, " bc")],
-        ),
-    ]
-    .into_iter()
-    .for_each(|(eng, rus, str_vec)| {
-        let err: MuxError = str_vec.as_slice().into();
-        assert_eq!(eng, format!("{}", err));
-        assert_eq!(rus, err.as_str_localized());
-
-        let string_vec: Vec<_> = str_vec
-            .into_iter()
-            .map(|(msg, s)| (msg, s.to_string()))
-            .collect();
-        let err: MuxError = string_vec.as_slice().into();
-        assert_eq!(eng, format!("{}", err));
-        assert_eq!(rus, err.as_str_localized());
-    })
-}
-*/
-
 #[test]
 fn test_from_clap_error() {
     let msg = "Test clap message. It's Ok if you see it with prefix 'error: Test clap message'\n";
