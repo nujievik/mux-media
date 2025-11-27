@@ -15,17 +15,6 @@ pub(crate) fn warn_container_does_not_support(muxer: Muxer, src: &Path, i_stream
 }
 
 #[inline(always)]
-pub(crate) fn warn_err_write_json(err: MuxError) {
-    warn!(
-        "{}: {}. {} CLI ({})",
-        Msg::ErrWriteJson,
-        err.as_str_localized(),
-        Msg::Using,
-        Msg::MayFailIfCommandLong
-    )
-}
-
-#[inline(always)]
 pub(crate) fn warn_file_is_already_exists(path: &Path) {
     warn!(
         "{}. {} '{}'",
@@ -67,12 +56,8 @@ pub(crate) fn warn_not_recognized_media(path: &Path, e: MuxError) {
 }
 
 #[inline(always)]
-pub(crate) fn debug_running_command(cmd: &Command, json_args: Option<Vec<String>>) {
+pub(crate) fn debug_running_command(cmd: &Command) {
     debug!("{}:\n{}", Msg::RunningCommand, CommandDisplay(cmd));
-
-    if let Some(args) = json_args {
-        debug!("{}:\n{}", Msg::ArgsInJson, JsonArgsDisplay(&args));
-    }
 }
 
 #[inline(always)]
@@ -132,27 +117,6 @@ impl<'a> fmt::Display for CommandDisplay<'a> {
                 write_with_continue(f, arg)?;
             } else {
                 write(f, arg)?;
-            }
-        }
-
-        Ok(())
-    }
-}
-
-struct JsonArgsDisplay<'a>(&'a [String]);
-
-impl<'a> fmt::Display for JsonArgsDisplay<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let mut last_i = self.0.len();
-        if last_i > 0 {
-            last_i -= 1;
-        }
-
-        for (i, arg) in self.0.into_iter().enumerate() {
-            if i < last_i {
-                write!(f, "\"{}\" {}\n", arg, CONTINUE_CMD)?;
-            } else {
-                write!(f, "\"{}\"", arg)?;
             }
         }
 

@@ -1,9 +1,7 @@
 impl_msg_as_str!(
     as_eng,
-    ArgsInJson => "Args in JSON",
     ContainerDoesNotSupport => "Container does not support",
     ErrUpdLang => "Update language failed",
-    ErrWriteJson => "Write command to JSON failed",
     FileIsAlreadyExists => "File is already exists",
     FileTypeNotSup => "File type is not supported",
     FoundRepeat => "Found repeat",
@@ -71,7 +69,6 @@ impl_msg_as_str!(
     LMultipleTracksOrTypeTrack => "multiple tracks or type track",
     LangNotSupLog => "Language is not supported for logging",
     LoadingJson => "Loading JSON",
-    MayFailIfCommandLong => "May fail if command long",
     MediaNumOutOfRange => "Media number is out of range",
     Muxing => "Muxing",
     NoExtMediaFound => "No external media found",

@@ -2,27 +2,18 @@ pub(crate) mod output;
 pub(crate) mod paths;
 pub(crate) mod tool;
 
-use crate::{Config, Result, Tool, ToolOutput, i18n::logs, types::helpers::try_write_args_to_json};
+use crate::{Config, Result, Tool, ToolOutput, i18n::logs};
 use paths::ToolPaths;
-use std::{
-    ffi::{OsStr, OsString},
-    path::PathBuf,
-    process::Command,
-};
+use std::{ffi::OsStr, process::Command};
 
-/// Manage execution a [`Tool`] commands.
 #[derive(Clone, Debug)]
-pub struct Tools<'a> {
-    pub paths: &'a ToolPaths,
-    pub json: Option<PathBuf>,
-}
+pub struct Tools<'a>(pub &'a ToolPaths);
 
 impl<'a> From<&'a ToolPaths> for Tools<'a> {
     fn from(paths: &'a ToolPaths) -> Tools<'a> {
-        Tools { paths, json: None }
+        Tools(paths)
     }
 }
-
 impl<'a> From<&'a Config> for Tools<'a> {
     fn from(cfg: &'a Config) -> Tools<'a> {
         Tools::from(&cfg.tool_paths)
@@ -31,9 +22,6 @@ impl<'a> From<&'a Config> for Tools<'a> {
 
 impl Tools<'_> {
     /// Runs the specified tool with the given arguments.
-    ///
-    /// If the tool is from `mkvtoolnix` and a JSON file path is setted,
-    /// arguments are written to that file and passed as `@path`.
     ///
     /// # Errors
     ///
@@ -52,36 +40,13 @@ impl Tools<'_> {
         I: IntoIterator<Item = T> + Clone,
         T: AsRef<OsStr>,
     {
-        let mut command = match &self.paths[tool].get() {
+        let mut command = match &self.0[tool].get() {
             Some(p) => Command::new(p),
             None => Command::new(tool.as_ref()),
         };
+        command.args(args);
 
-        let mut json_args: Option<Vec<String>> = None;
-
-        match self.json.as_ref().filter(|_| tool.is_mkvtoolnix()) {
-            Some(json) => match try_write_args_to_json(args.clone(), json) {
-                Ok(args) => {
-                    let mut json_with_at = OsString::from("@");
-                    json_with_at.push(&**json);
-                    command.arg(json_with_at);
-                    json_args = Some(args);
-                }
-                Err(e) => {
-                    logs::warn_err_write_json(e);
-                    command.args(args);
-                }
-            },
-            None => {
-                command.args(args);
-            }
-        }
-
-        logs::debug_running_command(&command, json_args);
-
-        if matches!(tool, Tool::Ffmpeg) {
-            command.arg("-hide_banner");
-        }
+        logs::debug_running_command(&command);
 
         match command.output() {
             Ok(out) => ToolOutput::from((tool, out)).ok_or_err(),

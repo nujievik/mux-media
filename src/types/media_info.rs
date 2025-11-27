@@ -7,7 +7,7 @@ pub(crate) mod lazy_fields;
 use crate::{ArcPathBuf, Config, Result, Tools, i18n::logs};
 use cache::{CacheMI, CacheMIOfFile, CacheMIOfGroup, CacheState};
 use rayon::prelude::*;
-use std::{collections::HashMap, mem, path::Path};
+use std::{collections::HashMap, path::Path};
 
 /// Extracts and caches media information.
 ///
@@ -76,8 +76,6 @@ impl MediaInfo<'_> {
     ) -> Result<()> {
         let exit_on_err = self.cfg.exit_on_err;
         let cache_is_empty = self.cache.of_files.is_empty();
-        // take JSON to exclude data race
-        let json = mem::take(&mut self.tools.json);
 
         let map = media
             .into_par_iter()
@@ -88,10 +86,7 @@ impl MediaInfo<'_> {
                     Err(e) => Some(Err(e)),
                 }
             })
-            .collect::<Result<HashMap<_, _>>>();
-
-        self.tools.json = json;
-        let map = map?;
+            .collect::<Result<HashMap<_, _>>>()?;
 
         if cache_is_empty {
             self.cache.of_files = map;

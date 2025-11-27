@@ -30,18 +30,9 @@ impl Tool {
         }
     }
 
-    /// Returns `true` if the tool belongs to the mkvtoolnix suite.
-    pub(super) fn is_mkvtoolnix(self) -> bool {
-        false
-    }
-
-    /// Returns the associated package name (`"mkvtoolnix"` or `"ffmpeg"`).
+    /// Returns the associated package name.
     pub(super) fn as_str_package(self) -> &'static str {
-        if self.is_mkvtoolnix() {
-            "mkvtoolnix"
-        } else {
-            "ffmpeg"
-        }
+        "ffmpeg"
     }
 }
 

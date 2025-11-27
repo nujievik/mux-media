@@ -21,10 +21,8 @@ mod pubs;
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Msg {
-    ArgsInJson,
     ContainerDoesNotSupport,
     ErrUpdLang,
-    ErrWriteJson,
     FileIsAlreadyExists,
     FileTypeNotSup,
     FoundRepeat,
@@ -92,7 +90,6 @@ pub enum Msg {
     LMultipleTracksOrTypeTrack,
     LangNotSupLog,
     LoadingJson,
-    MayFailIfCommandLong,
     MediaNumOutOfRange,
     Muxing,
     NoExtMediaFound,

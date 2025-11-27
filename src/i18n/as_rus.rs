@@ -1,9 +1,7 @@
 impl_msg_as_str!(
     as_rus,
-    ArgsInJson => "Аргументы в JSON",
     ContainerDoesNotSupport => "Контейнер не поддерживает",
     ErrUpdLang => "Не удалось обновить язык",
-    ErrWriteJson => "Ошибка записи команды в JSON",
     FileIsAlreadyExists => "Файл уже существует",
     FileTypeNotSup => "Тип файла не поддерживается",
     FoundRepeat => "Найден повтор",
@@ -71,7 +69,6 @@ impl_msg_as_str!(
     LMultipleTracksOrTypeTrack => "несколько дорожек или тип дорожки",
     LangNotSupLog => "Язык не поддерживается для ведения журнала",
     LoadingJson => "Загрузка JSON",
-    MayFailIfCommandLong => "Может привести к ошибке если команда длинная",
     MediaNumOutOfRange => "Номер медиа вне диапазона",
     Muxing => "Муксирование",
     NoExtMediaFound => "Не найдено внешних медиа",

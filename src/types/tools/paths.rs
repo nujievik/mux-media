@@ -76,31 +76,6 @@ fn resolve(tool: Tool, temp_dir: &Path, sys: bool) -> Result<PathBuf> {
         return Ok(PathBuf::from(tool_str));
     }
 
-    #[cfg(windows)]
-    {
-        if tool.is_mkvtoolnix() {
-            let mkvtoolnix_path = |dir: &str| -> PathBuf {
-                let mut path = PathBuf::from(dir);
-                path.push(tool_str);
-                path.set_extension("exe");
-                path
-            };
-
-            let path = mkvtoolnix_path(r"\\?\C:\Program Files\MkvToolNix");
-            if is_tool_help_success(&path) {
-                return Ok(path);
-            }
-
-            #[cfg(target_pointer_width = "64")]
-            {
-                let path = mkvtoolnix_path(r"\\?\C:\Program Files (x86)\MkvToolNix");
-                if is_tool_help_success(&path) {
-                    return Ok(path);
-                }
-            }
-        }
-    }
-
     #[cfg(feature = "static")]
     if let Some(Some(path)) = sys.then(|| get_bundled_path(tool, temp_dir)) {
         return Ok(path);

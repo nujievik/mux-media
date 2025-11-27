@@ -30,7 +30,7 @@ impl Config {
         let it = Mutex::new(self.input.iter_media_grouped_by_stem());
 
         (0..self.threads).into_par_iter().try_for_each(|t| {
-            let mut mi = init_media_info(self, t);
+            let mut mi = MediaInfo::new(self, t);
             loop {
                 let g = { it.lock().unwrap().next() };
                 match g {
@@ -75,13 +75,6 @@ impl Config {
             Some((out.into(), cache))
         }
 
-        fn init_media_info<'a>(cfg: &'a Config, t: u8) -> MediaInfo<'a> {
-            let mut mi = MediaInfo::new(cfg, t);
-            let json = cfg.output.temp_dir.join(format!("{}.json", t));
-            mi.tools.json = Some(json);
-            mi
-        }
-
         fn mux_media_group(
             cfg: &Config,
             fonts: Option<&(ArcPathBuf, CacheMIOfFile)>,
@@ -101,7 +94,6 @@ impl Config {
             match cfg.muxer.mux_current(mi, &out) {
                 MuxCurrent::Ok(tool_out) => {
                     trace!("{}", tool_out);
-                    tool_out.log_warns();
                     info!("{} '{}'", Msg::SuccessMuxed, out.display());
                     if let Ok(mut cnt) = cnt.lock() {
                         *cnt += 1;
