@@ -1,5 +1,5 @@
 use super::{RetimedStream, Retiming};
-use crate::{Duration, Result, Tool, Tools};
+use crate::{Duration, Result, Tool, ToolOutput, Tools};
 use rayon::prelude::*;
 use std::path::{Path, PathBuf};
 
@@ -24,7 +24,7 @@ impl Retiming<'_, '_> {
         const SHIFT_START: f64 = 0.3;
         const SHIFT_END: f64 = -0.1;
 
-        let raw_splits: Vec<(usize, f64, PathBuf)> = self
+        let raw_splits: Vec<(usize, f64, f64, PathBuf)> = self
             .parts
             .par_iter()
             .enumerate()
@@ -38,23 +38,22 @@ impl Retiming<'_, '_> {
                 } else {
                     Duration::from_secs_f64(p.start.as_secs_f64() + SHIFT_START)
                 };
-                let end = Duration::from_secs_f64(p.end.as_secs_f64() - SHIFT_END);
+                let end = Duration::from_secs_f64(p.end.as_secs_f64() + SHIFT_END);
 
                 try_split(&self.tools, &p.src, self.i_base_stream, &split, start, end)
-                    .map(|dur| (i, dur, split))
+                    .map(|(start, end)| (i, start, end, split))
             })
             .collect::<Result<_>>()?;
 
         let base_splits: Vec<_> = raw_splits
             .into_iter()
-            .map(|(i, dur, split)| {
+            .map(|(i, start, end, split)| {
                 let p = &mut self.parts[i];
-                let end_f64 = p.end.as_secs_f64();
-                let old_dur = end_f64 - p.start.as_secs_f64();
-                let add_offset = dur - old_dur;
+                p.start_offset += start - p.start.as_secs_f64();
+                p.end_offset += end - p.end.as_secs_f64();
 
-                p.end = Duration::from_secs_f64(end_f64 + add_offset);
-                p.end_offset += add_offset;
+                p.start = Duration::from_secs_f64(start);
+                p.end = Duration::from_secs_f64(end);
                 split
             })
             .collect();
@@ -69,18 +68,14 @@ impl Retiming<'_, '_> {
             dest: &Path,
             trg_start: Duration,
             trg_end: Duration,
-        ) -> Result<f64> {
-            use lazy_regex::{Lazy, Regex, regex};
-            static REGEX_END_DURATION: &Lazy<Regex> = regex!(r"end duration =\s+(\d+)");
-
+        ) -> Result<(f64, f64)> {
             let trg_start = trg_start.to_string();
             let trg_end = trg_end.to_string();
             let map = format!("0:{}", i_stream);
 
             let args = [
                 p!("-y"),
-                p!("-loglevel"),
-                p!("debug"),
+                p!("-debug_ts"),
                 p!("-ss"),
                 p!(&trg_start),
                 p!("-to"),
@@ -95,12 +90,46 @@ impl Retiming<'_, '_> {
             ];
             let out = tools.run(Tool::Ffmpeg, &args)?;
 
-            match REGEX_END_DURATION
-                .captures(&out.stderr)
-                .and_then(|cap| cap.get(1).and_then(|s| s.as_str().parse::<u64>().ok()))
-            {
-                Some(ms) => Ok(ms as f64 / 1000.0),
-                None => Err(err!("Fail get end split")),
+            return try_start_end(&out);
+
+            fn try_start_end(out: &ToolOutput) -> Result<(f64, f64)> {
+                use lazy_regex::{Lazy, Regex, regex};
+                static OFFSET: &Lazy<Regex> = regex!(r" off_time:([-+]?[0-9]*\.?[0-9]+)");
+                static PTS_DURATION_PAIR: &Lazy<Regex> = regex!(
+                    r" pts_time:([-+]?[0-9]*\.?[0-9]+).*?duration_time:([-+]?[0-9]*\.?[0-9]+)"
+                );
+
+                let offset = OFFSET
+                    .captures(&out.stderr)
+                    .and_then(|caps| caps.get(1))
+                    .and_then(|m| m.as_str().parse::<f64>().ok())
+                    .ok_or_else(|| err!("Fail get frame offset"))?;
+
+                let mut start: Option<f64> = None;
+                let mut end: Option<(f64, f64)> = None;
+
+                for caps in PTS_DURATION_PAIR.captures_iter(&out.stderr) {
+                    let v = caps[1].parse::<f64>()?;
+                    match start {
+                        None => start = Some(v),
+                        Some(prev) if prev > v => start = Some(v),
+                        _ => (),
+                    };
+                    match end {
+                        None => end = Some((v, caps[2].parse::<f64>()?)),
+                        Some(prev) if prev.0 < v => end = Some((v, caps[2].parse::<f64>()?)),
+                        _ => (),
+                    }
+                }
+
+                if start.is_none() || end.is_none() {
+                    return Err(err!("Fail get split start or end"));
+                }
+
+                let start = start.unwrap() - offset;
+                let end = end.map(|(s, dur)| s + dur).unwrap() - offset;
+
+                Ok((start, end))
             }
         }
     }

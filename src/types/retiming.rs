@@ -73,15 +73,6 @@ impl Retiming<'_, '_> {
             .sum()
     }
 
-    fn parts_nonuid(&self, i_part: usize) -> f64 {
-        let src = &self.parts[i_part].src;
-        self.parts[..i_part]
-            .iter()
-            .filter(|p| &p.src != src)
-            .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
-            .sum()
-    }
-
     fn single_part_base_retimed_stream(&self, src: &Path, i_stream: usize) -> RetimedStream {
         let p = &self.parts[0];
         let src = if p.src.as_path() != src {

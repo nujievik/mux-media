@@ -209,12 +209,17 @@ impl Retiming<'_, '_> {
             let t = target.as_secs_f64();
             let first = try_i_frame(src, i_stream, target)?;
             let second = {
+                let offset = (t - first.as_secs_f64()) / 2.0;
+                let t = Duration::from_secs_f64(t + offset);
+                try_i_frame(src, i_stream, t)?
+            };
+            let third = {
                 let t = Duration::from_secs_f64(t + t - first.as_secs_f64());
                 try_i_frame(src, i_stream, t)?
             };
 
             // unwraps safe
-            let (nearest, offset) = [first, second, duration]
+            let (nearest, offset) = [first, second, third, duration]
                 .into_iter()
                 .map(|d| {
                     let diff = d.as_secs_f64() - t;
