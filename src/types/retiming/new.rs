@@ -57,6 +57,10 @@ impl Retiming<'_, '_> {
             i += 1 + i_end_chp - i;
         }
 
+        if parts.is_empty() {
+            return Err(err!("Not saved any part"));
+        }
+
         let mut rtm = Retiming {
             tools: mi.cfg.into(),
             temp_dir: &mi.cfg.output.temp_dir,
@@ -69,7 +73,10 @@ impl Retiming<'_, '_> {
             base_splits: Vec::new(),
         };
 
-        rtm.init_base_splits()?;
+        if !rtm.is_save_single_part() {
+            rtm.init_base_splits()?;
+        }
+
         return Ok(rtm);
 
         fn save_then_src(

@@ -13,7 +13,7 @@ impl Retiming<'_, '_> {
             ));
         }
 
-        if self.parts.len() == 1 {
+        if self.parts.len() == 1 && self.parts[0].start.is_zero() {
             Ok(self.single_part_base_retimed_stream(src, i_stream))
         } else {
             self.try_base_video()

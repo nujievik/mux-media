@@ -73,6 +73,10 @@ impl Retiming<'_, '_> {
             .sum()
     }
 
+    fn is_save_single_part(&self) -> bool {
+        self.parts.len() == 1 && self.parts[0].start.is_zero()
+    }
+
     fn single_part_base_retimed_stream(&self, src: &Path, i_stream: usize) -> RetimedStream {
         let p = &self.parts[0];
         let src = if p.src.as_path() != src {

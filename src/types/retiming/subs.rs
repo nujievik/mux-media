@@ -13,7 +13,7 @@ use time::Time;
 
 impl Retiming<'_, '_> {
     pub(crate) fn try_sub(&self, i: usize, src: &Path, i_stream: usize) -> Result<RetimedStream> {
-        if self.parts.len() == 1 && src == **self.base {
+        if self.is_save_single_part() && src == **self.base {
             return Ok(self.single_part_base_retimed_stream(src, i_stream));
         }
 
@@ -168,7 +168,9 @@ impl Retiming<'_, '_> {
         ) -> Option<(Vec<usize>, f64)> {
             let p = &rtm.parts[i_part];
             let idxs = save_idxs(old, p.start.into(), p.end.into());
-            let offset = rtm.parts_nonuid(i_part) + rtm.prev_uid_end_offset(i_part);
+            let offset = rtm.len_prev_nonuid_parts(i_part) + rtm.len_prev_uid_parts(i_part)
+                - p.start.as_secs_f64();
+
             Some((idxs, offset))
         }
 
@@ -290,32 +292,35 @@ impl Retiming<'_, '_> {
             if idxs.is_empty() {
                 None
             } else {
-                let offset =
-                    rtm.parts_nonuid(i_part) + rtm.prev_uid_end_offset(i_part) - chp_nonuid;
+                let offset = rtm.len_prev_parts(i_part) - p.start.as_secs_f64() - chp_nonuid;
                 Some((idxs, offset))
             }
         }
     }
 
-    fn parts_nonuid(&self, i_part: usize) -> f64 {
+    fn len_prev_uid_parts(&self, i_part: usize) -> f64 {
+        let src = &self.parts[i_part].src;
+        self.parts[..i_part]
+            .iter()
+            .filter(|p| &p.src == src)
+            .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
+            .sum()
+    }
+
+    fn len_prev_parts(&self, i_part: usize) -> f64 {
+        self.parts[..i_part]
+            .iter()
+            .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
+            .sum()
+    }
+
+    fn len_prev_nonuid_parts(&self, i_part: usize) -> f64 {
         let src = &self.parts[i_part].src;
         self.parts[..i_part]
             .iter()
             .filter(|p| &p.src != src)
             .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
             .sum()
-    }
-
-    fn prev_uid_end_offset(&self, i_part: usize) -> f64 {
-        if i_part == 0 {
-            return 0.0;
-        }
-        let src = &self.parts[i_part].src;
-        self.parts[..i_part - 1]
-            .iter()
-            .rev()
-            .find_map(|p| (&p.src == src).then_some(p.end_offset))
-            .unwrap_or_default()
     }
 }
 
