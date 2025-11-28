@@ -20,7 +20,7 @@ include = [
 
 [features]
 default = []
-static = []
+static = ["ffmpeg-next/build"]
 
 [dependencies]
 atty = "0.2"
@@ -47,7 +47,12 @@ walkdir = "2"
 winapi = { version = "0.3", features = ["winnls"] }
 
 [build-dependencies]
-which = "8"
+reqwest = { version = "0.12", features = ["blocking"] }
+strum_macros = "0.27"
+tar = "0.4"
+walkdir = "2"
+xz2 = "0.1"
+zip = "6"
 
 [dev-dependencies]
 rand = "0.9"

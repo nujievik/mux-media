@@ -44,7 +44,7 @@ fn test_set_bundled_paths() {
             } else {
                 PathBuf::from(s)
             };
-            assert_eq!(tools.paths[t].get().unwrap(), &exp);
+            assert_eq!(tools.0[t].get().unwrap(), &exp);
         })
     };
 
