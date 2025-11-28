@@ -48,7 +48,7 @@ impl Config {
                 return None;
             }
 
-            let fonts = cfg.input.collect_fonts_with_filter_and_sort();
+            let fonts = cfg.input.collect_fonts();
             if fonts.is_empty() {
                 return None;
             }

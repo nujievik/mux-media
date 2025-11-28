@@ -70,46 +70,6 @@ impl Input {
             .collect()
     }
 
-    /// Collects all font files from the discovered directories,
-    /// sorts its by stem and filters stem duplicates.
-    ///
-    /// # Warning
-    ///
-    /// This method assumes [`Input::try_finalize_init`] was called beforehand.
-    /// If it wasn’t this will simply return an empty vector.
-    ///
-    /// ```
-    /// # use mux_media::Config;
-    /// let cfg = Config::default();
-    /// assert!(cfg.input.collect_fonts_with_filter_and_sort().is_empty());
-    /// ```
-    pub fn collect_fonts_with_filter_and_sort(&self) -> Vec<PathBuf> {
-        let mut seen = HashSet::<OsString>::new();
-
-        let mut fonts: Vec<PathBuf> = self
-            .collect_fonts()
-            .into_iter()
-            .filter(|font| match font.file_stem() {
-                Some(stem) if !seen.contains(stem) => {
-                    let _ = seen.insert(stem.to_owned());
-                    true
-                }
-                _ => false,
-            })
-            .collect();
-
-        fonts.sort_by(|a, b| {
-            let sa = a.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-            let sb = b.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-            sa.chars()
-                .map(|c| c.to_ascii_lowercase())
-                .cmp(sb.chars().map(|c| c.to_ascii_lowercase()))
-                .then_with(|| sa.cmp(sb))
-        });
-
-        fonts
-    }
-
     /// Returns an iterator over grouped media files by stem from discovered directories.
     ///
     /// # Warning

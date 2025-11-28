@@ -162,32 +162,6 @@ fn test_skip_fonts() {
     })
 }
 
-fn body_filter_and_sort(dir: &str, order: &[&str]) {
-    let dir = data_font(dir);
-    let input = new(&[p("-i"), &dir]);
-    let fonts = input.collect_fonts_with_filter_and_sort();
-
-    assert_eq!(order.len(), fonts.len());
-    fonts.iter().enumerate().for_each(|(i, f)| {
-        assert_eq!(order[i], f.file_stem().unwrap());
-    })
-}
-
-#[test]
-fn test_fonts_filter_name_duplicates() {
-    body_filter_and_sort("depth", &["ttf"]);
-}
-
-#[test]
-fn test_fonts_sort_depth_independent() {
-    body_filter_and_sort("sort/depth_independent/", &["first", "second", "third"]);
-}
-
-#[test]
-fn test_fonts_sort_case_insensitive() {
-    body_filter_and_sort("sort/case_insensitive/", &["first", "Second", "THIRD"]);
-}
-
 #[test]
 fn test_depth() {
     let dir = data_font("depth/");
