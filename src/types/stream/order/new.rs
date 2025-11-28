@@ -86,7 +86,9 @@ impl StreamsOrder {
                             Some(_) => true,
                             None => true,
                         } {
-                            attach_streams.push((i_src, stream.i, ty, stream.filename.clone()));
+                            let fname = stream.filename.as_ref().map(|s| s.to_lowercase());
+                            attach_streams.push((i_src, stream.i, ty, fname));
+
                             if let Some(s) = &stream.filename {
                                 let _ = attach_names.insert(s.clone());
                             }
