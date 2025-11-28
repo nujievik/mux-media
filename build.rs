@@ -2,7 +2,8 @@ use std::{env::var, error::Error, fs, io, path};
 use strum_macros::AsRefStr;
 
 const APPLE_64: &str = "https://evermeet.cx/pub/ffmpeg/ffmpeg-8.0.1.zip";
-const GIT_FFMPEG_BUILDS: &str = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.0-latest";
+const GIT_FFMPEG_BUILDS: &str =
+    "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.0-latest";
 
 type Result<T> = std::result::Result<T, Box<dyn Error>>;
 

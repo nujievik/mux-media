@@ -57,66 +57,83 @@ impl MediaInfo<'_> {
 }
 
 fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Duration> {
+    const BASE: i64 = ffmpeg::ffi::AV_TIME_BASE as i64;
+
     let streams = mi.try_immut(MIStreams, src)?;
     let mut ictx = ffmpeg::format::input(src)?;
-    let mut duration: Option<f64> = None;
+    let mut duration = (0i64, 0i64, 0f64);
+
+    let ictx_dur = ictx.duration();
+    let seek_targets = [
+        ictx_dur - 30 * BASE,
+        ictx_dur - 120 * BASE,
+        ictx_dur / 2,
+        0i64,
+    ];
 
     streams.iter().filter(|s| s.ty == ty).for_each(|s| {
         let stream = some_or_return!(ictx.streams().skip(s.i).next());
-
-        let (i, tb) = helpers::ffmpeg_stream_i_tb(&stream);
         let mut opened = some_or_return!(helpers::try_ffmpeg_opened(ty, &stream).ok());
+        let base = helpers::ffmpeg_stream_time_base(&stream);
 
-        let seek_target = (99999999999.0 * f64::from(ffmpeg::ffi::AV_TIME_BASE)) as i64;
-        some_or_return!(ictx.seek(seek_target, ..).ok());
-        opened.flush();
-
-        for (s, packet) in ictx.packets() {
-            if s.index() != i {
-                continue;
+        seek_targets.iter().for_each(|seek| {
+            if duration.0 != 0 {
+                return;
             }
-            some_or_return!(opened.send_packet(&packet).ok());
+            some_or_return!(ictx.seek(*seek, ..).ok());
+            opened.flush();
 
-            let iter = if ty.is_audio() {
-                pts_iter_audio(&mut opened)
-            } else {
-                pts_iter_video(&mut opened)
-            };
+            for (stream, packet) in ictx.packets() {
+                if stream.index() != s.i {
+                    continue;
+                }
+                some_or_return!(opened.send_packet(&packet).ok());
 
-            for time in iter.map(|t| t as f64 * tb) {
-                match duration {
-                    Some(d) if time > d => duration = Some(time),
-                    None => duration = Some(time),
-                    _ => (),
+                let iter = if ty.is_audio() {
+                    pts_iter_audio(&mut opened)
+                } else {
+                    pts_iter_video(&mut opened)
+                };
+
+                for time in iter {
+                    if time > duration.0 {
+                        duration.0 = time;
+                        duration.1 = packet.duration();
+                        duration.2 = base;
+                    }
                 }
             }
-        }
+        })
     });
 
-    return match duration {
-        Some(d) => Ok(Duration::from_secs_f64(d)),
-        None => Err(err!("Fail get duration")),
+    return if duration.0 != 0 {
+        let secs = (duration.0 as f64 + duration.1 as f64) * duration.2;
+        Ok(Duration::from_secs_f64(secs))
+    } else {
+        Err(err!("Fail get duration"))
     };
-
-    fn pts_iter_audio(opened: &mut ffmpeg::decoder::Opened) -> Box<dyn Iterator<Item = i64> + '_> {
-        use ffmpeg::util::frame::Audio;
-        let mut frame = Audio::empty();
-
-        let iter = iter::from_fn(move || match opened.receive_frame(&mut frame) {
-            Ok(_) => frame.pts(),
-            Err(_) => None,
-        });
-        Box::new(iter)
-    }
-
-    fn pts_iter_video(opened: &mut ffmpeg::decoder::Opened) -> Box<dyn Iterator<Item = i64> + '_> {
-        use ffmpeg::util::frame::Video;
-        let mut frame = Video::empty();
-
-        let iter = iter::from_fn(move || match opened.receive_frame(&mut frame) {
-            Ok(_) => frame.pts(),
-            Err(_) => None,
-        });
-        Box::new(iter)
-    }
 }
+
+macro_rules! pts_iter {
+    ($fn:ident, $frame:ident) => {
+        fn $fn(opened: &mut ffmpeg::decoder::Opened) -> Box<dyn Iterator<Item = i64> + '_> {
+            let mut frame = ffmpeg::util::frame::$frame::empty();
+
+            Box::new(iter::from_fn(move || {
+                loop {
+                    match opened.receive_frame(&mut frame) {
+                        Ok(_) => {
+                            if let Some(pts) = frame.pts() {
+                                return Some(pts);
+                            }
+                        }
+                        Err(_) => return None,
+                    }
+                }
+            }))
+        }
+    };
+}
+
+pts_iter!(pts_iter_audio, Audio);
+pts_iter!(pts_iter_video, Video);

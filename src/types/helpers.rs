@@ -86,6 +86,11 @@ pub(crate) fn try_ffmpeg_opened(
     Ok(d)
 }
 
+pub(crate) fn ffmpeg_stream_time_base(stream: &ffmpeg::Stream) -> f64 {
+    let tb = stream.time_base();
+    tb.numerator() as f64 / tb.denominator() as f64
+}
+
 pub(crate) fn ffmpeg_stream_i_tb(stream: &ffmpeg::Stream) -> (usize, f64) {
     let i = stream.index();
     let tb = stream.time_base();
