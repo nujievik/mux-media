@@ -1,16 +1,15 @@
+mod cache;
+mod external_segments;
+
 use super::{Retiming, RetimingChapter, RetimingPart};
 use crate::{
-    ArcPathBuf, Config, Duration, IsDefault, MediaInfo, MuxError, Result, StreamType, StreamsOrder,
-    ffmpeg, markers::*, types::helpers,
+    ArcPathBuf, Config, Duration, MediaInfo, MuxError, Result, StreamType, StreamsOrder, ffmpeg,
+    markers::*, types::helpers,
 };
+use cache::CacheMatroska;
+use external_segments::find_external_segment;
 use log::warn;
-use matroska::Matroska;
-use rayon::prelude::*;
-use std::{
-    collections::{HashMap, HashSet},
-    path::{Path, PathBuf},
-    sync::{LazyLock, RwLock},
-};
+use std::{collections::HashMap, path::Path};
 
 impl Retiming<'_, '_> {
     pub(crate) fn try_new<'a, 'b>(
@@ -18,17 +17,14 @@ impl Retiming<'_, '_> {
         order: &StreamsOrder,
     ) -> Result<Retiming<'a, 'b>> {
         let mut cache = CacheMatroska::default();
-        let (base, i_base_stream, i_chapters, _) =
-            try_base_i_stream_i_chapters_is_linked(mi, order, &mut cache)?;
-
+        let (base, i_base_stream, i_matroska_chapters) = try_base(mi, order, &mut cache)?;
         let base_dir = base.parent().unwrap_or(&mi.cfg.input.dir);
-        let matroska = cache.immut(&base).unwrap();
-        let cs = &matroska.chapters[i_chapters].chapters;
+
+        let cs = try_chapters(mi, &cache, &base, i_matroska_chapters, base_dir)?;
         let len = cs.len();
-        let cs = RetimingChapter::try_new_vec(mi, &cache, &base, base_dir, cs, len)?;
 
         let mut parts: Vec<RetimingPart> = Vec::with_capacity(len);
-        let mut i = 0;
+        let mut i = 0usize;
 
         while i < len {
             let src = match save_then_src(mi, &cache, &base, &base_dir, &cs[i]) {
@@ -40,20 +36,18 @@ impl Retiming<'_, '_> {
             };
             let i_end_chp = i_end_chp(&mi.cfg, &cs, i);
 
-            let (start, start_offset, end, end_offset, _no_retiming) =
+            let (start, start_offset, end, end_offset) =
                 try_times(mi, &src, i_base_stream, cs[i].start, cs[i_end_chp].end)?;
 
             parts.push(RetimingPart {
                 i_start_chp: i,
                 i_end_chp,
                 src,
-                _no_retiming,
                 start,
                 start_offset,
                 end,
                 end_offset,
             });
-
             i += 1 + i_end_chp - i;
         }
 
@@ -78,324 +72,234 @@ impl Retiming<'_, '_> {
         }
 
         return Ok(rtm);
-
-        fn save_then_src(
-            mi: &MediaInfo,
-            cache: &CacheMatroska,
-            base: &ArcPathBuf,
-            base_dir: &Path,
-            c: &RetimingChapter,
-        ) -> Option<ArcPathBuf> {
-            if !is_save_chapter(&mi.cfg, c) {
-                return None;
-            }
-
-            return match c.uid.as_ref() {
-                Some(u) => match find_external_segment(mi, cache, base_dir, &u) {
-                    Ok(p) => Some(p),
-                    Err(e) => {
-                        warn!("{}. Skipping external segment", e);
-                        None
-                    }
-                },
-                None => Some(base.clone()),
-            };
-        }
-
-        fn is_save_chapter(cfg: &Config, c: &RetimingChapter) -> bool {
-            if cfg.retiming_options.no_linked && c.uid.is_some() {
-                return false;
-            }
-
-            let rm = cfg.retiming_options.rm_segments.as_ref();
-            let d = &c.display;
-            if rm.map_or(false, |rm| d.iter().any(|s| rm.is_match(s))) {
-                return false;
-            }
-
-            true
-        }
-
-        fn i_end_chp(cfg: &Config, cs: &Vec<RetimingChapter>, mut i: usize) -> usize {
-            let uid = &cs[i].uid;
-            for idx in (i + 1)..cs.len() {
-                let eq_uid = uid == &cs[idx].uid;
-                let save = is_save_chapter(cfg, &cs[idx]);
-
-                if (eq_uid && save) || (!eq_uid && !save) {
-                    i = idx;
-                } else {
-                    break;
-                }
-            }
-            i
-        }
-
-        fn try_base_i_stream_i_chapters_is_linked(
-            mi: &mut MediaInfo,
-            order: &StreamsOrder,
-            cache: &mut CacheMatroska,
-        ) -> Result<(ArcPathBuf, usize, usize, bool)> {
-            if let Some(ok) = find_map(order, cache, true, |cs| {
-                cs.iter().enumerate().find_map(|(i, c)| {
-                    c.chapters
-                        .iter()
-                        .any(|c| c.segment_uid.is_some())
-                        .then(|| i)
-                })
-            }) {
-                return Ok(ok);
-            }
-
-            if !mi.cfg.retiming_options.is_default() {
-                if let Some(ok) = find_map(order, cache, false, |cs| cs.iter().next().map(|_| 0)) {
-                    return Ok(ok);
-                }
-            }
-
-            return Err(MuxError::new_ok());
-
-            fn find_map<F>(
-                order: &StreamsOrder,
-                cache: &mut CacheMatroska,
-                is_linked: bool,
-                mut f: F,
-            ) -> Option<(ArcPathBuf, usize, usize, bool)>
-            where
-                F: FnMut(&Vec<matroska::ChapterEdition>) -> Option<usize>,
-            {
-                for m in order.iter() {
-                    // always video streams is first.
-                    if !m.ty.is_video() {
-                        break;
-                    }
-                    if let Some(mat) = cache.get(&m.key) {
-                        if let Some(i) = f(&mat.chapters) {
-                            return Some((m.key.clone(), m.i_stream, i, is_linked));
-                        }
-                    }
-                }
-                None
-            }
-        }
-
-        fn try_times(
-            mi: &mut MediaInfo,
-            src: &Path,
-            i_stream: usize,
-            start: Duration,
-            end: Duration,
-        ) -> Result<(Duration, f64, Duration, f64, bool)> {
-            const ACCEPT_VIDEO_OFFSET: f64 = 10.0; // seconds
-
-            let duration = *mi.try_get(MIVideoDuration, src)?;
-            let zero_start_offset = start.as_secs_f64();
-            let end_offset = duration.as_secs_f64() - end.as_secs_f64();
-
-            let (start, start_offset) = if zero_start_offset < ACCEPT_VIDEO_OFFSET {
-                (Duration::default(), zero_start_offset)
-            } else {
-                try_nearest_time_offset(src, i_stream, start, duration)?
-            };
-
-            let (end, end_offset) = if end_offset.abs() < ACCEPT_VIDEO_OFFSET {
-                (duration, end_offset)
-            } else {
-                try_nearest_time_offset(src, i_stream, end, duration)?
-            };
-
-            Ok((start, start_offset, end, end_offset, false))
-        }
-
-        fn try_nearest_time_offset(
-            src: &Path,
-            i_stream: usize,
-            target: Duration,
-            duration: Duration,
-        ) -> Result<(Duration, f64)> {
-            let t = target.as_secs_f64();
-            let first = try_i_frame(src, i_stream, target)?;
-            let second = {
-                let offset = (t - first.as_secs_f64()) / 2.0;
-                let t = Duration::from_secs_f64(t + offset);
-                try_i_frame(src, i_stream, t)?
-            };
-            let third = {
-                let t = Duration::from_secs_f64(t + t - first.as_secs_f64());
-                try_i_frame(src, i_stream, t)?
-            };
-
-            // unwraps safe
-            let (nearest, offset) = [first, second, third, duration]
-                .into_iter()
-                .map(|d| {
-                    let diff = d.as_secs_f64() - t;
-                    (d, diff, diff.abs())
-                })
-                .min_by(|a, b| a.2.partial_cmp(&b.2).unwrap())
-                .map(|t| (t.0, t.1))
-                .unwrap();
-
-            Ok((nearest, offset))
-        }
-
-        fn try_i_frame(src: &Path, i_stream: usize, target: Duration) -> Result<Duration> {
-            let mut ictx = ffmpeg::format::input(src)?;
-            let stream = ictx.stream(i_stream).ok_or(ffmpeg::Error::StreamNotFound)?;
-            let (i, tb) = helpers::ffmpeg_stream_i_tb(&stream);
-
-            let mut opened = helpers::try_ffmpeg_opened(StreamType::Video, &stream)?;
-            let seek_target = (target.as_secs_f64() * f64::from(ffmpeg::ffi::AV_TIME_BASE)) as i64;
-            ictx.seek(seek_target, ..)?;
-            opened.flush();
-
-            for (s, packet) in ictx.packets() {
-                if s.index() != i {
-                    continue;
-                }
-
-                opened.send_packet(&packet)?;
-
-                loop {
-                    let mut frame = ffmpeg::util::frame::Video::empty();
-                    match opened.receive_frame(&mut frame) {
-                        Ok(_) => {
-                            let pts_time = frame.pts().map(|pts| pts as f64 * tb).unwrap_or(0f64);
-                            return Ok(Duration::from_secs_f64(pts_time));
-                        }
-                        Err(ffmpeg::Error::Other { errno: 11 }) => break,
-                        Err(ffmpeg::Error::Eof) => break,
-                        Err(e) => return Err(err!("Ffmpeg decoder error: {}", e)),
-                    }
-                }
-            }
-
-            Err(err!("Not found I frame"))
-        }
     }
 }
 
-impl RetimingChapter {
-    fn new(c: &matroska::Chapter, start: Duration, end: Duration) -> RetimingChapter {
-        RetimingChapter {
-            start,
-            end,
-            uid: c.segment_uid.clone(),
-            display: c.display.iter().map(|d| d.string.clone()).collect(),
-        }
-    }
+fn try_times(
+    mi: &mut MediaInfo,
+    src: &Path,
+    i_stream: usize,
+    start: Duration,
+    end: Duration,
+) -> Result<(Duration, f64, Duration, f64)> {
+    const ACCEPT_VIDEO_OFFSET: f64 = 10.0; // seconds
 
-    fn try_new_vec(
-        mi: &mut MediaInfo,
-        cache: &CacheMatroska,
-        base: &Path,
-        base_dir: &Path,
-        cs: &Vec<matroska::Chapter>,
-        len: usize,
-    ) -> Result<Vec<RetimingChapter>> {
-        return (0..len)
-            .map(|i| {
-                let c = &cs[i];
-                let uid = &c.segment_uid;
+    let duration = *mi.try_get(MIVideoDuration, src)?;
+    let zero_start_offset = start.as_secs_f64();
+    let end_offset = duration.as_secs_f64() - end.as_secs_f64();
 
-                if let Some(end) = c.time_end {
-                    return Ok(Self::new(c, c.time_start.into(), end.into()));
-                }
-
-                if let Some(i_next) = ((i + 1)..len).find(|idx| uid == &cs[*idx].segment_uid) {
-                    let end = cs[i_next].time_start;
-                    return Ok(Self::new(c, c.time_start.into(), end.into()));
-                }
-
-                let duration = match uid {
-                    Some(u) => {
-                        let src = find_external_segment(mi, cache, base_dir, u)?;
-                        *mi.try_get(MIPlayableDuration, &src)?
-                    }
-                    None => *mi.try_get(MIPlayableDuration, &base)?,
-                };
-
-                Ok(Self::new(c, c.time_start.into(), duration))
-            })
-            .collect();
-    }
-}
-
-#[derive(Default)]
-struct CacheMatroska(HashMap<ArcPathBuf, Option<Matroska>>);
-
-impl CacheMatroska {
-    fn get(&mut self, src: &ArcPathBuf) -> Option<&Matroska> {
-        if self.0.get(src).is_none() {
-            let v = matroska::open(src).ok();
-            self.0.insert(src.clone(), v);
-        }
-        self.immut(src)
-    }
-
-    fn immut(&self, src: &Path) -> Option<&Matroska> {
-        self.0.get(src).map_or(None, |v| v.as_ref())
-    }
-}
-
-static EXTERNAL_SEGMENTS: LazyLock<RwLock<ExternalSegments>> =
-    LazyLock::new(|| RwLock::new(ExternalSegments::default()));
-
-#[derive(Clone, Debug, Default)]
-struct ExternalSegments {
-    pub map: HashMap<Box<[u8]>, ArcPathBuf>,
-    pub dir_set: HashSet<PathBuf>,
-}
-
-fn find_external_segment(
-    mi: &MediaInfo,
-    cache: &CacheMatroska,
-    dir: &Path,
-    uid: &[u8],
-) -> Result<ArcPathBuf> {
-    return if let Some(res) = get_cached(dir, uid) {
-        res
+    let (start, start_offset) = if zero_start_offset < ACCEPT_VIDEO_OFFSET {
+        (Duration::default(), zero_start_offset)
     } else {
-        insert_all_in_dir(mi, cache, dir);
-        get_cached(dir, uid).unwrap()
+        try_nearest_time_offset(src, i_stream, start, duration)?
     };
 
-    fn get_cached(dir: &Path, uid: &[u8]) -> Option<Result<ArcPathBuf>> {
-        let es = EXTERNAL_SEGMENTS.read().unwrap();
+    let (end, end_offset) = if end_offset.abs() < ACCEPT_VIDEO_OFFSET {
+        (duration, end_offset)
+    } else {
+        try_nearest_time_offset(src, i_stream, end, duration)?
+    };
 
-        if let Some(p) = es.map.get(uid) {
-            Some(Ok(p.clone()))
-        } else if es.dir_set.contains(dir) {
-            Some(Err(error(dir, uid)))
+    return Ok((start, start_offset, end, end_offset));
+
+    fn try_nearest_time_offset(
+        src: &Path,
+        i_stream: usize,
+        target: Duration,
+        duration: Duration,
+    ) -> Result<(Duration, f64)> {
+        let t = target.as_secs_f64();
+        let first = try_i_frame(src, i_stream, target)?;
+        let second = {
+            let offset = (t - first.as_secs_f64()) / 2.0;
+            let t = Duration::from_secs_f64(t + offset);
+            try_i_frame(src, i_stream, t)?
+        };
+        let third = {
+            let t = Duration::from_secs_f64(t + t - first.as_secs_f64());
+            try_i_frame(src, i_stream, t)?
+        };
+
+        // unwraps safe
+        let (nearest, offset) = [first, second, third, duration]
+            .into_iter()
+            .map(|d| {
+                let diff = d.as_secs_f64() - t;
+                (d, diff, diff.abs())
+            })
+            .min_by(|a, b| a.2.partial_cmp(&b.2).unwrap())
+            .map(|t| (t.0, t.1))
+            .unwrap();
+
+        Ok((nearest, offset))
+    }
+
+    fn try_i_frame(src: &Path, i_stream: usize, target: Duration) -> Result<Duration> {
+        let mut ictx = ffmpeg::format::input(src)?;
+        let stream = ictx.stream(i_stream).ok_or(ffmpeg::Error::StreamNotFound)?;
+        let (i, tb) = helpers::ffmpeg_stream_i_tb(&stream);
+
+        let mut opened = helpers::try_ffmpeg_opened(StreamType::Video, &stream)?;
+        let seek_target = (target.as_secs_f64() * f64::from(ffmpeg::ffi::AV_TIME_BASE)) as i64;
+        ictx.seek(seek_target, ..)?;
+        opened.flush();
+
+        for (s, packet) in ictx.packets() {
+            if s.index() != i {
+                continue;
+            }
+
+            opened.send_packet(&packet)?;
+
+            loop {
+                let mut frame = ffmpeg::util::frame::Video::empty();
+                match opened.receive_frame(&mut frame) {
+                    Ok(_) => {
+                        let pts_time = frame.pts().map(|pts| pts as f64 * tb).unwrap_or(0f64);
+                        return Ok(Duration::from_secs_f64(pts_time));
+                    }
+                    Err(ffmpeg::Error::Other { errno: 11 }) => break,
+                    Err(ffmpeg::Error::Eof) => break,
+                    Err(e) => return Err(err!("Ffmpeg decoder error: {}", e)),
+                }
+            }
+        }
+
+        Err(err!("Not found I frame"))
+    }
+}
+
+fn i_end_chp(cfg: &Config, cs: &Vec<RetimingChapter>, mut i: usize) -> usize {
+    let uid = &cs[i].uid;
+    for j in (i + 1)..cs.len() {
+        let eq_uid = uid == &cs[j].uid;
+        let save = cfg.retiming_options.is_save_chapter(&cs[j]);
+
+        if (eq_uid && save) || (!eq_uid && !save) {
+            i = j;
         } else {
-            None
+            break;
+        }
+    }
+    i
+}
+
+fn save_then_src(
+    mi: &MediaInfo,
+    cache: &CacheMatroska,
+    base: &ArcPathBuf,
+    base_dir: &Path,
+    c: &RetimingChapter,
+) -> Option<ArcPathBuf> {
+    if !mi.cfg.retiming_options.is_save_chapter(c) {
+        return None;
+    }
+
+    return match c.uid.as_ref() {
+        Some(u) => match find_external_segment(mi, cache, base_dir, &u) {
+            Ok(p) => Some(p),
+            Err(e) => {
+                warn!("{}. Skipping external segment", e);
+                None
+            }
+        },
+        None => Some(base.clone()),
+    };
+}
+
+fn try_chapters(
+    mi: &mut MediaInfo,
+    cache: &CacheMatroska,
+    base: &Path,
+    i_matroska_chapters: Option<usize>,
+    base_dir: &Path,
+) -> Result<Vec<RetimingChapter>> {
+    let chapters: Vec<RetimingChapter> = if let Some(i) = i_matroska_chapters {
+        let mat = cache.immut(base).unwrap(); // safe: earlier cached
+        let cs = &mat.chapters[i].chapters;
+        let len = cs.len();
+
+        let mut chapters: Vec<RetimingChapter> = Vec::with_capacity(len);
+        let mut push = |c: &matroska::Chapter, start, end| {
+            chapters.push(RetimingChapter {
+                start,
+                end,
+                uid: c.segment_uid.clone(),
+                title: c.display.get(0).map(|t| t.string.clone()),
+            })
+        };
+
+        for i in 0..len {
+            let c = &cs[i];
+            let uid = &c.segment_uid;
+
+            if let Some(end) = c.time_end {
+                push(c, c.time_start.into(), end.into());
+                continue;
+            }
+
+            if let Some(j) = ((i + 1)..len).find(|j| uid == &cs[*j].segment_uid) {
+                let end = cs[j].time_start;
+                push(c, c.time_start.into(), end.into());
+                continue;
+            }
+
+            let duration = match uid {
+                Some(u) => {
+                    let src = find_external_segment(mi, cache, base_dir, u)?;
+                    *mi.try_get(MIPlayableDuration, &src)?
+                }
+                None => *mi.try_get(MIPlayableDuration, &base)?,
+            };
+            push(c, c.time_start.into(), duration);
+        }
+
+        chapters
+    } else {
+        let ictx = ffmpeg::format::input(base)?;
+        ictx.chapters()
+            .map(|c| {
+                let tb = helpers::rational_as_f64(c.time_base());
+                RetimingChapter {
+                    start: Duration::from_secs_f64(c.start() as f64 * tb),
+                    end: Duration::from_secs_f64(c.end() as f64 * tb),
+                    uid: None,
+                    title: c.metadata().get("title").map(|v| v.to_owned()),
+                }
+            })
+            .collect()
+    };
+
+    Ok(chapters)
+}
+
+fn try_base(
+    mi: &mut MediaInfo,
+    order: &StreamsOrder,
+    cache: &mut CacheMatroska,
+) -> Result<(ArcPathBuf, usize, Option<usize>)> {
+    for m in order.iter() {
+        if !m.ty.is_video() {
+            break;
+        }
+        let mat = some_or!(cache.get(&m.key), continue);
+
+        if let Some(i) = mat.chapters.iter().enumerate().find_map(|(i, chp)| {
+            chp.chapters
+                .iter()
+                .any(|c| c.segment_uid.is_some())
+                .then(|| i)
+        }) {
+            return Ok((m.key.clone(), m.i_stream, Some(i)));
         }
     }
 
-    fn insert_all_in_dir(mi: &MediaInfo, cache: &CacheMatroska, dir: &Path) {
-        mi.cfg
-            .input
-            .iter_matroska_in_dir(dir)
-            .par_bridge()
-            .for_each(|m| {
-                if let Some(u) = match cache.immut(&m) {
-                    Some(mat) => mat.info.uid.clone(),
-                    None => matroska::open(&m).ok().map_or(None, |mat| mat.info.uid),
-                } {
-                    let mut es = EXTERNAL_SEGMENTS.write().unwrap();
-                    es.map.insert(u.into(), m.into());
-                }
-            });
-
-        let mut es = EXTERNAL_SEGMENTS.write().unwrap();
-        es.dir_set.insert(dir.to_owned());
+    if !mi.cfg.retiming_options.is_has_parts_cfg() {
+        return Err(MuxError::new_ok());
     }
 
-    fn error(dir: &Path, uid: &[u8]) -> MuxError {
-        err!(
-            "Not found external matroska segment '{:?}' in the directory '{}'",
-            uid,
-            dir.display()
-        )
+    match order.get(0).filter(|m| m.ty.is_video()) {
+        Some(m) => Ok((m.key.clone(), m.i_stream, None)),
+        None => Err(MuxError::new_ok()),
     }
 }

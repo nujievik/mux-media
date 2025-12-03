@@ -229,11 +229,7 @@ fn parse_langs() {
 #[test]
 fn parse_retiming_options() {
     let x_globset = Some("x".parse::<GlobSetPattern>().unwrap());
-    test_parse!(
-        ["--rm-segments", "x"],
-        retiming_options.rm_segments,
-        x_globset.clone()
-    );
+    test_parse!(["--parts", "x"], retiming_options.parts, x_globset.clone());
     test_parse!(["--no-linked"], retiming_options.no_linked, true);
 }
 

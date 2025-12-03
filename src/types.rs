@@ -79,6 +79,15 @@ macro_rules! some_or_return {
     };
 }
 
+macro_rules! some_or {
+    ($x:expr, $or:expr) => {
+        match $x {
+            Some(x) => x,
+            None => $or,
+        }
+    };
+}
+
 pub(crate) mod arc_path_buf;
 pub(crate) mod auto_flags;
 pub(crate) mod chapters;
@@ -91,7 +100,7 @@ pub(crate) mod duration;
 pub(crate) mod extensions;
 pub(crate) mod file_type;
 pub(crate) mod globset_pattern;
-mod helpers;
+pub(crate) mod helpers;
 pub(crate) mod input;
 pub(crate) mod lang_code;
 pub(crate) mod log_level;

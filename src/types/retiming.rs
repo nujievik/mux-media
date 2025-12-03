@@ -28,7 +28,7 @@ pub struct RetimingChapter {
     pub start: Duration,
     pub end: Duration,
     pub uid: Option<Vec<u8>>,
-    pub display: Vec<String>,
+    pub title: Option<String>,
 }
 
 #[derive(Debug)]
@@ -36,7 +36,6 @@ pub struct RetimingPart {
     pub i_start_chp: usize,
     pub i_end_chp: usize,
     pub src: ArcPathBuf,
-    pub _no_retiming: bool,
     pub start: Duration,
     pub start_offset: f64,
     pub end: Duration,

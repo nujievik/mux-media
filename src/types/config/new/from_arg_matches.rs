@@ -230,10 +230,9 @@ impl FromArgMatches for Config {
         }
 
         fn retiming_options(m: &mut ArgMatches) -> RetimingOptions {
-            RetimingOptions {
-                rm_segments: rm!(m, RmSegments, GlobSetPattern),
-                no_linked: flag!(m, NoLinked),
-            }
+            let mut opts = rm_or!(m, Parts, RetimingOptions, RetimingOptions::default);
+            opts.no_linked = flag!(m, NoLinked);
+            opts
         }
 
         fn tool_paths(m: &mut ArgMatches) -> ToolPaths {
@@ -426,7 +425,7 @@ impl FromArgMatches for Config {
         }
 
         fn retiming_options(cfg: &mut Config, m: &mut ArgMatches) {
-            upd!(cfg.retiming_options.rm_segments, m, RmSegments, GlobSetPattern, @opt);
+            upd!(cfg.retiming_options, m, Parts, RetimingOptions);
             upd_flag!(cfg.retiming_options.no_linked, m, NoLinked);
         }
 

@@ -66,6 +66,7 @@ use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;
 
 use types::{
-    retiming::{RetimedStream, Retiming},
+    helpers,
+    retiming::{RetimedStream, Retiming, RetimingChapter},
     stream::supported::StreamsSupported,
 };

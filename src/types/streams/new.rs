@@ -1,5 +1,5 @@
 use super::Streams;
-use crate::{LangCode, MuxError, RangeUsize, Result};
+use crate::{LangCode, MuxError, RangeUsize, Result, helpers};
 use std::{collections::HashSet, str::FromStr};
 
 impl FromStr for Streams {
@@ -7,12 +7,7 @@ impl FromStr for Streams {
 
     fn from_str(s: &str) -> Result<Self> {
         let s = s.trim();
-
-        let (inverse, s) = if s.starts_with('!') {
-            (true, &s[1..])
-        } else {
-            (false, s)
-        };
+        let (inverse, s) = helpers::parse_inverse_str(s);
 
         let mut idxs: Option<HashSet<usize>> = None;
         let mut langs: Option<HashSet<LangCode>> = None;

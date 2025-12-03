@@ -6,6 +6,14 @@ use std::{
     path::{Path, PathBuf},
 };
 
+pub(crate) fn parse_inverse_str(s: &str) -> (bool, &str) {
+    if s.starts_with('!') {
+        (true, &s[1..])
+    } else {
+        (false, s)
+    }
+}
+
 #[inline]
 pub(crate) fn try_write_args_to_json<I, T>(args: I, json: &Path) -> Result<Vec<String>>
 where
@@ -84,6 +92,10 @@ pub(crate) fn try_ffmpeg_opened(
     };
 
     Ok(d)
+}
+
+pub(crate) fn rational_as_f64(r: ffmpeg::Rational) -> f64 {
+    r.numerator() as f64 / r.denominator() as f64
 }
 
 pub(crate) fn ffmpeg_stream_time_base(stream: &ffmpeg::Stream) -> f64 {

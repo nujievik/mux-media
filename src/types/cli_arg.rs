@@ -79,7 +79,7 @@ enum_cli_arg! {
     MaxForceds => "max-forceds",
     Names => "names",
     Langs => "langs",
-    RmSegments => "rm-segments",
+    Parts => "parts",
     NoLinked => "no-linked",
     ListContainers => "list-containers",
     ListLangs => "list-langs",
