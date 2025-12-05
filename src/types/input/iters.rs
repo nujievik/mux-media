@@ -66,7 +66,7 @@ impl Input {
     pub fn collect_fonts(&self) -> Vec<PathBuf> {
         self.dirs[FileType::Font]
             .par_iter()
-            .flat_map(|dir| self.iter_fonts_in_dir(dir).collect::<Vec<_>>())
+            .flat_map_iter(|dir| self.iter_fonts_in_dir(dir))
             .collect()
     }
 
