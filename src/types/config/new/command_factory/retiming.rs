@@ -10,7 +10,7 @@ impl Blocks {
             .arg(
                 Arg::new(undashed!(Parts))
                     .long(undashed!(Parts))
-                    .value_name("n[,m]...")
+                    .value_name("[!]n[,m]...")
                     .help(Msg::HelpParts.as_str_localized())
                     .value_parser(ValueParser::new(RetimingOptions::from_str_parts)),
             )
