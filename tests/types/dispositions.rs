@@ -303,7 +303,14 @@ fn to_ffmpeg_args_set_default() {
         mi.try_insert(data(f)).unwrap();
     }
 
-    let exp = fargs(&["-disposition:0", "+default", "-disposition:1", "+default"]);
+    let exp = fargs(&[
+        "-disposition:0",
+        "+default",
+        "-disposition:1",
+        "+default",
+        "-disposition:2",
+        "+default",
+    ]);
     assert_eq!(exp, Dispositions::to_ffmpeg_args(&mut mi).unwrap());
 }
 
@@ -352,7 +359,7 @@ fn to_ffmpeg_args_set_forceds_true() {
         "-disposition:1",
         "+default+forced",
         "-disposition:2",
-        "+forced",
+        "+default+forced",
     ]);
     assert_eq!(exp, Dispositions::to_ffmpeg_args(&mut mi).unwrap());
 }
@@ -365,6 +372,13 @@ fn to_ffmpeg_args_set_forceds_false() {
         mi.try_insert(data(f)).unwrap();
     }
 
-    let exp = fargs(&["-disposition:0", "+default", "-disposition:1", "+default"]);
+    let exp = fargs(&[
+        "-disposition:0",
+        "+default",
+        "-disposition:1",
+        "+default",
+        "-disposition:2",
+        "+default",
+    ]);
     assert_eq!(exp, Dispositions::to_ffmpeg_args(&mut mi).unwrap());
 }

@@ -1,7 +1,7 @@
 use super::*;
 use crate::{DispositionType, MediaInfo, Result, StreamType, ToFfmpegArgs, markers::*};
 use enum_map::EnumMap;
-use std::{collections::HashSet, ffi::OsString};
+use std::ffi::OsString;
 
 impl ToFfmpegArgs for Dispositions {
     fn append_ffmpeg_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) -> Result<()> {
@@ -15,8 +15,6 @@ impl ToFfmpegArgs for Dispositions {
         let auto = cfg.auto_flags.map_dispositions();
 
         let mut counts: EnumMap<StreamType, EnumMap<DispositionType, usize>> = EnumMap::default();
-        let mut default_audio_langs: HashSet<LangCode> = HashSet::new();
-        let mut has_locale_audio = false;
 
         for (i, m) in order.iter_track().enumerate() {
             let key = &m.key;
@@ -30,19 +28,7 @@ impl ToFfmpegArgs for Dispositions {
                 let v = values.get(&i_key, &stream.lang).or_else(|| {
                     if auto[ty] {
                         let cnt = counts[stream.ty][ty];
-                        let mut v = cnt < values.max(ty);
-
-                        if v && stream.ty == StreamType::Sub && ty == DispositionType::Default {
-                            let it_signs = mi.it_signs(&m.key, stream);
-
-                            if (it_signs && !has_locale_audio)
-                                || (!it_signs && has_locale_audio)
-                                || (!it_signs && default_audio_langs.contains(&*stream.lang))
-                            {
-                                v = false;
-                            }
-                        }
-
+                        let v = cnt < values.max(ty);
                         Some(v)
                     } else {
                         None
@@ -51,12 +37,6 @@ impl ToFfmpegArgs for Dispositions {
 
                 if let Some(true) = v {
                     counts[stream.ty][ty] += 1;
-                    if stream.ty.is_audio() {
-                        default_audio_langs.insert(*stream.lang);
-                        if *stream.lang == cfg.locale {
-                            has_locale_audio = true;
-                        }
-                    }
                 }
 
                 v
