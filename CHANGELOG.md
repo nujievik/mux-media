@@ -8,13 +8,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Common sort internal & external fonts and attachs.
+- Short `--list-langs`.
+- Static build.
+- `.vtt` extension.
+
 ### Changed
 
-- Decrease default parallel muxing to 1 (was 4)
+- Apply `--reencode` to Matroska too.
+- Auto `default`: first track of each type.
+- Decrease default parallel muxing to 1 (was 4).
+- Extend auto-langs to short `--list-langs`.
+- Rename `--user-tools` to `--sys`.
+- Rename full `--list-langs` to `--list-langs-full`.
+- Replace `--rm-segments` to `--parts`.
+- Replace mkvmerge-convenient types to ffmpeg-convenient types.
 
 ### Removed
 
-- Tracks (streams) `enableds` flags.
+- Tools `ffprobe` and `mkvmerge`.
+- Tracks (streams) `enabled` flags.
+- `--raws` config.
+
+### Fixed
+
+- MediaInfo durations.
+- Retiming SSA/ASS subtitles.
+- Retiming single part.
+- Retiming sync.
 
 
 ## [0.15.0] - 2025-09-27
@@ -22,27 +45,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Parallel muxing.
-
 - Limitation parallel muxing with the `--threads <n>` option.
-
 - Retiming (restored, was removed in 0.13.0).
-
 - Remove external linked Matroska segments with the `--no-linked` flag.
-
 - Remove Matroska segments with the `--rm-segments <n[,m]...>` option.
 
 ### Changed
 
 - Auto-read `mux-media.json` config.
-
 - Save config with the `--save-config` flag.
-
 - Load config with the `--json <json>` option.
-
 - Rename `--specials` option to `--raws`.
-
 - Short version of `--locale <lng>` option.
-
 - Short version of `--target <trg>...` option.
 
 ### Removed
@@ -95,7 +109,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - First Rust version.
-
 - Rename to mux-media.
 
 ### Removed
