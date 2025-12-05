@@ -72,22 +72,22 @@ fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Durati
     ];
 
     streams.iter().filter(|s| s.ty == ty).for_each(|s| {
-        let stream = some_or_return!(ictx.streams().skip(s.i).next());
-        let mut opened = some_or_return!(helpers::try_ffmpeg_opened(ty, &stream).ok());
+        let stream = some_or!(ictx.streams().skip(s.i).next(), return);
+        let mut opened = some_or!(helpers::try_ffmpeg_opened(ty, &stream).ok(), return);
         let base = helpers::ffmpeg_stream_time_base(&stream);
 
         seek_targets.iter().for_each(|seek| {
             if duration.0 != 0 {
                 return;
             }
-            some_or_return!(ictx.seek(*seek, ..).ok());
+            some_or!(ictx.seek(*seek, ..).ok(), return);
             opened.flush();
 
             for (stream, packet) in ictx.packets() {
                 if stream.index() != s.i {
                     continue;
                 }
-                some_or_return!(opened.send_packet(&packet).ok());
+                some_or!(opened.send_packet(&packet).ok(), return);
 
                 let iter = if ty.is_audio() {
                     pts_iter_audio(&mut opened)

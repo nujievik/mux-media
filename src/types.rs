@@ -70,15 +70,6 @@ macro_rules! to_json_args {
     }};
 }
 
-macro_rules! some_or_return {
-    ($x:expr) => {
-        match $x {
-            Some(x) => x,
-            None => return,
-        }
-    };
-}
-
 macro_rules! some_or {
     ($x:expr, $or:expr) => {
         match $x {
