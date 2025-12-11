@@ -153,7 +153,6 @@ pub struct MediaGroupedByStem {
 }
 
 pub(super) struct DirIter<'a> {
-    seen: HashSet<ArcPathBuf>,
     walker: IntoIter,
     skip: Option<&'a GlobSet>,
 }
@@ -161,23 +160,11 @@ pub(super) struct DirIter<'a> {
 impl<'a> DirIter<'a> {
     pub fn new(root: &Path, depth: usize, skip: Option<&'a GlobSet>) -> Self {
         let walker = WalkDir::new(root)
-            .follow_links(true)
+            .follow_links(false)
             .max_depth(depth)
             .into_iter();
 
-        Self {
-            seen: HashSet::new(),
-            walker,
-            skip,
-        }
-    }
-
-    #[inline(always)]
-    fn should_skip(&self, path: &Path) -> bool {
-        match self.skip {
-            Some(gs) => gs.is_match(path),
-            None => false,
-        }
+        Self { walker, skip }
     }
 }
 
@@ -190,22 +177,11 @@ impl<'a> Iterator for DirIter<'a> {
                 Ok(entry) if entry.file_type().is_dir() => entry,
                 _ => continue,
             };
-
             let path = entry.path();
 
-            if self.should_skip(path) {
-                continue;
+            if !self.skip.is_some_and(|gs| gs.is_match(path)) {
+                return Some(path.into());
             }
-
-            let path = match std::fs::canonicalize(path) {
-                Ok(path) if !self.seen.contains(path.as_path()) => path,
-                _ => continue,
-            };
-
-            let path = ArcPathBuf::from(path);
-            self.seen.insert(path.clone());
-
-            return Some(path);
         }
         None
     }
