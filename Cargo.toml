@@ -13,7 +13,7 @@ categories = ["command-line-utilities", "multimedia"]
 include = [
     "Cargo.toml",
     "README.md",
-    "assets/win64/.gitkeep",
+    "assets/.gitkeep",
     "build.rs",
     "src/**",
 ]
@@ -27,7 +27,7 @@ atty = "0.2"
 chardet = "0.2"
 clap = "4"
 enum-map = "2"
-ffmpeg-next = { version = "8", features = ["static"] }
+ffmpeg-next = "8"
 globset = "0.4"
 is_default = "0.1.1"
 lazy-regex = "3"
