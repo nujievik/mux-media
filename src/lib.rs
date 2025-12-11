@@ -35,7 +35,7 @@ pub use types::{
     extensions::{EXTENSIONS, Extensions},
     file_type::FileType,
     globset_pattern::GlobSetPattern,
-    input::Input,
+    input::{Input, iters::MediaGroupedByStem},
     lang_code::LangCode,
     log_level::LogLevel,
     media_info::{

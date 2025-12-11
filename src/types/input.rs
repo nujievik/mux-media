@@ -1,4 +1,3 @@
-mod default;
 mod finalize;
 pub(crate) mod iters;
 mod to_args;
@@ -12,7 +11,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// Contains input settings, related functions and methods.
+/// Input configuration.
 ///
 /// # Warning
 ///
@@ -31,6 +30,12 @@ pub struct Input {
 }
 
 impl Input {
+    pub(crate) const DEPTH_DEFAULT: u8 = 16;
+
+    pub(crate) fn try_default_dir() -> Result<PathBuf> {
+        Self::try_canonicalize_and_read(".")
+    }
+
     /// Updates output need number flag.
     ///
     /// When enabled, [`Self::iter_media_grouped_by_stem`] will returns media number as stem.

@@ -19,6 +19,7 @@ use std::collections::HashMap;
 /// This struct is not fully initialized after construction.
 /// You **must** call [`Config::try_finalize_init`] before using some methods.
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Config {
     pub input: Input,
     pub output: Output,
@@ -51,4 +52,9 @@ pub struct ConfigTarget {
     pub forceds: Option<ForcedDispositions>,
     pub names: Option<NameMetadata>,
     pub langs: Option<LangMetadata>,
+}
+
+impl Config {
+    const JSON_NAME: &str = "mux-media.json";
+    const THREADS_DEFAULT: u8 = 1;
 }

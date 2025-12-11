@@ -1,30 +1,58 @@
 use crate::common::*;
 use clap::{error::ErrorKind, *};
 use mux_media::{markers::*, *};
-use std::sync::LazyLock;
+use std::{fs, sync::LazyLock};
 
 static EMPTY_ARGS: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
+
+#[test]
+fn parse_empty_args_input() {
+    let i = &EMPTY_ARGS.input;
+    assert_eq!(&i.dir, &fs::canonicalize(".").unwrap());
+    assert!(i.range.is_none());
+    assert!(i.skip.is_none());
+    assert_eq!(i.depth, 16);
+    assert!(!i.solo);
+    assert!(!i.need_num);
+    assert!(!i.out_need_num);
+    assert!(i.dirs.values().all(|xs| xs.is_empty()));
+}
+
+#[test]
+fn parse_empty_args_output() {
+    let o = &EMPTY_ARGS.output;
+    assert_eq!(&o.dir, &fs::canonicalize(".").unwrap().join("muxed"));
+    assert_eq!(&o.temp_dir, p(""));
+    assert!(o.name_begin.is_empty());
+    assert!(o.name_tail.is_empty());
+    assert_eq!("mkv", o.ext);
+    assert!(o.created_dirs.is_empty());
+}
+
+#[test]
+fn parse_empty_args() {
+    let e = &EMPTY_ARGS;
+    assert_eq!(e.log_level, Default::default());
+    assert!(!e.exit_on_err);
+    assert!(!e.save_config);
+    assert!(!e.reencode);
+    assert_eq!(1, e.threads);
+    assert_eq!(&e.auto_flags, &Default::default());
+    assert_eq!(&e.streams, &Default::default());
+    assert_eq!(&e.defaults, &Default::default());
+    assert_eq!(&e.forceds, &Default::default());
+    assert_eq!(&e.names, &Default::default());
+    assert_eq!(&e.langs, &Default::default());
+    assert_eq!(&e.retiming_options, &Default::default());
+    assert_eq!(&e.targets, &Default::default());
+    assert_eq!(&e.tool_paths, &Default::default());
+    assert_eq!(&e.muxer, &Default::default());
+    assert!(e.is_output_constructed_from_input);
+}
 
 fn assert_eq_wo_locale(mut left: Config, right: &Config) {
     left.locale = right.locale;
     assert_eq!(&left, right);
-}
-
-#[test]
-fn test_empty_args() {
-    let exp = Config {
-        input: Input {
-            dir: EMPTY_ARGS.input.dir.clone(),
-            ..Default::default()
-        },
-        output: Output {
-            dir: EMPTY_ARGS.output.dir.clone(),
-            ..Default::default()
-        },
-        is_output_constructed_from_input: true,
-        ..Default::default()
-    };
-    assert_eq_wo_locale(exp, &*EMPTY_ARGS);
 }
 
 fn assert_ok_exit(args: &[&str]) {

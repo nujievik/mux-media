@@ -16,8 +16,10 @@ impl StreamsOrder {
     ///
     /// - Not cached any media file in the [`MediaInfo`].
     /// ```
+    /// use clap::Parser;
     /// use mux_media::*;
-    /// let cfg = Config::default();
+    ///
+    /// let cfg = Config::parse_from::<_, &str>([]);
     /// let mut mi = MediaInfo::new(&cfg, 0);
     /// StreamsOrder::new(&mut mi).unwrap_err();
     /// ```

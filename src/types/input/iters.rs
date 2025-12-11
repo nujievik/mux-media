@@ -59,9 +59,11 @@ impl Input {
     /// If it wasn’t this will simply return an empty vector.
     ///
     /// ```
-    /// # use mux_media::Config;
-    /// let cfg = Config::default();
-    /// assert!(cfg.input.collect_fonts().is_empty());
+    /// use clap::Parser;
+    /// use mux_media::Config;
+    ///
+    /// let i = Config::parse_from::<_, &str>([]).input;
+    /// assert!(i.collect_fonts().is_empty());
     /// ```
     pub fn collect_fonts(&self) -> Vec<PathBuf> {
         self.dirs[FileType::Font]
@@ -78,9 +80,11 @@ impl Input {
     /// If it wasn’t, the iterator will yield no items.
     ///
     /// ```
-    /// # use mux_media::Config;
-    /// let cfg = Config::default();
-    /// assert_eq!(None, cfg.input.iter_media_grouped_by_stem().next());
+    /// use clap::Parser;
+    /// use mux_media::Config;
+    ///
+    /// let i = Config::parse_from::<_, &str>([]).input;
+    /// assert_eq!(None, i.iter_media_grouped_by_stem().next());
     /// ```
     pub fn iter_media_grouped_by_stem(&self) -> impl Iterator<Item = MediaGroupedByStem> {
         let mut media_number = self.init_media_number();

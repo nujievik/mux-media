@@ -258,7 +258,7 @@ fn test_to_json_args() {
         let add_args1 = vec!["--locale", "eng", "--input", s_dir];
         let add_args2 = vec!["--save-config"];
 
-        let json = d.clone().join(Config::JSON_NAME);
+        let json = d.clone().join("mux-media.json");
 
         let mc_args = append_str_vecs([add_args1.clone(), add_args2.clone(), right]);
         let mc = cfg(mc_args);

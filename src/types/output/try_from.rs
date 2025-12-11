@@ -312,6 +312,10 @@ impl Output {
 }
 
 impl Output {
+    fn default_ext() -> OsString {
+        "mkv".into()
+    }
+
     #[inline(always)]
     fn make_dir_path(input_dir: impl AsRef<Path>) -> PathBuf {
         let p = input_dir.as_ref().join("muxed");

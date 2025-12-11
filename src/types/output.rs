@@ -1,4 +1,3 @@
-mod default;
 mod to_args;
 mod try_finalize_init;
 mod try_from;
@@ -65,10 +64,18 @@ impl Output {
     ///
     /// This is the case when either [`Self::name_begin`] or [`Self::name_tail`] is non-empty.
     /// ```
-    /// # use mux_media::Output;
-    /// assert!(!Output::default().need_num());
-    /// assert!(Output { name_begin: "x".into(), ..Default::default() }.need_num());
-    /// assert!(Output { name_tail: "x".into(), ..Default::default() }.need_num());
+    /// use clap::Parser;
+    /// use mux_media::Config;
+    ///
+    /// let mut o = Config::parse_from::<_, &str>([]).output;
+    /// assert!(!o.need_num());
+    ///
+    /// o.name_begin = "x".into();
+    /// assert!(o.need_num());
+    /// o.name_begin = Default::default();
+    ///
+    /// o.name_tail = "x".into();
+    /// assert!(o.need_num());
     /// ```
     #[inline]
     pub fn need_num(&self) -> bool {
