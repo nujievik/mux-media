@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto `default`: first track of each type.
 - Decrease default parallel muxing to 1 (was 4).
 - Extend auto-langs to short `--list-langs`.
+- Rename `--threads` to `--jobs`.
 - Rename `--user-tools` to `--sys`.
 - Rename full `--list-langs` to `--list-langs-full`.
 - Replace `--rm-segments` to `--parts`.

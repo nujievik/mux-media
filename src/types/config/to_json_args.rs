@@ -52,9 +52,9 @@ impl ToJsonArgs for Config {
 
         to_json_args!(@push_true, self, args; exit_on_err, ExitOnErr, save_config, SaveConfig);
 
-        if self.threads != Self::THREADS_DEFAULT {
-            args.push(to_json_args!(Threads));
-            args.push(format!("{}", self.threads));
+        if self.jobs != Self::JOBS_DEFAULT {
+            args.push(to_json_args!(Jobs));
+            args.push(format!("{}", self.jobs));
         }
 
         append_args_from_fields!(

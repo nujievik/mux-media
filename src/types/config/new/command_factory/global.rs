@@ -60,10 +60,10 @@ impl Blocks {
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(undashed!(Threads))
-                    .long(undashed!(Threads))
+                Arg::new(undashed!(Jobs))
+                    .long(undashed!(Jobs))
                     .value_name("n")
-                    .help(Msg::HelpThreads.as_str_localized())
+                    .help(Msg::HelpJobs.as_str_localized())
                     .value_parser(clap::value_parser!(u8).range(1..)),
             );
 

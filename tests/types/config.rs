@@ -36,7 +36,7 @@ fn parse_empty_args() {
     assert!(!e.exit_on_err);
     assert!(!e.save_config);
     assert!(!e.reencode);
-    assert_eq!(1, e.threads);
+    assert_eq!(1, e.jobs);
     assert_eq!(&e.auto_flags, &Default::default());
     assert_eq!(&e.streams, &Default::default());
     assert_eq!(&e.defaults, &Default::default());
@@ -140,7 +140,7 @@ fn parse_global() {
     test_parse!(["-e"], exit_on_err, true);
     test_parse!(["--save-config"], save_config, true);
     test_parse!(["--reencode"], reencode, true);
-    test_parse!(["--threads", "1"], threads, 1);
+    test_parse!(["--jobs", "8"], jobs, 8);
 }
 
 #[test]

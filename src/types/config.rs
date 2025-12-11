@@ -28,7 +28,7 @@ pub struct Config {
     pub exit_on_err: bool,
     pub save_config: bool,
     pub reencode: bool,
-    pub threads: u8,
+    pub jobs: u8,
     pub auto_flags: AutoFlags,
     pub streams: Streams,
     pub chapters: Chapters,
@@ -56,5 +56,5 @@ pub struct ConfigTarget {
 
 impl Config {
     const JSON_NAME: &str = "mux-media.json";
-    const THREADS_DEFAULT: u8 = 1;
+    const JOBS_DEFAULT: u8 = 1;
 }

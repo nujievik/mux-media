@@ -176,7 +176,7 @@ impl FromArgMatches for Config {
                 exit_on_err: flag!(m, ExitOnErr),
                 save_config: flag!(m, SaveConfig),
                 reencode: flag!(m, Reencode),
-                threads: rm_or!(m, Threads, u8, || Config::THREADS_DEFAULT),
+                jobs: rm_or!(m, Jobs, u8, || Config::JOBS_DEFAULT),
                 auto_flags: auto_flags(m),
                 streams: streams!(m, Streams, NoStreams),
                 chapters: get_chapters(m).unwrap_or_else(|| Chapters::default()),
@@ -279,7 +279,7 @@ impl FromArgMatches for Config {
         upd_flag!(self.exit_on_err, m, ExitOnErr);
         upd_flag!(self.save_config, m, SaveConfig);
         upd_flag!(self.reencode, m, Reencode);
-        upd!(self.threads, m, Threads, u8);
+        upd!(self.jobs, m, Jobs, u8);
 
         auto_flags(self, m);
         if !m.contains_id(undashed!(Target)) {

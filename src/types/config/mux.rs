@@ -29,7 +29,7 @@ impl Config {
         let cnt = Mutex::new(0usize);
         let it = Mutex::new(self.input.iter_media_grouped_by_stem());
 
-        (0..self.threads).into_par_iter().try_for_each(|t| {
+        (0..self.jobs).into_par_iter().try_for_each(|t| {
             let mut mi = MediaInfo::new(self, t);
             loop {
                 let g = { it.lock().unwrap().next() };

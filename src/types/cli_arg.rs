@@ -40,7 +40,7 @@ enum_cli_arg! {
     Json => "json",
     SaveConfig => "save-config",
     Reencode => "reencode",
-    Threads => "threads",
+    Jobs => "jobs",
     Pro => "pro",
     HelpAutoDefaults => "auto-defaults / --no-auto-defaults",
     AutoDefaults => "auto-defaults",
