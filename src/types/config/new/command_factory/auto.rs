@@ -55,7 +55,7 @@ enum AutoFlag {
     AutoForceds,
     AutoNames,
     AutoLangs,
-    AutoCharsets,
+    AutoEncs,
 }
 
 impl AutoFlag {
@@ -65,7 +65,7 @@ impl AutoFlag {
             Self::AutoForceds => CliArg::HelpAutoForceds,
             Self::AutoNames => CliArg::HelpAutoNames,
             Self::AutoLangs => CliArg::HelpAutoLangs,
-            Self::AutoCharsets => CliArg::HelpAutoCharsets,
+            Self::AutoEncs => CliArg::HelpAutoEncs,
         }
     }
 
@@ -75,7 +75,7 @@ impl AutoFlag {
             Self::AutoForceds => CliArg::AutoForceds,
             Self::AutoNames => CliArg::AutoNames,
             Self::AutoLangs => CliArg::AutoLangs,
-            Self::AutoCharsets => CliArg::AutoCharsets,
+            Self::AutoEncs => CliArg::AutoEncs,
         }
     }
 
@@ -85,7 +85,7 @@ impl AutoFlag {
             Self::AutoForceds => CliArg::NoAutoForceds,
             Self::AutoNames => CliArg::NoAutoNames,
             Self::AutoLangs => CliArg::NoAutoLangs,
-            Self::AutoCharsets => CliArg::NoAutoCharsets,
+            Self::AutoEncs => CliArg::NoAutoEncs,
         }
     }
 
@@ -95,7 +95,7 @@ impl AutoFlag {
             Self::AutoForceds => Msg::HelpAutoForceds,
             Self::AutoNames => Msg::HelpAutoNames,
             Self::AutoLangs => Msg::HelpAutoLangs,
-            Self::AutoCharsets => Msg::HelpAutoCharsets,
+            Self::AutoEncs => Msg::HelpAutoEncs,
         }
         .as_str_localized()
     }

@@ -89,7 +89,7 @@ impl ToFfmpegArgs for StreamsOrder {
 }
 
 fn get_sub_charenc<'a>(mi: &'a mut MediaInfo, src: &Path) -> Option<&'a str> {
-    if *mi.cfg.auto_flags.charsets {
+    if *mi.cfg.auto_flags.encs {
         mi.get(MISubCharEncoding, src)
             .and_then(|enc| enc.get_ffmpeg_sub_charenc())
     } else {

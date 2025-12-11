@@ -9,7 +9,7 @@ pub struct AutoFlags {
     pub forceds: Value<bool>,
     pub names: Value<bool>,
     pub langs: Value<bool>,
-    pub charsets: Value<bool>,
+    pub encs: Value<bool>,
 }
 
 impl AutoFlags {
@@ -26,7 +26,7 @@ impl Default for AutoFlags {
             forceds: Value::Auto(true),
             names: Value::Auto(true),
             langs: Value::Auto(true),
-            charsets: Value::Auto(true),
+            encs: Value::Auto(true),
         }
     }
 }
@@ -37,7 +37,7 @@ impl IsDefault for AutoFlags {
             && matches!(self.forceds, Value::Auto(true))
             && matches!(self.names, Value::Auto(true))
             && matches!(self.langs, Value::Auto(true))
-            && matches!(self.charsets, Value::Auto(true))
+            && matches!(self.encs, Value::Auto(true))
     }
 }
 
@@ -65,7 +65,7 @@ impl ToJsonArgs for AutoFlags {
             self.forceds, AutoForceds, NoAutoForceds,
             self.names, AutoNames, NoAutoNames,
             self.langs, AutoLangs, NoAutoLangs,
-            self.charsets, AutoCharsets, NoAutoCharsets
+            self.encs, AutoEncs, NoAutoEncs
         );
     }
 }

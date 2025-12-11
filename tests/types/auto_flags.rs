@@ -13,7 +13,7 @@ fn test_empty() {
     assert_eq!(Value::Auto(true), f.forceds);
     assert_eq!(Value::Auto(true), f.names);
     assert_eq!(Value::Auto(true), f.langs);
-    assert_eq!(Value::Auto(true), f.charsets);
+    assert_eq!(Value::Auto(true), f.encs);
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn test_pro() {
     assert_eq!(Value::Auto(false), f.forceds);
     assert_eq!(Value::Auto(false), f.names);
     assert_eq!(Value::Auto(false), f.langs);
-    assert_eq!(Value::Auto(false), f.charsets);
+    assert_eq!(Value::Auto(false), f.encs);
 }
 
 #[test]
@@ -34,7 +34,7 @@ fn test_manual_on() {
     assert_eq!(v, new(&["--auto-forceds"]).forceds);
     assert_eq!(v, new(&["--auto-names"]).names);
     assert_eq!(v, new(&["--auto-langs"]).langs);
-    assert_eq!(v, new(&["--auto-charsets"]).charsets);
+    assert_eq!(v, new(&["--auto-encs"]).encs);
 }
 
 #[test]
@@ -44,7 +44,7 @@ fn test_manual_off() {
     assert_eq!(v, new(&["--no-auto-forceds"]).forceds);
     assert_eq!(v, new(&["--no-auto-names"]).names);
     assert_eq!(v, new(&["--no-auto-langs"]).langs);
-    assert_eq!(v, new(&["--no-auto-charsets"]).charsets);
+    assert_eq!(v, new(&["--no-auto-encs"]).encs);
 }
 
 #[test]
@@ -54,7 +54,7 @@ fn test_manual_on_with_pro() {
     assert_eq!(v, new(&["--pro", "--auto-forceds"]).forceds);
     assert_eq!(v, new(&["--pro", "--auto-names"]).names);
     assert_eq!(v, new(&["--pro", "--auto-langs"]).langs);
-    assert_eq!(v, new(&["--pro", "--auto-charsets"]).charsets);
+    assert_eq!(v, new(&["--pro", "--auto-encs"]).encs);
 }
 
 crate::build_test_to_json_args!(
@@ -64,10 +64,10 @@ crate::build_test_to_json_args!(
     vec!["--no-auto-forceds"],
     vec!["--no-auto-names"],
     vec!["--no-auto-langs"],
-    vec!["--no-auto-charsets"],
+    vec!["--no-auto-encs"],
     vec!["--pro", "--auto-defaults"],
     vec!["--pro", "--auto-forceds"],
     vec!["--pro", "--auto-names"],
     vec!["--pro", "--auto-langs"],
-    vec!["--pro", "--auto-charsets"],
+    vec!["--pro", "--auto-encs"],
 );
