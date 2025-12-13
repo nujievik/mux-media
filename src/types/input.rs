@@ -11,7 +11,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// Input configuration.
+/// An input configuration.
 ///
 /// # Warning
 ///

@@ -5,7 +5,7 @@ mod to_json_args;
 use crate::{IsDefault, Lang, RangeUsize};
 use std::collections::HashSet;
 
-/// Streams config.
+/// A streams configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct Streams {
     pub no_flag: bool,

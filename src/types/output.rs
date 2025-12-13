@@ -10,7 +10,7 @@ use std::{
     path::PathBuf,
 };
 
-/// Contains output paths components, related functions and methods.
+/// An output configuration.
 ///
 /// # Warning
 ///
@@ -18,6 +18,7 @@ use std::{
 /// You **must** call [`Self::try_finalize_init`] before using some methods
 /// (e.g. [`Self::temp_dir`]).
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Output {
     pub dir: PathBuf,
     pub temp_dir: PathBuf,

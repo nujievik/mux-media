@@ -1,4 +1,4 @@
-/// Kind of [`MuxError`](crate::MuxError).
+/// A kind of [`MuxError`](crate::MuxError).
 #[derive(Clone, Default, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum MuxErrorKind {

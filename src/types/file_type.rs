@@ -1,7 +1,8 @@
 use enum_map::Enum;
 
-/// Type of file.
+/// A type of file.
 #[derive(Copy, Clone, Debug, Enum)]
+#[non_exhaustive]
 pub enum FileType {
     Font,
     Media,

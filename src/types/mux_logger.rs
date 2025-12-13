@@ -11,7 +11,7 @@ static INIT: Once = Once::new();
 static STDERR_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stderr).is_some());
 static STDOUT_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stdout).is_some());
 
-/// Marker wrapper around the [`log`] logger.
+/// A logger imlementing the [`log`] logger.
 pub struct MuxLogger;
 
 impl MuxLogger {

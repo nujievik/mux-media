@@ -8,7 +8,7 @@ use crate::{
 use std::{ffi::OsString, path::Path};
 use strum_macros::Display;
 
-/// Supported muxers.
+/// A supported muxer.
 #[derive(Copy, Clone, Debug, Default, Display, PartialEq, IsDefault)]
 #[non_exhaustive]
 pub enum Muxer {

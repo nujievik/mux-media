@@ -1,7 +1,7 @@
 use crate::{DispositionType, IsDefault, ToJsonArgs, Value};
 use enum_map::{EnumMap, enum_map};
 
-/// Auto-flags configuration.
+/// An auto-flags configuration.
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub struct AutoFlags {

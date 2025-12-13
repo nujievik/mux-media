@@ -1,6 +1,6 @@
 macro_rules! enum_cli_arg {
     ($( $var:ident => $s:expr ),* $(,)?) => {
-        /// An enum of CLI arguments.
+        /// A CLI argument.
         #[derive(Copy, Clone, Debug)]
         #[non_exhaustive]
         pub enum CliArg {
@@ -88,7 +88,7 @@ enum_cli_arg! {
     Help => "help",
 }
 
-/// Returns an [`CliArg`] string with leading dashes (e.g. `"--input"`).
+/// Returns a [`CliArg`] string with leading dashes (e.g. `"--input"`).
 #[macro_export]
 macro_rules! dashed {
     ($arg:ident) => {
@@ -96,7 +96,7 @@ macro_rules! dashed {
     };
 }
 
-/// Returns an [`CliArg`] string without leading dashes (e.g. `"input"`).
+/// Returns a [`CliArg`] string without leading dashes (e.g. `"input"`).
 #[macro_export]
 macro_rules! undashed {
     ($arg:ident) => {

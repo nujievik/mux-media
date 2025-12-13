@@ -1,7 +1,7 @@
 use crate::{MuxError, Tool};
 use std::{fmt, process::Output};
 
-/// Represents the output of an executed [`Command`](std::process::Command).
+/// A representation output of an executed [`Command`](std::process::Command).
 #[derive(Debug)]
 #[non_exhaustive]
 pub struct ToolOutput {

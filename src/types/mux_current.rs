@@ -1,5 +1,6 @@
 use crate::MuxError;
 
+/// A result of mux current files.
 pub enum MuxCurrent<T> {
     Continue,
     Ok(T),

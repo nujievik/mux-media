@@ -3,7 +3,7 @@ mod to_json_args;
 
 use crate::{GlobSetPattern, IsDefault, RetimingChapter};
 
-/// Config of retiming options.
+/// A retiming configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct RetimingOptions {
     pub inverse: bool,

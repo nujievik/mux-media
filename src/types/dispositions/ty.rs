@@ -1,6 +1,7 @@
 use enum_map::Enum;
 use strum_macros::{AsRefStr, EnumIter};
 
+/// A type of disposition.
 #[derive(Copy, Clone, Debug, PartialEq, AsRefStr, Enum, EnumIter)]
 #[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]

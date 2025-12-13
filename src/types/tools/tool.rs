@@ -3,7 +3,7 @@ use enum_map::Enum;
 use std::fmt;
 use strum_macros::{AsRefStr, EnumIter, EnumString};
 
-/// External binary tools used by crate.
+/// An external tool.
 #[derive(Copy, Clone, Debug, Hash, Eq, PartialEq, AsRefStr, Enum, EnumIter, EnumString)]
 #[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]

@@ -12,7 +12,7 @@ use crate::{
 };
 use std::collections::HashMap;
 
-/// Mux configuration.
+/// A configuration.
 ///
 /// # Warning
 ///
@@ -43,7 +43,7 @@ pub struct Config {
     pub is_output_constructed_from_input: bool,
 }
 
-/// Mux configuration for a target.
+/// A configuration for a [`Target`].
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 #[non_exhaustive]
 pub struct ConfigTarget {

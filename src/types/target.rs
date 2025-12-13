@@ -7,7 +7,7 @@ use std::{
     path::Path,
 };
 
-/// Target of mux settings.
+/// A target of [`ConfigTarget`](crate::ConfigTarget).
 #[derive(Clone, Debug)]
 pub enum Target {
     Global,

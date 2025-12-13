@@ -7,7 +7,7 @@ use kind::MuxErrorKind;
 use message::{MuxErrorMessage, MuxErrorMessageLocalized};
 use std::fmt;
 
-/// Error type used throughout the crate.
+/// A error.
 #[derive(Clone, Debug, PartialEq)]
 pub struct MuxError {
     message: Option<MuxErrorMessage>,

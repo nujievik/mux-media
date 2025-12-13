@@ -9,14 +9,15 @@ use std::{
     fmt::{Debug, Display},
 };
 
-/// Names configuration.
+/// A `title` metadata configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct NameMetadata(pub Metadata<String>);
 
-/// Langs configuration.
+/// A `language` metadata configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct LangMetadata(pub Metadata<Lang>);
 
+/// A metadata configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct Metadata<T>
 where

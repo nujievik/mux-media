@@ -1,7 +1,7 @@
 use crate::{IsDefault, MuxError, ToJsonArgs, dashed, types::helpers};
 use std::path::{Path, PathBuf};
 
-/// Chapters configuration.
+/// A chapters configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 #[non_exhaustive]
 pub struct Chapters {

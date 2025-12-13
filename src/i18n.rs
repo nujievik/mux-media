@@ -17,7 +17,7 @@ mod as_rus;
 pub(crate) mod logs;
 mod pubs;
 
-/// Localized messages.
+/// A message with localized methods.
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Msg {

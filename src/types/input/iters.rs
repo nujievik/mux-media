@@ -149,6 +149,7 @@ impl Input {
     }
 }
 
+/// A media files that share a common stem.
 #[derive(Debug, PartialEq)]
 pub struct MediaGroupedByStem {
     pub files: Vec<PathBuf>,

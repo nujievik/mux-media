@@ -5,6 +5,7 @@ use enum_map::{Enum, EnumMap};
 use std::path::Path;
 use strum_macros::{AsRefStr, EnumIter};
 
+/// A type of stream.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, AsRefStr, Enum, EnumIter)]
 #[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]

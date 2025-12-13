@@ -1,7 +1,7 @@
 use crate::IsDefault;
 use std::{fmt, ops::Deref};
 
-/// A value marked as either auto or user-defined.
+/// A value, either auto or user-defined.
 #[derive(Clone, Debug, PartialEq)]
 pub enum Value<T> {
     Auto(T),

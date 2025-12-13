@@ -9,7 +9,7 @@ use cache::{CacheMI, CacheMIOfFile, CacheMIOfGroup, CacheState};
 use rayon::prelude::*;
 use std::{collections::HashMap, path::Path};
 
-/// Extracts and caches media information.
+/// Extracts and caches a media information.
 ///
 /// User-defined settings from [`MediaInfo::cfg`] take precedence over extracted values.
 #[derive(Debug)]

@@ -2,7 +2,7 @@ use crate::{Config, Msg, MuxLogger, Result, TryFinalizeInit, ffmpeg};
 use log::{info, warn};
 use std::path::{MAIN_SEPARATOR, PathBuf};
 
-/// Byte form of [`MAIN_SEPARATOR`].
+/// The byte form of the [`MAIN_SEPARATOR`].
 /// ```
 /// # use mux_media::SEP_BYTES;
 /// # use std::path::MAIN_SEPARATOR;
@@ -10,7 +10,7 @@ use std::path::{MAIN_SEPARATOR, PathBuf};
 /// ```
 pub const SEP_BYTES: &[u8] = &[MAIN_SEPARATOR as u8];
 
-/// String form of [`MAIN_SEPARATOR`].
+/// The string form of the [`MAIN_SEPARATOR`].
 /// ```
 /// # use mux_media::SEP_STR;
 /// # use std::path::MAIN_SEPARATOR;

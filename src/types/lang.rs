@@ -4,14 +4,14 @@ mod new;
 use crate::IsDefault;
 use strum_macros::AsRefStr;
 
-/// Language.
+/// A language, either [`LangCode`] or any string.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 pub enum Lang {
     Code(LangCode),
     Other(Box<str>),
 }
 
-/// Language codes of ISO 639-1 in ISO 639-3 representation and undeterminated code (`Und`).
+/// A language code of ISO 639-1 in ISO 639-3 representation or undeterminated code (`Und`).
 #[derive(Copy, Clone, Debug, Default, Eq, Hash, PartialEq, AsRefStr, IsDefault)]
 #[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]

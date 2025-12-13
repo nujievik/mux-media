@@ -8,15 +8,15 @@ pub(crate) mod ty;
 use crate::{IsDefault, Lang, RangeUsize};
 use std::collections::HashMap;
 
-/// Config `default` dispositions.
+/// A `default` dispositions configuraion.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct DefaultDispositions(pub Dispositions);
 
-/// Config `forced` dispositions.
+/// A `forced` dispositions configuraion.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct ForcedDispositions(pub Dispositions);
 
-/// Common interface for settings of track flags by type.
+/// A dispositions configuraion.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct Dispositions {
     pub max_in_auto: Option<usize>,
