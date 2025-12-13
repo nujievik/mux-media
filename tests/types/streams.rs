@@ -30,10 +30,8 @@ fn parse_no_flag_aliases() {
         ("-M", StreamType::Attach),
     ] {
         let t = Target::Stream(ty);
-        let val = ConfigTarget {
-            streams: Some(xs.clone()),
-            ..Default::default()
-        };
+        let mut val = ConfigTarget::default();
+        val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
@@ -90,10 +88,8 @@ fn parse_idxs_aliases() {
         ("-m0", StreamType::Attach),
     ] {
         let t = Target::Stream(ty);
-        let val = ConfigTarget {
-            streams: Some(xs.clone()),
-            ..Default::default()
-        };
+        let mut val = ConfigTarget::default();
+        val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
@@ -162,10 +158,8 @@ fn parse_ranges_aliases() {
         ("-m0-1", StreamType::Attach),
     ] {
         let t = Target::Stream(ty);
-        let val = ConfigTarget {
-            streams: Some(xs.clone()),
-            ..Default::default()
-        };
+        let mut val = ConfigTarget::default();
+        val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
@@ -220,10 +214,8 @@ fn parse_langs_aliases() {
         ("-meng", StreamType::Attach),
     ] {
         let t = Target::Stream(ty);
-        let val = ConfigTarget {
-            streams: Some(xs.clone()),
-            ..Default::default()
-        };
+        let mut val = ConfigTarget::default();
+        val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
@@ -279,10 +271,8 @@ fn parse_target_switching() {
     .into_iter()
     .map(|ty| {
         let t = Target::Stream(ty);
-        let val = ConfigTarget {
-            streams: Some(xs.clone()),
-            ..Default::default()
-        };
+        let mut val = ConfigTarget::default();
+        val.streams = Some(xs.clone());
         (t, val)
     })
     .collect::<HashMap<_, _>>();

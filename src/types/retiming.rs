@@ -14,7 +14,7 @@ pub struct Retiming<'a, 'b> {
     // without json for parallel run.
     pub tools: Tools<'a>,
     pub media_info: &'b MediaInfo<'a>,
-    pub thread: u8,
+    pub job: u8,
     pub base: ArcPathBuf,
     pub i_base_stream: usize,
     pub chapters: Vec<RetimingChapter>,

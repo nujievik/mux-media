@@ -21,6 +21,7 @@ pub struct CacheMI {
 
 /// Cache of [`MediaInfo`](crate::MediaInfo) common for stem-grouped files.
 #[derive(Clone, Debug, Default, IsDefault)]
+#[non_exhaustive]
 pub struct CacheMIOfGroup {
     pub stem: CacheState<OsString>,
     pub streams_order: CacheState<StreamsOrder>,
@@ -28,6 +29,7 @@ pub struct CacheMIOfGroup {
 
 /// Cache of [`MediaInfo`](crate::MediaInfo) is separate for each file.
 #[derive(Clone, Debug, Default, IsDefault)]
+#[non_exhaustive]
 pub struct CacheMIOfFile {
     pub streams: CacheState<Vec<Stream>>,
     pub path_tail: CacheState<String>,

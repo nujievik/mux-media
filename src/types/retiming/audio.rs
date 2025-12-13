@@ -16,9 +16,9 @@ impl Retiming<'_, '_> {
 
         let txt = self
             .temp_dir
-            .join(format!("{}-aud-splits-{}.txt", self.thread, i));
+            .join(format!("{}-aud-splits-{}.txt", self.job, i));
 
-        let dest = self.temp_dir.join(format!("{}-aud-{}.mka", self.thread, i));
+        let dest = self.temp_dir.join(format!("{}-aud-{}.mka", self.job, i));
         self.try_concat(&splits, &txt, &dest)?;
 
         Ok(RetimedStream {
@@ -35,7 +35,7 @@ impl Retiming<'_, '_> {
             .map(|(i, p)| {
                 let dest = self
                     .temp_dir
-                    .join(format!("{}-aud-base-{}-{}.mka", self.thread, i_stream, i));
+                    .join(format!("{}-aud-base-{}-{}.mka", self.job, i_stream, i));
 
                 try_split(&self.tools, &p.src, i_stream, &dest, p.start, p.end)?;
                 Ok(dest)
@@ -55,7 +55,7 @@ impl Retiming<'_, '_> {
                 }
                 let dest = self
                     .temp_dir
-                    .join(format!("{}-aud-{}-{}.mka", self.thread, i, i_chp));
+                    .join(format!("{}-aud-{}-{}.mka", self.job, i, i_chp));
 
                 let chp_nonuid = self.chapters_nonuid(i_chp);
 

@@ -1,8 +1,9 @@
 use crate::{DispositionType, IsDefault, ToJsonArgs, Value};
 use enum_map::{EnumMap, enum_map};
 
-/// Values of auto-settings flags.
+/// Auto-flags configuration.
 #[derive(Copy, Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct AutoFlags {
     pub pro: Value<bool>,
     pub defaults: Value<bool>,

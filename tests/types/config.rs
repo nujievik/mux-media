@@ -160,10 +160,8 @@ fn parse_no_streams() {
     .iter()
     .for_each(|(trg, arg)| {
         let trg = Target::Stream(trg.parse::<StreamType>().unwrap());
-        let val = ConfigTarget {
-            streams: Some(xs.clone()),
-            ..Default::default()
-        };
+        let mut val = ConfigTarget::default();
+        val.streams = Some(xs.clone());
 
         let mut exp = (*EMPTY_ARGS).clone();
         exp.targets.get_or_insert_default().insert(trg, val);
@@ -189,10 +187,8 @@ fn parse_streams() {
     .iter()
     .for_each(|(trg, arg)| {
         let trg = Target::Stream(trg.parse::<StreamType>().unwrap());
-        let val = ConfigTarget {
-            streams: Some(xs.clone()),
-            ..Default::default()
-        };
+        let mut val = ConfigTarget::default();
+        val.streams = Some(xs.clone());
 
         let mut exp = (*EMPTY_ARGS).clone();
         exp.targets.get_or_insert_default().insert(trg, val);

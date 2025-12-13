@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply `--reencode` to Matroska too.
 - Auto `default`: first track of each type.
 - Decrease default jobs to 1 (was 4).
+- Indexes of each stream type starts from 0.
 - Rename (`--auto-charsets`, `--no-auto-charsets`) to (`--auto-encs`, `--no-auto-encs`).
 - Rename `--json` to `--load`.
 - Rename `--threads` to `--jobs`.

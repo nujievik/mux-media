@@ -4,7 +4,9 @@ pub(crate) mod ty;
 
 use crate::{CodecId, Lang, StreamType, Value};
 
+/// A stream info.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub struct Stream {
     pub ty: StreamType,
 

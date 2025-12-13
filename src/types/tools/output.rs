@@ -3,6 +3,7 @@ use std::{fmt, process::Output};
 
 /// Represents the output of an executed [`Command`](std::process::Command).
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct ToolOutput {
     pub tool: Tool,
     pub success: bool,

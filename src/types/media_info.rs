@@ -13,21 +13,22 @@ use std::{collections::HashMap, path::Path};
 ///
 /// User-defined settings from [`MediaInfo::cfg`] take precedence over extracted values.
 #[derive(Debug)]
+#[non_exhaustive]
 pub struct MediaInfo<'a> {
     pub cfg: &'a Config,
     pub tools: Tools<'a>,
     pub cache: CacheMI,
-    /// Thread number. Separates access to temp files.
-    pub thread: u8,
+    /// Job number. Separates access to temp files.
+    pub job: u8,
 }
 
 impl MediaInfo<'_> {
-    pub fn new<'a>(cfg: &'a Config, thread: u8) -> MediaInfo<'a> {
+    pub fn new<'a>(cfg: &'a Config, job: u8) -> MediaInfo<'a> {
         MediaInfo {
             cfg,
             tools: cfg.into(),
             cache: Default::default(),
-            thread,
+            job,
         }
     }
 

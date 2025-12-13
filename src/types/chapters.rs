@@ -1,8 +1,9 @@
 use crate::{IsDefault, MuxError, ToJsonArgs, dashed, types::helpers};
 use std::path::{Path, PathBuf};
 
-/// Settings for media chapters.
+/// Chapters configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
+#[non_exhaustive]
 pub struct Chapters {
     pub no_flag: bool,
     pub file: Option<PathBuf>,

@@ -12,6 +12,7 @@ mod webm;
 use phf::Set;
 
 /// A sets of file type extensions, stored as byte slices (`&[u8]`).
+#[non_exhaustive]
 pub struct Extensions {
     pub avi: &'static Set<&'static [u8]>,
     pub fonts: &'static Set<&'static [u8]>,

@@ -18,6 +18,7 @@ use std::{
 /// This struct is not fully initialized after construction. You **must** call
 /// [`Self::try_finalize_init`] before using some methods (e.g. [`Self::collect_fonts`]).
 #[derive(Clone, Debug, PartialEq)]
+#[non_exhaustive]
 pub struct Input {
     pub dir: PathBuf,
     pub range: Option<RangeUsize>,

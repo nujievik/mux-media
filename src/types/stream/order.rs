@@ -235,6 +235,7 @@ pub struct StreamsOrder(pub Vec<StreamsOrderItem>);
 
 /// A [`StreamsOrder`] item.
 #[derive(Clone, Debug)]
+#[non_exhaustive]
 pub struct StreamsOrderItem {
     /// A type of stream.
     pub ty: StreamType,

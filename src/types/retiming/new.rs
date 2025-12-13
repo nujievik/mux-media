@@ -59,7 +59,7 @@ impl Retiming<'_, '_> {
             tools: mi.cfg.into(),
             temp_dir: &mi.cfg.output.temp_dir,
             media_info: mi,
-            thread: mi.thread,
+            job: mi.job,
             base,
             i_base_stream,
             chapters: cs,

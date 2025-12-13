@@ -36,7 +36,7 @@ impl Retiming<'_, '_> {
             let ty = SubType::from_codec_id(self.media_info, src, i_stream);
             let mut dest = self.temp_dir.join(format!(
                 "{}-sub-base-{}.{}",
-                self.thread,
+                self.job,
                 i_stream,
                 ty.as_ext()
             ));
@@ -50,7 +50,7 @@ impl Retiming<'_, '_> {
                 .unwrap_or_else(|_| SubType::from_codec_id(self.media_info, src, i_stream));
             let mut dest = self
                 .temp_dir
-                .join(format!("{}-sub-{}.{}", self.thread, i, ty.as_ext()));
+                .join(format!("{}-sub-{}.{}", self.job, i, ty.as_ext()));
             if let Err(err) = self.try_external_sub(src, &dest) {
                 fall(&mut dest, ty, err)?;
                 self.try_external_sub(src, &dest)?;

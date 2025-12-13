@@ -31,7 +31,7 @@ impl Retiming<'_, '_> {
             .map(|(i, p)| {
                 let split = self
                     .temp_dir
-                    .join(format!("{}-vid-base-{}.mkv", self.thread, i));
+                    .join(format!("{}-vid-base-{}.mkv", self.job, i));
 
                 let start = if p.start.0.is_zero() {
                     p.start
@@ -137,9 +137,9 @@ impl Retiming<'_, '_> {
     fn try_base_video(&self) -> Result<RetimedStream> {
         let txt = self
             .temp_dir
-            .join(format!("{}-vid-base-parts.txt", self.thread));
+            .join(format!("{}-vid-base-parts.txt", self.job));
 
-        let dest = self.temp_dir.join(format!("{}-vid-base.mkv", self.thread));
+        let dest = self.temp_dir.join(format!("{}-vid-base.mkv", self.job));
         self.try_concat(&self.base_splits, &txt, &dest)?;
 
         Ok(RetimedStream {
