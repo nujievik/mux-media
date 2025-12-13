@@ -54,9 +54,9 @@ pub use types::{
     stream::{
         Stream,
         order::{StreamsOrder, StreamsOrderItem},
+        streams::Streams,
         ty::StreamType,
     },
-    streams::Streams,
     target::Target,
     tools::{Tools, output::ToolOutput, paths::ToolPaths, tool::Tool},
     value::Value,

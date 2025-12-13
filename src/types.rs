@@ -106,7 +106,6 @@ pub(crate) mod output;
 pub(crate) mod range;
 pub(crate) mod retiming;
 pub(crate) mod stream;
-pub(crate) mod streams;
 pub(crate) mod target;
 pub(crate) mod tools;
 pub(crate) mod value;
