@@ -93,7 +93,7 @@ pub(crate) mod file_type;
 pub(crate) mod globset_pattern;
 pub(crate) mod helpers;
 pub(crate) mod input;
-pub(crate) mod lang_code;
+pub(crate) mod lang;
 pub(crate) mod log_level;
 pub(crate) mod media_info;
 pub(crate) mod media_number;

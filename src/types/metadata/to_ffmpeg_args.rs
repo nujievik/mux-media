@@ -1,5 +1,5 @@
 use super::{LangMetadata, NameMetadata};
-use crate::{LangCode, MediaInfo, Result, Stream, ToFfmpegArgs, Value, markers::*};
+use crate::{Lang, MediaInfo, Result, Stream, ToFfmpegArgs, Value, markers::*};
 use std::ffi::OsString;
 
 macro_rules! to_ffmpeg_args_impl {
@@ -39,7 +39,7 @@ impl NameMetadata {
 impl LangMetadata {
     const META_KEY: &str = "language";
 
-    fn get_meta_val(stream: &Stream) -> Option<Value<LangCode>> {
-        Some(stream.lang)
+    fn get_meta_val(stream: &Stream) -> Option<Value<&Lang>> {
+        Some(stream.lang.as_ref())
     }
 }

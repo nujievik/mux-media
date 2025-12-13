@@ -2,7 +2,7 @@ pub(crate) mod order;
 pub(crate) mod supported;
 pub(crate) mod ty;
 
-use crate::{CodecId, LangCode, StreamType, Value};
+use crate::{CodecId, Lang, StreamType, Value};
 
 #[derive(Clone, Debug)]
 pub struct Stream {
@@ -16,7 +16,7 @@ pub struct Stream {
 
     pub codec: CodecId,
 
-    pub lang: Value<LangCode>,
+    pub lang: Value<Lang>,
 
     pub name: Option<Value<String>>,
 

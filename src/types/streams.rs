@@ -2,7 +2,7 @@ mod is_save;
 mod new;
 mod to_json_args;
 
-use crate::{IsDefault, LangCode, RangeUsize};
+use crate::{IsDefault, Lang, RangeUsize};
 use std::collections::HashSet;
 
 /// Streams config.
@@ -12,5 +12,5 @@ pub struct Streams {
     pub inverse: bool,
     pub idxs: Option<HashSet<usize>>,
     pub ranges: Option<Vec<RangeUsize>>,
-    pub langs: Option<HashSet<LangCode>>,
+    pub langs: Option<HashSet<Lang>>,
 }

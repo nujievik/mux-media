@@ -1,9 +1,8 @@
-use super::Streams;
-use crate::{IsDefault, LangCode};
+use super::*;
 
 impl Streams {
     /// Whether save stream with index and language.
-    pub fn is_save(&self, i: &usize, lang: &LangCode) -> bool {
+    pub fn is_save(&self, i: &usize, lang: &Lang) -> bool {
         if self.no_flag {
             return false;
         }

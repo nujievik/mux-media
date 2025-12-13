@@ -175,11 +175,8 @@ fn parse_ranges_aliases() {
 #[test]
 fn parse_langs() {
     [
-        ("eng", vec![LangCode::Eng]),
-        (
-            "eng,rus,und",
-            vec![LangCode::Eng, LangCode::Rus, LangCode::Und],
-        ),
+        ("eng", vec![lang!(Eng)]),
+        ("eng,rus,und", vec![lang!(Eng), lang!(Rus), lang!(Und)]),
     ]
     .into_iter()
     .for_each(|(arg, langs)| {
@@ -194,11 +191,8 @@ fn parse_langs() {
 #[test]
 fn parse_langs_inverse() {
     [
-        ("!eng", vec![LangCode::Eng]),
-        (
-            "!eng,rus,und",
-            vec![LangCode::Eng, LangCode::Rus, LangCode::Und],
-        ),
+        ("!eng", vec![lang!(Eng)]),
+        ("!eng,rus,und", vec![lang!(Eng), lang!(Rus), lang!(Und)]),
     ]
     .into_iter()
     .for_each(|(arg, langs)| {
@@ -214,7 +208,7 @@ fn parse_langs_inverse() {
 #[test]
 fn parse_langs_aliases() {
     let xs = Streams {
-        langs: Some([LangCode::Eng].into()),
+        langs: Some([lang!(Eng)].into()),
         ..Default::default()
     };
 
@@ -243,7 +237,7 @@ fn parse_all() {
         inverse: true,
         idxs: Some([1, 8].into()),
         ranges: Some(vec![range::new("2-4")]),
-        langs: Some([LangCode::Eng, LangCode::Und].into()),
+        langs: Some([lang!(Eng), lang!(Und)].into()),
     };
     assert_eq!(xs, new(&["--streams", "!1,eng,8,und,2-4"]));
 }
@@ -375,7 +369,7 @@ fn is_save_ranges() {
 #[test]
 fn is_save_langs() {
     let mut xs = Streams {
-        langs: Some([LangCode::Eng, LangCode::Rus, LangCode::Und].into()),
+        langs: Some([lang!(Eng), lang!(Rus), lang!(Und)].into()),
         ..Default::default()
     };
 

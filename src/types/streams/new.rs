@@ -1,6 +1,6 @@
-use super::Streams;
-use crate::{LangCode, MuxError, RangeUsize, Result, helpers};
-use std::{collections::HashSet, str::FromStr};
+use super::*;
+use crate::{MuxError, Result, helpers};
+use std::str::FromStr;
 
 impl FromStr for Streams {
     type Err = MuxError;
@@ -10,21 +10,16 @@ impl FromStr for Streams {
         let (inverse, s) = helpers::parse_inverse_str(s);
 
         let mut idxs: Option<HashSet<usize>> = None;
-        let mut langs: Option<HashSet<LangCode>> = None;
         let mut ranges: Option<Vec<RangeUsize>> = None;
+        let mut langs: Option<HashSet<Lang>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             if let Ok(i) = part.parse::<usize>() {
                 idxs.get_or_insert_default().insert(i);
-            } else if let Ok(lang) = part.parse::<LangCode>() {
-                langs.get_or_insert_default().insert(lang);
             } else if let Ok(rng) = part.parse::<RangeUsize>() {
                 ranges.get_or_insert_default().push(rng);
             } else {
-                return Err(err!(
-                    "Invalid stream ID '{}' (must be num, range (n-m) of num or lang code)",
-                    part
-                ));
+                langs.get_or_insert_default().insert(Lang::new(part));
             }
         }
 

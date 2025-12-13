@@ -2,7 +2,7 @@ use super::*;
 
 impl Dispositions {
     /// Get user-defined value.
-    pub fn get(&self, i: &usize, lang: &LangCode) -> Option<bool> {
+    pub fn get(&self, i: &usize, lang: &Lang) -> Option<bool> {
         if let Some(v) = self.single_val.as_ref() {
             return Some(*v);
         }

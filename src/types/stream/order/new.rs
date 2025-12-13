@@ -1,6 +1,6 @@
 use super::{StreamsOrder, StreamsOrderItem};
 use crate::{
-    ArcPathBuf, LangCode, MediaInfo, Muxer, Result, RetimedStream, Retiming, StreamType,
+    ArcPathBuf, Lang, LangCode, MediaInfo, Muxer, Result, RetimedStream, Retiming, StreamType,
     StreamsSupported, i18n::logs, markers::*,
 };
 use log::warn;
@@ -98,7 +98,7 @@ impl StreamsOrder {
                         return;
                     }
 
-                    let lang = *stream.lang;
+                    let lang = &stream.lang;
                     let it_signs = mi.it_signs(src, stream);
 
                     let (i, defaults) = cfg.stream_val(CfgDefaults, &target_paths, stream);
@@ -264,8 +264,8 @@ impl OrderSortKey {
         default: Option<bool>,
         forced: Option<bool>,
         it_signs: bool,
-        lang: LangCode,
-        locale_lang: LangCode,
+        lang: &Lang,
+        locale: LangCode,
     ) -> Self {
         let flag_order = |flag: Option<bool>| match flag {
             Some(true) => 0,
@@ -279,9 +279,9 @@ impl OrderSortKey {
         let it_signs = if it_signs { 0 } else { 1 };
 
         let lang = match lang {
-            _ if lang == locale_lang => 0,
-            LangCode::Und => 1,
-            LangCode::Jpn => 3,
+            Lang::Code(c) if c == &locale => 0,
+            Lang::Code(LangCode::Und) => 1,
+            Lang::Code(LangCode::Jpn) => 3,
             _ => 2,
         };
 

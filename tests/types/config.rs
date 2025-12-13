@@ -73,7 +73,6 @@ fn test_ok_exit() {
         "--list-targets",
         "--list-containers",
         "--list-langs",
-        "--list-langs-full",
     ]
     .iter()
     .for_each(|arg| {
@@ -248,7 +247,7 @@ fn parse_names() {
 #[test]
 fn parse_langs() {
     let xs = Metadata {
-        single_val: Some(LangCode::Eng),
+        single_val: Some(lang!(Eng)),
         ..Default::default()
     };
     test_parse!(["--langs", "eng"], langs, LangMetadata(xs));
@@ -276,6 +275,7 @@ fn test_aliases_of_args() {
         vec!["-C", "--no-chapters"],
         vec!["-F", "--no-fonts"],
         vec!["-M", "--no-attachs"],
+        vec!["--sys", "--system"],
     ]
     .iter()
     .for_each(|args| {

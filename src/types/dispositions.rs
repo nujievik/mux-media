@@ -5,7 +5,7 @@ mod to_ffmpeg_args;
 mod to_json_args;
 pub(crate) mod ty;
 
-use crate::{IsDefault, LangCode, RangeUsize};
+use crate::{IsDefault, Lang, RangeUsize};
 use std::collections::HashMap;
 
 /// Config `default` dispositions.
@@ -23,7 +23,7 @@ pub struct Dispositions {
     pub single_val: Option<bool>,
     pub idxs: Option<HashMap<usize, bool>>,
     pub ranges: Option<Vec<(RangeUsize, bool)>>,
-    pub langs: Option<HashMap<LangCode, bool>>,
+    pub langs: Option<HashMap<Lang, bool>>,
 }
 
 deref_singleton_tuple_struct!(DefaultDispositions, Dispositions, @from_str);

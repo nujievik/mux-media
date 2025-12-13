@@ -5,7 +5,7 @@ use crate::common::*;
 use mux_media::*;
 
 #[test]
-fn test_mux_config_parse() {
+fn test_config_parse() {
     [("rus", LangCode::Rus), ("eng", LangCode::Eng)]
         .into_iter()
         .for_each(|(arg, lang)| {

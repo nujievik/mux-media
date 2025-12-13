@@ -18,19 +18,14 @@ impl Blocks {
             .arg(
                 Arg::new(undashed!(ListLangs))
                     .long(undashed!(ListLangs))
-                    .alias(undashed!(ListLanguages))
+                    .alias("list-languages")
                     .help(Msg::HelpListLangs.as_str_localized())
-                    .action(ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new(undashed!(ListLangsFull))
-                    .long(undashed!(ListLangsFull))
-                    .help(Msg::HelpListLangsFull.as_str_localized())
                     .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new(undashed!(Sys))
                     .long(undashed!(Sys))
+                    .alias("system")
                     .help(Msg::HelpSys.as_str_localized())
                     .hide(HIDE_TOOL_ARG)
                     .action(ArgAction::SetTrue),

@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Common sort internal & external fonts and attachs.
-- Short `--list-langs`.
 - Static build.
 - `.vtt` extension.
 
@@ -19,14 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Apply `--reencode` to Matroska too.
 - Auto `default`: first track of each type.
-- Decrease default parallel muxing to 1 (was 4).
-- Extend auto-langs to short `--list-langs`.
+- Decrease default jobs to 1 (was 4).
 - Rename (`--auto-charsets`, `--no-auto-charsets`) to (`--auto-encs`, `--no-auto-encs`).
 - Rename `--threads` to `--jobs`.
 - Rename `--user-tools` to `--sys`.
-- Rename full `--list-langs` to `--list-langs-full`.
 - Replace `--rm-segments` to `--parts`.
 - Replace mkvmerge-convenient types to ffmpeg-convenient types.
+- Short `--list-langs` to ISO639-1 and extend auto-langs to its.
+- Support any format language string.
 
 ### Removed
 

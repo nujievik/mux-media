@@ -84,17 +84,17 @@ pub fn read_json_args(path: &Path) -> Vec<String> {
     serde_json::from_reader(reader).unwrap()
 }
 
-pub fn iter_i_lang() -> impl Iterator<Item = (&'static usize, &'static LangCode)> {
+pub fn iter_i_lang() -> impl Iterator<Item = (&'static usize, &'static Lang)> {
     static I: [usize; 4] = [0, 1, 8, usize::MAX - 1];
-    static LANGS: [LangCode; 3] = [LangCode::Eng, LangCode::Rus, LangCode::Und];
+    static LANGS: [Lang; 3] = [lang!(Eng), lang!(Rus), lang!(Und)];
 
     I.iter()
         .flat_map(|i| LANGS.iter().map(move |lang| (i, lang)))
 }
 
-pub fn iter_alt_i_lang() -> impl Iterator<Item = (&'static usize, &'static LangCode)> {
+pub fn iter_alt_i_lang() -> impl Iterator<Item = (&'static usize, &'static Lang)> {
     static I: [usize; 4] = [5, 10, 11, usize::MAX - 2];
-    static LANGS: [LangCode; 3] = [LangCode::Abk, LangCode::Aar, LangCode::Afr];
+    static LANGS: [Lang; 3] = [lang!(Abk), lang!(Aar), lang!(Afr)];
 
     I.iter()
         .flat_map(|i| LANGS.iter().map(move |lang| (i, lang)))

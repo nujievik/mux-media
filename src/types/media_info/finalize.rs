@@ -1,6 +1,7 @@
 use super::MediaInfo;
 use crate::{
-    ArcPathBuf, IsDefault, LangCode, Result, Stream, Target, TryFinalizeInit, Value, markers::*,
+    ArcPathBuf, IsDefault, Lang, LangCode, Result, Stream, Target, TryFinalizeInit, Value,
+    markers::*,
 };
 use std::path::Path;
 
@@ -82,16 +83,11 @@ impl MediaInfo<'_> {
         None
     }
 
-    fn get_lang(
-        &mut self,
-        src: &Path,
-        ts: &Vec<Target>,
-        stream: &Stream,
-    ) -> Option<Value<LangCode>> {
+    fn get_lang(&mut self, src: &Path, ts: &Vec<Target>, stream: &Stream) -> Option<Value<Lang>> {
         let (i, langs) = self.cfg.stream_val(CfgLangs, ts, stream);
 
         if let Some(l) = langs.get(&i, &stream.lang) {
-            return Some(Value::User(*l));
+            return Some(Value::User(l.clone()));
         }
 
         if !stream.lang.is_default() || !*self.cfg.auto_flags.langs {
@@ -100,13 +96,13 @@ impl MediaInfo<'_> {
 
         let parse = |opt_s: Option<&String>| {
             opt_s
-                .and_then(|s| s.parse::<LangCode>().ok())
-                .filter(|l| !l.is_default() && l.has_duo_code())
+                .and_then(|s| LangCode::get_new(s))
+                .filter(|c| !c.is_default())
         };
 
         parse(stream.name.as_ref().map(|v| &**v))
             .or_else(|| parse(self.get(MIPathTail, src)))
             .or_else(|| parse(self.get(MIRelativeUpmost, src)))
-            .map(|l| Value::Auto(l))
+            .map(|code| Value::Auto(Lang::Code(code)))
     }
 }

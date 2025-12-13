@@ -14,8 +14,8 @@ impl FromStr for Dispositions {
         }
 
         let mut idxs: Option<HashMap<usize, bool>> = None;
-        let mut langs: Option<HashMap<LangCode, bool>> = None;
         let mut ranges: Option<Vec<(RangeUsize, bool)>> = None;
+        let mut langs: Option<HashMap<Lang, bool>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, b) = part.split_once(':').unwrap_or((part, "true"));
@@ -23,15 +23,10 @@ impl FromStr for Dispositions {
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.get_or_insert_default().insert(i, b);
-            } else if let Ok(lang) = id.parse::<LangCode>() {
-                langs.get_or_insert_default().insert(lang, b);
             } else if let Ok(rng) = id.parse::<RangeUsize>() {
                 ranges.get_or_insert_default().push((rng, b));
             } else {
-                return Err(err!(
-                    "Invalid stream ID '{}' (must be num, range (n-m) of num or lang code)",
-                    id
-                ));
+                langs.get_or_insert_default().insert(Lang::new(id), b);
             }
         }
 

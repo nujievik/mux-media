@@ -294,12 +294,12 @@ fn test_stream_lang() {
     let mut mi = new();
 
     [
-        (LangCode::Und, "audio_x1.mka", ""),
-        (LangCode::Und, "sub_x1.mks", "sub_x1"),
-        (LangCode::Eng, "lang/en_lang.mks", "en_lang"),
-        (LangCode::Rus, "lang/ru_lang.mks", "ru_lang"),
-        (LangCode::Eng, "lang/begin.en.srt", "begin"),
-        (LangCode::Rus, "lang/begin.ru.srt", "begin"),
+        (lang!(Und), "audio_x1.mka", ""),
+        (lang!(Und), "sub_x1.mks", "sub_x1"),
+        (lang!(Eng), "lang/en_lang.mks", "en_lang"),
+        (lang!(Rus), "lang/ru_lang.mks", "ru_lang"),
+        (lang!(Eng), "lang/begin.en.srt", "begin"),
+        (lang!(Rus), "lang/begin.ru.srt", "begin"),
     ]
     .into_iter()
     .for_each(|(lang, f, cmn_stem)| {
@@ -316,9 +316,9 @@ fn test_stream_lang() {
     let mut mi = MediaInfo::new(&cfg, 0);
 
     [
-        (LangCode::Und, "srt.srt"),
-        (LangCode::Eng, "lang/eng subs/srt.srt"),
-        (LangCode::Rus, "lang/rus subs/srt.srt"),
+        (lang!(Und), "srt.srt"),
+        (lang!(Eng), "lang/eng subs/srt.srt"),
+        (lang!(Rus), "lang/rus subs/srt.srt"),
     ]
     .into_iter()
     .for_each(|(lang, f)| {

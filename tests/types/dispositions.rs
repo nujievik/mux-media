@@ -68,7 +68,7 @@ fn parse_ranges() {
 fn parse_langs() {
     for (v, v2) in [(true, false), (false, true)] {
         let xs = Dispositions {
-            langs: Some([(LangCode::Eng, v), (LangCode::Und, v2)].into()),
+            langs: Some([(lang!(Eng), v), (lang!(Und), v2)].into()),
             ..Default::default()
         };
         let vs = format!("eng:{},und:{}", v, v2);
@@ -160,12 +160,12 @@ fn get_ranges() {
 #[test]
 fn get_langs() {
     let langs = [
-        (LangCode::Eng, true),
-        (LangCode::Rus, true),
-        (LangCode::Und, true),
-        (LangCode::Abk, false),
-        (LangCode::Aar, false),
-        (LangCode::Afr, false),
+        (lang!(Eng), true),
+        (lang!(Rus), true),
+        (lang!(Und), true),
+        (lang!(Abk), false),
+        (lang!(Aar), false),
+        (lang!(Afr), false),
     ];
     let xs = Dispositions {
         langs: Some(langs.into()),

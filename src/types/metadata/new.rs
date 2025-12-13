@@ -1,11 +1,6 @@
-use super::{LangMetadata, Metadata, NameMetadata};
-use crate::{IsDefault, LangCode, MuxError, RangeUsize, Result};
-use std::{
-    collections::HashMap,
-    error,
-    fmt::{Debug, Display},
-    str::FromStr,
-};
+use super::*;
+use crate::{MuxError, Result};
+use std::{error, str::FromStr};
 
 impl<T> FromStr for Metadata<T>
 where
@@ -29,8 +24,8 @@ where
         }
 
         let mut idxs: Option<HashMap<usize, T>> = None;
-        let mut langs: Option<HashMap<LangCode, T>> = None;
         let mut ranges: Option<Vec<(RangeUsize, T)>> = None;
+        let mut langs: Option<HashMap<Lang, T>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, val) = part
@@ -40,15 +35,10 @@ where
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.get_or_insert_default().insert(i, val);
-            } else if let Ok(lang) = id.parse::<LangCode>() {
-                langs.get_or_insert_default().insert(lang, val);
             } else if let Ok(rng) = id.parse::<RangeUsize>() {
                 ranges.get_or_insert_default().push((rng, val));
             } else {
-                return Err(err!(
-                    "Invalid stream ID '{}' (must be num, range (n-m) of num or lang code)",
-                    id
-                ));
+                langs.get_or_insert_default().insert(Lang::new(id), val);
             }
         }
 
@@ -71,7 +61,7 @@ macro_rules! from_str_impl {
             type Err = MuxError;
 
             fn from_str(s: &str) -> Result<$ty> {
-                let meta = Metadata::from_str(s)?;
+                let meta = Metadata::<$v>::from_str(s)?;
                 Ok(Self(meta))
             }
         }
@@ -79,4 +69,4 @@ macro_rules! from_str_impl {
 }
 
 from_str_impl!(NameMetadata, String);
-from_str_impl!(LangMetadata, LangCode);
+from_str_impl!(LangMetadata, Lang);

@@ -980,9 +980,9 @@ checksum = "7655c9839580ee829dfacba1d1278c2b7883e50a277ff7541299489d6bdfdc45"
 
 [[package]]
 name = "is_default"
-version = "0.1.1"
+version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "991cd70b19e0d6429259ce23a4b914f961886ca39b55a28a06a52c29bc0f78a6"
+checksum = "69c42b6708d2986e39794e2b1fc0ddbb767e1d73535e4077ef881a45fa6e0117"
 dependencies = [
  "is_default_derive",
 ]

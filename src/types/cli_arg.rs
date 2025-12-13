@@ -26,7 +26,6 @@ macro_rules! enum_cli_arg {
 }
 
 enum_cli_arg! {
-    // visible in help
     Input => "input",
     Output => "output",
     Range => "range",
@@ -83,8 +82,6 @@ enum_cli_arg! {
     NoLinked => "no-linked",
     ListContainers => "list-containers",
     ListLangs => "list-langs",
-    ListLanguages => "list-languages",
-    ListLangsFull => "list-langs-full",
     Sys => "sys",
     Ffmpeg => "ffmpeg",
     Version => "version",

@@ -1,5 +1,5 @@
 use super::MediaInfo;
-use crate::{CodecId, EXTENSIONS, LangCode, Result, Stream, StreamType, Value};
+use crate::{CodecId, EXTENSIONS, Lang, Result, Stream, StreamType, Value};
 use std::path::Path;
 
 impl MediaInfo<'_> {
@@ -19,7 +19,7 @@ impl MediaInfo<'_> {
                 let meta = stream.metadata();
                 let lang = meta
                     .get("language")
-                    .and_then(|v| v.parse::<LangCode>().ok())
+                    .map(|v| Lang::new(v))
                     .unwrap_or_default();
                 let name = meta.get("title").map(|v| Value::Auto(v.to_owned()));
                 let filename = meta.get("filename").map(|s| s.to_owned());

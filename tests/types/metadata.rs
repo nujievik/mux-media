@@ -23,7 +23,7 @@ fn parse_names_single_val() {
 #[test]
 fn parse_langs_single_val() {
     let mut xs = LangMetadata::default();
-    xs.0.single_val = Some(LangCode::Eng);
+    xs.0.single_val = Some(lang!(Eng));
     assert_eq!(xs, cfg(["--langs", "eng"]).langs);
 }
 
@@ -38,7 +38,7 @@ fn parse_names_idxs() {
 #[test]
 fn parse_langs_idxs() {
     let mut xs = LangMetadata::default();
-    xs.0.idxs = Some([(0, LangCode::Eng), (8, LangCode::Rus)].into());
+    xs.0.idxs = Some([(0, lang!(Eng)), (8, lang!(Rus))].into());
 
     assert_eq!(xs, cfg(["--langs", "0:eng,8:rus"]).langs);
 }
@@ -62,8 +62,8 @@ fn parse_langs_ranges() {
     let mut xs = LangMetadata::default();
     xs.0.ranges = Some(
         [
-            (range::new("0-1"), LangCode::Eng),
-            (range::new("8-8"), LangCode::Rus),
+            (range::new("0-1"), lang!(Eng)),
+            (range::new("8-8"), lang!(Rus)),
         ]
         .into(),
     );
@@ -74,7 +74,7 @@ fn parse_langs_ranges() {
 #[test]
 fn parse_names_langs() {
     let mut xs = NameMetadata::default();
-    xs.0.langs = Some([(LangCode::Eng, "a".into()), (LangCode::Rus, "b".into())].into());
+    xs.0.langs = Some([(lang!(Eng), "a".into()), (lang!(Rus), "b".into())].into());
 
     assert_eq!(xs, cfg(["--names", "eng:a,rus:b"]).names);
 }
@@ -82,13 +82,7 @@ fn parse_names_langs() {
 #[test]
 fn parse_langs_langs() {
     let mut xs = LangMetadata::default();
-    xs.0.langs = Some(
-        [
-            (LangCode::Eng, LangCode::Rus),
-            (LangCode::Rus, LangCode::Eng),
-        ]
-        .into(),
-    );
+    xs.0.langs = Some([(lang!(Eng), lang!(Rus)), (lang!(Rus), lang!(Eng))].into());
 
     assert_eq!(xs, cfg(["--langs", "eng:rus,rus:eng"]).langs);
 }
@@ -168,9 +162,9 @@ fn get_langs() {
     let mut xs = NameMetadata::default();
     xs.0.langs = Some(
         [
-            (LangCode::Eng, x.clone()),
-            (LangCode::Rus, x.clone()),
-            (LangCode::Und, x.clone()),
+            (lang!(Eng), x.clone()),
+            (lang!(Rus), x.clone()),
+            (lang!(Und), x.clone()),
         ]
         .into(),
     );
