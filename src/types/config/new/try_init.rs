@@ -33,7 +33,7 @@ impl Config {
         }
 
         fn get_json_matches(cmd: Command, cli_matches: &ArgMatches) -> Result<Option<ArgMatches>> {
-            let m = match cli_matches.get_one::<PathBuf>(undashed!(Json)) {
+            let m = match cli_matches.get_one::<PathBuf>(undashed!(Load)) {
                 Some(j) => {
                     let args = try_read_json_args(j)?;
                     let m = cmd.try_get_matches_from(args)?;

@@ -17,6 +17,14 @@ impl Blocks {
                     .value_parser(ValueParser::new(LangCode::from_str)),
             )
             .arg(
+                Arg::new(undashed!(Jobs))
+                    .short('j')
+                    .long(undashed!(Jobs))
+                    .value_name("n")
+                    .help(Msg::HelpJobs.as_str_localized())
+                    .value_parser(clap::value_parser!(u8).range(1..)),
+            )
+            .arg(
                 Arg::new(undashed!(Verbose))
                     .short('v')
                     .long(undashed!(Verbose))
@@ -40,10 +48,11 @@ impl Blocks {
                     .action(ArgAction::SetTrue),
             )
             .arg(
-                Arg::new(undashed!(Json))
-                    .short('j')
-                    .long(undashed!(Json))
-                    .help(Msg::HelpJson.as_str_localized())
+                Arg::new(undashed!(Load))
+                    .long(undashed!(Load))
+                    .alias("load-config")
+                    .value_name("json")
+                    .help(Msg::HelpLoad.as_str_localized())
                     .value_parser(ValueParser::new(ConfigParser)),
             )
             .arg(
@@ -58,13 +67,6 @@ impl Blocks {
                     .alias("re-encode")
                     .help(Msg::HelpReencode.as_str_localized())
                     .action(ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new(undashed!(Jobs))
-                    .long(undashed!(Jobs))
-                    .value_name("n")
-                    .help(Msg::HelpJobs.as_str_localized())
-                    .value_parser(clap::value_parser!(u8).range(1..)),
             );
 
         self

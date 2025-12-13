@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Auto `default`: first track of each type.
 - Decrease default jobs to 1 (was 4).
 - Rename (`--auto-charsets`, `--no-auto-charsets`) to (`--auto-encs`, `--no-auto-encs`).
+- Rename `--json` to `--load`.
 - Rename `--threads` to `--jobs`.
 - Rename `--user-tools` to `--sys`.
 - Replace `--rm-segments` to `--parts`.

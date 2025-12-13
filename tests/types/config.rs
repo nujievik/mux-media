@@ -289,6 +289,7 @@ fn test_aliases_of_args() {
         (vec!["-i", "--input"], data("").to_str().unwrap()),
         (vec!["-o", "--output"], data("").to_str().unwrap()),
         (vec!["-r", "--range"], "1-1"),
+        (vec!["-j", "--jobs"], "8"),
         (vec!["-a", "--audio"], "1"),
         (vec!["-s", "--subs"], "1"),
         (vec!["-d", "--video"], "1"),
