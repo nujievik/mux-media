@@ -498,10 +498,14 @@ pub(super) fn tool_args(m: &ArgMatches) -> Result<(), Error> {
             sys,
             ..Default::default()
         };
-        paths.try_resolve(t, &output.temp_dir)?;
-        let tools = Tools::from(&paths);
 
-        let t_out = tools.run(t, args)?;
+        let res = paths.try_resolve(t, &output.temp_dir).and_then(|_| {
+            let tools = Tools::from(&paths);
+            tools.run(t, args)
+        });
+
+        output.remove_created_dirs();
+        let t_out = res?;
         println!("{}", &t_out);
         return Err(MuxError::from(t_out).into());
     }
