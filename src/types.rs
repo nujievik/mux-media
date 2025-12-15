@@ -88,7 +88,7 @@ pub(crate) mod codec_id;
 pub mod config;
 pub(crate) mod dispositions;
 pub(crate) mod duration;
-pub(crate) mod extensions;
+pub(crate) mod extension;
 pub(crate) mod file_type;
 pub(crate) mod globset_pattern;
 pub(crate) mod helpers;

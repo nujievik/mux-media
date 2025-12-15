@@ -17,7 +17,7 @@ fn test_from_output() {
     .for_each(|(expected, ext)| {
         let s = format!(",.{}", ext);
         let out = Output::try_from_path(data(s)).unwrap();
-        assert_eq!(expected, Muxer::from(&out));
+        assert_eq!(expected, Muxer::new(&out));
     })
 }
 

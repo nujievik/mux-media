@@ -13,8 +13,8 @@ mod cli_arg;
 mod config;
 #[path = "types/dispositions.rs"]
 mod dispositions;
-#[path = "types/extensions.rs"]
-mod extensions;
+#[path = "types/extension.rs"]
+mod extension;
 #[path = "types/input.rs"]
 mod input;
 #[path = "types/lang_code.rs"]

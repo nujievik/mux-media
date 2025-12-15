@@ -1,5 +1,5 @@
 use super::MediaInfo;
-use crate::{CodecId, EXTENSIONS, Lang, Result, Stream, StreamType, Value};
+use crate::{CodecId, Extension, Lang, Result, Stream, StreamType, Value};
 use std::path::Path;
 
 impl MediaInfo<'_> {
@@ -61,6 +61,6 @@ fn is_font_filename(opt_s: &Option<String>) -> bool {
     opt_s.as_ref().is_some_and(|s| {
         Path::new(s)
             .extension()
-            .is_some_and(|ext| EXTENSIONS.fonts.contains(ext.as_encoded_bytes()))
+            .is_some_and(|ext| Extension::new_and_is_font(ext.as_encoded_bytes()))
     })
 }

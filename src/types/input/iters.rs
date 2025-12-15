@@ -1,7 +1,7 @@
 use super::Input;
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, EXTENSIONS, FileType, MediaNumber, i18n::logs, types::helpers};
+use crate::{ArcPathBuf, Extension, FileType, MediaNumber, i18n::logs, types::helpers};
 use globset::GlobSet;
 use rayon::prelude::*;
 use std::{
@@ -12,7 +12,7 @@ use std::{
 use walkdir::{IntoIter, WalkDir};
 
 macro_rules! iter_any_files_in_dir {
-    ($fn:ident, $exts:ident) => {
+    ($fn:ident, $new_and_is_ty:ident) => {
         #[doc = concat!("Returns an iterator over `", stringify!($exts), "` files in a directory.")]
         pub(crate) fn $fn(&self, dir: impl AsRef<Path>) -> impl Iterator<Item = PathBuf> {
             std::fs::read_dir(dir)
@@ -25,12 +25,8 @@ macro_rules! iter_any_files_in_dir {
                         return false;
                     }
 
-                    let ext = match path.extension() {
-                        Some(e) => e,
-                        None => return false,
-                    };
-
-                    if !EXTENSIONS.$exts.contains(ext.as_encoded_bytes()) {
+                    let ext = some_or!(path.extension(), return false);
+                    if !Extension::$new_and_is_ty(ext.as_encoded_bytes()) {
                         return false;
                     }
 
@@ -47,9 +43,9 @@ macro_rules! iter_any_files_in_dir {
 }
 
 impl Input {
-    iter_any_files_in_dir!(iter_media_in_dir, media);
-    iter_any_files_in_dir!(iter_fonts_in_dir, fonts);
-    iter_any_files_in_dir!(iter_matroska_in_dir, matroska);
+    iter_any_files_in_dir!(iter_media_in_dir, new_and_is_media);
+    iter_any_files_in_dir!(iter_fonts_in_dir, new_and_is_font);
+    iter_any_files_in_dir!(iter_matroska_in_dir, new_and_is_matroska);
 
     /// Collects all font files from the discovered directories.
     ///

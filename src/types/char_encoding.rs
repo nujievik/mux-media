@@ -1,4 +1,4 @@
-use crate::EXTENSIONS;
+use crate::Extension;
 use std::{fs::File, io::Read, path::Path};
 
 /// A charaster encoding of file.
@@ -14,7 +14,7 @@ impl CharEncoding {
         let f = file.as_ref();
 
         if f.extension().map_or(false, |ext| {
-            EXTENSIONS.matroska.contains(ext.as_encoded_bytes())
+            Extension::new_and_is_matroska(ext.as_encoded_bytes())
         }) {
             // All text in a Matroska(tm) file is encoded in UTF-8
             return Self::Utf8Compatible;

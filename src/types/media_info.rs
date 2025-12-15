@@ -39,14 +39,15 @@ impl MediaInfo<'_> {
         self.cache.of_files.clear();
     }
 
-    /// Attempts to insert a `media` file into the cache.
-    /// Does nothing if matroska or mkvmerge info is already cached.
+    /// Tries insert a `src` file into the cache.
+    ///
+    /// Returns `Ok` if [`CacheMIOfFile::streams`] for `src` is already cached.
     ///
     /// # Errors
     ///
-    /// - Retrieving either matroska or mkvmerge info fails.
-    pub fn try_insert(&mut self, media: impl Into<ArcPathBuf> + AsRef<Path>) -> Result<()> {
-        match self.try_key_cache_to_insert(media, true, false) {
+    /// - Fail build [`CacheMIOfFile::streams`].
+    pub fn try_insert(&mut self, src: impl Into<ArcPathBuf> + AsRef<Path>) -> Result<()> {
+        match self.try_key_cache_to_insert(src, true, false) {
             Ok(Some((key, cache))) => {
                 self.cache.of_files.insert(key, cache);
                 Ok(())
@@ -56,32 +57,33 @@ impl MediaInfo<'_> {
         }
     }
 
-    /// Attempts to insert multiple `media` files into the cache.
-    /// Does nothing if matroska or mkvmerge info is already cached.
+    /// Tries insert multiple `sources` files into the cache.
+    ///
+    /// Returns `Ok` if [`CacheMIOfFile::streams`] for `sources` is already cached.
     ///
     /// # Errors
     ///
-    /// - **Only if** `exit_on_err` is `true`.
+    /// - **Only if** [`MediaInfo::cfg`] `exit_on_err` is `true`.
     ///
-    /// - Retrieving either matroska or mkvmerge info fails.
+    /// - Fail build [`CacheMIOfFile::streams`] for a source.
     ///
     /// # Logging
     ///
     /// - **Only if** [`log`] is initialized with at least [`LevelFilter::Warn`](
-    ///   log::LevelFilter::Warn) and `exit_on_err` is `false`.
+    ///   log::LevelFilter::Warn) and [`MediaInfo::cfg`] `exit_on_err` is `false`.
     ///
-    /// - Retrieving either matroska or mkvmerge info fails.
+    /// - Warning: Fail build [`CacheMIOfFile::streams`] for a source.
     pub fn try_insert_many(
         &mut self,
-        media: impl IntoParallelIterator<Item = impl Into<ArcPathBuf> + AsRef<Path>>,
+        sources: impl IntoParallelIterator<Item = impl Into<ArcPathBuf> + AsRef<Path>>,
     ) -> Result<()> {
         let exit_on_err = self.cfg.exit_on_err;
         let cache_is_empty = self.cache.of_files.is_empty();
 
-        let map = media
+        let map = sources
             .into_par_iter()
-            .filter_map(|media| {
-                match self.try_key_cache_to_insert(media, exit_on_err, cache_is_empty) {
+            .filter_map(|src| {
+                match self.try_key_cache_to_insert(src, exit_on_err, cache_is_empty) {
                     Ok(Some((key, cache))) => Some(Ok((key, cache))),
                     Ok(None) => None,
                     Err(e) => Some(Err(e)),
@@ -101,11 +103,11 @@ impl MediaInfo<'_> {
     #[inline]
     fn try_key_cache_to_insert(
         &self,
-        media: impl Into<ArcPathBuf> + AsRef<Path>,
+        src: impl Into<ArcPathBuf> + AsRef<Path>,
         exit_on_err: bool,
         cache_is_empty: bool,
     ) -> Result<Option<(ArcPathBuf, CacheMIOfFile)>> {
-        let m = media.as_ref();
+        let m = src.as_ref();
 
         if !cache_is_empty
             && self
@@ -121,7 +123,7 @@ impl MediaInfo<'_> {
             Ok(streams) => {
                 let mut cache = CacheMIOfFile::default();
                 cache.streams = CacheState::Cached(streams);
-                Ok(Some((media.into(), cache)))
+                Ok(Some((src.into(), cache)))
             }
             Err(e) if exit_on_err => Err(e),
             Err(e) => {

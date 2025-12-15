@@ -96,7 +96,7 @@ impl MediaInfo<'_> {
 
         let parse = |opt_s: Option<&String>| {
             opt_s
-                .and_then(|s| LangCode::get_new(s))
+                .and_then(|s| LangCode::get(s))
                 .filter(|c| !c.is_default())
         };
 

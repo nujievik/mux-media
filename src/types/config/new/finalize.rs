@@ -25,7 +25,7 @@ impl TryFinalizeInit for Config {
         }
 
         fn muxer(cfg: &mut Config) {
-            let mut m = Muxer::from(&cfg.output);
+            let mut m = Muxer::new(&cfg.output);
 
             if !m.is_default() && !cfg.retiming_options.is_default() {
                 eprintln!(

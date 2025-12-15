@@ -2,7 +2,7 @@ mod durations;
 mod streams;
 
 use super::MediaInfo;
-use crate::{CharEncoding, EXTENSIONS, Result, StreamsOrder, Target, markers::*, types::helpers};
+use crate::{CharEncoding, Extension, Result, StreamsOrder, Target, markers::*, types::helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
@@ -42,7 +42,7 @@ impl MediaInfo<'_> {
 
     pub(super) fn build_sub_char_encoding(&self, src: &Path) -> Result<CharEncoding> {
         if src.extension().map_or(false, |ext| {
-            EXTENSIONS.subs.contains(ext.as_encoded_bytes())
+            Extension::new_and_is_subs(ext.as_encoded_bytes())
         }) {
             Ok(CharEncoding::new(src))
         } else {

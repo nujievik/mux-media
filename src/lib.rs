@@ -32,7 +32,7 @@ pub use types::{
     config::{Config, ConfigTarget},
     dispositions::{DefaultDispositions, Dispositions, ForcedDispositions, ty::DispositionType},
     duration::Duration,
-    extensions::{EXTENSIONS, Extensions},
+    extension::Extension,
     file_type::FileType,
     globset_pattern::GlobSetPattern,
     input::{Input, iters::MediaGroupedByStem},
