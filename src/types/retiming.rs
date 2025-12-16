@@ -11,7 +11,6 @@ use std::path::{Path, PathBuf};
 #[derive(Debug)]
 pub struct Retiming<'a, 'b> {
     pub temp_dir: &'a Path,
-    // without json for parallel run.
     pub tools: Tools<'a>,
     pub media_info: &'b MediaInfo<'a>,
     pub job: u8,
