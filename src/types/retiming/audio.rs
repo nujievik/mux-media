@@ -1,5 +1,5 @@
 use super::{RetimedStream, Retiming};
-use crate::{Duration, Result, Tool, Tools};
+use crate::{Duration, Result, helpers};
 use std::path::{Path, PathBuf};
 
 impl Retiming<'_, '_> {
@@ -29,6 +29,8 @@ impl Retiming<'_, '_> {
     }
 
     fn try_base_audio(&self, i_stream: usize) -> Result<Vec<PathBuf>> {
+        let mut len_offset = 0f64;
+
         self.parts
             .iter()
             .enumerate()
@@ -37,7 +39,14 @@ impl Retiming<'_, '_> {
                     .temp_dir
                     .join(format!("{}-aud-base-{}-{}.mka", self.job, i_stream, i));
 
-                try_split(&self.tools, &p.src, i_stream, &dest, p.start, p.end)?;
+                let start_f64 = p.start.as_secs_f64();
+                let start = if start_f64 - len_offset > 0.0 {
+                    Duration::from_secs_f64(start_f64 - len_offset)
+                } else {
+                    p.start
+                };
+
+                len_offset = try_split(&p.src, i_stream, &dest, start, p.end)?;
                 Ok(dest)
             })
             .collect()
@@ -45,6 +54,7 @@ impl Retiming<'_, '_> {
 
     fn try_external_audio(&self, i: usize, src: &Path, i_stream: usize) -> Result<Vec<PathBuf>> {
         let mut segments: Vec<PathBuf> = Vec::with_capacity(self.chapters.len());
+        let mut len_offset = 0f64;
 
         for p in self.parts.iter() {
             let uid = &self.chapters[p.i_start_chp].uid;
@@ -59,7 +69,11 @@ impl Retiming<'_, '_> {
 
                 let chp_nonuid = self.chapters_nonuid(i_chp);
 
-                let start = chp.start.as_secs_f64() + p.start_offset + chp_nonuid;
+                let mut start = chp.start.as_secs_f64() + p.start_offset + chp_nonuid;
+                if start - len_offset > 0.0 {
+                    start -= len_offset;
+                }
+
                 let end_offset = if i_chp == p.i_end_chp {
                     p.end_offset
                 } else {
@@ -69,7 +83,7 @@ impl Retiming<'_, '_> {
 
                 let trg_start = Duration::from_secs_f64(start);
                 let trg_end = Duration::from_secs_f64(end);
-                try_split(&self.tools, src, i_stream, &dest, trg_start, trg_end)?;
+                len_offset = try_split(src, i_stream, &dest, trg_start, trg_end)?;
 
                 segments.push(dest);
             }
@@ -80,29 +94,77 @@ impl Retiming<'_, '_> {
 }
 
 fn try_split(
-    tools: &Tools,
     src: &Path,
     i_stream: usize,
     dest: &Path,
     trg_start: Duration,
     trg_end: Duration,
-) -> Result<()> {
-    let trg_start = trg_start.to_string();
-    let trg_end = trg_end.to_string();
-    let map = format!("0:{}", i_stream);
+) -> Result<f64> {
+    use crate::ffmpeg::{Rescale, format};
 
-    let args = [
-        p!("-y"),
-        p!("-ss"),
-        p!(&trg_start),
-        p!("-to"),
-        p!(&trg_end),
-        p!("-i"),
-        src,
-        p!("-map"),
-        p!(&map),
-        dest,
-    ];
-    let _ = tools.run(Tool::Ffmpeg, &args)?;
-    Ok(())
+    let mut ictx = format::input(&src)?;
+    let mut octx = format::output(&dest)?;
+
+    let (ist, ost_index) = ictx
+        .streams()
+        .find_map(|ist| {
+            if ist.index() != i_stream {
+                return None;
+            }
+            let mut ost = octx.add_stream(ist.parameters().id()).ok()?;
+            ost.set_parameters(ist.parameters());
+            Some((ist, ost.index()))
+        })
+        .ok_or_else(|| err!("Not found stream"))?;
+
+    octx.write_header()?;
+
+    let ost_time_base = octx
+        .stream(ost_index)
+        .map(|ost| ost.time_base())
+        .ok_or_else(|| err!("Not found stream"))?;
+    let ist_time_base = ist.time_base();
+
+    let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
+
+    let seconds_tb = helpers::ffmpeg_stream_time_base(&ist);
+    let start_ts = (trg_start.as_secs_f64() / seconds_tb).round() as i64;
+    let end_ts = (trg_end.as_secs_f64() / seconds_tb).round() as i64;
+
+    let start_ts = rescale(start_ts);
+    let end_ts = rescale(end_ts);
+
+    let mut last_pts = 0i64;
+    let mut offset = None::<i64>;
+
+    for (ist, mut packet) in ictx.packets() {
+        if ist.index() != i_stream {
+            continue;
+        }
+        let pts = some_or!(packet.pts(), continue);
+        let pts = rescale(pts);
+
+        if pts < start_ts {
+            continue;
+        }
+        if pts > end_ts {
+            break;
+        }
+
+        last_pts = pts - *offset.get_or_insert_with(|| start_ts + pts - start_ts);
+
+        packet.set_duration(0);
+        packet.set_pts(Some(last_pts));
+        packet.set_dts(Some(last_pts));
+        packet.set_stream(ost_index);
+        packet.write_interleaved(&mut octx)?;
+    }
+
+    octx.write_trailer()?;
+
+    let expected_duration = end_ts - start_ts;
+    let offset = last_pts - expected_duration;
+    let offset = offset as f64 * ost_time_base.0 as f64 / ost_time_base.1 as f64;
+
+    Ok(offset)
 }
