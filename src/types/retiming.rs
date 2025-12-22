@@ -5,7 +5,10 @@ pub(crate) mod options;
 mod subs;
 mod video;
 
-use crate::{ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, Tools};
+use crate::{
+    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, Tools,
+    ffmpeg::{Rational, format::context},
+};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -89,4 +92,33 @@ impl Retiming<'_, '_> {
             src_time,
         }
     }
+}
+
+// Writes a split header, returning
+// (input stream time base, output stream time base, output stream index).
+fn write_split_header(
+    ictx: &context::Input,
+    ist_index: usize,
+    octx: &mut context::Output,
+) -> Result<(Rational, Rational, usize)> {
+    let (ist_time_base, ost_index) = ictx
+        .streams()
+        .find_map(|ist| {
+            if ist_index != ist.index() {
+                return None;
+            }
+            let mut ost = octx.add_stream(ist.parameters().id()).ok()?;
+            ost.set_parameters(ist.parameters());
+            Some((ist.time_base(), ost.index()))
+        })
+        .ok_or_else(|| err!("Not found stream"))?;
+
+    octx.write_header()?;
+
+    let ost_time_base = octx
+        .stream(ost_index)
+        .map(|ost| ost.time_base())
+        .ok_or_else(|| err!("Not found stream"))?;
+
+    Ok((ist_time_base, ost_time_base, ost_index))
 }

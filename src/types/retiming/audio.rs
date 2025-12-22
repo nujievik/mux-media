@@ -1,5 +1,8 @@
-use super::{RetimedStream, Retiming};
-use crate::{Duration, Result, helpers};
+use super::{RetimedStream, Retiming, write_split_header};
+use crate::{
+    Duration, Result,
+    ffmpeg::{Rescale, format},
+};
 use std::path::{Path, PathBuf};
 
 impl Retiming<'_, '_> {
@@ -100,39 +103,19 @@ fn try_split(
     trg_start: Duration,
     trg_end: Duration,
 ) -> Result<f64> {
-    use crate::ffmpeg::{Rescale, format};
-
     let mut ictx = format::input(&src)?;
     let mut octx = format::output(&dest)?;
 
-    let (ist, ost_index) = ictx
-        .streams()
-        .find_map(|ist| {
-            if ist.index() != i_stream {
-                return None;
-            }
-            let mut ost = octx.add_stream(ist.parameters().id()).ok()?;
-            ost.set_parameters(ist.parameters());
-            Some((ist, ost.index()))
-        })
-        .ok_or_else(|| err!("Not found stream"))?;
+    let (ist_time_base, ost_time_base, ost_index) = write_split_header(&ictx, i_stream, &mut octx)?;
 
-    octx.write_header()?;
-
-    let ost_time_base = octx
-        .stream(ost_index)
-        .map(|ost| ost.time_base())
-        .ok_or_else(|| err!("Not found stream"))?;
-    let ist_time_base = ist.time_base();
+    let duration_to_ts = |dur: Duration| {
+        let tb = ost_time_base.0 as f64 / ost_time_base.1 as f64;
+        (dur.as_secs_f64() / tb).round() as i64
+    };
+    let start_ts = duration_to_ts(trg_start);
+    let end_ts = duration_to_ts(trg_end);
 
     let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
-
-    let seconds_tb = helpers::ffmpeg_stream_time_base(&ist);
-    let start_ts = (trg_start.as_secs_f64() / seconds_tb).round() as i64;
-    let end_ts = (trg_end.as_secs_f64() / seconds_tb).round() as i64;
-
-    let start_ts = rescale(start_ts);
-    let end_ts = rescale(end_ts);
 
     let mut last_pts = 0i64;
     let mut offset = None::<i64>;
