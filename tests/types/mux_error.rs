@@ -51,15 +51,6 @@ fn test_from_any_error() {
 }
 
 #[test]
-fn test_as_str_localized() {
-    Msg::try_upd_lang(LangCode::Rus).unwrap();
-    let err: MuxError = Msg::Using.into();
-    assert_eq!("Using", format!("{}", err));
-    assert_eq!("Используется", err.as_str_localized());
-    assert_eq!(1, err.code);
-}
-
-#[test]
 fn test_use_stderr() {
     assert!(MuxError::new().use_stderr());
     assert!(MuxError::new().code(16).use_stderr());

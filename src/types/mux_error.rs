@@ -7,7 +7,7 @@ use kind::MuxErrorKind;
 use message::{MuxErrorMessage, MuxErrorMessageLocalized};
 use std::fmt;
 
-/// A error.
+/// An error.
 #[derive(Clone, Debug, PartialEq)]
 pub struct MuxError {
     message: Option<MuxErrorMessage>,
@@ -55,6 +55,15 @@ impl MuxError {
     }
 
     /// Returns a localized string if available; otherwise, returns a English string.
+    /// ```
+    /// use mux_media::*;
+    ///
+    /// let e = MuxError::from(Msg::Using);
+    /// for (code, s) in [(LangCode::Eng, "Using"), (LangCode::Rus, "Используется")] {
+    ///     Msg::try_upd_lang(code).unwrap();
+    ///     assert_eq!(s, e.as_str_localized());
+    /// }
+    /// ```
     pub fn as_str_localized(&self) -> &str {
         self.message
             .as_ref()
@@ -74,7 +83,8 @@ impl MuxError {
     }
 
     /// Prints a localized message if available; otherwise, a English message.
-    /// Outputs to `stderr` if `code` is non-zero; otherwise, to `stdout`.
+    ///
+    /// Prints to `stderr` if `code` is non-zero; otherwise, to `stdout`.
     pub fn print_localized(&self) {
         if let Some(msg) = &self.message {
             self.print_in_stderr_or_stdout(msg.as_str_localized())
