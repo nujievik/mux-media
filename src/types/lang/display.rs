@@ -1,6 +1,15 @@
 use super::{Lang, LangCode};
 use std::fmt;
 
+impl Lang {
+    pub(crate) fn as_str(&self) -> &str {
+        match self {
+            Lang::Code(code) => code.as_ref(),
+            Lang::Other(s) => &s,
+        }
+    }
+}
+
 impl LangCode {
     /// Prints the list of supported language codes to stdout.
     pub(crate) fn print_list_langs() {

@@ -19,8 +19,10 @@ pub struct Stream {
 
     pub codec: CodecId,
 
+    /// Metadata `language`.
     pub lang: Value<Lang>,
 
+    /// Metadata `title`.
     pub name: Option<Value<String>>,
 
     /// Metadata `filename`.

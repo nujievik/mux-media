@@ -1,25 +1,11 @@
 pub(crate) mod lazy_fields;
 
-use crate::{MediaInfo, Result};
-use std::ffi::OsString;
+use crate::Result;
 
 /// Provides a delayed initialization for expensive operations.
 pub trait TryFinalizeInit {
     /// Finalizes initialization.
     fn try_finalize_init(&mut self) -> Result<()>;
-}
-
-/// Converts a [`MediaInfo`] value to ffmpeg-compatible arguments.
-pub trait ToFfmpegArgs {
-    /// Attempts append arguments to the given `args` vector.
-    fn append_ffmpeg_args(args: &mut Vec<OsString>, mi: &mut MediaInfo) -> Result<()>;
-
-    /// Returns arguments.
-    fn to_ffmpeg_args(mi: &mut MediaInfo) -> Result<Vec<OsString>> {
-        let mut args = Vec::new();
-        Self::append_ffmpeg_args(&mut args, mi)?;
-        Ok(args)
-    }
 }
 
 /// Converts a value to JSON-compatible arguments.

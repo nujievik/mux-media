@@ -1,11 +1,11 @@
 use crate::{CodecId, Muxer, Stream, ffmpeg::codec::id::Id};
 
 impl Muxer {
-    pub(crate) fn is_supported_copy(self, stream: &Stream) -> bool {
+    pub(crate) fn is_supported_copy(&self, stream: &Stream) -> bool {
         let codec = stream.codec;
         return match self {
-            Muxer::AVI => avi(codec),
-            Muxer::MP4 => mp4(codec),
+            Muxer::Avi => avi(codec),
+            Muxer::Mp4 => mp4(codec),
             Muxer::Matroska => true,
             Muxer::Webm => webm(codec),
         };

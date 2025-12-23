@@ -18,7 +18,7 @@ pub use functions::{SEP_BYTES, SEP_STR, ensure_long_path_prefix, ensure_trailing
 pub use i18n::Msg;
 
 pub use traits::{
-    Field, ToFfmpegArgs, ToJsonArgs, TryFinalizeInit,
+    Field, ToJsonArgs, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},
 };
 
@@ -44,7 +44,6 @@ pub use types::{
     },
     media_number::MediaNumber,
     metadata::{LangMetadata, Metadata, NameMetadata},
-    mux_current::MuxCurrent,
     mux_error::{MuxError, kind::MuxErrorKind},
     mux_logger::MuxLogger,
     muxer::Muxer,
@@ -61,6 +60,8 @@ pub use types::{
     tools::{Tools, output::ToolOutput, paths::ToolPaths, tool::Tool},
     value::Value,
 };
+
+static VERSION: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
 
 use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;

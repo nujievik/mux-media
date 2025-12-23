@@ -3,7 +3,7 @@ use crate::{
     AutoFlags, Chapters, CliArg, DefaultDispositions, Dispositions, ForcedDispositions,
     GlobSetPattern, Input, LangCode, LangMetadata, LogLevel, Msg, MuxError, NameMetadata, Output,
     RangeUsize, RetimingOptions, StreamType, Streams, Target, Tool, ToolPaths, Tools,
-    TryFinalizeInit, Value, undashed,
+    TryFinalizeInit, VERSION, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
@@ -458,8 +458,7 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
     arg(m, CliArg::ListLangs, LangCode::print_list_langs)?;
 
     arg(m, CliArg::Version, || {
-        let v = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
-        println!("{}", v);
+        println!("{}", VERSION);
     })?;
     arg(m, CliArg::Help, || {
         let mut cmd = Config::command();

@@ -1,7 +1,6 @@
 mod get;
 mod max;
 mod new;
-mod to_ffmpeg_args;
 mod to_json_args;
 pub(crate) mod ty;
 

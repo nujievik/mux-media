@@ -10,7 +10,7 @@ pub struct StreamsSupported {
 impl StreamsSupported {
     pub fn new(muxer: Muxer) -> Self {
         let map = match muxer {
-            Muxer::AVI => Some(enum_map! { StreamType::Audio | StreamType::Video => 1, _ => 0 }),
+            Muxer::Avi => Some(enum_map! { StreamType::Audio | StreamType::Video => 1, _ => 0 }),
             _ => None,
         };
         Self { muxer, map }
@@ -34,8 +34,8 @@ impl StreamsSupported {
 
 const fn is_supported_ty(sup: &StreamsSupported, ty: StreamType) -> bool {
     match sup.muxer {
-        Muxer::AVI => matches!(ty, StreamType::Audio | StreamType::Video),
-        Muxer::MP4 => ty.is_track(),
+        Muxer::Avi => matches!(ty, StreamType::Audio | StreamType::Video),
+        Muxer::Mp4 => ty.is_track(),
         Muxer::Matroska => true,
         Muxer::Webm => matches!(ty, StreamType::Audio | StreamType::Video),
     }

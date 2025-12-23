@@ -1,5 +1,4 @@
 mod new;
-mod to_ffmpeg_args;
 
 use crate::{ArcPathBuf, Duration, StreamType};
 use std::path::{Path, PathBuf};

@@ -98,7 +98,6 @@ pub(crate) mod log_level;
 pub(crate) mod media_info;
 pub(crate) mod media_number;
 pub(crate) mod metadata;
-pub(crate) mod mux_current;
 pub(crate) mod mux_error;
 pub(crate) mod mux_logger;
 pub(crate) mod muxer;
