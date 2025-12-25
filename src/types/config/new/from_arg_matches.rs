@@ -2,8 +2,7 @@ use super::super::{Config, ConfigTarget};
 use crate::{
     AutoFlags, Chapters, CliArg, DefaultDispositions, Dispositions, ForcedDispositions,
     GlobSetPattern, Input, LangCode, LangMetadata, LogLevel, Msg, MuxError, NameMetadata, Output,
-    RangeUsize, RetimingOptions, StreamType, Streams, Target, Tool, ToolPaths, Tools,
-    TryFinalizeInit, VERSION, Value, undashed,
+    RangeUsize, RetimingOptions, StreamType, Streams, Target, VERSION, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
@@ -151,7 +150,6 @@ impl FromArgMatches for Config {
     fn from_arg_matches_mut(m: &mut ArgMatches) -> Result<Self, Error> {
         let locale = get_locale(&m).unwrap_or_else(|| Msg::lang());
         printable_args(&m)?;
-        tool_args(&m)?;
         let mut cfg = cfg(m, locale)?;
 
         if m.contains_id(undashed!(Target)) {
@@ -186,7 +184,6 @@ impl FromArgMatches for Config {
                 langs: rm_or!(m, Langs, LangMetadata, LangMetadata::default),
                 retiming_options: retiming_options(m),
                 targets: targets(m),
-                tool_paths: tool_paths(m),
                 muxer: Default::default(),
                 is_output_constructed_from_input,
             })
@@ -233,13 +230,6 @@ impl FromArgMatches for Config {
             let mut opts = rm_or!(m, Parts, RetimingOptions, RetimingOptions::default);
             opts.no_linked = flag!(m, NoLinked);
             opts
-        }
-
-        fn tool_paths(m: &mut ArgMatches) -> ToolPaths {
-            ToolPaths {
-                sys: flag!(m, Sys),
-                ..Default::default()
-            }
         }
 
         fn targets(m: &mut ArgMatches) -> Option<HashMap<Target, ConfigTarget>> {
@@ -292,7 +282,6 @@ impl FromArgMatches for Config {
 
         retiming_options(self, m);
         targets(self, m);
-        upd_flag!(self.tool_paths.sys, m, Sys);
 
         let mut m: &mut ArgMatches = m;
         let mut _owned_m: Option<ArgMatches> = None;
@@ -480,35 +469,6 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
             Ok(())
         }
     }
-}
-
-pub(super) fn tool_args(m: &ArgMatches) -> Result<(), Error> {
-    for t in Tool::iter() {
-        let args = match m.get_raw(t.as_ref()) {
-            Some(args) => args,
-            None => continue,
-        };
-        let input = try_input(&mut m.clone())?;
-        let mut output = Output::try_from(&input)?;
-        output.try_finalize_init()?;
-
-        let sys = m.get_flag(undashed!(Sys));
-        let paths = ToolPaths {
-            sys,
-            ..Default::default()
-        };
-
-        let res = paths.try_resolve(t, &output.temp_dir).and_then(|_| {
-            let tools = Tools::from(&paths);
-            tools.run(t, args)
-        });
-
-        output.remove_created_dirs();
-        let t_out = res?;
-        println!("{}", &t_out);
-        return Err(MuxError::from(t_out).into());
-    }
-    Ok(())
 }
 
 fn try_input(m: &mut ArgMatches) -> Result<Input, Error> {

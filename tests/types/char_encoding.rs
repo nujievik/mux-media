@@ -24,31 +24,3 @@ fn test_new() {
         assert_eq!(enc, &CharEncoding::new(f));
     })
 }
-
-#[test]
-fn to_ffmpeg_args() {
-    FILE_ENC_PAIRS.iter().for_each(|(f, enc)| {
-        let args = if let CharEncoding::NotUtf8Compatible(s) = enc {
-            let ext = f.extension().and_then(|ext| ext.to_str()).unwrap();
-            vec![
-                p("-sub_charenc"),
-                p(s),
-                p("-i"),
-                f,
-                p("-map"),
-                p("0:0"),
-                p("-c:0"),
-                p(ext),
-            ]
-        } else {
-            vec![p("-i"), f, p("-map"), p("0:0"), p("-c:0"), p("copy")]
-        };
-
-        let mut mi = media_info::new();
-        mi.try_insert(f).unwrap();
-        assert_eq!(
-            to_os_args(args),
-            StreamsOrder::to_ffmpeg_args(&mut mi).unwrap()
-        );
-    })
-}

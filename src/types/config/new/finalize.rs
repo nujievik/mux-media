@@ -1,11 +1,10 @@
-use crate::{Config, IsDefault, Msg, MuxLogger, Muxer, Output, Result, Tool, TryFinalizeInit};
+use crate::{Config, IsDefault, Msg, MuxLogger, Muxer, Output, Result, TryFinalizeInit};
 
 impl TryFinalizeInit for Config {
     fn try_finalize_init(&mut self) -> Result<()> {
         input(self)?;
         output(self)?;
         muxer(self);
-        tool_paths(self)?;
 
         return Ok(());
 
@@ -43,11 +42,6 @@ impl TryFinalizeInit for Config {
             }
 
             cfg.muxer = m;
-        }
-
-        fn tool_paths(cfg: &mut Config) -> Result<()> {
-            cfg.tool_paths
-                .try_resolve(Tool::Ffmpeg, &cfg.output.temp_dir)
         }
     }
 }

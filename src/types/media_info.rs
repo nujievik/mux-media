@@ -4,7 +4,7 @@ mod finalize;
 mod it_signs;
 pub(crate) mod lazy_fields;
 
-use crate::{ArcPathBuf, Config, Result, Tools, i18n::logs};
+use crate::{ArcPathBuf, Config, Result, i18n::logs};
 use cache::{CacheMI, CacheMIOfFile, CacheMIOfGroup, CacheState};
 use rayon::prelude::*;
 use std::{collections::HashMap, path::Path};
@@ -16,7 +16,6 @@ use std::{collections::HashMap, path::Path};
 #[non_exhaustive]
 pub struct MediaInfo<'a> {
     pub cfg: &'a Config,
-    pub tools: Tools<'a>,
     pub cache: CacheMI,
     /// Job number. Separates access to temp files.
     pub job: u8,
@@ -26,7 +25,6 @@ impl MediaInfo<'_> {
     pub fn new<'a>(cfg: &'a Config, job: u8) -> MediaInfo<'a> {
         MediaInfo {
             cfg,
-            tools: cfg.into(),
             cache: Default::default(),
             job,
         }

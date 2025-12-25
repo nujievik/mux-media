@@ -1,6 +1,6 @@
 use crate::{Msg, MuxError, Muxer};
 use log::{debug, warn};
-use std::{ffi::OsStr, fmt, path::Path, process::Command};
+use std::{ffi::OsStr, path::Path};
 
 pub(crate) fn warn_container_does_not_support(muxer: Muxer, src: &Path, i_stream: usize) {
     warn!(
@@ -56,11 +56,6 @@ pub(crate) fn warn_not_recognized_media(path: &Path, e: MuxError) {
 }
 
 #[inline(always)]
-pub(crate) fn debug_running_command(cmd: &Command) {
-    debug!("{}:\n{}", Msg::RunningCommand, CommandDisplay(cmd));
-}
-
-#[inline(always)]
 pub(crate) fn debug_found_repeat(stem: &OsStr) {
     debug!(
         "{}. {} '{}'",
@@ -77,49 +72,4 @@ pub(crate) fn debug_media_out_of_range(stem: &OsStr) {
         Msg::Skipping,
         AsRef::<Path>::as_ref(stem).display(),
     )
-}
-
-#[cfg(unix)]
-const CONTINUE_CMD: char = '\\';
-#[cfg(windows)]
-const CONTINUE_CMD: char = '^';
-
-struct CommandDisplay<'a>(&'a Command);
-
-impl<'a> fmt::Display for CommandDisplay<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let write_with_continue = |f: &mut fmt::Formatter<'_>, oss: &OsStr| {
-            let p: &Path = oss.as_ref();
-            write!(f, "\"{}\" {}\n", p.display(), CONTINUE_CMD)
-        };
-
-        let write = |f: &mut fmt::Formatter<'_>, oss: &OsStr| {
-            let p: &Path = oss.as_ref();
-            write!(f, "\"{}\"", p.display())
-        };
-
-        let args = self.0.get_args();
-        let args_len = args.len();
-
-        if args_len > 0 {
-            write_with_continue(f, self.0.get_program())?;
-        } else {
-            write(f, self.0.get_program())?;
-        }
-
-        let last_i = match args_len {
-            0 => 0,
-            _ => args_len - 1,
-        };
-
-        for (i, arg) in args.into_iter().enumerate() {
-            if i < last_i {
-                write_with_continue(f, arg)?;
-            } else {
-                write(f, arg)?;
-            }
-        }
-
-        Ok(())
-    }
 }

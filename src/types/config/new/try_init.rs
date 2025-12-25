@@ -1,4 +1,4 @@
-use super::from_arg_matches::{get_locale, printable_args, tool_args};
+use super::from_arg_matches::{get_locale, printable_args};
 use crate::{Config, Input, Msg, Result, undashed};
 use clap::{ArgMatches, Command, CommandFactory, FromArgMatches, Parser};
 use std::{
@@ -28,7 +28,6 @@ impl Config {
             let m = cmd.clone().try_get_matches_from(args_os().skip(1))?;
             let _ = get_locale(&m);
             printable_args(&m)?;
-            tool_args(&m)?;
             Ok(m)
         }
 

@@ -45,7 +45,6 @@ fn parse_empty_args() {
     assert_eq!(&e.langs, &Default::default());
     assert_eq!(&e.retiming_options, &Default::default());
     assert_eq!(&e.targets, &Default::default());
-    assert_eq!(&e.tool_paths, &Default::default());
     assert_eq!(&e.muxer, &Default::default());
     assert!(e.is_output_constructed_from_input);
 }

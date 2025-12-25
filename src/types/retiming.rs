@@ -6,7 +6,7 @@ mod subs;
 mod video;
 
 use crate::{
-    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, Tools,
+    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem,
     ffmpeg::{Rational, format::context},
 };
 use std::path::{Path, PathBuf};
@@ -14,7 +14,6 @@ use std::path::{Path, PathBuf};
 #[derive(Debug)]
 pub struct Retiming<'a, 'b> {
     pub temp_dir: &'a Path,
-    pub tools: Tools<'a>,
     pub media_info: &'b MediaInfo<'a>,
     pub job: u8,
     pub base: ArcPathBuf,

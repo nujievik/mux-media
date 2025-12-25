@@ -1,9 +1,3 @@
-macro_rules! p {
-    ($s:expr) => {
-        std::path::Path::new($s)
-    };
-}
-
 macro_rules! deref_singleton_tuple_struct {
     ($wrapper:ty, $inner:ty) => {
         impl std::ops::Deref for $wrapper {
@@ -106,5 +100,4 @@ pub(crate) mod range;
 pub(crate) mod retiming;
 pub(crate) mod stream;
 pub(crate) mod target;
-pub(crate) mod tools;
 pub(crate) mod value;

@@ -8,7 +8,6 @@ use crate::TryFinalizeInit;
 use crate::{
     AutoFlags, Chapters, DefaultDispositions, ForcedDispositions, Input, IsDefault, LangCode,
     LangMetadata, LogLevel, Muxer, NameMetadata, Output, RetimingOptions, Streams, Target,
-    ToolPaths,
 };
 use std::collections::HashMap;
 
@@ -38,7 +37,6 @@ pub struct Config {
     pub langs: LangMetadata,
     pub retiming_options: RetimingOptions,
     pub targets: Option<HashMap<Target, ConfigTarget>>,
-    pub tool_paths: ToolPaths,
     pub muxer: Muxer,
     pub is_output_constructed_from_input: bool,
 }

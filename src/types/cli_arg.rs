@@ -82,8 +82,6 @@ enum_cli_arg! {
     NoLinked => "no-linked",
     ListContainers => "list-containers",
     ListLangs => "list-langs",
-    Sys => "sys",
-    Ffmpeg => "ffmpeg",
     Version => "version",
     Help => "help",
 }

@@ -1,5 +1,5 @@
 use super::Retiming;
-use crate::{Result, Tool};
+use crate::Result;
 use std::{
     fs::File,
     io::Write,
@@ -8,6 +8,8 @@ use std::{
 
 impl Retiming<'_, '_> {
     pub(crate) fn try_concat(&self, splits: &Vec<PathBuf>, txt: &Path, out: &Path) -> Result<()> {
+        todo!();
+        /*
         write_txt(splits, &txt)?;
 
         let args = [
@@ -36,5 +38,6 @@ impl Retiming<'_, '_> {
             }
             Ok(())
         }
+        */
     }
 }
