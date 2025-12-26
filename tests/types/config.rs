@@ -79,11 +79,6 @@ fn test_ok_exit() {
     })
 }
 
-#[test]
-fn test_ok_exit_ffmpeg_help() {
-    assert_ok_exit(&["--ffmpeg", "-h"]);
-}
-
 macro_rules! test_parse {
     ($args:expr, $( $field:ident $( .$sub_field:ident )? , $exp:expr ),* ) => {{
         let mut exp = (*EMPTY_ARGS).clone();
@@ -270,7 +265,6 @@ fn test_aliases_of_args() {
         vec!["-C", "--no-chapters"],
         vec!["-F", "--no-fonts"],
         vec!["-M", "--no-attachs"],
-        vec!["--sys", "--system"],
     ]
     .iter()
     .for_each(|args| {

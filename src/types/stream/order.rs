@@ -269,10 +269,6 @@ impl StreamsOrder {
     pub(crate) fn iter_first_entries(&self) -> impl Iterator<Item = &StreamsOrderItem> {
         self.0.iter().filter(|m| m.is_first_entry)
     }
-
-    pub(crate) fn iter_track(&self) -> impl Iterator<Item = &StreamsOrderItem> {
-        self.0.iter().filter(|m| m.ty.is_track())
-    }
 }
 
 impl StreamsOrderItem {

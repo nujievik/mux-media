@@ -1,5 +1,4 @@
-use crate::{Config, Msg, MuxLogger, Result, TryFinalizeInit, ffmpeg};
-use log::{info, warn};
+use crate::{Config, Result};
 use std::path::{MAIN_SEPARATOR, PathBuf};
 
 /// The byte form of the [`MAIN_SEPARATOR`].
@@ -23,64 +22,11 @@ pub const SEP_STR: &str = match str::from_utf8(SEP_BYTES) {
     Err(_) => panic!("MAIN_SEPARATOR is not valid UTF-8"),
 };
 
-/// Tries perform muxing, returning a count of successfully muxed media files.
+/// Tries run muxing, returning a count of successfully muxed media files.
 ///
 /// Delegates implementation to [`Config::mux`].
 pub fn mux(cfg: &Config) -> Result<usize> {
     cfg.mux()
-}
-
-/// Runs muxing, invoking all other components.
-///
-/// # Errors
-///
-/// 1. Successful exit cases (e.g., `--help`, `--list-targets`, etc.)
-///    return an error with exit code `0`.
-///
-/// 2. CLI or JSON argument parsing failures
-///    return an error with exit code `2`.
-///
-/// 3. All other errors return exit code `1`.
-///
-///    - Critical errors return immediately.
-///
-///    - Errors while processing current media return an error if `--exit-on-err` is set;
-///      otherwise, muxing continues with the next media.
-pub fn run() -> Result<()> {
-    let cfg = init_cfg()?;
-    MuxLogger::init_with_filter(*cfg.log_level);
-    init_ffmpeg(&cfg)?;
-
-    let result = cfg.mux();
-    cfg.output.remove_created_dirs();
-
-    return result.map(|cnt| match cnt {
-        0 => warn!("{}", Msg::NotMuxedAny),
-        _ => {
-            info!("{} {} {}", Msg::SuccessMuxed, cnt, Msg::LMedia);
-            cfg.save_config_or_warn();
-        }
-    });
-
-    fn init_cfg() -> Result<Config> {
-        let mut cfg = Config::try_init()?;
-        if let Err(e) = cfg.try_finalize_init() {
-            cfg.output.remove_created_dirs();
-            Err(e)
-        } else {
-            Ok(cfg)
-        }
-    }
-
-    fn init_ffmpeg(cfg: &Config) -> Result<()> {
-        if let Err(e) = ffmpeg::init() {
-            cfg.output.remove_created_dirs();
-            Err(e.into())
-        } else {
-            ffmpeg::log::set_level(ffmpeg::log::Level::Quiet);
-            Ok(())
-        }
-    }
 }
 
 /// Adds trailing [`MAIN_SEPARATOR`] if missing.

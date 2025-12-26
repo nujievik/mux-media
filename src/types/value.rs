@@ -57,7 +57,9 @@ impl<T> Value<T> {
         !self.is_auto()
     }
 
-    pub(crate) const fn as_ref(&self) -> Value<&T> {
+    /// Converts from &Value<T> to Value<&T>.
+    #[inline]
+    pub const fn as_ref(&self) -> Value<&T> {
         match *self {
             Value::Auto(ref x) => Value::Auto(x),
             Value::User(ref x) => Value::User(x),

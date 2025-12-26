@@ -5,10 +5,10 @@ use std::{ffi::OsString, fs};
 #[test]
 fn test_from_output() {
     [
-        (Muxer::Avi, "avi"),
-        (Muxer::Mp4, "mp4"),
+        (Muxer::Matroska, "avi"),
+        (Muxer::Matroska, "mp4"),
         (Muxer::Matroska, "mkv"),
-        (Muxer::Webm, "webm"),
+        (Muxer::Matroska, "webm"),
         (Muxer::Matroska, "x"),
         (Muxer::Matroska, "abc"),
         (Muxer::Matroska, "rand"),

@@ -1,3 +1,4 @@
+use super::{Encode, Encoder};
 use crate::{
     DispositionType, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
     VERSION,
@@ -5,6 +6,7 @@ use crate::{
         self, Dictionary,
         format::{self, context},
     },
+    immut,
     markers::*,
 };
 use enum_map::EnumMap;
@@ -14,30 +16,25 @@ pub(super) fn write_header(
     mi: &mut MediaInfo,
     order: &StreamsOrder,
     octx: &mut context::Output,
-) -> Result<(Vec<context::Input>, Vec<Vec<Option<usize>>>)> {
+) -> Result<(Vec<context::Input>, Vec<Encoder>, Vec<Vec<Option<usize>>>)> {
     let len = order.iter_first_entries().count();
     let mut icontexts = Vec::with_capacity(len);
     let mut idx_map: Vec<Vec<Option<usize>>> = vec![vec![]; len];
+    let mut encoders: Vec<Encoder> = Vec::with_capacity(order.len());
 
     let auto = mi.cfg.auto_flags.map_dispositions();
     let mut counts: EnumMap<StreamType, EnumMap<DispositionType, usize>> = EnumMap::default();
 
     for ord in &order.0 {
         let ist = try_input_stream(mi, &mut icontexts, ord)?;
-        let stream = mi
-            .immut(MIStreams, &ord.key)
-            .map(|xs| &xs[ord.key_i_stream]);
+        let st = &immut!(@try, mi, MIStreams, &ord.key)?[ord.key_i_stream];
 
-        let mut ost = octx.add_stream(ffmpeg::codec::Id::None)?;
-        ost.set_parameters(ist.parameters());
-        unsafe {
-            (*ost.parameters().as_mut_ptr()).codec_tag = 0;
-        }
-        ost.set_time_base(ist.time_base());
-        ost.set_metadata(new_stream_metadata(stream, &ist));
-        set_ost_dispositions(mi, &auto, &mut counts, ord, stream, &mut ost);
+        let (mut ost, enc) = Encoder::new(&ist, octx)?;
+        ost.set_metadata(new_ost_metadata(st, &ist));
+        set_ost_dispositions(mi, &auto, &mut counts, ord, st, &mut ost);
 
-        push_idx(&mut idx_map[ord.src_num], ist.index(), ost.index());
+        push_idx(&mut idx_map[ord.src_num], ord.i_stream, ost.index());
+        encoders.push(enc);
     }
 
     let mut meta = octx.metadata().to_owned();
@@ -46,7 +43,20 @@ pub(super) fn write_header(
 
     octx.write_header()?;
 
-    Ok((icontexts, idx_map))
+    for (i, ord) in order.0.iter().enumerate() {
+        let ost_index = some_or!(idx_map[ord.src_num][ord.i_stream], continue);
+        let ist_tb = icontexts[ord.src_num]
+            .stream(ord.i_stream)
+            .unwrap()
+            .time_base();
+        let ost_tb = octx.stream(ost_index).unwrap().time_base();
+
+        let enc = &mut encoders[i];
+        enc.set_ist_time_base(ist_tb);
+        enc.set_ost_time_base(ost_tb);
+    }
+
+    Ok((icontexts, encoders, idx_map))
 }
 
 fn try_input_stream<'a>(
@@ -80,20 +90,15 @@ fn try_input_stream<'a>(
         .ok_or_else(|| err!("Not found stream"))
 }
 
-fn new_stream_metadata<'a>(stream: Option<&Stream>, ist: &'a ffmpeg::Stream<'a>) -> Dictionary<'a> {
+fn new_ost_metadata<'a>(stream: &Stream, ist: &'a ffmpeg::Stream<'a>) -> Dictionary<'a> {
     let mut meta = ist.metadata().to_owned();
-
-    if let Some(st) = stream {
-        meta.set("language", st.lang.as_str());
-
-        if let Some(s) = st.name.as_ref() {
-            meta.set("title", &*s);
-        }
-        if let Some(s) = st.filename.as_ref() {
-            meta.set("filename", s);
-        }
+    meta.set("language", stream.lang.as_str());
+    if let Some(s) = stream.name.as_ref() {
+        meta.set("title", &*s);
     }
-
+    if let Some(s) = stream.filename.as_ref() {
+        meta.set("filename", s);
+    }
     meta
 }
 
@@ -102,10 +107,9 @@ fn set_ost_dispositions(
     auto: &EnumMap<DispositionType, bool>,
     counts: &mut EnumMap<StreamType, EnumMap<DispositionType, usize>>,
     ord: &StreamsOrderItem,
-    stream: Option<&Stream>,
+    stream: &Stream,
     ost: &mut ffmpeg::StreamMut,
 ) {
-    let stream = some_or!(stream, return);
     let target_paths = some_or!(mi.immut(MITargetPaths, &ord.key), return);
 
     let st = unsafe { &mut *ost.as_mut_ptr() };

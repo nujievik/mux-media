@@ -64,15 +64,6 @@ macro_rules! to_json_args {
     }};
 }
 
-macro_rules! some_or {
-    ($x:expr, $or:expr) => {
-        match $x {
-            Some(x) => x,
-            None => $or,
-        }
-    };
-}
-
 pub(crate) mod arc_path_buf;
 pub(crate) mod auto_flags;
 pub(crate) mod chapters;

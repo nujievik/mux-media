@@ -22,19 +22,6 @@ impl StreamType {
     pub(crate) fn as_path(&self) -> &Path {
         Path::new(self.as_ref())
     }
-
-    pub(crate) fn as_first_s(&self) -> &str {
-        match self {
-            Self::Audio => "a",
-            Self::Sub => "s",
-            Self::Video => "v",
-            _ => unreachable!(),
-        }
-    }
-
-    pub(crate) fn iter_track() -> impl Iterator<Item = Self> {
-        <Self as strum::IntoEnumIterator>::iter().filter(|ty| ty.is_track())
-    }
 }
 
 impl StreamType {
