@@ -135,9 +135,8 @@ impl StreamsOrder {
             sources: Vec<ArcPathBuf>,
             sorted_src_stream_ty: Vec<(usize, usize, StreamType)>,
         ) -> Vec<StreamsOrderItem> {
-            let len = sorted_src_stream_ty.len();
-            let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(len);
-            let mut src_numbers = vec![Option::<usize>::None; len];
+            let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(sorted_src_stream_ty.len());
+            let mut src_numbers = vec![Option::<usize>::None; sources.len()];
             let mut src_num = 0usize;
             let mut sup = StreamsSupported::new(muxer);
 
