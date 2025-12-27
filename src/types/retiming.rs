@@ -1,14 +1,14 @@
 mod audio;
-mod concat;
 mod new;
 pub(crate) mod options;
 mod subs;
 mod video;
 
-use crate::{
-    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem,
-    ffmpeg::{Rational, format::context},
+use crate::ffmpeg::{
+    Rational, Rescale, codec,
+    format::{self, context},
 };
+use crate::{ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -93,9 +93,8 @@ impl Retiming<'_, '_> {
     }
 }
 
-// Writes a split header, returning
-// (input stream time base, output stream time base, output stream index).
-fn write_split_header(
+// Returns (input stream time base, output stream time base, output stream index).
+fn write_stream_copy_header(
     ictx: &context::Input,
     ist_index: usize,
     octx: &mut context::Output,
@@ -106,18 +105,77 @@ fn write_split_header(
             if ist_index != ist.index() {
                 return None;
             }
-            let mut ost = octx.add_stream(ist.parameters().id()).ok()?;
+            let mut ost = octx.add_stream(codec::Id::None).ok()?;
             ost.set_parameters(ist.parameters());
+
+            unsafe {
+                (*ost.as_mut_ptr()).sample_aspect_ratio = (*ist.as_ptr()).sample_aspect_ratio;
+                (*ost.parameters().as_mut_ptr()).codec_tag = 0;
+            }
+
             Some((ist.time_base(), ost.index()))
         })
         .ok_or_else(|| err!("Not found stream"))?;
 
     octx.write_header()?;
-
-    let ost_time_base = octx
-        .stream(ost_index)
-        .map(|ost| ost.time_base())
-        .ok_or_else(|| err!("Not found stream"))?;
+    let ost_time_base = octx.stream(ost_index).unwrap().time_base();
 
     Ok((ist_time_base, ost_time_base, ost_index))
+}
+
+fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
+    let mut icontexts = Vec::with_capacity(splits.len());
+    for p in splits {
+        icontexts.push(format::input(p)?);
+    }
+    let mut octx = format::output(dest)?;
+
+    let (_, ost_time_base, ost_index) = write_stream_copy_header(&icontexts[0], 0, &mut octx)?;
+    let mut pts_offset: i64 = 0;
+    let mut dts_offset: i64 = 0;
+    let mut was_error = false;
+
+    for ictx in icontexts.iter_mut() {
+        let ist = ictx.streams().next().unwrap();
+        let ist_index = ist.index();
+        let ist_time_base = ist.time_base();
+        let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
+
+        let mut last_dts = 0;
+        let mut max_pts = 0;
+
+        for (ist, mut packet) in ictx.packets() {
+            if ist_index != ist.index() {
+                continue;
+            }
+
+            if let Some(dts) = packet.dts() {
+                let dts = rescale(dts) + dts_offset;
+                packet.set_dts(Some(dts));
+                last_dts = dts;
+            }
+
+            if let Some(pts) = packet.pts() {
+                let pts = rescale(pts) + pts_offset;
+                let pts = pts.max(last_dts);
+                packet.set_pts(Some(pts));
+                max_pts = max_pts.max(pts);
+            }
+
+            packet.set_stream(ost_index);
+            if packet.write_interleaved(&mut octx).is_err() && !was_error {
+                log::error!(
+                    "Fail concat retimed parts of '{}'. Output file may be corrupted\nTry --no-linked to fix",
+                    src.display()
+                );
+                was_error = true;
+            }
+        }
+
+        dts_offset = last_dts;
+        pts_offset = max_pts.max(last_dts);
+    }
+
+    octx.write_trailer()?;
+    Ok(())
 }

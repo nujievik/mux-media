@@ -1,4 +1,4 @@
-use super::{RetimedStream, Retiming, write_split_header};
+use super::{RetimedStream, Retiming, try_concat, write_stream_copy_header};
 use crate::{
     Duration, Result,
     ffmpeg::{Rescale, format},
@@ -17,12 +17,8 @@ impl Retiming<'_, '_> {
             self.try_external_audio(i, src, i_stream)
         }?;
 
-        let txt = self
-            .temp_dir
-            .join(format!("{}-aud-splits-{}.txt", self.job, i));
-
         let dest = self.temp_dir.join(format!("{}-aud-{}.mka", self.job, i));
-        self.try_concat(&splits, &txt, &dest)?;
+        try_concat(src, &splits, &dest)?;
 
         Ok(RetimedStream {
             src: Some(dest),
@@ -106,7 +102,8 @@ fn try_split(
     let mut ictx = format::input(&src)?;
     let mut octx = format::output(&dest)?;
 
-    let (ist_time_base, ost_time_base, ost_index) = write_split_header(&ictx, i_stream, &mut octx)?;
+    let (ist_time_base, ost_time_base, ost_index) =
+        write_stream_copy_header(&ictx, i_stream, &mut octx)?;
 
     let duration_to_ts = |dur: Duration| {
         let tb = ost_time_base.0 as f64 / ost_time_base.1 as f64;
