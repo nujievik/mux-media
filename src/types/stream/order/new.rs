@@ -37,214 +37,214 @@ impl StreamsOrder {
     ///
     /// - Warning: fails retiming any media.
     pub fn new(mi: &mut MediaInfo) -> Result<StreamsOrder> {
-        return if mi.cache.of_files.is_empty() {
+        if mi.cache.of_files.is_empty() {
             Err(err!("Not found any cached media file"))
         } else {
             let sources = sources(mi);
             let sorted_src_stream_ty = try_sorted_src_stream_ty(mi, &sources)?;
             let items = items(mi.cfg.muxer, sources, sorted_src_stream_ty);
             try_order(mi, items)
-        };
-
-        fn sources(mi: &mut MediaInfo) -> Vec<ArcPathBuf> {
-            let mut sources: Vec<ArcPathBuf> = mi.cache.of_files.keys().cloned().collect();
-            sources.sort(); // First sort by names
-            sources
         }
+    }
+}
 
-        fn try_sorted_src_stream_ty(
-            mi: &mut MediaInfo,
-            sources: &Vec<ArcPathBuf>,
-        ) -> Result<Vec<(usize, usize, StreamType)>> {
-            let cfg = mi.cfg;
-            let locale = cfg.locale;
+fn sources(mi: &mut MediaInfo) -> Vec<ArcPathBuf> {
+    let mut sources: Vec<ArcPathBuf> = mi.cache.of_files.keys().cloned().collect();
+    sources.sort(); // First sort by names
+    sources
+}
 
-            let mut track_streams: Vec<(usize, usize, StreamType, OrderSortKey)> = Vec::new();
-            let mut attach_streams: Vec<(usize, usize, StreamType, Option<String>)> = Vec::new();
-            let mut attach_names: HashSet<String> = HashSet::new();
+fn try_sorted_src_stream_ty(
+    mi: &mut MediaInfo,
+    sources: &Vec<ArcPathBuf>,
+) -> Result<Vec<(usize, usize, StreamType)>> {
+    let cfg = mi.cfg;
+    let locale = cfg.locale;
 
-            for (i_src, src) in sources.iter().enumerate() {
-                let streams = mi.try_take(MIStreams, src)?;
-                let target_paths = mi.try_take(MITargetPaths, src)?;
+    let mut track_streams: Vec<(usize, usize, StreamType, OrderSortKey)> = Vec::new();
+    let mut attach_streams: Vec<(usize, usize, StreamType, Option<String>)> = Vec::new();
+    let mut attach_names: HashSet<String> = HashSet::new();
 
-                streams.iter().for_each(|stream| {
-                    let ty = stream.ty;
-                    // skip temp dummy sub
-                    if ty.is_sub()
-                        && stream.i == 0
-                        && src.parent().map_or(false, |p| p == cfg.output.temp_dir)
-                    {
-                        return;
-                    }
+    for (i_src, src) in sources.iter().enumerate() {
+        let streams = mi.try_take(MIStreams, src)?;
+        let target_paths = mi.try_take(MITargetPaths, src)?;
 
-                    let (i, cfg_streams) = cfg.stream_val(CfgStreams, &target_paths, stream);
-                    if !cfg_streams.is_save(&i, &stream.lang) {
-                        return;
-                    }
-
-                    if ty.is_an_attach() {
-                        if match &stream.filename {
-                            Some(s) if attach_names.contains(s) => false,
-                            Some(_) => true,
-                            None => true,
-                        } {
-                            let fname = stream.filename.as_ref().map(|s| s.to_lowercase());
-                            attach_streams.push((i_src, stream.i, ty, fname));
-
-                            if let Some(s) = &stream.filename {
-                                let _ = attach_names.insert(s.clone());
-                            }
-                        }
-                        return;
-                    }
-
-                    let lang = &stream.lang;
-                    let it_signs = mi.it_signs(src, stream);
-
-                    let (i, defaults) = cfg.stream_val(CfgDefaults, &target_paths, stream);
-                    let default = defaults.get(&i, &lang);
-                    let (i, forceds) = cfg.stream_val(CfgForceds, &target_paths, stream);
-                    let forced = forceds.get(&i, &lang);
-
-                    let key = OrderSortKey::new(ty, default, forced, it_signs, lang, locale);
-                    track_streams.push((i_src, stream.i, ty, key));
-                });
-
-                mi.set(MIStreams, src, streams);
-                mi.set(MITargetPaths, src, target_paths);
+        streams.iter().for_each(|stream| {
+            let ty = stream.ty;
+            // skip temp dummy sub
+            if ty.is_sub()
+                && stream.i == 0
+                && src.parent().map_or(false, |p| p == cfg.output.temp_dir)
+            {
+                return;
             }
 
-            track_streams.sort_by(|a, b| a.3.cmp(&b.3));
-            attach_streams.sort_by(|a, b| a.2.cmp(&b.2).then(a.3.cmp(&b.3)));
-
-            let mut streams: Vec<(usize, usize, StreamType)> =
-                Vec::with_capacity(track_streams.len() + attach_streams.len());
-
-            for (i_src, i_stream, ty, _) in track_streams {
-                streams.push((i_src, i_stream, ty));
-            }
-            for (i_src, i_stream, ty, _) in attach_streams {
-                streams.push((i_src, i_stream, ty));
+            let (i, cfg_streams) = cfg.stream_val(CfgStreams, &target_paths, stream);
+            if !cfg_streams.is_save(&i, &stream.lang) {
+                return;
             }
 
-            Ok(streams)
-        }
+            if ty.is_an_attach() {
+                if match &stream.filename {
+                    Some(s) if attach_names.contains(s) => false,
+                    Some(_) => true,
+                    None => true,
+                } {
+                    let fname = stream.filename.as_ref().map(|s| s.to_lowercase());
+                    attach_streams.push((i_src, stream.i, ty, fname));
 
-        fn items(
-            muxer: Muxer,
-            sources: Vec<ArcPathBuf>,
-            sorted_src_stream_ty: Vec<(usize, usize, StreamType)>,
-        ) -> Vec<StreamsOrderItem> {
-            let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(sorted_src_stream_ty.len());
-            let mut src_numbers = vec![Option::<usize>::None; sources.len()];
-            let mut src_num = 0usize;
-            let mut sup = StreamsSupported::new(muxer);
-
-            for (i_src, i_stream, ty) in sorted_src_stream_ty {
-                if !sup.is_supported(ty) {
-                    logs::warn_container_does_not_support(muxer, &sources[i_src], i_stream);
-                    continue;
+                    if let Some(s) = &stream.filename {
+                        let _ = attach_names.insert(s.clone());
+                    }
                 }
-                let (num, is_first) = num_is_first(i_src, &mut src_numbers, &mut src_num);
-
-                items.push(StreamsOrderItem {
-                    ty,
-                    key: sources[i_src].clone(),
-                    key_i_stream: i_stream,
-                    src: None,
-                    i_stream,
-                    src_time: None,
-                    src_num: num,
-                    is_first_entry: is_first,
-                })
+                return;
             }
 
-            items
+            let lang = &stream.lang;
+            let it_signs = mi.it_signs(src, stream);
+
+            let (i, defaults) = cfg.stream_val(CfgDefaults, &target_paths, stream);
+            let default = defaults.get(&i, &lang);
+            let (i, forceds) = cfg.stream_val(CfgForceds, &target_paths, stream);
+            let forced = forceds.get(&i, &lang);
+
+            let key = OrderSortKey::new(ty, default, forced, it_signs, lang, locale);
+            track_streams.push((i_src, stream.i, ty, key));
+        });
+
+        mi.set(MIStreams, src, streams);
+        mi.set(MITargetPaths, src, target_paths);
+    }
+
+    track_streams.sort_by(|a, b| a.3.cmp(&b.3));
+    attach_streams.sort_by(|a, b| a.2.cmp(&b.2).then(a.3.cmp(&b.3)));
+
+    let mut streams: Vec<(usize, usize, StreamType)> =
+        Vec::with_capacity(track_streams.len() + attach_streams.len());
+
+    for (i_src, i_stream, ty, _) in track_streams {
+        streams.push((i_src, i_stream, ty));
+    }
+    for (i_src, i_stream, ty, _) in attach_streams {
+        streams.push((i_src, i_stream, ty));
+    }
+
+    Ok(streams)
+}
+
+fn items(
+    muxer: Muxer,
+    sources: Vec<ArcPathBuf>,
+    sorted_src_stream_ty: Vec<(usize, usize, StreamType)>,
+) -> Vec<StreamsOrderItem> {
+    let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(sorted_src_stream_ty.len());
+    let mut src_numbers = vec![Option::<usize>::None; sources.len()];
+    let mut src_num = 0usize;
+    let mut sup = StreamsSupported::new(muxer);
+
+    for (i_src, i_stream, ty) in sorted_src_stream_ty {
+        if !sup.is_supported(ty) {
+            logs::warn_container_does_not_support(muxer, &sources[i_src], i_stream);
+            continue;
         }
+        let (num, is_first) = num_is_first(i_src, &mut src_numbers, &mut src_num);
 
-        fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<StreamsOrder> {
-            let exit_on_err = mi.cfg.exit_on_err;
-            let order = StreamsOrder(items);
+        items.push(StreamsOrderItem {
+            ty,
+            key: sources[i_src].clone(),
+            key_i_stream: i_stream,
+            src: None,
+            i_stream,
+            src_time: None,
+            src_num: num,
+            is_first_entry: is_first,
+        })
+    }
 
-            let rtm = match Retiming::try_new(mi, &order) {
-                Ok(rtm) => rtm,
-                Err(e) if e.code == 0 => return Ok(order),
-                Err(e) => return Err(e),
-            };
+    items
+}
 
-            let mut i_retimed = order
-                .0
-                .par_iter()
-                .enumerate()
-                .filter_map(|(i, m)| {
-                    if m.ty.is_track() {
-                        match rtm.try_any(i, m) {
-                            Ok(retimed) => Some(Ok((i, retimed))),
-                            Err(e) if exit_on_err => Some(Err(e)),
-                            Err(e) => {
-                                warn!(
-                                    "Fail retime '{}' stream {}: {}. Skipping",
-                                    m.key.display(),
-                                    m.i_stream,
-                                    e
-                                );
-                                None
-                            }
-                        }
-                    } else {
-                        let retimed = RetimedStream {
-                            i_stream: m.i_stream,
-                            ..Default::default()
-                        };
-                        Some(Ok((i, retimed)))
+fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<StreamsOrder> {
+    let exit_on_err = mi.cfg.exit_on_err;
+    let order = StreamsOrder(items);
+
+    let rtm = match Retiming::try_new(mi, &order) {
+        Ok(rtm) => rtm,
+        Err(e) if e.code == 0 => return Ok(order),
+        Err(e) => return Err(e),
+    };
+
+    let mut i_retimed = order
+        .0
+        .par_iter()
+        .enumerate()
+        .filter_map(|(i, m)| {
+            if m.ty.is_track() {
+                match rtm.try_any(i, m) {
+                    Ok(retimed) => Some(Ok((i, retimed))),
+                    Err(e) if exit_on_err => Some(Err(e)),
+                    Err(e) => {
+                        warn!(
+                            "Fail retime '{}' stream {}: {}. Skipping",
+                            m.key.display(),
+                            m.i_stream,
+                            e
+                        );
+                        None
                     }
-                })
-                .collect::<Result<Vec<_>>>()?;
-
-            if i_retimed.is_empty() {
-                return Err(err!("Not save any track"));
-            }
-
-            i_retimed.sort_by(|a, b| a.0.cmp(&b.0));
-            let mut src_numbers = vec![Option::<usize>::None; order.len()];
-            let mut src_num = 0usize;
-
-            let items: Vec<_> = i_retimed
-                .into_iter()
-                .map(|(i, rtm)| {
-                    let item = &order.0[i];
-                    let (num, is_first) = num_is_first(i, &mut src_numbers, &mut src_num);
-
-                    StreamsOrderItem {
-                        ty: item.ty,
-                        key: item.key.clone(),
-                        key_i_stream: item.key_i_stream,
-                        src: rtm.src,
-                        i_stream: rtm.i_stream,
-                        src_time: rtm.src_time,
-                        src_num: num,
-                        is_first_entry: is_first,
-                    }
-                })
-                .collect();
-
-            Ok(StreamsOrder(items))
-        }
-
-        fn num_is_first(
-            i_src: usize,
-            src_numbers: &mut Vec<Option<usize>>,
-            src_num: &mut usize,
-        ) -> (usize, bool) {
-            match src_numbers[i_src] {
-                Some(n) => (n, false),
-                None => {
-                    let n = *src_num;
-                    src_numbers[i_src] = Some(n);
-                    *src_num += 1;
-                    (n, true)
                 }
+            } else {
+                let retimed = RetimedStream {
+                    i_stream: m.i_stream,
+                    ..Default::default()
+                };
+                Some(Ok((i, retimed)))
             }
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    if i_retimed.is_empty() {
+        return Err(err!("Not save any track"));
+    }
+
+    i_retimed.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut src_numbers = vec![Option::<usize>::None; order.len()];
+    let mut src_num = 0usize;
+
+    let items: Vec<_> = i_retimed
+        .into_iter()
+        .map(|(i, rtm)| {
+            let item = &order.0[i];
+            let (num, is_first) = num_is_first(i, &mut src_numbers, &mut src_num);
+
+            StreamsOrderItem {
+                ty: item.ty,
+                key: item.key.clone(),
+                key_i_stream: item.key_i_stream,
+                src: rtm.src,
+                i_stream: rtm.i_stream,
+                src_time: rtm.src_time,
+                src_num: num,
+                is_first_entry: is_first,
+            }
+        })
+        .collect();
+
+    Ok(StreamsOrder(items))
+}
+
+fn num_is_first(
+    i_src: usize,
+    src_numbers: &mut Vec<Option<usize>>,
+    src_num: &mut usize,
+) -> (usize, bool) {
+    match src_numbers[i_src] {
+        Some(n) => (n, false),
+        None => {
+            let n = *src_num;
+            src_numbers[i_src] = Some(n);
+            *src_num += 1;
+            (n, true)
         }
     }
 }
