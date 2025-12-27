@@ -1,3 +1,4 @@
+use crate::ffmpeg::{self, codec, format};
 use crate::{Config, Result};
 use std::path::{MAIN_SEPARATOR, PathBuf};
 
@@ -90,4 +91,19 @@ pub fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
     let mut prf_path = std::ffi::OsString::from("\\\\?\\");
     prf_path.push(path.as_os_str());
     prf_path.into()
+}
+
+pub(crate) fn add_copy_stream<'a>(
+    ist: &format::stream::Stream,
+    octx: &'a mut format::context::Output,
+) -> Result<ffmpeg::StreamMut<'a>> {
+    let mut ost = octx.add_stream(codec::Id::None)?;
+    ost.set_parameters(ist.parameters());
+
+    unsafe {
+        (*ost.as_mut_ptr()).sample_aspect_ratio = (*ist.as_ptr()).sample_aspect_ratio;
+        (*ost.parameters().as_mut_ptr()).codec_tag = 0;
+    }
+
+    Ok(ost)
 }

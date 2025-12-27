@@ -76,6 +76,7 @@ static VERSION: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VER
 use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;
 
+use functions::add_copy_stream;
 use types::{
     helpers,
     retiming::{RetimedStream, Retiming, RetimingChapter},

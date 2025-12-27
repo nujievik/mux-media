@@ -5,10 +5,12 @@ mod subs;
 mod video;
 
 use crate::ffmpeg::{
-    Rational, Rescale, codec,
+    Rational, Rescale,
     format::{self, context},
 };
-use crate::{ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem};
+use crate::{
+    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, add_copy_stream,
+};
 use std::path::{Path, PathBuf};
 
 #[derive(Debug)]
@@ -99,28 +101,15 @@ fn write_stream_copy_header(
     ist_index: usize,
     octx: &mut context::Output,
 ) -> Result<(Rational, Rational, usize)> {
-    let (ist_time_base, ost_index) = ictx
-        .streams()
-        .find_map(|ist| {
-            if ist_index != ist.index() {
-                return None;
-            }
-            let mut ost = octx.add_stream(codec::Id::None).ok()?;
-            ost.set_parameters(ist.parameters());
-
-            unsafe {
-                (*ost.as_mut_ptr()).sample_aspect_ratio = (*ist.as_ptr()).sample_aspect_ratio;
-                (*ost.parameters().as_mut_ptr()).codec_tag = 0;
-            }
-
-            Some((ist.time_base(), ost.index()))
-        })
+    let ist = ictx
+        .stream(ist_index)
         .ok_or_else(|| err!("Not found stream"))?;
-
+    let ost = add_copy_stream(&ist, octx)?;
+    let ost_index = ost.index();
     octx.write_header()?;
     let ost_time_base = octx.stream(ost_index).unwrap().time_base();
 
-    Ok((ist_time_base, ost_time_base, ost_index))
+    Ok((ist.time_base(), ost_time_base, ost_index))
 }
 
 fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {

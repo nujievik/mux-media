@@ -1,9 +1,9 @@
 use super::{Encode, Encoder};
-use crate::Result;
 use crate::ffmpeg::{
     self, Packet, Rational,
     format::{self, context},
 };
+use crate::{Result, add_copy_stream};
 
 pub struct EncoderCopy {
     ist_time_base: Rational,
@@ -38,12 +38,7 @@ impl EncoderCopy {
         ist: &format::stream::Stream,
         octx: &'a mut context::Output,
     ) -> Result<(ffmpeg::StreamMut<'a>, Encoder)> {
-        let mut ost = octx.add_stream(ffmpeg::codec::Id::None)?;
-        ost.set_parameters(ist.parameters());
-        unsafe {
-            (*ost.parameters().as_mut_ptr()).codec_tag = 0;
-        }
-
+        let ost = add_copy_stream(ist, octx)?;
         let enc = Self {
             ist_time_base: Rational(1, 1),
             ost_time_base: Rational(1, 1),
