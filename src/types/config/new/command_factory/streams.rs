@@ -7,7 +7,7 @@ impl Blocks {
     pub fn streams(mut self) -> Self {
         self.0 = self
             .0
-            .next_help_heading("Streams copy")
+            .next_help_heading(Msg::HelpSaveStreams.as_str_localized())
             .arg(
                 Arg::new(undashed!(Audio))
                     .short('a')

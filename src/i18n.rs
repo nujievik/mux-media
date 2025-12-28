@@ -72,6 +72,7 @@ pub enum Msg {
     HelpReencode,
     HelpRetimingOptions,
     HelpSaveConfig,
+    HelpSaveStreams,
     HelpSkip,
     HelpSolo,
     HelpSortFonts,

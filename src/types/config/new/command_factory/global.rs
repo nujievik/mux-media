@@ -66,6 +66,7 @@ impl Blocks {
                     .long(undashed!(Reencode))
                     .alias("re-encode")
                     .help(Msg::HelpReencode.as_str_localized())
+                    .hide(true)
                     .action(ArgAction::SetTrue),
             );
 

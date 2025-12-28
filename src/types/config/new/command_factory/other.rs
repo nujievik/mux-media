@@ -11,6 +11,7 @@ impl Blocks {
                 Arg::new(undashed!(ListContainers))
                     .long(undashed!(ListContainers))
                     .help(Msg::HelpListContainers.as_str_localized())
+                    .hide(true)
                     .action(ArgAction::SetTrue),
             )
             .arg(
