@@ -57,7 +57,7 @@ impl<T> Value<T> {
         !self.is_auto()
     }
 
-    /// Converts from &Value<T> to Value<&T>.
+    /// Converts from `&Value<T>` to `Value<&T>`.
     #[inline]
     pub const fn as_ref(&self) -> Value<&T> {
         match *self {

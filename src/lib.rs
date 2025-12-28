@@ -51,7 +51,7 @@ pub use types::{
     log_level::LogLevel,
     media_info::{
         MediaInfo,
-        cache::{CacheMI, CacheMIOfFile, CacheState},
+        cache::{CacheMI, CacheMIOfFile, CacheMIOfGroup, CacheState},
     },
     media_number::MediaNumber,
     metadata::{LangMetadata, Metadata, NameMetadata},

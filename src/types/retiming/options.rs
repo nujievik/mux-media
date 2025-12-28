@@ -5,6 +5,7 @@ use crate::{GlobSetPattern, IsDefault, RetimingChapter};
 
 /// A retiming configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
+#[non_exhaustive]
 pub struct RetimingOptions {
     pub inverse: bool,
     pub parts: Option<GlobSetPattern>,
