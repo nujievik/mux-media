@@ -11,34 +11,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Common sort internal & external fonts and attachs.
-- Static build.
-- `.vtt` extension.
+- Static build feature.
 
 ### Changed
 
-- Apply `--reencode` to Matroska too.
 - Auto `default`: first track of each type.
 - Decrease default jobs to 1 (was 4).
 - Indexes of each stream type starts from 0.
-- Rename (`--auto-charsets`, `--no-auto-charsets`) to (`--auto-encs`, `--no-auto-encs`).
 - Rename `--json` to `--load`.
 - Rename `--threads` to `--jobs`.
 - Rename `--user-tools` to `--sys`.
 - Replace `--rm-segments` to `--parts`.
-- Replace mkvmerge-convenient types to ffmpeg-convenient types.
+- Replace dependencies on external tools to ffmpeg library.
 - Short `--list-langs` to ISO639-1 and extend auto-langs to its.
 - Support any format language string.
 
 ### Removed
 
-- Tools `ffprobe` and `mkvmerge`.
+- External tools (ffprobe, ffmpeg and mkvmerge).
+- Output containers except Matroska.
+- Reencoding.
 - Tracks (streams) `enabled` flags.
-- `--raws` config.
+- `--auto-charsets`.
+- `--raws`.
+- `--chapters`.
 
 ### Fixed
 
 - MediaInfo durations.
-- Remove temp directories while parse `--ffmpeg [options]`.
 - Retiming SSA/ASS subtitles.
 - Retiming single part.
 - Retiming sync.
