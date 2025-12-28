@@ -5,12 +5,12 @@ mod init_external_fonts;
 mod packet;
 
 use crate::{
-    Config, MediaInfo, Msg, MuxError, MuxLogger, Result, TryFinalizeInit,
+    Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit,
     ffmpeg::{self, format},
-    markers::MICmnStreamsOrder,
+    markers::*,
 };
 use encoder::{Encode, Encoder};
-use log::{info, warn};
+use log::{error, info, warn};
 use packet::IstPacket;
 use rayon::prelude::*;
 use std::{path::Path, sync::Mutex};
@@ -141,13 +141,47 @@ impl MediaInfo<'_> {
             enc.processing_packet(&mut octx, &mut packet)?;
         }
 
-        self.set_cmn(MICmnStreamsOrder, order);
-
         for enc in &mut encoders {
             enc.finalize(&mut octx)?;
         }
 
+        copy_chapters(self, &order, &icontexts, &mut octx);
+        self.set_cmn(MICmnStreamsOrder, order);
+
         octx.write_trailer()?;
         Ok(())
+    }
+}
+
+fn copy_chapters(
+    mi: &mut MediaInfo,
+    order: &StreamsOrder,
+    icontexts: &Vec<format::context::Input>,
+    octx: &mut format::context::Output,
+) {
+    let cfg = mi.cfg;
+    let it = order.iter_first_entries().filter_map(|ord| {
+        let target_paths = mi.get(MITargetPaths, &ord.key)?;
+        let chapters = cfg
+            .get_targets(CfgChapters, target_paths)
+            .unwrap_or(&mi.cfg.chapters);
+
+        if chapters.no_flag {
+            None
+        } else {
+            Some(&icontexts[ord.src_num])
+        }
+    });
+
+    for (i, chp) in it.flat_map(|ictx| ictx.chapters().enumerate()) {
+        let title = match chp.metadata().get("title") {
+            Some(title) => String::from(title),
+            None => i.to_string(),
+        };
+
+        if let Err(e) = octx.add_chapter(chp.id(), chp.time_base(), chp.start(), chp.end(), &title)
+        {
+            error!("Fail copy chapter '{}': {}", title, e)
+        }
     }
 }
