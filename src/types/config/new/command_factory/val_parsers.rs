@@ -1,4 +1,4 @@
-use crate::{Chapters, Input, Output, types::helpers::try_canonicalize_and_open};
+use crate::{Input, Output, helpers::try_canonicalize_and_open};
 use clap::{
     Arg, Command, Error,
     builder::TypedValueParser,
@@ -48,4 +48,3 @@ macro_rules! typed_value_parser {
 typed_value_parser!(InputDirParser, PathBuf, Input::try_canonicalize_and_read);
 typed_value_parser!(OutputParser, Output, Output::try_from_path);
 typed_value_parser!(ConfigParser, PathBuf, try_canonicalize_and_open);
-typed_value_parser!(ChaptersParser, Chapters, Chapters::try_from_file);

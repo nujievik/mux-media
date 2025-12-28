@@ -193,11 +193,6 @@ fn parse_streams() {
 #[test]
 fn parse_chapters() {
     test_parse!(["-C"], chapters.no_flag, true);
-    test_parse!(
-        [p("-c"), &data("srt.srt")],
-        chapters.file,
-        Some(data("srt.srt"))
-    );
 }
 
 #[test]
@@ -282,7 +277,6 @@ fn test_aliases_of_args() {
         (vec!["-a", "--audio"], "1"),
         (vec!["-s", "--subs"], "1"),
         (vec!["-d", "--video"], "1"),
-        (vec!["-c", "--chapters"], data("srt.srt").to_str().unwrap()),
         (vec!["-f", "--fonts"], "1"),
         (vec!["-m", "--attachs"], "1"),
     ]

@@ -492,20 +492,15 @@ fn try_input(m: &mut ArgMatches) -> Result<Input, Error> {
 
 fn get_chapters(m: &mut ArgMatches) -> Option<Chapters> {
     if flag!(m, NoChapters) {
-        Some(Chapters {
-            no_flag: true,
-            file: None,
-        })
+        Some(Chapters { no_flag: true })
     } else {
-        rm!(m, Chapters, Chapters)
+        None
     }
 }
 
 fn upd_chapters(chp: &mut Chapters, m: &mut ArgMatches) {
     if flag!(m, NoChapters) {
         chp.no_flag = true;
-    } else {
-        upd!(*chp, m, Chapters, Chapters);
     }
 }
 

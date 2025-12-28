@@ -1,4 +1,4 @@
-use super::{Blocks, val_parsers::ChaptersParser};
+use super::Blocks;
 use crate::{
     DefaultDispositions, ForcedDispositions, LangMetadata, Msg, NameMetadata, Streams, undashed,
 };
@@ -40,6 +40,7 @@ impl Blocks {
                     .action(ArgAction::SetTrue)
                     .conflicts_with(undashed!(Streams)),
             )
+            /*
             .arg(
                 Arg::new(undashed!(Chapters))
                     .short('c')
@@ -48,13 +49,13 @@ impl Blocks {
                     .help(Msg::HelpChapters.as_str_localized())
                     .value_parser(ValueParser::new(ChaptersParser)),
             )
+            */
             .arg(
                 Arg::new(undashed!(NoChapters))
                     .short('C')
                     .long(undashed!(NoChapters))
                     .help(Msg::HelpNoChapters.as_str_localized())
-                    .action(ArgAction::SetTrue)
-                    .conflicts_with(undashed!(Chapters)),
+                    .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new(undashed!(Defaults))
