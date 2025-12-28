@@ -4,8 +4,8 @@ mod to_args;
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, FileType, GlobSetPattern, RangeUsize, Result};
-use enum_map::EnumMap;
+use crate::{ArcPathBuf, GlobSetPattern, RangeUsize, Result};
+use enum_map::{Enum, EnumMap};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -27,7 +27,15 @@ pub struct Input {
     pub solo: bool,
     pub need_num: bool,
     pub out_need_num: bool,
-    pub dirs: EnumMap<FileType, Vec<ArcPathBuf>>,
+    pub dirs: EnumMap<InputFileType, Vec<ArcPathBuf>>,
+}
+
+/// A type of input file.
+#[derive(Copy, Clone, Debug, Enum)]
+#[non_exhaustive]
+pub enum InputFileType {
+    Font,
+    Media,
 }
 
 impl Input {

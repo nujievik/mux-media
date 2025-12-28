@@ -1,11 +1,10 @@
-use super::{Input, iters::DirIter};
-use crate::{FileType, Msg, Result, TryFinalizeInit};
-use rayon::prelude::*;
+use super::{Input, InputFileType, iters::DirIter};
+use crate::{Msg, Result, TryFinalizeInit};
 
 macro_rules! collect_dirs {
     ($self:ident, $dirs:expr, $method:ident) => {
         $dirs
-            .par_iter()
+            .iter()
             .filter(|dir| $self.$method(dir).next().is_some())
             .map(|dir| dir.clone())
             .collect()
@@ -34,13 +33,11 @@ impl TryFinalizeInit for Input {
 
         let dirs: Vec<_> = DirIter::new(&self.dir, self.depth as usize, skip).collect();
 
-        let collected = rayon::join(
-            || collect_dirs!(self, dirs, iter_fonts_in_dir),
-            || collect_dirs!(self, dirs, iter_media_in_dir),
-        );
-
-        self.dirs[FileType::Font] = collected.0;
-        self.dirs[FileType::Media] = collected.1;
+        self.dirs[InputFileType::Font] = collect_dirs!(self, dirs, iter_fonts_in_dir);
+        self.dirs[InputFileType::Media] = dirs
+            .into_iter()
+            .filter(|d| self.iter_media_in_dir(&d).next().is_some())
+            .collect();
 
         Ok(())
     }

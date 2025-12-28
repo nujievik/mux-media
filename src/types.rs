@@ -75,7 +75,6 @@ pub(crate) mod container;
 pub(crate) mod dispositions;
 pub(crate) mod duration;
 pub(crate) mod extension;
-pub(crate) mod file_type;
 pub(crate) mod globset_pattern;
 pub(crate) mod helpers;
 pub(crate) mod input;

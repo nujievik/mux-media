@@ -45,9 +45,8 @@ pub use types::{
     dispositions::{DefaultDispositions, Dispositions, ForcedDispositions, ty::DispositionType},
     duration::Duration,
     extension::Extension,
-    file_type::FileType,
     globset_pattern::GlobSetPattern,
-    input::{Input, iters::MediaGroupedByStem},
+    input::{Input, InputFileType, iters::MediaGroupedByStem},
     lang::{Lang, LangCode},
     log_level::LogLevel,
     media_info::{

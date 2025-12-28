@@ -1,9 +1,8 @@
-use super::Input;
+use super::{Input, InputFileType};
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, Extension, FileType, MediaNumber, i18n::logs, types::helpers};
+use crate::{ArcPathBuf, Extension, MediaNumber, i18n::logs, types::helpers};
 use globset::GlobSet;
-use rayon::prelude::*;
 use std::{
     collections::HashSet,
     ffi::OsString,
@@ -62,9 +61,9 @@ impl Input {
     /// assert!(i.collect_fonts().is_empty());
     /// ```
     pub fn collect_fonts(&self) -> Vec<PathBuf> {
-        self.dirs[FileType::Font]
-            .par_iter()
-            .flat_map_iter(|dir| self.iter_fonts_in_dir(dir))
+        self.dirs[InputFileType::Font]
+            .iter()
+            .flat_map(|dir| self.iter_fonts_in_dir(dir))
             .collect()
     }
 
@@ -107,9 +106,9 @@ impl Input {
                 }
             }
 
-            let matched: Vec<PathBuf> = self.dirs[FileType::Media]
-                .par_iter()
-                .flat_map_iter(|dir| self.iter_media_in_dir(dir))
+            let matched: Vec<PathBuf> = self.dirs[InputFileType::Media]
+                .iter()
+                .flat_map(|dir| self.iter_media_in_dir(dir))
                 .filter(|p| {
                     p.file_stem()
                         .map_or(false, |stem| helpers::os_str_starts_with(up_stem, stem))
