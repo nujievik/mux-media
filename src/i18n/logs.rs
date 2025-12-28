@@ -1,11 +1,11 @@
-use crate::{Msg, MuxError, Muxer};
+use crate::{Container, Msg, MuxError};
 use log::{debug, warn};
 use std::{ffi::OsStr, path::Path};
 
-pub(crate) fn warn_container_does_not_support(muxer: Muxer, src: &Path, i_stream: usize) {
+pub(crate) fn warn_container_does_not_support(cont: Container, src: &Path, i_stream: usize) {
     warn!(
         "{} {} {}. {} '{}' stream {}",
-        muxer,
+        cont,
         Msg::ContainerDoesNotSupport,
         Msg::LMultipleTracksOrTypeTrack,
         Msg::Skipping,

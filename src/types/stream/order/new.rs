@@ -1,6 +1,6 @@
 use super::{StreamsOrder, StreamsOrderItem};
 use crate::{
-    ArcPathBuf, Lang, LangCode, MediaInfo, Muxer, Result, RetimedStream, Retiming, StreamType,
+    ArcPathBuf, Container, Lang, LangCode, MediaInfo, Result, RetimedStream, Retiming, StreamType,
     StreamsSupported, i18n::logs, markers::*,
 };
 use log::warn;
@@ -42,7 +42,7 @@ impl StreamsOrder {
         } else {
             let sources = sources(mi);
             let sorted_src_stream_ty = try_sorted_src_stream_ty(mi, &sources)?;
-            let items = items(mi.cfg.muxer, sources, sorted_src_stream_ty);
+            let items = items(mi.cfg.container, sources, sorted_src_stream_ty);
             try_order(mi, items)
         }
     }
@@ -133,18 +133,18 @@ fn try_sorted_src_stream_ty(
 }
 
 fn items(
-    muxer: Muxer,
+    cont: Container,
     sources: Vec<ArcPathBuf>,
     sorted_src_stream_ty: Vec<(usize, usize, StreamType)>,
 ) -> Vec<StreamsOrderItem> {
     let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(sorted_src_stream_ty.len());
     let mut src_numbers = vec![Option::<usize>::None; sources.len()];
     let mut src_num = 0usize;
-    let mut sup = StreamsSupported::new(muxer);
+    let mut sup = StreamsSupported::new(cont);
 
     for (i_src, i_stream, ty) in sorted_src_stream_ty {
         if !sup.is_supported(ty) {
-            logs::warn_container_does_not_support(muxer, &sources[i_src], i_stream);
+            logs::warn_container_does_not_support(cont, &sources[i_src], i_stream);
             continue;
         }
         let (num, is_first) = num_is_first(i_src, &mut src_numbers, &mut src_num);

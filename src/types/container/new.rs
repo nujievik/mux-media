@@ -1,8 +1,8 @@
-use super::Muxer;
+use super::Container;
 use crate::{Extension, Msg, MuxLogger, Output};
 
-impl Muxer {
-    pub fn new(output: &Output) -> Muxer {
+impl Container {
+    pub fn new(output: &Output) -> Container {
         match Extension::new(output.ext.as_encoded_bytes()) {
             //Some(Extension::Avi) => Self::Avi,
             //Some(Extension::Mp4) => Self::Mp4,

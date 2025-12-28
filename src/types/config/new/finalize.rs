@@ -1,10 +1,10 @@
-use crate::{Config, IsDefault, Msg, MuxLogger, Muxer, Output, Result, TryFinalizeInit};
+use crate::{Config, Container, IsDefault, Msg, MuxLogger, Output, Result, TryFinalizeInit};
 
 impl TryFinalizeInit for Config {
     fn try_finalize_init(&mut self) -> Result<()> {
         input(self)?;
         output(self)?;
-        muxer(self);
+        container(self);
 
         return Ok(());
 
@@ -23,25 +23,25 @@ impl TryFinalizeInit for Config {
             cfg.output.try_finalize_init()
         }
 
-        fn muxer(cfg: &mut Config) {
-            let mut m = Muxer::new(&cfg.output);
+        fn container(cfg: &mut Config) {
+            let mut c = Container::new(&cfg.output);
 
-            if !m.is_default() && !cfg.retiming_options.is_default() {
+            if !c.is_default() && !cfg.retiming_options.is_default() {
                 eprintln!(
                     "{}{}. {} Matroska (.mkv)",
                     MuxLogger::color_prefix(log::Level::Warn),
                     Msg::UnsupRetimingExt,
                     Msg::Using,
                 );
-                m = Muxer::Matroska;
+                c = Container::Matroska;
             }
 
-            let ext = m.as_ext();
+            let ext = c.as_ext();
             if ext != &cfg.output.ext {
                 cfg.output.ext = ext.into();
             }
 
-            cfg.muxer = m;
+            cfg.container = c;
         }
     }
 }

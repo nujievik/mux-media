@@ -1,19 +1,19 @@
-use crate::{Muxer, StreamType};
-use enum_map::{EnumMap, enum_map};
+use crate::{Container, StreamType};
+use enum_map::EnumMap;
 
 #[derive(Debug)]
 pub struct StreamsSupported {
-    muxer: Muxer,
+    container: Container,
     map: Option<EnumMap<StreamType, usize>>,
 }
 
 impl StreamsSupported {
-    pub fn new(muxer: Muxer) -> Self {
-        let map = match muxer {
-            Muxer::Avi => Some(enum_map! { StreamType::Audio | StreamType::Video => 1, _ => 0 }),
+    pub fn new(container: Container) -> Self {
+        let map = match container {
+            //Container::Avi => Some(enum_map! { StreamType::Audio | StreamType::Video => 1, _ => 0 }),
             _ => None,
         };
-        Self { muxer, map }
+        Self { container, map }
     }
 
     pub fn is_supported(&mut self, ty: StreamType) -> bool {
@@ -32,11 +32,11 @@ impl StreamsSupported {
     }
 }
 
-const fn is_supported_ty(sup: &StreamsSupported, ty: StreamType) -> bool {
-    match sup.muxer {
-        Muxer::Avi => matches!(ty, StreamType::Audio | StreamType::Video),
-        Muxer::Mp4 => ty.is_track(),
-        Muxer::Matroska => true,
-        Muxer::Webm => matches!(ty, StreamType::Audio | StreamType::Video),
+const fn is_supported_ty(sup: &StreamsSupported, _ty: StreamType) -> bool {
+    match sup.container {
+        //Container::Avi => matches!(ty, StreamType::Audio | StreamType::Video),
+        //Container::Mp4 => ty.is_track(),
+        Container::Matroska => true,
+        //Container::Webm => matches!(ty, StreamType::Audio | StreamType::Video),
     }
 }

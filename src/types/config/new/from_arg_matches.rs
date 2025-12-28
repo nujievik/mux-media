@@ -184,7 +184,7 @@ impl FromArgMatches for Config {
                 langs: rm_or!(m, Langs, LangMetadata, LangMetadata::default),
                 retiming_options: retiming_options(m),
                 targets: targets(m),
-                muxer: Default::default(),
+                container: Default::default(),
                 is_output_constructed_from_input,
             })
         }

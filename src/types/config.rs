@@ -5,8 +5,8 @@ mod to_json_args;
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
 use crate::{
-    AutoFlags, Chapters, DefaultDispositions, ForcedDispositions, Input, IsDefault, LangCode,
-    LangMetadata, LogLevel, Muxer, NameMetadata, Output, RetimingOptions, Streams, Target,
+    AutoFlags, Chapters, Container, DefaultDispositions, ForcedDispositions, Input, IsDefault,
+    LangCode, LangMetadata, LogLevel, NameMetadata, Output, RetimingOptions, Streams, Target,
 };
 use std::collections::HashMap;
 
@@ -36,7 +36,7 @@ pub struct Config {
     pub langs: LangMetadata,
     pub retiming_options: RetimingOptions,
     pub targets: Option<HashMap<Target, ConfigTarget>>,
-    pub muxer: Muxer,
+    pub container: Container,
     pub is_output_constructed_from_input: bool,
 }
 
