@@ -1,6 +1,6 @@
 mod new;
 
-use crate::{ArcPathBuf, Duration, StreamType};
+use crate::{ArcPathBuf, StreamType};
 use std::path::{Path, PathBuf};
 
 /// A sorted order of streams.
@@ -250,9 +250,6 @@ pub struct StreamsOrderItem {
 
     /// The stream index within the src.
     pub i_stream: usize,
-
-    /// A time of src part if not requires full src.
-    pub src_time: Option<(Duration, Duration)>,
 
     /// A unique number assigned to the src at its first appearance in the [`StreamsOrder`] vector.
     /// NOT an index in the vector.

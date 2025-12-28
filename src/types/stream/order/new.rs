@@ -155,7 +155,6 @@ fn items(
             key_i_stream: i_stream,
             src: None,
             i_stream,
-            src_time: None,
             src_num: num,
             is_first_entry: is_first,
         })
@@ -223,7 +222,6 @@ fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<Streams
                 key_i_stream: item.key_i_stream,
                 src: rtm.src,
                 i_stream: rtm.i_stream,
-                src_time: rtm.src_time,
                 src_num: num,
                 is_first_entry: is_first,
             }

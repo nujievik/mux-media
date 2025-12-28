@@ -49,7 +49,6 @@ pub struct RetimingPart {
 pub struct RetimedStream {
     pub src: Option<PathBuf>,
     pub i_stream: usize,
-    pub src_time: Option<(Duration, Duration)>,
 }
 
 impl Retiming<'_, '_> {
@@ -73,25 +72,6 @@ impl Retiming<'_, '_> {
             .filter(|c| &c.uid != uid)
             .map(|c| c.end.as_secs_f64() - c.start.as_secs_f64())
             .sum()
-    }
-
-    fn is_save_single_part(&self) -> bool {
-        self.parts.len() == 1 && self.parts[0].start.is_zero()
-    }
-
-    fn single_part_base_retimed_stream(&self, src: &Path, i_stream: usize) -> RetimedStream {
-        let p = &self.parts[0];
-        let src = if p.src.as_path() != src {
-            Some(PathBuf::from(&p.src))
-        } else {
-            None
-        };
-        let src_time = Some((p.start, p.end));
-        RetimedStream {
-            src,
-            i_stream,
-            src_time,
-        }
     }
 }
 
@@ -154,7 +134,8 @@ fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
             packet.set_stream(ost_index);
             if packet.write_interleaved(&mut octx).is_err() && !was_error {
                 log::error!(
-                    "Fail concat retimed parts of '{}'. Output file may be corrupted\nTry --no-linked to fix",
+                    "Fail concat retimed parts of '{}'. Output file may be corrupted
+Try --no-linked or --parts [!]n[,m] to fix",
                     src.display()
                 );
                 was_error = true;

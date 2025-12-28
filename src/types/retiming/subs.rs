@@ -18,10 +18,6 @@ impl Retiming<'_, '_> {
     pub(crate) fn try_sub(&self, i: usize, src: &Path, i_stream: usize) -> Result<RetimedStream> {
         let is_base = src == **self.base;
 
-        if is_base && self.is_save_single_part() {
-            return Ok(self.single_part_base_retimed_stream(src, i_stream));
-        }
-
         let fall = |dest: &mut Destination, err| -> Result<()> {
             if matches!(dest.ty, SubType::Srt) {
                 return Err(err);
@@ -55,7 +51,6 @@ impl Retiming<'_, '_> {
         Ok(RetimedStream {
             src: Some(dest.path),
             i_stream: 0,
-            src_time: None,
         })
     }
 }

@@ -65,10 +65,7 @@ impl Retiming<'_, '_> {
             parts,
             base_splits: Vec::new(),
         };
-
-        if !rtm.is_save_single_part() {
-            rtm.init_base_splits()?;
-        }
+        rtm.init_base_splits()?;
 
         return Ok(rtm);
     }
@@ -174,8 +171,10 @@ fn i_end_chp(cfg: &Config, cs: &Vec<RetimingChapter>, mut i: usize) -> usize {
         let eq_uid = uid == &cs[j].uid;
         let save = cfg.retiming_options.is_save_chapter(&cs[j]);
 
-        if (eq_uid && save) || (!eq_uid && !save) {
+        if eq_uid && save {
             i = j;
+        } else if !eq_uid && !save {
+            continue;
         } else {
             break;
         }

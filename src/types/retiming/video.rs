@@ -16,17 +16,10 @@ impl Retiming<'_, '_> {
             ));
         }
 
-        if self.parts.len() == 1 && self.parts[0].start.is_zero() {
-            Ok(self.single_part_base_retimed_stream(src, i_stream))
-        } else {
-            self.try_base_video()
-        }
+        self.try_base_video()
     }
 
     pub(super) fn init_base_splits(&mut self) -> Result<()> {
-        const SHIFT_START: f64 = 0.3;
-        const SHIFT_END: f64 = -0.1;
-
         let raw_splits: Vec<(usize, f64, f64, PathBuf)> = self
             .parts
             .par_iter()
@@ -36,14 +29,7 @@ impl Retiming<'_, '_> {
                     .temp_dir
                     .join(format!("{}-vid-base-{}.mkv", self.job, i));
 
-                let start = if p.start.0.is_zero() {
-                    p.start
-                } else {
-                    Duration::from_secs_f64(p.start.as_secs_f64() + SHIFT_START)
-                };
-                let end = Duration::from_secs_f64(p.end.as_secs_f64() + SHIFT_END);
-
-                try_split(&p.src, self.i_base_stream, &split, start, end)
+                try_split(&p.src, self.i_base_stream, &split, p.start, p.end)
                     .map(|(start, end)| (i, start, end, split))
             })
             .collect::<Result<_>>()?;
@@ -72,7 +58,6 @@ impl Retiming<'_, '_> {
         Ok(RetimedStream {
             src: Some(dest),
             i_stream: 0,
-            src_time: None,
         })
     }
 }

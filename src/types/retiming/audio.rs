@@ -7,10 +7,6 @@ use std::path::{Path, PathBuf};
 
 impl Retiming<'_, '_> {
     pub(crate) fn try_audio(&self, i: usize, src: &Path, i_stream: usize) -> Result<RetimedStream> {
-        if self.is_save_single_part() && src == **self.base {
-            return Ok(self.single_part_base_retimed_stream(src, i_stream));
-        }
-
         let splits = if src == **self.base {
             self.try_base_audio(i_stream)
         } else {
@@ -23,7 +19,6 @@ impl Retiming<'_, '_> {
         Ok(RetimedStream {
             src: Some(dest),
             i_stream: 0,
-            src_time: None,
         })
     }
 
