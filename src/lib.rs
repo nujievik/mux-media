@@ -24,7 +24,7 @@ mod types;
 pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
-pub use functions::{SEP_BYTES, SEP_STR, ensure_long_path_prefix, ensure_trailing_sep, mux};
+pub use functions::{ensure_long_path_prefix, ensure_trailing_sep, mux};
 pub use i18n::Msg;
 pub use run::run;
 
