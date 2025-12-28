@@ -57,16 +57,6 @@ where
     args.into_iter().map(|s| s_sep(s.as_ref())).collect()
 }
 
-pub fn to_os_args<I, OS>(args: I) -> Vec<OsString>
-where
-    I: IntoIterator<Item = OS>,
-    OS: AsRef<OsStr>,
-{
-    args.into_iter()
-        .map(|oss| ensure_platform_seps(oss).into_os_string())
-        .collect()
-}
-
 pub fn append_str_vecs<I, S>(vecs: I) -> Vec<String>
 where
     I: IntoIterator<Item = Vec<S>>,
@@ -100,20 +90,21 @@ pub fn iter_alt_i_lang() -> impl Iterator<Item = (&'static usize, &'static Lang)
         .flat_map(|i| LANGS.iter().map(move |lang| (i, lang)))
 }
 
+const SEP_BYTE: u8 = MAIN_SEPARATOR as u8;
+
 #[cfg(unix)]
 const ALT_SEP_BYTE: u8 = b'\\';
 #[cfg(windows)]
 const ALT_SEP_BYTE: u8 = b'/';
 
-const ALT_SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[ALT_SEP_BYTE]) };
-
 pub fn s_sep(s: &str) -> String {
+    const SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[ALT_SEP_BYTE]) };
+    const ALT_SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[ALT_SEP_BYTE]) };
+
     s.replace(ALT_SEP_STR, SEP_STR)
 }
 
 fn ensure_platform_seps(oss: impl AsRef<OsStr>) -> PathBuf {
-    const SEP_BYTE: u8 = MAIN_SEPARATOR as u8;
-
     let bytes: Vec<u8> = oss
         .as_ref()
         .as_encoded_bytes()
@@ -128,5 +119,5 @@ fn ensure_platform_seps(oss: impl AsRef<OsStr>) -> PathBuf {
 
 fn has_trailing_sep(oss: impl AsRef<OsStr>) -> bool {
     let bytes = oss.as_ref().as_encoded_bytes();
-    bytes.ends_with(SEP_BYTES) || bytes.ends_with(&[ALT_SEP_BYTE])
+    bytes.ends_with(&[SEP_BYTE]) || bytes.ends_with(&[ALT_SEP_BYTE])
 }

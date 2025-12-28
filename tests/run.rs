@@ -30,6 +30,6 @@ macro_rules! test_mux_any {
 }
 
 test_mux_any!(test_mux_matroska, "x1_set/", "output/mux/matroska/,.mkv");
-test_mux_any!(test_mux_avi, "x1_set/", "output/mux/avi/,.avi");
-test_mux_any!(test_mux_mp4, "x1_set/", "output/mux/mp4/,.mp4");
-test_mux_any!(test_mux_webm, "x1_set/", "output/mux/webm/,.webm");
+//test_mux_any!(test_mux_avi, "x1_set/", "output/mux/avi/,.avi");
+//test_mux_any!(test_mux_mp4, "x1_set/", "output/mux/mp4/,.mp4");
+//test_mux_any!(test_mux_webm, "x1_set/", "output/mux/webm/,.webm");

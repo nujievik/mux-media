@@ -1,6 +1,5 @@
 use crate::common::*;
 use mux_media::*;
-use std::{ffi::OsString, fs};
 
 #[test]
 fn test_from_output() {

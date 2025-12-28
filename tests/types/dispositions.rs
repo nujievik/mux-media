@@ -1,6 +1,5 @@
 use crate::{common::*, *};
 use mux_media::*;
-use std::ffi::OsString;
 
 #[test]
 fn parse_default() {
@@ -215,20 +214,3 @@ build_test_to_json_args!(
     vec!["--forceds", "1:true,2:false,8:true"],
     vec!["--forceds", "false", "--max-forceds", "1"],
 );
-
-static DISPOSITIONS_RESET: [&str; 6] = [
-    "-disposition:v",
-    "0",
-    "-disposition:a",
-    "0",
-    "-disposition:s",
-    "0",
-];
-
-fn fargs(add: &[&str]) -> Vec<OsString> {
-    let mut xs = Vec::from(&DISPOSITIONS_RESET);
-    for x in add {
-        xs.push(x);
-    }
-    to_os_args(xs)
-}
