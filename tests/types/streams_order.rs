@@ -1,6 +1,6 @@
 use crate::common::*;
 use mux_media::{markers::*, *};
-use std::{ffi::OsString, sync::LazyLock};
+use std::sync::LazyLock;
 
 static CACHE_LANGS_MKV: LazyLock<CacheMI> = LazyLock::new(|| {
     let file = data("streams_order/langs.mkv");
@@ -10,7 +10,6 @@ static CACHE_LANGS_MKV: LazyLock<CacheMI> = LazyLock::new(|| {
     mi.cache
 });
 
-/*
 fn body_test_order(args: &[&str], expected: [usize; 3]) {
     let cfg = cfg(args);
     let mut mi = MediaInfo::new(&cfg, 0);
@@ -18,26 +17,9 @@ fn body_test_order(args: &[&str], expected: [usize; 3]) {
     mi.try_finalize_init_streams().unwrap();
 
     let order = mi.try_take_cmn(MICmnStreamsOrder).unwrap();
-
     expected.iter().enumerate().for_each(|(i, exp)| {
         assert_eq!(exp, &order[i].i_stream);
     });
-
-    let mut exp_ffmpeg = Vec::<OsString>::new();
-    exp_ffmpeg.push("-i".into());
-    exp_ffmpeg.push(data("streams_order/langs.mkv").into());
-
-    expected.iter().for_each(|exp| {
-        exp_ffmpeg.push("-map".into());
-        exp_ffmpeg.push(format!("0:{}", exp).into());
-    });
-
-    expected.iter().enumerate().for_each(|(i, _)| {
-        exp_ffmpeg.push(format!("-c:{}", i).into());
-        exp_ffmpeg.push("copy".into());
-    });
-
-    mi.set_cmn(MICmnStreamsOrder, order);
 }
 
 #[test]
@@ -141,4 +123,22 @@ fn test_saved_streams() {
         assert_eq!(len, xs.len());
     })
 }
-*/
+
+#[test]
+fn skip_sub_streams() {
+    let cfg = cfg([p("--no-subs")]);
+    let mut mi = MediaInfo::new(&cfg, 0);
+    for f in [
+        "x1_set.mkv",
+        "audio/x1_set.[audio].mka",
+        "subs/x1_set.[subs].mks",
+    ] {
+        let f = format!("x1_set/{}", f);
+        mi.try_insert(data(f)).unwrap();
+    }
+
+    let order = mi.try_take_cmn(MICmnStreamsOrder).unwrap();
+    assert_eq!(2, order.len());
+    assert_eq!(StreamType::Video, order[0].ty);
+    assert_eq!(StreamType::Audio, order[1].ty);
+}
