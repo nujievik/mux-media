@@ -203,9 +203,9 @@ impl FromArgMatches for Config {
             let mut new = AutoFlags::default();
 
             if flag!(m, Pro) {
-                new.pro = Value::User(true);
+                new.pro = true;
             }
-            let pro = *new.pro;
+            let pro = new.pro;
 
             new.defaults = val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), pro);
             new.forceds = val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), pro);
@@ -366,9 +366,9 @@ impl FromArgMatches for Config {
             let auto = &mut cfg.auto_flags;
 
             if flag!(m, Pro) {
-                auto.pro = Value::User(true);
+                auto.pro = true;
             }
-            let pro = *auto.pro;
+            let pro = auto.pro;
 
             upd(
                 flag!(m, AutoDefaults),

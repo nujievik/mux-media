@@ -8,7 +8,7 @@ fn new(args: &[&str]) -> AutoFlags {
 #[test]
 fn test_empty() {
     let f = new(&[]);
-    assert_eq!(Value::Auto(false), f.pro);
+    assert_eq!(false, f.pro);
     assert_eq!(Value::Auto(true), f.defaults);
     assert_eq!(Value::Auto(true), f.forceds);
     assert_eq!(Value::Auto(true), f.names);
@@ -19,7 +19,7 @@ fn test_empty() {
 #[test]
 fn test_pro() {
     let f = new(&["--pro"]);
-    assert_eq!(Value::User(true), f.pro);
+    assert_eq!(true, f.pro);
     assert_eq!(Value::Auto(false), f.defaults);
     assert_eq!(Value::Auto(false), f.forceds);
     assert_eq!(Value::Auto(false), f.names);
