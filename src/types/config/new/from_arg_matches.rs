@@ -292,7 +292,7 @@ impl FromArgMatches for Config {
             let t = t_args.next().unwrap();
             let t = match self.get_key(t) {
                 Some(t) => t,
-                None => Target::from_os_str(t)?,
+                None => Target::new(t)?,
             };
 
             if let Target::Global = t {

@@ -16,8 +16,8 @@ pub enum Target {
 }
 
 impl Target {
-    /// Parse [`Target`] from a os string.
-    pub fn from_os_str<OS: AsRef<OsStr>>(os: OS) -> Result<Target> {
+    /// Tries construct [`Target`] from an os string.
+    pub fn new<OS: AsRef<OsStr>>(os: OS) -> Result<Target> {
         let os = os.as_ref();
 
         if let Some(t) = os.to_str().and_then(|s| get_from_str(s)) {
