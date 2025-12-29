@@ -59,7 +59,7 @@ pub use types::{
     mux_logger::MuxLogger,
     output::Output,
     range::RangeUsize,
-    retiming::options::RetimingOptions,
+    retiming::options::{RetimingOptions, RetimingOptionsParts},
     stream::{
         Stream,
         order::{StreamsOrder, StreamsOrderItem},

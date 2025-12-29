@@ -8,6 +8,7 @@ use crate::{
 };
 use cache::CacheMatroska;
 use external_segments::find_external_segment;
+use is_default::IsDefault;
 use log::warn;
 use std::{collections::HashMap, path::Path};
 
@@ -292,7 +293,7 @@ fn try_base(
         }
     }
 
-    if !mi.cfg.retiming_options.is_has_parts_cfg() {
+    if mi.cfg.retiming_options.parts.is_default() {
         return Err(MuxError::new_ok());
     }
 

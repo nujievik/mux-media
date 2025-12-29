@@ -240,8 +240,13 @@ fn parse_langs() {
 
 #[test]
 fn parse_retiming_options() {
-    let x_globset = Some("x".parse::<GlobSetPattern>().unwrap());
-    test_parse!(["--parts", "x"], retiming_options.parts, x_globset.clone());
+    let mut parts = RetimingOptionsParts::default();
+    parts.pattern = Some("x".parse::<GlobSetPattern>().unwrap());
+    test_parse!(["--parts", "x"], retiming_options.parts, parts.clone());
+
+    parts.inverse = true;
+    test_parse!(["--parts", "!x"], retiming_options.parts, parts);
+
     test_parse!(["--no-linked"], retiming_options.no_linked, true);
 }
 
