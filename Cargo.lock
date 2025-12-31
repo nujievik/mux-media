@@ -785,8 +785,8 @@ checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
 
 [[package]]
 name = "rsubs-lib"
-version = "0.3.3-mux-media-fixes"
-source = "git+https://github.com/nujievik/rsubs-lib?branch=mux-media#f0e99335922306c8cfaffa6992c2d3e0185258c0"
+version = "0.3.3"
+source = "git+https://github.com/nujievik/rsubs-lib?branch=mux-media#1eb78dc2be88699c2bdcdcc7ef4f5b918511d381"
 dependencies = [
  "regex",
  "serde",

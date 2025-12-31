@@ -6,7 +6,7 @@ edition = "2024"
 rust-version = "1.85"
 description = "A simple automated utility for muxing media (e.g. video, audio, subtitles)."
 repository = "https://github.com/nujievik/mux-media"
-license = "GPL-3.0"
+license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]
 categories = ["command-line-utilities", "multimedia"]
 
@@ -34,7 +34,7 @@ lazy-regex = "3"
 log = "0.4"
 matroska = "0.30"
 rayon = "1"
-rsubs-lib = { git = "https://github.com/nujievik/rsubs-lib", branch = "mux-media" }
+rsubs-lib = "0.3.3"
 serde_json = "1"
 strum = "0.27"
 strum_macros = "0.27"
@@ -44,6 +44,9 @@ walkdir = "2"
 
 [target.'cfg(windows)'.dependencies]
 winapi = { version = "0.3", features = ["winnls"] }
+
+[patch.crates-io]
+rsubs-lib = { git = "https://github.com/nujievik/rsubs-lib", branch = "mux-media" }
 
 [dev-dependencies]
 phf = { version = "0.13", features = ["macros"] }
