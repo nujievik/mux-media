@@ -24,7 +24,7 @@ use std::path::{Path, PathBuf};
 ///     #
 ///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
 ///     #     .join("tests")
-///     #     .join("test_data")
+///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("ty");
 ///     # let dir = ensure_long_path_prefix(dir);
@@ -67,7 +67,7 @@ use std::path::{Path, PathBuf};
 ///     #
 ///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
 ///     #     .join("tests")
-///     #     .join("test_data")
+///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
 ///     # let dir = ensure_long_path_prefix(dir);
@@ -100,7 +100,7 @@ use std::path::{Path, PathBuf};
 ///     #
 ///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
 ///     #     .join("tests")
-///     #     .join("test_data")
+///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
 ///     # let dir = ensure_long_path_prefix(dir);
@@ -136,7 +136,7 @@ use std::path::{Path, PathBuf};
 ///     #
 ///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
 ///     #     .join("tests")
-///     #     .join("test_data")
+///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
 ///     # let dir = ensure_long_path_prefix(dir);
@@ -173,7 +173,7 @@ use std::path::{Path, PathBuf};
 ///     #
 ///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
 ///     #     .join("tests")
-///     #     .join("test_data")
+///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
 ///     # let dir = ensure_long_path_prefix(dir);
@@ -207,7 +207,7 @@ use std::path::{Path, PathBuf};
 ///     #
 ///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
 ///     #     .join("tests")
-///     #     .join("test_data")
+///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
 ///     # let dir = ensure_long_path_prefix(dir);

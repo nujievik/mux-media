@@ -40,7 +40,7 @@ impl Output {
     /// #
     /// let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
     ///     .join("tests")
-    ///     .join("test_data");
+    ///     .join("data");
     /// let dir = ensure_long_path_prefix(dir);
     /// let path = dir.join("begin,tail.ext");
     /// let output = Output::try_from_path(path).unwrap();

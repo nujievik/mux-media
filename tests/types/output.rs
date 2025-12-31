@@ -2,37 +2,31 @@ use crate::common::*;
 use mux_media::*;
 use std::path::{Path, PathBuf};
 
-fn body_test_empty(out: &Output, dir: PathBuf) {
-    assert_eq!(out.need_num(), false);
-    assert_eq!(&out.temp_dir, Path::new(""));
-
-    ["1", "2", "abc", "n.am.e."].iter().for_each(|name| {
-        let builded = out.build_out(name);
-        assert_eq!(&dir, builded.parent().unwrap());
-        assert_eq!(dir.join(format!("{}.mkv", name)), builded);
-    })
-}
-
 #[test]
-fn test_empty() {
+fn parse_empty_args() {
     let dir = new_dir("muxed/");
+    let assert = |out: &Output| {
+        assert!(!out.need_num());
+        assert_eq!("", &out.name_begin);
+        assert_eq!("", &out.name_tail);
+        assert_eq!("mkv", &out.ext);
 
-    let out = Output::try_from_path("").unwrap();
-    body_test_empty(&out, dir.clone());
+        ["1", "2", "abc", "n.am.e."].iter().for_each(|name| {
+            let builded = out.build_out(name);
+            assert_eq!(&dir, builded.parent().unwrap());
+            assert_eq!(dir.join(format!("{}.mkv", name)), builded);
+        })
+    };
 
-    let out = cfg::<_, &str>(vec![]).output;
-    body_test_empty(&out, dir);
+    assert(&Output::try_from_path("").unwrap());
+    assert(&cfg::<_, &str>([]).output);
 }
 
-pub fn new(args: &[&str]) -> Output {
-    let mut out = cfg::<_, &&str>(args).output;
-    out.try_finalize_init().unwrap();
-    out
-}
-
-fn body_test_dir_only(dir: &Path, out: &Output) {
-    assert_eq!(out.need_num(), false);
-    assert_eq!(&out.temp_dir, &dir.join(".temp-mux-media"));
+fn body_parse_dir_only(dir: &Path, out: &Output) {
+    assert!(!out.need_num());
+    assert_eq!("", &out.name_begin);
+    assert_eq!("", &out.name_tail);
+    assert_eq!("mkv", &out.ext);
 
     ["1", "2", "abc", "n.am.e."].iter().for_each(|x| {
         let builded = out.build_out(x);
@@ -42,62 +36,36 @@ fn body_test_dir_only(dir: &Path, out: &Output) {
 }
 
 #[test]
-fn test_dir_only() {
-    ["output", "output/", "output/dir/", "output/ot her/"]
+fn parse_dir_only() {
+    ["", "output/dir_only/", "output/dir_only other/"]
         .iter()
         .for_each(|dir| {
-            let dir = data(dir);
-            let out = new(&["-o", &dir.to_str().unwrap()]);
-            body_test_dir_only(&dir, &out);
+            let dir = temp(dir);
+            let o = cfg([p("-o"), &dir]).output;
+            body_parse_dir_only(&dir, &o);
         })
 }
 
 #[test]
-fn test_from_input() {
-    ["output", "output/", "output/dir/", "output/ot her/"]
-        .iter()
-        .for_each(|dir| {
-            let dir = data(dir);
-            let in_dir = dir.to_str().unwrap();
-            let _ = new(&["-o", in_dir]);
-
-            let input = cfg::<_, &str>(["-i", in_dir]).input;
-            let mut out = Output::try_from(&input).unwrap();
-            out.try_finalize_init().unwrap();
-
-            body_test_dir_only(&dir.join("muxed"), &out);
-        })
+fn from_input() {
+    ["", "x1_set"].iter().for_each(|dir| {
+        let dir = data(dir);
+        let i = cfg([p("-i"), &dir]).input;
+        let o = Output::try_from(&i).unwrap();
+        body_parse_dir_only(&dir.join("muxed"), &o);
+    })
 }
 
 #[test]
-fn test_remove_created_dirs() {
-    let new_dir = |s: &str| -> PathBuf {
-        let s = format!("output/remove/{}", s);
-        data(s)
-    };
-
-    ["1/", "2/", "abc/", "a b/", "a/b/c/"]
-        .iter()
-        .for_each(|subdir| {
-            let dir = new_dir(subdir);
-            let _ = std::fs::remove_dir_all(&dir);
-            let out = new(&["-o", &dir.to_str().unwrap()]);
-
-            assert!(dir.exists());
-            out.remove_created_dirs();
-            assert!(!dir.exists());
-        })
-}
-
-#[test]
-fn test_name_begin_only() {
+fn parse_name_begin_only() {
     let dir = new_dir("muxed");
 
     ["name", "other", "a b c"].iter().for_each(|x| {
-        let out = new(&["-o", x]);
-
-        assert_eq!(out.need_num(), true);
-        assert_eq!(&out.temp_dir, &dir.join(".temp-mux-media"));
+        let out = cfg(["-o", x]).output;
+        assert!(out.need_num());
+        assert_eq!(x, &out.name_begin);
+        assert_eq!("", &out.name_tail);
+        assert_eq!("mkv", &out.ext);
 
         ["1", "2", "abc", "n.am.e."].iter().for_each(|middle| {
             let builded = out.build_out(middle);
@@ -108,15 +76,17 @@ fn test_name_begin_only() {
 }
 
 #[test]
-fn test_name_tail_only() {
+fn parse_name_tail_only() {
     let dir = new_dir("muxed");
 
     [",name", ",other", ",a b c", ",ab,c"].iter().for_each(|x| {
-        let out = new(&["-o", x]);
+        let out = cfg(["-o", x]).output;
         let x = x.strip_prefix(',').unwrap();
 
-        assert_eq!(out.need_num(), true);
-        assert_eq!(&out.temp_dir, &dir.join(".temp-mux-media"));
+        assert!(out.need_num());
+        assert_eq!("", &out.name_begin);
+        assert_eq!(x, &out.name_tail);
+        assert_eq!("mkv", &out.ext);
 
         ["1", "2", "abc", "n.am.e."].iter().for_each(|middle| {
             let builded = out.build_out(middle);
@@ -127,15 +97,17 @@ fn test_name_tail_only() {
 }
 
 #[test]
-fn test_ext_only() {
+fn parse_ext_only() {
     let dir = new_dir("muxed");
 
     [",.mp4", ",.webm", ",.other"].iter().for_each(|x| {
-        let out = new(&["-o", x]);
+        let out = cfg(["-o", x]).output;
         let x = x.strip_prefix(",.").unwrap();
 
-        assert_eq!(out.need_num(), false);
-        assert_eq!(&out.temp_dir, &dir.join(".temp-mux-media"));
+        assert!(!out.need_num());
+        assert_eq!("", &out.name_begin);
+        assert_eq!("", &out.name_tail);
+        assert_eq!(x, &out.ext);
 
         ["1", "2", "abc", "n.am.e."].iter().for_each(|middle| {
             let builded = out.build_out(middle);
@@ -151,15 +123,17 @@ fn to_begin_tail(arg: &str) -> (String, String) {
 }
 
 #[test]
-fn test_name_begin_tail() {
+fn parse_begin_and_tail() {
     let dir = new_dir("muxed");
 
     ["ab,c", "ot,her", "s tart,en d"].iter().for_each(|x| {
-        let out = new(&["-o", x]);
+        let out = cfg(["-o", x]).output;
         let (begin, tail) = to_begin_tail(x);
 
-        assert_eq!(out.need_num(), true);
-        assert_eq!(&out.temp_dir, &dir.join(".temp-mux-media"));
+        assert!(out.need_num());
+        assert_eq!(begin.as_str(), &out.name_begin);
+        assert_eq!(tail.as_str(), &out.name_tail);
+        assert_eq!("mkv", &out.ext);
 
         ["1", "2", "abc", "n.am.e."].iter().for_each(|middle| {
             let builded = out.build_out(middle);
@@ -181,17 +155,19 @@ fn to_begin_tail_ext(arg: &str) -> (String, String, String) {
 }
 
 #[test]
-fn test_name_ext() {
+fn parse_begin_and_tail_and_ext() {
     let dir = new_dir("muxed");
 
     ["ab,c .mp4", "ot,her.webm", "s tart,en d.other"]
         .iter()
         .for_each(|x| {
-            let out = new(&["-o", x]);
+            let out = cfg(["-o", x]).output;
             let (begin, tail, ext) = to_begin_tail_ext(x);
 
-            assert_eq!(out.need_num(), true);
-            assert_eq!(&out.temp_dir, &dir.join(".temp-mux-media"));
+            assert!(out.need_num());
+            assert_eq!(begin.as_str(), &out.name_begin);
+            assert_eq!(tail.as_str(), &out.name_tail);
+            assert_eq!(ext.as_str(), &out.ext);
 
             ["1", "2", "abc", "n.am.e."].iter().for_each(|middle| {
                 let builded = out.build_out(middle);
@@ -204,37 +180,57 @@ fn test_name_ext() {
 }
 
 #[test]
-fn test_full() {
-    ["output", "output/", "output/dir/", "output/ot her/"]
-        .iter()
-        .for_each(|dir| {
-            let dir = data(dir);
+fn parse_full() {
+    ["output/dir/", "output/ot her/"].iter().for_each(|dir| {
+        let dir = temp(dir);
 
-            ["ab,c .mp4", "ot,her.webm", "s tart,en d.other"]
-                .iter()
-                .for_each(|x| {
-                    let x = dir.join(x).to_str().unwrap().to_string();
+        ["ab,c .mp4", "ot,her.webm", "s tart,en d.other"]
+            .iter()
+            .for_each(|x| {
+                let (begin, tail, ext) = to_begin_tail_ext(x);
+                let out = cfg([p("-o"), &dir.join(x)]).output;
 
-                    let out = new(&["-o", &x]);
-                    let (begin, tail, ext) = to_begin_tail_ext(&x);
+                assert!(out.need_num());
+                assert_eq!(begin.as_str(), &out.name_begin);
+                assert_eq!(tail.as_str(), &out.name_tail);
+                assert_eq!(ext.as_str(), &out.ext);
 
-                    assert_eq!(out.need_num(), true);
-                    assert_eq!(&out.temp_dir, &dir.join(".temp-mux-media"));
+                ["1", "2", "abc", "n.am.e."].iter().for_each(|middle| {
+                    let builded = out.build_out(middle);
+                    assert_eq!(&dir, builded.parent().unwrap());
 
-                    ["1", "2", "abc", "n.am.e."].iter().for_each(|middle| {
-                        let builded = out.build_out(middle);
-                        assert_eq!(&dir, builded.parent().unwrap());
-
-                        let name = format!("{}{}{}.{}", begin, middle, tail, ext);
-                        assert_eq!(dir.join(name), builded);
-                    })
+                    let name = format!("{}{}{}.{}", begin, middle, tail, ext);
+                    assert_eq!(dir.join(name), builded);
                 })
+            })
+    })
+}
+
+#[test]
+fn remove_created_dirs() {
+    let new_dir = |s: &str| -> PathBuf {
+        let s = format!("output/remove/{}", s);
+        temp(s)
+    };
+
+    ["1/", "2/", "abc/", "a b/", "a/b/c/"]
+        .iter()
+        .for_each(|subdir| {
+            let dir = new_dir(subdir);
+            let _ = std::fs::remove_dir_all(&dir);
+            assert!(!dir.exists());
+
+            let mut out = cfg([p("-o"), &dir]).output;
+            let _ = out.try_finalize_init();
+            assert!(dir.exists());
+            out.remove_created_dirs();
+            assert!(!dir.exists());
         })
 }
 
 #[test]
 fn test_to_json_args() {
-    let d = data("output/to_json_args/output");
+    let d = temp("to_json_args/output");
     let s_dir = d.to_str().unwrap();
 
     [
@@ -253,7 +249,7 @@ fn test_to_json_args() {
         let left = vec!["--output", &arg];
 
         let _ = std::fs::remove_dir_all(&d);
-        std::fs::create_dir_all(&d).unwrap();
+        let _ = std::fs::create_dir_all(&d).unwrap();
 
         let add_args1 = vec!["--locale", "eng", "--input", s_dir];
         let add_args2 = vec!["--save-config"];
@@ -272,6 +268,4 @@ fn test_to_json_args() {
 
         assert_eq!(left, right, "from json err");
     });
-
-    let _ = std::fs::remove_dir_all(&d);
 }

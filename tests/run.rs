@@ -10,7 +10,7 @@ macro_rules! test_mux_any {
         #[test]
         fn $fn() {
             let in_arg = data($in_arg);
-            let out_arg = data($out_arg);
+            let out_arg = temp($out_arg);
 
             let mut c = cfg([p("-i"), &in_arg, p("-o"), &out_arg, p("-e")]);
             c.try_finalize_init().unwrap();
@@ -29,7 +29,4 @@ macro_rules! test_mux_any {
     };
 }
 
-test_mux_any!(test_mux_matroska, "x1_set/", "output/mux/matroska/,.mkv");
-//test_mux_any!(test_mux_avi, "x1_set/", "output/mux/avi/,.avi");
-//test_mux_any!(test_mux_mp4, "x1_set/", "output/mux/mp4/,.mp4");
-//test_mux_any!(test_mux_webm, "x1_set/", "output/mux/webm/,.webm");
+test_mux_any!(test_mux_matroska, "x1_set/", "mux/matroska/,.mkv");

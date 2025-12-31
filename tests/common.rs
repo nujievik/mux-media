@@ -29,7 +29,7 @@ pub fn data(add: impl AsRef<OsStr>) -> PathBuf {
 
     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
-        .join("test_data")
+        .join("data")
         .join(add);
 
     let mut path = ensure_long_path_prefix(path);
@@ -39,6 +39,12 @@ pub fn data(add: impl AsRef<OsStr>) -> PathBuf {
     }
 
     path
+}
+
+pub fn temp(add: impl AsRef<OsStr>) -> PathBuf {
+    let mut p = OsString::from("temp/");
+    p.push(add);
+    data(p)
 }
 
 pub fn cfg<I, OS>(args: I) -> Config
@@ -98,7 +104,7 @@ const ALT_SEP_BYTE: u8 = b'\\';
 const ALT_SEP_BYTE: u8 = b'/';
 
 pub fn s_sep(s: &str) -> String {
-    const SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[ALT_SEP_BYTE]) };
+    const SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[SEP_BYTE]) };
     const ALT_SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[ALT_SEP_BYTE]) };
 
     s.replace(ALT_SEP_STR, SEP_STR)

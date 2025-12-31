@@ -22,7 +22,7 @@ impl TryFrom<&Input> for Output {
     /// #
     /// # let input_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
     /// #     .join("tests")
-    /// #     .join("test_data");
+    /// #     .join("data");
     /// # let cfg = Config::parse_from([Path::new("-i"), &input_dir]);
     /// let o = Output::try_from(&cfg.input).unwrap();
     /// let dir = cfg.input.dir.join("muxed");
@@ -111,7 +111,7 @@ impl Output {
     ///      #
     ///      let exp = Path::new(env!("CARGO_MANIFEST_DIR"))
     ///          .join("tests")
-    ///          .join("test_data");
+    ///          .join("data");
     ///      let exp = ensure_long_path_prefix(exp);
     ///      let o = Output::try_from_path(&exp).unwrap();
     ///      assert_eq!(o.dir, exp);
@@ -141,7 +141,7 @@ impl Output {
     ///    #
     ///    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
     ///        .join("tests")
-    ///        .join("test_data")
+    ///        .join("data")
     ///        .join("missing_as_dir.mkv");
     ///    let path = ensure_long_path_prefix(path);
     ///    let exp = path.parent().unwrap();
@@ -255,7 +255,7 @@ impl Output {
     ///    #
     ///    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
     ///        .join("tests")
-    ///        .join("test_data");
+    ///        .join("data");
     ///    let o = Output::try_from_path(path).unwrap();
     ///    assert_eq!(&o.name_begin, "");
     ///    assert_eq!(&o.name_tail, "");
@@ -268,7 +268,7 @@ impl Output {
     ///    #
     ///    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
     ///        .join("tests")
-    ///        .join("test_data")
+    ///        .join("data")
     ///        .join("file_name");
     ///    let o = Output::try_from_path(path).unwrap();
     ///    assert_eq!(&o.ext, "mkv");
@@ -282,7 +282,7 @@ impl Output {
     ///     #
     ///     let path = Path::new(env!("CARGO_MANIFEST_DIR"))
     ///        .join("tests")
-    ///        .join("test_data")
+    ///        .join("data")
     ///        .join(",t,.ail.mkv");
     ///     let o = Output::try_from_path(path).unwrap();
     ///     assert_eq!(&o.name_tail, "t,.ail");

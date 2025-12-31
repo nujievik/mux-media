@@ -32,15 +32,15 @@ macro_rules! test_from_str {
 #[macro_export]
 macro_rules! build_test_to_json_args {
     (@body, $field:ident, $json_dir:expr; $( $left:expr, $right:expr ),* ) => {{
-        let dir = std::path::Path::new("output").join("to_json_args").join($json_dir);
-        let dir = $crate::common::data(&dir);
+        let dir = std::path::Path::new("to_json_args").join($json_dir);
+        let dir = $crate::common::temp(&dir);
 
         let in_dir = dir.to_str().unwrap();
         let mut out_dir = dir.join("muxed").to_str().unwrap().to_string();
         out_dir.push_str(",.mkv");
 
         let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(&dir).unwrap();
+        let _ = std::fs::create_dir_all(&dir);
 
         let add_args = vec!["--locale", "eng", "--input", in_dir, "--output", &out_dir, "--save-config"];
         let json = dir.clone().join("mux-media.json");
@@ -59,8 +59,6 @@ macro_rules! build_test_to_json_args {
 
             assert_eq!(left, right, "from json err");
         )*
-
-        let _ = std::fs::remove_dir_all(&dir);
     }};
 
     ( $fn:ident, $field:ident, $json_dir:expr; $( $args:expr ),* $(,)? ) => {
