@@ -1,134 +1,115 @@
 # mux-media
 
-A simple automated utility for muxing media (e.g. video, audio,
-subtitles).
+A CLI utility for muxing media (e.g. video, audio, subtitles).
 
-[![Cargo Build & Test](https://github.com/nujievik/mux-media/actions/workflows/tests.yml/badge.svg)](https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
+[![Tests](https://github.com/nujievik/mux-media/actions/workflows/tests.yml/badge.svg)](https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
 
 
 ## Quick Start
 
-1. [Download](https://github.com/nujievik/mux-media/releases) the archive for system.
-
+1. [Download](https://github.com/nujievik/mux-media/releases) the
+archive for your system.
 2. Unpack it.
-
 3. Run the unpacked `mux-media` in a media directory.
 
 
-## Notices
+## Default Behaviour
 
-- Output muxed files are saved in the `muxed` subdirectory.
+- Saves muxed files to the `muxed` subdirectory.
+- Muxes all media extension files in a CWD directory and 16 its
+subdirectories.
+- Muxes all files with a same filename prefix 
+(eg., **Death Note - 01**.mkv and **Death Note - 01**.eng.aac) to
+single MKV-container.
+- Skips orphan files without an other same filename prefix file.
+- Attachs all founded `*.OTF` & `*.TTF` fonts to each output MKV.
 
-- Input media files must share the same filename prefix.
-(eg., **Death Note - 01**.mkv and **Death Note - 01**.eng.aac)
+## Supported Extensions 📁
 
-- Media is searched in:
-  - the start directory
-  - all its subdirectories up to the given depth (default: 16)
-  
+### Input
+
+| File Type     | Extensions                                                                      |
+|---------------|---------------------------------------------------------------------------------|
+| Media         | 264 265 3GP AAC AC3 ASS AV1 AVC AVI CAF DTS DTSHD EAC3 EC3 F4V FLAC FLV H264 H265 HEVC IVF M2TS M2V M4A M4V MKA MKS MKV MLP MOV MP2 MP3 MP4 MPA MPEG MPG MPV OBU OGG OGM OGV OPUS RA SRT SSA SUB SUP THD TRUEHD TS TTA VC1 VTT WAV WEBA WEBM WMA WMV X264 X265 |
+| Font          | OTF TTF |
+
+### Output
+
+MKV container.
+
 
 ## Advanced Use 🤓
 
 Run `mux-media -h` to display help.
 
-Custom settings can be specified:
+|                              | Description                                                      |
+|------------------------------|------------------------------------------------------------------|
+| I/O options:                 | |
+| `-i, --input <dir>` | Top-level media directory |
+| `-o, --output <out[,put]>` | Output paths pattern: `out{num}[put]` |
+| `-r, --range <n[-m]>` | Number range of media-files |
+| `--skip <n[,m]...>` | Patterns of files to skip | 
+| `--depth <n>` | Scan subdirectories up to this depth |
+| `--solo` | Process media without external tracks |
+| | |
+| Global options: | |
+| `-l, --locale <lng>` | Locale language (for logging and sort) |
+| `-j, --jobs <n>` | Max parallel muxing |
+| `-v, --verbose...` | Increase logging |
+| `-q, --quiet` | Suppress logging |
+| `-e, --exit-on-err` | Skip muxing next files if error occurs |
+| `--load <json>` | Load config from JSON |
+| `--save-config` | Save config to JSON in the input directory |
+| | |
+| Auto flags: | |
+| `-p, --pro` | Disable all auto below |
+| `--auto-defaults / --no-auto-defaults` | Auto set default flags |
+| `--auto-forceds / --no-auto-forceds` | Auto set forced flags |
+| `--auto-names / --no-auto-names` | Auto set stream names |
+| `--auto-langs / --no-auto-langs` | Auto set stream langs |
+| | |
+| Save streams: | |
+| `-a, --audio <[!]n[,m]...>` | `[!]Save audio streams` |
+| `-A, --no-audio` | Don't save any audio stream |
+| `-s, --subs <[!]n[,m]...>` | `[!]Save subtitle streams` |
+| `-S, --no-subs` | Don't save any subtitle stream |
+| `-d, --video <[!]n[,m]...>` | `[!]Save video streams` |
+| `-D, --no-video` | Don't save any video stream |
+| `-f, --fonts <[!]n[,m]...>` | `[!]Save font attachments` |
+| `-F, --no-fonts` | Don't save any font attachment |
+| `-m, --attachs <[!]n[,m]...>` | `[!]Save other attachments` |
+| `-M, --no-attachs` | Don't save any other attachment |
+| | |
+| Target options:
+| `-t, --target <trg>...` | Set next options for target |
+| `--list-targets` | Show supported targets |
+| `--streams <[!]n[,m]...>` | `[!]Save streams` |
+| `--no-streams` | Don't save any stream |
+| `-C, --no-chapters` | Don't save chapters |
+| `--defaults <[n:]B[,m:B]...>` | Set default flags |
+| `--max-defaults <n>` | Max auto-enabled default |
+| `--forceds <[n:]B[,m:B]...>` | Set forced flags |
+| `--max-forceds <n>` | Max auto-enabled forced |
+| `--names <[n:]N[,m:N]...>` | Set stream names |
+| `--langs <[n:]L[,m:L]...>` | Set stream languages |
+| | |
+| Retiming options: | |
+| `--parts <[!]n[,m]...>` | `[!]Save parts for chapter names` |
+| `--no-linked` | Remove matroska linked parts |
+| | |
+| Other options: | |
+| `--list-langs` | Show supported language codes |
+| `-V, --version` | Show version |
+| `-h, --help` | Show help |
 
-- via CLI arguments
-
-- by configuring a [JSON file](
+Alternative CLI, you can configure a [JSON file](
 https://github.com/nujievik/mux-media/blob/main/mux-media.json) in a
-media directory.
-
-### Windows
-
-- The **full** version for Windows includes bundled `mkvmerge`,
-`ffmpeg` and `ffprobe`.
-
-- Use its system's versions  by running `mux-media --user-tools`.
-
-- The non-**full** version for Windows requires manually installing
-[MKVToolNix](https://mkvtoolnix.download/) and [FFmpeg](
-https://ffmpeg.org/) (for custom containers or retiming).
-
-### Custom Output Containers
-
-- The default container is Matroska (.mkv).
-
-- Other supported containers: `.avi`, `.mp4`, `.webm`.
-
-- Install [FFmpeg](https://ffmpeg.org/) to use a custom container if
-you are use not using the **full** version.
-
-- Custom containers may require reencoding of unsupported tracks - use
-only if necessary, as this can significantly degrade quality.
-
-### Reencoding
-
-- By default, no reencoding is performed.
-
-- When using a custom container, reencoding is automatically performed
-if needed.
-
-- Use `mux-media --reencode` with a custom container to force
-reencoding.
-
-### Retiming
-
-- By default, retiming is performed only for Matroska *linked* videos.
-
-- Use `mux-media --rm-segments ..` to remove segments with name
-patterns (only Matroska with chapters).
-
-- Install [FFmpeg](https://ffmpeg.org/) to use it if 
-you are use not using the **full** version.
+top-level media directory.
 
 
 ## Manual Build 🤓
 
-1. Install [Rust](https://www.rust-lang.org/tools/install)
-
-2. Clone the repo:
-```
-git clone https://github.com/nujievik/mux-media
-```
-
-3. Enter the project directory:
-```
-cd mux-media
-```
-
-4. Build:
-```
-cargo build --release
-```
-
-5. On success, the binary will be in `target/release/mux-media`
-
-
-### Features with_embedded_bins
-
-Available **only for Windows** builds (x86_64-pc-windows). Embeds
-`ffmpeg.exe`, `ffprobe.exe` and `mkvmerge.exe` into the binary.
-
-1. Ensure that its are available in `mux-media/assets/win64/`:
-
-  - Automatic (from system PATH):
-
-    - Make sure its are available in your system's PATH.
-
-    - The `mux-media/build.rs` script will automatically copy the
-      required binaries from PATH.
-
-  - Manually copy binaries to `mux-media/assets/win64/`.
-
-2. Follow steps 1–3 from [Manual Build](#manual-build-).
-
-3. Build with the feature:
-```
-cargo build --release --features with_embedded_bins
-```
-
-4. On success, the binary will be in `target/release/mux-media`.
+TODO
 
 
 ## Alternative GUI Utilities
