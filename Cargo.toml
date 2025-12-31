@@ -20,14 +20,19 @@ include = [
 
 [features]
 default = []
-static = ["ffmpeg-next/build"]
+ffmpeg-static = ["ffmpeg-next/static"]
+ffmpeg-build = ["ffmpeg-next/build"]
+
+[dependencies.ffmpeg-next]
+version = "8"
+default-features = false
+features = ["codec", "format"]
 
 [dependencies]
 atty = "0.2"
 chardet = "0.2"
 clap = "4"
 enum-map = "2"
-ffmpeg-next = "8"
 globset = "0.4"
 is_default = "0.1.4"
 lazy-regex = "3"
