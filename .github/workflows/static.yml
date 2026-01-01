@@ -1,0 +1,40 @@
+name: Static Tests
+
+on:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  linux-static:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libavcodec-dev libavformat-dev libavutil-dev pkg-config nasm
+
+      - name: Build Static Release
+        run: cargo -vv build --release --features ffmpeg-build
+
+      - name: Test Static Release
+        run: cargo -vv test --release --features ffmpeg-build
+
+  macos-static:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install pkg-config ffmpeg
+
+      - name: Build Static Release
+        run: cargo -vv build --release --features ffmpeg-build
+
+      - name: Test Static Release
+        run: cargo -vv test --release --features ffmpeg-build

@@ -8,7 +8,8 @@ A CLI utility for muxing media (e.g. video, audio, subtitles).
 ## Quick Start
 
 1. [Download](https://github.com/nujievik/mux-media/releases) the
-archive for your system.
+archive for your system. [For Windows see old version](
+https://github.com/nujievik/mux-media/releases/download/v0.15.0/mux-media-win64-full.zip).
 2. Unpack it.
 3. Run the unpacked `mux-media` in a media directory.
 
@@ -109,7 +110,42 @@ top-level media directory.
 
 ## Manual Build 🤓
 
-TODO
+See examples in [workflows](
+https://github.com/nujievik/mux-media/blob/main/.github/workflows).
+
+### Shared Build
+
+1. Install [Rust](https://www.rust-lang.org/tools/install)
+
+2. [Configure ffmpeg-next build](
+https://github.com/zmwangx/rust-ffmpeg/wiki/Notes-on-building)
+
+3. Clone the repo:
+```
+git clone https://github.com/nujievik/mux-media --depth 1
+```
+
+4. Enter the project directory:
+```
+cd mux-media
+```
+
+5. Build:
+```
+cargo build --release --locked
+```
+
+6. On success, the binary will be in `target/release/mux-media`
+
+### Static Build
+
+Use ffmpeg-build feature:
+```
+cargo build --release --locked --features ffmpeg-build
+```
+
+Fucking ffmpeg-next not builds on Windows in current. Use v0.15.0
+version or shared build instead.
 
 
 ## Alternative GUI Utilities

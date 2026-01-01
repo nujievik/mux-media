@@ -1,4 +1,4 @@
-name: Release Build
+name: Release
 
 on:
   push:
@@ -11,266 +11,67 @@ on:
         required: true
         default: 'v1.0.0'
 
-
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-linux:
-    name: Build on Ubuntu
+  linux-build:
     runs-on: ubuntu-latest
-
-    env:
-      TARGET: x86_64-unknown-linux-gnu
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang libavcodec-dev libavformat-dev libavutil-dev pkg-config nasm
 
-      - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
+      - name: Build Static
+        run: cargo build --release --locked --features ffmpeg-build
 
-      - name: Zip binary
-        run: zip -j mux-media-linux-x64.zip target/${{ env.TARGET }}/release/mux-media
+      - name: Zip Static binary
+        run: zip -j mux-media-linux-x64.zip target/release/mux-media
 
       - uses: actions/upload-artifact@v4
         with:
           name: mux-media-linux-x64
           path: mux-media-linux-x64.zip
 
-  build-linux-32bit:
-    name: Build on Ubuntu (32-bit)
-    runs-on: ubuntu-latest
-
-    env:
-      TARGET: i686-unknown-linux-gnu
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install 32-bit dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y gcc-multilib
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build for 32-bit Linux
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Zip binary
-        run: zip -j mux-media-linux-x32.zip target/${{ env.TARGET }}/release/mux-media
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mux-media-linux-x32
-          path: mux-media-linux-x32.zip
-
-  build-windows:
-    name: Build on Windows
-    runs-on: windows-latest
-
-    env:
-      TARGET: x86_64-pc-windows-msvc
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install mkvtoolnix
-        shell: powershell
-        run: |
-          choco install mkvtoolnix -y
-          echo "C:\Program Files\MKVToolNix" | Out-File -Append -Encoding ascii $env:GITHUB_PATH
-
-      - name: Check mkvmerge
-        run: mkvmerge -V
-
-      - name: Install ffmpeg (gyan.dev build)
-        shell: pwsh
-        run: |
-          $url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
-          $archive = "$env:RUNNER_TEMP\\ffmpeg.7z"
-          $extractPath = "$env:RUNNER_TEMP\\ffmpeg"
-
-          Invoke-WebRequest -Uri $url -OutFile $archive
-
-          if (-Not (Test-Path $extractPath)) {
-            New-Item -ItemType Directory -Path $extractPath | Out-Null
-          }
-
-          7z x $archive "-o$extractPath" -y
-
-          Write-Host "Contents of ${extractPath}:"
-          Get-ChildItem $extractPath | ForEach-Object { Write-Host $_.Name }
-
-          $ffmpegDir = Get-ChildItem $extractPath |
-            Where-Object {
-              $_.PSIsContainer -and $_.Name -like "ffmpeg*"
-            } |
-            Select-Object -First 1
-
-          if (-not $ffmpegDir) {
-            Write-Error "FFmpeg folder not found in $extractPath"
-            exit 1
-          }
-
-          $ffmpegBin = Join-Path $ffmpegDir.FullName "bin"
-
-          Write-Host "Adding ffmpeg bin path: $ffmpegBin"
-          echo $ffmpegBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-
-      - name: Check ffmpeg
-        run: ffmpeg -h
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Zip binary
-        shell: pwsh
-        run: |
-          $src = "target/${{ env.TARGET }}/release/mux-media.exe"
-          Compress-Archive -Path $src -DestinationPath mux-media-win64.zip
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mux-media-win64
-          path: mux-media-win64.zip
-
-      - name: Build (full, with_embedded_bins)
-        run: cargo build --release --target ${{ env.TARGET }} --features with_embedded_bins
-
-      - name: Zip binary (full)
-        shell: pwsh
-        run: |
-          $src = "target/${{ env.TARGET }}/release/mux-media.exe"
-          Compress-Archive -Path $src -DestinationPath mux-media-win64-full.zip
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mux-media-win64-full
-          path: mux-media-win64-full.zip
-
-  build-windows-32bit:
-    name: Build on Windows (32-bit)
-    runs-on: windows-latest
-
-    env:
-      TARGET: i686-pc-windows-msvc
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build (32-bit)
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Zip binary
-        shell: pwsh
-        run: |
-          $src = "target/${{ env.TARGET }}/release/mux-media.exe"
-          Compress-Archive -Path $src -DestinationPath mux-media-win32.zip
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mux-media-win32
-          path: mux-media-win32.zip
-
-  build-macos:
-    name: Build on macOS
+  macos-build:
     runs-on: macos-latest
 
-    env:
-      TARGET: aarch64-apple-darwin
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
+      - name: Install dependencies
+        run: brew install pkg-config ffmpeg
 
-      - name: Build for macOS (native)
-        run: cargo build --release --target ${{ env.TARGET }}
+      - name: Build Static
+        run: cargo build --release --locked --features ffmpeg-build
 
-      - name: Zip binary
-        run: zip -j mux-media-macos-aarch64.zip target/${{ env.TARGET }}/release/mux-media
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mux-media-macos-aarch64
-          path: mux-media-macos-aarch64.zip
-
-  build-macos-x64:
-    name: Build on macOS (x86_64)
-    runs-on: macos-latest
-
-    env:
-      TARGET: x86_64-apple-darwin
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build for macOS x86_64
-        run: cargo build --release --target ${{ env.TARGET }}
-
-      - name: Zip binary
-        run: zip -j mux-media-macos-x64.zip target/${{ env.TARGET }}/release/mux-media
+      - name: Zip Static binary
+        run: zip -j mux-media-macos-arm64.zip target/release/mux-media
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mux-media-macos-x64
-          path: mux-media-macos-x64.zip
+          name: mux-media-macos-arm64
+          path: mux-media-macos-arm64.zip
 
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-linux, build-linux-32bit, build-windows, build-windows-32bit, build-macos, build-macos-x64]
+    needs: [linux-build, macos-build]
 
     steps:
       - uses: actions/download-artifact@v4
         with:
           name: mux-media-linux-x64
-          path: artifacts/linux
+          path: artifacts
 
       - uses: actions/download-artifact@v4
         with:
-          name: mux-media-linux-x32
-          path: artifacts/linux
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: mux-media-win64
-          path: artifacts/windows
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: mux-media-win64-full
-          path: artifacts/windows
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: mux-media-win32
-          path: artifacts/windows
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: mux-media-macos-aarch64
-          path: artifacts/macos
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: mux-media-macos-x64
-          path: artifacts/macos
+          name: mux-media-macos-arm64
+          path: artifacts
 
       - name: Set tag name
         run: |
@@ -284,9 +85,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          files: |
-            artifacts/linux/*
-            artifacts/windows/*
-            artifacts/macos/*
+          files: artifacts/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

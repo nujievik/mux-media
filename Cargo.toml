@@ -1,10 +1,10 @@
 [package]
 name = "mux-media"
-version = "0.16.0-dev"
+version = "0.16.0"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
-description = "A simple automated utility for muxing media (e.g. video, audio, subtitles)."
+description = "A CLI utility for muxing media (e.g. video, audio, subtitles)."
 repository = "https://github.com/nujievik/mux-media"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]
@@ -13,8 +13,6 @@ categories = ["command-line-utilities", "multimedia"]
 include = [
     "Cargo.toml",
     "README.md",
-    "assets/.gitkeep",
-    "build.rs",
     "src/**",
 ]
 

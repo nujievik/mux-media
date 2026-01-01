@@ -1,8 +1,6 @@
 **/.temp-mux-media/
 **/muxed/
-/assets/*
 /target/
 /tests/data/temp/*
 
-!/assets/.gitkeep
 !/tests/data/temp/.gitkeep
