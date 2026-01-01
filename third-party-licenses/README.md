@@ -14,10 +14,6 @@ project.
 - **ffmpeg-next**
   License: WTFPL
   Source: https://crates.io/crates/ffmpeg-next
-
-- **atty**
-  License: MIT OR Apache-2.0 
-  Source: https://crates.io/crates/atty
   
 - **chardet**
   License: LGPL-3.0

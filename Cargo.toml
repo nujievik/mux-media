@@ -27,7 +27,6 @@ default-features = false
 features = ["codec", "format"]
 
 [dependencies]
-atty = "0.2"
 chardet = "0.2"
 clap = "4"
 enum-map = "2"
