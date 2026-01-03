@@ -27,7 +27,6 @@ impl Blocks {
                     Arg::new(help_arg.undashed())
                         .long(help_arg.undashed())
                         .help(flag.as_help())
-                        .hide(matches!(flag, AutoFlag::AutoEncs))
                         .action(ArgAction::SetTrue),
                 )
                 .arg(

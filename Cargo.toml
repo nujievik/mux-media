@@ -1,6 +1,6 @@
 [package]
 name = "mux-media"
-version = "0.16.0"
+version = "0.16.1"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
@@ -29,6 +29,8 @@ features = ["codec", "format"]
 [dependencies]
 chardet = "0.2"
 clap = "4"
+encoding_rs = "0.8"
+encoding_rs_io = "0.1"
 enum-map = "2"
 globset = "0.4"
 is_default = "0.1.4"

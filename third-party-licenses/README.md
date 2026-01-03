@@ -23,6 +23,14 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/clap
 
+- **encoding_rs**
+  License: ( Apache-2.0 OR MIT ) AND BSD-3-Clause
+  Source: https://crates.io/crates/encoding_rs
+
+- **encoding_rs_io**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/encoding_rs_io
+
 - **enum-map**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/enum-map

@@ -1,16 +1,12 @@
+mod input_stream;
+
 use super::{Encode, Encoder};
+use crate::ffmpeg::{self, Dictionary, format::context};
 use crate::{
     DispositionType, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
-    VERSION,
-    ffmpeg::{
-        self, Dictionary,
-        format::{self, context},
-    },
-    immut,
-    markers::*,
+    VERSION, immut, markers::*,
 };
 use enum_map::EnumMap;
-use std::path::Path;
 
 pub(super) fn write_header(
     mi: &mut MediaInfo,
@@ -26,7 +22,7 @@ pub(super) fn write_header(
     let mut counts: EnumMap<StreamType, EnumMap<DispositionType, usize>> = EnumMap::default();
 
     for ord in &order.0 {
-        let ist = try_input_stream(mi, &mut icontexts, ord)?;
+        let ist = input_stream::new(mi, &mut icontexts, ord)?;
         let st = &immut!(@try, mi, MIStreams, &ord.key)?[ord.key_i_stream];
 
         let (mut ost, enc) = Encoder::new(&ist, octx)?;
@@ -57,37 +53,6 @@ pub(super) fn write_header(
     }
 
     Ok((icontexts, encoders, idx_map))
-}
-
-fn try_input_stream<'a>(
-    mi: &mut MediaInfo,
-    icontexts: &'a mut Vec<context::Input>,
-    ord: &StreamsOrderItem,
-) -> Result<ffmpeg::Stream<'a>> {
-    fn get_sub_charenc<'a>(mi: &'a mut MediaInfo, src: &Path) -> Option<&'a str> {
-        if *mi.cfg.auto_flags.encs {
-            mi.get(MISubCharEncoding, src)
-                .and_then(|enc| enc.get_ffmpeg_sub_charenc())
-        } else {
-            None
-        }
-    }
-
-    if icontexts.get(ord.src_num).is_none() {
-        let src = ord.src();
-        let ictx = if let Some(s) = get_sub_charenc(mi, src) {
-            let mut opts = Dictionary::new();
-            opts.set("sub_charenc", s);
-            format::input_with_dictionary(src, opts)
-        } else {
-            format::input(src)
-        }?;
-        icontexts.push(ictx);
-    }
-
-    let ictx = &icontexts[ord.src_num];
-    ictx.stream(ord.i_stream)
-        .ok_or_else(|| err!("Not found stream"))
 }
 
 fn new_ost_metadata<'a>(stream: &Stream, ist: &'a ffmpeg::Stream<'a>) -> Dictionary<'a> {

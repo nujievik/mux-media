@@ -68,6 +68,7 @@ Run `mux-media -h` to display help.
 | `--auto-forceds / --no-auto-forceds` | Auto set forced flags |
 | `--auto-names / --no-auto-names` | Auto set stream names |
 | `--auto-langs / --no-auto-langs` | Auto set stream langs |
+| `--auto-encs / --no-auto-encs` | Auto set subs encodings |
 | | |
 | Save streams: | |
 | `-a, --audio <[!]n[,m]...>` | `[!]Save audio streams` |

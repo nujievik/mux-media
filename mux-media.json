@@ -21,6 +21,7 @@
   "--auto-forceds",
   "--auto-names",
   "--auto-langs",
+  "--auto-encs",
   "--target",
   "global",
   "--audio",
