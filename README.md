@@ -7,9 +7,8 @@ A CLI utility for muxing media (e.g. video, audio, subtitles).
 
 ## Quick Start
 
-1. [Download](https://github.com/nujievik/mux-media/releases) the
-archive for your system. [For Windows see old version](
-https://github.com/nujievik/mux-media/releases/download/v0.15.0/mux-media-win64-full.zip).
+1. [Download](https://github.com/nujievik/mux-media/releases) an
+archive for your system.
 2. Unpack it.
 3. Run the unpacked `mux-media` in a media directory.
 
@@ -114,7 +113,7 @@ top-level media directory.
 See examples in [workflows](
 https://github.com/nujievik/mux-media/blob/main/.github/workflows).
 
-### Shared Build
+### Shared-ffmpeg Build
 
 1. Install [Rust](https://www.rust-lang.org/tools/install)
 
@@ -136,17 +135,37 @@ cd mux-media
 cargo build --release --locked
 ```
 
-6. On success, the binary will be in `target/release/mux-media`
+On success, the binary will be in `target/release/mux-media`.
 
-### Static Build
+### Static-ffmpeg Build
+
+Run [steps 1-4](#shared-ffmpeg-build) and then:
+
+#### Unix
 
 Use ffmpeg-build feature:
 ```
 cargo build --release --locked --features ffmpeg-build
 ```
 
-Fucking ffmpeg-next not builds on Windows in current. Use v0.15.0
-version or shared build instead.
+#### Windows
+
+1. Install static ffmpeg:
+```
+vcpkg install ffmpeg:x64-windows-static-md
+```
+
+2. Set VCPKG_ROOT variable to vcpkg.exe directory.
+
+3. Set RUSTFLAGS:
+```
+set RUSTFLAGS=-l mfplat -l mf -l mfuuid -l strmiids -l ole32 -l uuid
+```
+
+4. Use ffmpeg-static feature:
+```
+cargo build --release --locked --features ffmpeg-static
+```
 
 
 ## Alternative GUI Utilities

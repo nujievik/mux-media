@@ -1,6 +1,10 @@
 name: Static Tests
 
 on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch:
 
 env:
@@ -38,3 +42,29 @@ jobs:
 
       - name: Test Static Release
         run: cargo -vv test --release --features ffmpeg-build
+
+  windows-static:
+    runs-on: windows-latest
+    env:
+      RUSTFLAGS: -l mfplat -l mf -l mfuuid -l strmiids -l ole32 -l uuid
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Set VCPKG_ROOT
+        shell: pwsh
+        run: |
+          $vcpkgPath = (where.exe vcpkg)[0]
+          $vcpkgRoot = Split-Path $vcpkgPath -Parent
+          echo "VCPKG_ROOT=$vcpkgRoot" >> $env:GITHUB_ENV
+          Write-Host "VCPKG_ROOT set to $vcpkgRoot"
+
+      - name: Install Static ffmpeg
+        run: vcpkg install ffmpeg:x64-windows-static-md
+
+      - name: Build Static Release
+        run: cargo -vv build --release --features ffmpeg-static
+
+      - name: Test Static Release
+        run: cargo -vv test --release --features ffmpeg-static
