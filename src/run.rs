@@ -134,9 +134,9 @@ impl MediaInfo<'_> {
                 None => break,
             };
 
-            let enc = match idx_map[idx][ist.index()] {
-                Some(i) => &mut encoders[i],
-                None => continue,
+            let enc = match idx_map[idx].get(ist.index()) {
+                Some(Some(i)) => &mut encoders[*i],
+                _ => continue,
             };
             enc.processing_packet(&mut octx, &mut packet)?;
         }

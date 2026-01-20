@@ -1,6 +1,6 @@
 [package]
 name = "mux-media"
-version = "0.16.1"
+version = "0.16.2"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
