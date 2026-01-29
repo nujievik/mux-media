@@ -1,8 +1,8 @@
 use crate::{
-    ArcPathBuf, CacheMIOfFile, Config, MediaInfo, Msg, MuxError, Result, i18n::logs,
-    markers::MICmnStem, types::input::iters::MediaGroupedByStem,
+    ArcPathBuf, CacheMIOfFile, Config, MediaInfo, MuxError, Result, i18n::logs, markers::MICmnStem,
+    types::input::iters::MediaGroupedByStem,
 };
-use log::{error, info};
+use log::error;
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
@@ -17,7 +17,6 @@ pub fn mux_current_files(
     m: MediaGroupedByStem,
 ) -> Result<()> {
     let out = cfg.output.build_out(m.out_name_middle);
-    info!("{} '{}'...", Msg::Muxing, out.display());
 
     match init_current_files(fonts, mi, m.stem, m.files, &out) {
         MuxCurrent::Ok(()) => (),
@@ -27,7 +26,6 @@ pub fn mux_current_files(
 
     match mi.mux_files(&out) {
         Ok(()) => {
-            info!("{} '{}'", Msg::SuccessMuxed, out.display());
             if let Ok(mut cnt) = cnt.lock() {
                 *cnt += 1;
             }

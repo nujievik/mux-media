@@ -1,19 +1,24 @@
+mod buf_packets;
 mod current;
 mod encoder;
 mod header;
 mod init_external_fonts;
-mod packet;
 
 use crate::{
     Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit,
     ffmpeg::{self, format},
     markers::*,
 };
+use buf_packets::BufPackets;
 use encoder::{Encode, Encoder};
-use log::{error, info, warn};
-use packet::IstPacket;
+use log::{LevelFilter, error, info, warn};
 use rayon::prelude::*;
-use std::{path::Path, sync::Mutex};
+use std::{
+    fs,
+    io::{self, Write},
+    path::Path,
+    sync::Mutex,
+};
 
 /// Tries run muxing, taking settings from the arguments that this program was started with
 /// (normally passed via the command line).
@@ -102,6 +107,9 @@ impl Config {
 impl MediaInfo<'_> {
     /// Tries muxing all files from [`MediaInfo::cache`] to `dest`.
     pub fn mux_files(&mut self, dest: &Path) -> Result<()> {
+        // packets/msg frequency
+        const PROGRESS_FREQUENCY: usize = 1000;
+
         let order = self.try_take_cmn(MICmnStreamsOrder)?;
         let mut octx = format::output(dest)?;
         let (mut icontexts, mut encoders, idx_map) = header::write_header(self, &order, &mut octx)?;
@@ -110,29 +118,34 @@ impl MediaInfo<'_> {
             .iter_mut()
             .map(|ictx| Box::new(ictx.packets()))
             .collect();
+        let mut buf_packets = BufPackets::new(&mut iters);
 
-        let len = iters.len();
-        let mut buf_packets = Vec::with_capacity(len);
-        for _ in 0..len {
-            buf_packets.push(None);
-        }
+        let need_write_progress = match log::max_level() {
+            LevelFilter::Error => false,
+            _ => self.cfg.jobs <= 1,
+        };
+        info!("{} '{}...", Msg::Muxing, dest.display());
+
+        let mut cnt = 0usize;
+        let first_file_size = new_first_file_size(&order, need_write_progress);
+        let mut writed = 0u64;
 
         loop {
-            buf_packets
-                .iter_mut()
-                .enumerate()
-                .filter(|(_, pkt)| pkt.is_none())
-                .for_each(|(i, pkt)| {
-                    *pkt = match iters[i].next() {
-                        Some((ist, packet)) => Some(IstPacket(ist, packet)),
-                        None => None,
-                    }
-                });
-
-            let (idx, (ist, mut packet)) = match packet::take_min_packet(&mut buf_packets) {
-                Some((i, ipkt)) => (i, ipkt.into_inner()),
+            let (idx, (ist, mut packet)) = match buf_packets.take_minimal() {
+                Some(tuple) => tuple,
                 None => break,
             };
+            buf_packets.fill_idx(idx);
+
+            if need_write_progress && idx == 0 {
+                if cnt > PROGRESS_FREQUENCY {
+                    print!("\r{:2}%", writed * 100 / first_file_size);
+                    let _ = io::stdout().flush();
+                    cnt = 0;
+                }
+                writed += packet.size() as u64;
+                cnt += 1;
+            }
 
             let enc = match idx_map[idx].get(ist.index()) {
                 Some(Some(i)) => &mut encoders[*i],
@@ -149,6 +162,7 @@ impl MediaInfo<'_> {
         self.set_cmn(MICmnStreamsOrder, order);
 
         octx.write_trailer()?;
+        info!("\r{} '{}'", Msg::SuccessMuxed, dest.display());
         Ok(())
     }
 }
@@ -184,4 +198,12 @@ fn copy_chapters(
             error!("Fail copy chapter '{}': {}", title, e)
         }
     }
+}
+
+fn new_first_file_size(order: &StreamsOrder, need_write_progress: bool) -> u64 {
+    let size = match order.get(0) {
+        Some(ord) if need_write_progress => fs::metadata(ord.src()).map_or(1, |meta| meta.len()),
+        _ => 1,
+    };
+    if size > 0 { size } else { 1 }
 }
