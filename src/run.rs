@@ -107,9 +107,6 @@ impl Config {
 impl MediaInfo<'_> {
     /// Tries muxing all files from [`MediaInfo::cache`] to `dest`.
     pub fn mux_files(&mut self, dest: &Path) -> Result<()> {
-        // packets/msg frequency
-        const PROGRESS_FREQUENCY: usize = 1000;
-
         let order = self.try_take_cmn(MICmnStreamsOrder)?;
         let mut octx = format::output(dest)?;
         let (mut icontexts, mut encoders, idx_map) = header::write_header(self, &order, &mut octx)?;
@@ -126,7 +123,10 @@ impl MediaInfo<'_> {
         };
         info!("{} '{}...", Msg::Muxing, dest.display());
 
+        // packets/msg frequency
+        let mut progress_frequency = 50usize;
         let mut cnt = 0usize;
+        let mut percentage = 0u64;
         let first_file_size = new_first_file_size(&order, need_write_progress);
         let mut writed = 0u64;
 
@@ -138,9 +138,15 @@ impl MediaInfo<'_> {
             buf_packets.fill_idx(idx);
 
             if need_write_progress && idx == 0 {
-                if cnt > PROGRESS_FREQUENCY {
-                    print!("\r{:2}%", writed * 100 / first_file_size);
-                    let _ = io::stdout().flush();
+                if cnt > progress_frequency {
+                    let p = writed * 100 / first_file_size;
+                    if p > percentage {
+                        percentage = p;
+                        print!("\r{:2}%", p);
+                        let _ = io::stdout().flush();
+                    } else {
+                        progress_frequency = progress_frequency * 2;
+                    }
                     cnt = 0;
                 }
                 writed += packet.size() as u64;
