@@ -1,14 +1,20 @@
 use log::{Level, LevelFilter, Log, Metadata, Record};
 use std::{
     io::{self, Write},
-    sync::{LazyLock, Once},
+    sync::Once,
 };
+
+#[cfg(unix)]
+use std::sync::LazyLock;
+#[cfg(unix)]
 use supports_color::{Stream, on};
 
 static LOGGER: MuxLogger = MuxLogger;
 static INIT: Once = Once::new();
 
+#[cfg(unix)]
 static STDERR_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stderr).is_some());
+#[cfg(unix)]
 static STDOUT_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stdout).is_some());
 
 /// A logger imlementing the [`log`] logger.
@@ -40,6 +46,16 @@ impl MuxLogger {
     /// - ANSI color codes are applied to `Error` and `Warn` if stderr supports color.
     /// - ANSI color codes are applied to `Debug` and `Trace` if stdout supports color.
     pub(crate) fn color_prefix(level: Level) -> &'static str {
+        #[cfg(windows)]
+        match level {
+            Level::Error => "Error: ",
+            Level::Warn => "Warning: ",
+            Level::Debug => "Debug: ",
+            Level::Trace => "Trace: ",
+            _ => "",
+        }
+
+        #[cfg(unix)]
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",
             Level::Error => "Error: ",
@@ -55,10 +71,18 @@ impl MuxLogger {
 
     /// Returns a colored or plain clap-style try help string.
     pub(crate) fn try_help() -> &'static str {
-        if *STDERR_ON_COLOR {
-            "For more information, try '\x1b[34m--help\x1b[0m'."
-        } else {
+        #[cfg(windows)]
+        {
             "For more information, try '--help'."
+        }
+
+        #[cfg(unix)]
+        {
+            if *STDERR_ON_COLOR {
+                "For more information, try '\x1b[34m--help\x1b[0m'."
+            } else {
+                "For more information, try '--help'."
+            }
         }
     }
 }
