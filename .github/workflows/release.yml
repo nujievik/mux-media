@@ -18,6 +18,11 @@ jobs:
   linux-build:
     runs-on: ubuntu-latest
 
+    env:
+      CFLAGS: "-march=x86-64 -mtune=generic"
+      CXXFLAGS: "-march=x86-64 -mtune=generic"
+      RUSTFLAGS: "-C target-cpu=x86-64"
+
     steps:
       - uses: actions/checkout@v4
 
@@ -27,15 +32,12 @@ jobs:
           sudo apt-get install -y clang libavcodec-dev libavformat-dev libavutil-dev pkg-config nasm
 
       - name: Build Static
-        run: cargo build --release --locked --features ffmpeg-build
-
-      - name: Zip Static binary
-        run: zip -j mux-media-Linux-x64.zip target/release/mux-media
+        run: cargo build --release --features ffmpeg-build
 
       - uses: actions/upload-artifact@v4
         with:
           name: mux-media-Linux-x64
-          path: mux-media-Linux-x64.zip
+          path: target/release/mux-media
 
   macos-build:
     runs-on: macos-latest
@@ -47,15 +49,12 @@ jobs:
         run: brew install pkg-config ffmpeg
 
       - name: Build Static
-        run: cargo build --release --locked --features ffmpeg-build
-
-      - name: Zip Static binary
-        run: zip -j mux-media-macOS-arm64.zip target/release/mux-media
+        run: cargo build --release --features ffmpeg-build
 
       - uses: actions/upload-artifact@v4
         with:
           name: mux-media-macOS-arm64
-          path: mux-media-macOS-arm64.zip
+          path: target/release/mux-media
 
   windows-build:
     runs-on: windows-latest
@@ -78,16 +77,13 @@ jobs:
         run: vcpkg install ffmpeg:x64-windows-static-md
 
       - name: Build Static
-        run: cargo build --release --locked --features ffmpeg-static
-
-      - name: Zip Static binary
-        shell: powershell
-        run: Compress-Archive -Path target/release/mux-media.exe -DestinationPath mux-media-Windows-x64.zip
+        run: cargo build --release --features ffmpeg-static
 
       - uses: actions/upload-artifact@v4
         with:
           name: mux-media-Windows-x64
-          path: mux-media-Windows-x64.zip
+          path: target/release/mux-media
+
 
   release:
     name: Create GitHub Release
@@ -99,7 +95,15 @@ jobs:
         with:
           pattern: mux-media-*
           path: artifacts
-          merge-multiple: true
+          merge-multiple: false
+
+      - name: Archive each artifact
+        run: |
+          mkdir release
+          for dir in artifacts/*; do
+            name=$(basename "$dir")
+            (cd "$dir" && zip -r "../../release/${name}.zip" .)
+          done
 
       - name: Set tag name
         run: |
@@ -113,6 +117,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          files: artifacts/*
+          files: release/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
