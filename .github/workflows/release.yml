@@ -82,7 +82,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mux-media-Windows-x64
-          path: target/release/mux-media
+          path: target/release/mux-media.exe
 
 
   release:
