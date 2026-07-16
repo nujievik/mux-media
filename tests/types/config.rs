@@ -258,7 +258,6 @@ fn test_aliases_of_args() {
         vec!["-q", "--quiet"],
         vec!["-e", "--exit-on-err", "--exit-on-error"],
         vec!["--reencode", "--re-encode"],
-        vec!["-p", "--pro"],
         vec!["-A", "--no-audio"],
         vec!["-S", "--no-subs"],
         vec!["-D", "--no-video"],

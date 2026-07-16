@@ -5,7 +5,7 @@ use enum_map::{EnumMap, enum_map};
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub struct AutoFlags {
-    pub pro: bool,
+    pub no_auto: bool,
     pub defaults: Value<bool>,
     pub forceds: Value<bool>,
     pub names: Value<bool>,
@@ -22,7 +22,7 @@ impl AutoFlags {
 impl Default for AutoFlags {
     fn default() -> AutoFlags {
         AutoFlags {
-            pro: false,
+            no_auto: false,
             defaults: Value::Auto(true),
             forceds: Value::Auto(true),
             names: Value::Auto(true),
@@ -33,7 +33,7 @@ impl Default for AutoFlags {
 }
 impl IsDefault for AutoFlags {
     fn is_default(&self) -> bool {
-        matches!(self.pro, false)
+        matches!(self.no_auto, false)
             && matches!(self.defaults, Value::Auto(true))
             && matches!(self.forceds, Value::Auto(true))
             && matches!(self.names, Value::Auto(true))
@@ -56,8 +56,8 @@ macro_rules! push_json_args {
 
 impl ToJsonArgs for AutoFlags {
     fn append_json_args(&self, args: &mut Vec<String>) {
-        if self.pro {
-            args.push(to_json_args!(Pro));
+        if self.no_auto {
+            args.push(to_json_args!(NoAuto));
         }
 
         push_json_args!(
