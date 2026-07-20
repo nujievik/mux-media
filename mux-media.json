@@ -4,7 +4,7 @@
   "--input",
   "PATH/TO/MEDIA/DIRECTORY",
   "--output",
-  "PATH/TO/OUTPUT/DIRECTORY/WITH_OPT_FILE_NAME,PATTERN.MKV",
+  "PATH/TO/OUTPUT/DIRECTORY",
   "--range",
   "0-9999",
   "--skip",

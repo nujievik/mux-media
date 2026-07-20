@@ -1,105 +1,70 @@
+mod new;
 mod to_args;
-mod try_finalize_init;
-mod try_from;
 
-#[allow(unused_imports)]
-use crate::TryFinalizeInit;
+use crate::Result;
 use std::{
-    ffi::{OsStr, OsString},
     fs,
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
-/// An output configuration.
-///
-/// # Warning
-///
-/// This struct is not fully initialized after construction.
-/// You **must** call [`Self::try_finalize_init`] before using some methods
-/// (e.g. [`Self::temp_dir`]).
+/// Output configuration.
 #[derive(Clone, Debug, PartialEq)]
-#[non_exhaustive]
 pub struct Output {
-    pub dir: PathBuf,
-    pub temp_dir: PathBuf,
-    pub name_begin: OsString,
-    pub name_tail: OsString,
-    pub ext: OsString,
-    pub created_dirs: Vec<PathBuf>,
+    /// Output directory.
+    dir: PathBuf,
+    temp_dir: PathBuf,
+    /// Length of a created directory chain up to [`Output::dir`].
+    len_created_dir_chain: usize,
 }
 
 impl Output {
-    /// Builds the output path for the current media.
-    ///
-    /// Takes a middle part of the file name and constructs the full path
-    /// by prepending [`Self::dir`] and [`Self::name_begin`],
-    /// and appending [`Self::name_tail`] and [`Self::ext`].
-    /// ```
-    /// # use mux_media::{Output, ensure_long_path_prefix};
-    /// # use std::path::Path;
-    /// #
-    /// let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-    ///     .join("tests")
-    ///     .join("data");
-    /// let dir = ensure_long_path_prefix(dir);
-    /// let path = dir.join("begin,tail.ext");
-    /// let output = Output::try_from_path(path).unwrap();
-    ///
-    /// let expected = dir.join("begin middle tail.ext");
-    /// assert_eq!(expected, output.build_out(" middle "));
-    /// ```
-    ///
-    /// The `name_middle` is expected to be a number if [`Self::name_begin`] or [`Self::name_tail`]
-    /// is not empty; otherwise, expected a full [`Path::file_stem`](std::path::Path::file_stem).
-    pub fn build_out(&self, name_middle: impl AsRef<OsStr>) -> PathBuf {
-        let p = self.dir.join(&self.name_begin);
-        let mut p = p.into_os_string();
-        p.push(name_middle);
-        p.push(&self.name_tail);
-        p.push(".");
-        p.push(&self.ext);
-        p.into()
+    pub fn dir(&self) -> &Path {
+        &self.dir
     }
 
-    /// Returns `true` if a media number is expected in [`Self::build_out`].
-    ///
-    /// This is the case when either [`Self::name_begin`] or [`Self::name_tail`] is non-empty.
-    /// ```
-    /// use clap::Parser;
-    /// use mux_media::Config;
-    ///
-    /// let mut o = Config::parse_from::<_, &str>([]).output;
-    /// assert!(!o.need_num());
-    ///
-    /// o.name_begin = "x".into();
-    /// assert!(o.need_num());
-    /// o.name_begin = Default::default();
-    ///
-    /// o.name_tail = "x".into();
-    /// assert!(o.need_num());
-    /// ```
-    #[inline]
-    pub fn need_num(&self) -> bool {
-        !self.name_begin.is_empty() || !self.name_tail.is_empty()
+    pub fn temp_dir(&self) -> &Path {
+        &self.temp_dir
     }
 
-    /// Removes the temporary directory and all created empty directories.
+    /// Creates non-exists directories in the directory chain up to `Output::temp_dir()`.
+    pub fn create_dirs(&mut self) -> Result<()> {
+        let mut dirs: Vec<&Path> = Vec::new();
+        let mut dir = self.temp_dir.as_path();
+
+        while !dir.exists() {
+            dirs.push(dir);
+            match dir.parent() {
+                Some(parent) => dir = parent,
+                None => break,
+            }
+        }
+
+        for dir in dirs.iter().rev() {
+            if let Err(err) = fs::create_dir(dir) {
+                if !dir.exists() {
+                    remove_created_dir_chain(&self.temp_dir, dirs.len());
+                    return Err(err.into());
+                }
+            }
+        }
+
+        self.len_created_dir_chain = if dirs.len() > 1 { dirs.len() - 1 } else { 0 };
+        Ok(())
+    }
+
+    /// Removes temp directory and created empty directories while last time call [`Self::create_dirs`].
     pub fn remove_created_dirs(&self) {
         let _ = fs::remove_dir_all(&self.temp_dir);
-        remove_empty_chain_dirs(&self.created_dirs);
+        remove_created_dir_chain(&self.dir, self.len_created_dir_chain);
     }
 }
 
-fn remove_empty_chain_dirs(dirs: &[PathBuf]) {
-    let ascending_order =
-        (dirs.len() > 1) && (dirs[1].as_os_str().len() > dirs[0].as_os_str().len());
-
-    match ascending_order {
-        true => dirs.into_iter().rev().for_each(|dir| {
-            let _ = fs::remove_dir(dir);
-        }),
-        false => dirs.into_iter().for_each(|dir| {
-            let _ = fs::remove_dir(dir);
-        }),
+fn remove_created_dir_chain(mut dir: &Path, len_created_dir_chain: usize) {
+    for _ in 0..len_created_dir_chain {
+        let _ = fs::remove_dir(dir);
+        match dir.parent() {
+            Some(parent) => dir = parent,
+            None => break,
+        }
     }
 }

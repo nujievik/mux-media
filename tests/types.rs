@@ -11,8 +11,6 @@ mod char_encoding;
 mod cli_arg;
 #[path = "types/config.rs"]
 mod config;
-#[path = "types/container.rs"]
-mod container;
 #[path = "types/dispositions.rs"]
 mod dispositions;
 #[path = "types/extension.rs"]

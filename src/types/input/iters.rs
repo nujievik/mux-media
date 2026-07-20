@@ -122,14 +122,8 @@ impl Input {
 
             processed.insert(up_stem.to_owned());
 
-            let out_name_middle = match &media_number {
-                Some(num) if self.out_need_num => OsString::from(num.as_str()),
-                _ => up_stem.to_owned(),
-            };
-
             Some(MediaGroupedByStem {
                 files: matched,
-                out_name_middle,
                 stem: up_stem.to_owned(),
             })
         })
@@ -137,7 +131,7 @@ impl Input {
 
     #[inline(always)]
     fn init_media_number(&self) -> Option<MediaNumber> {
-        (self.need_num || self.out_need_num)
+        self.need_num
             .then(|| self.iter_media_in_dir(&self.dir).skip(1).next())
             .flatten()
             .and_then(|path| path.file_stem().map(MediaNumber::from))
@@ -148,7 +142,6 @@ impl Input {
 #[derive(Debug, PartialEq)]
 pub struct MediaGroupedByStem {
     pub files: Vec<PathBuf>,
-    pub out_name_middle: OsString,
     pub stem: OsString,
 }
 

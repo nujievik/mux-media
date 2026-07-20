@@ -1,5 +1,5 @@
 //mod is_supported_copy;
-mod new;
+//mod new;
 
 use crate::IsDefault;
 use strum_macros::Display;

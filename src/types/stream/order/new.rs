@@ -74,7 +74,7 @@ fn try_sorted_src_stream_ty(
             // skip temp dummy sub
             if ty.is_sub()
                 && stream.i == 0
-                && src.parent().map_or(false, |p| p == cfg.output.temp_dir)
+                && src.parent().map_or(false, |p| p == cfg.output.temp_dir())
             {
                 return;
             }

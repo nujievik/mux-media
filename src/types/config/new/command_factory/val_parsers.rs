@@ -46,5 +46,5 @@ macro_rules! typed_value_parser {
 }
 
 typed_value_parser!(InputDirParser, PathBuf, Input::try_canonicalize_and_read);
-typed_value_parser!(OutputParser, Output, Output::try_from_path);
+typed_value_parser!(OutputParser, Output, Output::new);
 typed_value_parser!(ConfigParser, PathBuf, try_canonicalize_and_open);

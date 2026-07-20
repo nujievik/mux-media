@@ -44,7 +44,7 @@ impl_msg_as_str!(
     HelpNoSubs => "Don't save any subtitle stream",
     HelpNoVideo => "Don't save any video stream",
     HelpOtherOptions => "Other options",
-    HelpOutput => "Output paths pattern: out{num}[put]",
+    HelpOutput => "Save muxed files to directory",
     HelpParts => "[!]Save parts for chapter names",
     HelpQuiet => "Suppress logging",
     HelpRange => "Number range of media-files",

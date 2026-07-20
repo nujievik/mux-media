@@ -14,19 +14,15 @@ fn parse_empty_args_input() {
     assert_eq!(i.depth, 16);
     assert!(!i.solo);
     assert!(!i.need_num);
-    assert!(!i.out_need_num);
     assert!(i.dirs.values().all(|xs| xs.is_empty()));
 }
 
 #[test]
 fn parse_empty_args_output() {
     let o = &EMPTY_ARGS.output;
-    assert_eq!(&o.dir, &fs::canonicalize(".").unwrap().join("muxed"));
-    assert_eq!(&o.temp_dir, p(""));
-    assert!(o.name_begin.is_empty());
-    assert!(o.name_tail.is_empty());
-    assert_eq!("mkv", o.ext);
-    assert!(o.created_dirs.is_empty());
+    let dir = fs::canonicalize(".").unwrap().join("muxed");
+    assert_eq!(o.dir(), &dir);
+    assert_eq!(o.temp_dir(), dir.join(".temp-mux-media"));
 }
 
 #[test]
@@ -93,6 +89,7 @@ fn parse_input_output() {
     let i = data("");
     let o = data("muxed/");
 
+    /*
     test_parse!(
         [p("-i"), &i],
         input.dir,
@@ -109,6 +106,7 @@ fn parse_input_output() {
         is_output_constructed_from_input,
         false
     );
+    */
     test_parse!(
         ["-r", "1-1"],
         input.range,

@@ -16,7 +16,8 @@ pub fn mux_current_files(
     mi: &mut MediaInfo<'_>,
     m: MediaGroupedByStem,
 ) -> Result<()> {
-    let out = cfg.output.build_out(m.out_name_middle);
+    let mut out = cfg.output.dir().join(&m.stem);
+    out.set_extension(cfg.container.as_ext());
 
     match init_current_files(fonts, mi, m.stem, m.files, &out) {
         MuxCurrent::Ok(()) => (),
