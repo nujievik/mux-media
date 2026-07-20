@@ -57,7 +57,7 @@ impl Retiming<'_, '_> {
         }
 
         let mut rtm = Retiming {
-            temp_dir: &mi.cfg.output.temp_dir,
+            temp_dir: &mi.cfg.output.temp_dir(),
             media_info: mi,
             job: mi.job,
             base,

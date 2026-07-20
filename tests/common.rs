@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use clap::Parser;
 use mux_media::*;
 use std::{

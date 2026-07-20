@@ -71,7 +71,7 @@ fn new_ictx_reencode_subs(
 
     let mut dest = cfg
         .output
-        .temp_dir
+        .temp_dir()
         .join(format!("{}-reencoded-subs-{}", job, ord.src_num));
     if let Some(ext) = src.extension() {
         dest.add_extension(ext);

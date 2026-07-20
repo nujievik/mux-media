@@ -340,7 +340,6 @@ impl FromArgMatches for Config {
             upd_flag!(input.solo, m, Solo);
 
             input.need_num = input.range.is_some();
-            input.out_need_num = false;
 
             if input.dirs.values().any(|v| !v.is_empty()) {
                 input.dirs = Default::default();
@@ -485,7 +484,6 @@ fn try_input(m: &mut ArgMatches) -> Result<Input, Error> {
         skip: rm!(m, Skip, GlobSetPattern),
         depth: rm_or!(m, Depth, u8, || Input::DEPTH_DEFAULT),
         solo: flag!(m, Solo),
-        out_need_num: Default::default(),
         dirs: Default::default(),
     })
 }

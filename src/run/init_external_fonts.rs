@@ -24,7 +24,7 @@ pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, CacheMIOf
         None
     };
 
-    let out = cfg.output.temp_dir.join("external-fonts.mkv");
+    let out = cfg.output.temp_dir().join("external-fonts.mkv");
     if let Err(e) = write_temp_fonts(fonts, &out) {
         return fall(e);
     }

@@ -26,7 +26,6 @@ pub struct Input {
     pub depth: u8,
     pub solo: bool,
     pub need_num: bool,
-    pub out_need_num: bool,
     pub dirs: EnumMap<InputFileType, Vec<ArcPathBuf>>,
 }
 
@@ -43,16 +42,6 @@ impl Input {
 
     pub(crate) fn try_default_dir() -> Result<PathBuf> {
         Self::try_canonicalize_and_read(".")
-    }
-
-    /// Updates output need number flag.
-    ///
-    /// When enabled, [`Self::iter_media_grouped_by_stem`] will returns media number as stem.
-    pub(crate) fn upd_out_need_num(&mut self, need: bool) {
-        self.out_need_num = need;
-        if need {
-            self.need_num = true;
-        }
     }
 
     /// Tries canonicalize path to the directory and read its.

@@ -1,4 +1,3 @@
-#[allow(dead_code)]
 mod common;
 
 use crate::common::*;
@@ -15,7 +14,7 @@ macro_rules! test_mux_any {
             let mut c = cfg([p("-i"), &in_arg, p("-o"), &out_arg, p("-e")]);
             c.try_finalize_init().unwrap();
 
-            let expected = c.output.build_out("x1_set");
+            let expected = c.output.dir().join("x1_set.mkv");
             let _ = fs::remove_file(&expected);
 
             assert!(
@@ -29,4 +28,4 @@ macro_rules! test_mux_any {
     };
 }
 
-test_mux_any!(test_mux_matroska, "x1_set/", "mux/matroska/,.mkv");
+test_mux_any!(test_mux_matroska, "x1_set/", "mux/matroska");

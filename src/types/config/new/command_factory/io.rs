@@ -21,7 +21,7 @@ impl Blocks {
                 Arg::new(undashed!(Output))
                     .short('o')
                     .long(undashed!(Output))
-                    .value_name("out[,put]")
+                    .value_name("dir")
                     .help(Msg::HelpOutput.as_str_localized())
                     .value_parser(ValueParser::new(OutputParser)),
             )
