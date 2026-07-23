@@ -65,12 +65,12 @@ fn create_and_remove_dirs() {
 }
 
 #[test]
-fn to_json_args() {
+fn to_args() {
     for x in ["a", "b", "c/d/e"] {
         let dir = cwd_dir(x);
         let o = Output::new(format!("./{}", x)).unwrap();
 
-        let args = to_args(["--output", dir.to_str().unwrap()]);
-        assert_eq!(args, o.to_json_args());
+        let args = crate::common::to_args(["--output", dir.to_str().unwrap()]);
+        assert_eq!(args, o.to_args());
     }
 }

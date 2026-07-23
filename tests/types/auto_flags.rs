@@ -57,8 +57,8 @@ fn test_manual_on_with_no_auto() {
     assert_eq!(v, new(&["--no-auto", "--auto-encs"]).encs);
 }
 
-crate::build_test_to_json_args!(
-    test_to_json_args, auto_flags, "auto_flags";
+crate::build_test_to_args!(
+    test_to_args, auto_flags, "auto_flags";
     vec![],
     vec!["--no-auto-defaults"],
     vec!["--no-auto-forceds"],

@@ -22,15 +22,15 @@ macro_rules! deref_singleton_tuple_struct {
     };
 }
 
-macro_rules! to_json_args {
+macro_rules! to_args {
     ($arg:ident) => {
-        $crate::dashed!($arg).to_owned()
+        std::ffi::OsString::from($crate::dashed!($arg))
     };
 
     (@push_true, $self:ident, $args:ident; $( $field:ident, $arg:ident ),*) => {{
         $(
             if $self.$field {
-                $args.push(to_json_args!($arg));
+                $args.push(to_args!($arg));
             }
         )*
     }};

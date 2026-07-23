@@ -57,29 +57,33 @@ where
     Config::try_parse_from(args).unwrap()
 }
 
-pub fn to_args<I, S>(args: I) -> Vec<String>
+pub fn to_args<I, S>(args: I) -> Vec<OsString>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
 {
-    args.into_iter().map(|s| s_sep(s.as_ref())).collect()
+    args.into_iter()
+        .map(|s| OsString::from(s_sep(s.as_ref())))
+        .collect()
 }
 
-pub fn append_str_vecs<I, S>(vecs: I) -> Vec<String>
+pub fn append_str_vecs<I, S>(vecs: I) -> Vec<OsString>
 where
     I: IntoIterator<Item = Vec<S>>,
     S: AsRef<str>,
 {
     vecs.into_iter()
         .flatten()
-        .map(|s| s_sep(s.as_ref()))
+        .map(|s| OsString::from(s_sep(s.as_ref())))
         .collect()
 }
 
-pub fn read_json_args(path: &Path) -> Vec<String> {
+pub fn read_txt_args(path: &Path) -> Vec<OsString> {
+    use std::io::BufRead;
     let file = std::fs::File::open(path).unwrap();
     let reader = std::io::BufReader::new(file);
-    serde_json::from_reader(reader).unwrap()
+    let lines: Vec<String> = reader.lines().collect::<std::io::Result<Vec<_>>>().unwrap();
+    lines.into_iter().map(|l| OsString::from(l)).collect()
 }
 
 pub fn iter_i_lang() -> impl Iterator<Item = (&'static usize, &'static Lang)> {

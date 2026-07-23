@@ -1,5 +1,5 @@
 mod new;
-mod to_json_args;
+mod to_args;
 
 use crate::{GlobSetPattern, IsDefault, RetimingChapter};
 

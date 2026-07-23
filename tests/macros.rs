@@ -30,9 +30,9 @@ macro_rules! test_from_str {
 }
 
 #[macro_export]
-macro_rules! build_test_to_json_args {
-    (@body, $field:ident, $json_dir:expr; $( $left:expr, $right:expr ),* ) => {{
-        let dir = std::path::Path::new("to_json_args").join($json_dir);
+macro_rules! build_test_to_args {
+    (@body, $field:ident, $txt_dir:expr; $( $left:expr, $right:expr ),* ) => {{
+        let dir = std::path::Path::new("to_args").join($txt_dir);
         let dir = $crate::common::temp(&dir);
 
         let in_dir = dir.to_str().unwrap();
@@ -43,35 +43,35 @@ macro_rules! build_test_to_json_args {
         let _ = std::fs::create_dir_all(&dir);
 
         let add_args = vec!["--locale", "eng", "--input", in_dir, "--output", &out_dir, "--save-config"];
-        let json = dir.clone().join("mux-media.json");
+        let txt = dir.clone().join("mux-media-config.txt");
 
         $(
             let mc_args = $crate::common::append_str_vecs([add_args.clone(), $right]);
             let mc = $crate::common::cfg(mc_args);
 
             let left = $crate::common::to_args::<Vec<&str>, _>($left.clone());
-            let right = mc.$field.to_json_args();
+            let right = mc.$field.to_args();
             assert_eq!(left, right);
 
             let left = $crate::common::append_str_vecs([add_args.clone(), $left]);
             mc.try_save_config().unwrap();
-            let right = $crate::common::read_json_args(&json);
+            let right = $crate::common::read_txt_args(&txt);
 
-            assert_eq!(left, right, "from json err");
+            assert_eq!(left, right, "from txt err");
         )*
     }};
 
-    ( $fn:ident, $field:ident, $json_dir:expr; $( $args:expr ),* $(,)? ) => {
+    ( $fn:ident, $field:ident, $txt_dir:expr; $( $args:expr ),* $(,)? ) => {
         #[test]
         fn $fn() {
-            $crate::build_test_to_json_args!(@body, $field, $json_dir; $( $args.clone(), $args ),* );
+            $crate::build_test_to_args!(@body, $field, $txt_dir; $( $args.clone(), $args ),* );
         }
     };
 
-    ( $fn:ident, $field:ident, $json_dir:expr, @diff_in_out; $( $left:expr, $right:expr ),* $(,)? ) => {
+    ( $fn:ident, $field:ident, $txt_dir:expr, @diff_in_out; $( $left:expr, $right:expr ),* $(,)? ) => {
         #[test]
         fn $fn() {
-            $crate::build_test_to_json_args!(@body, $field, $json_dir; $( $left, $right ),* );
+            $crate::build_test_to_args!(@body, $field, $txt_dir; $( $left, $right ),* );
         }
     };
 }

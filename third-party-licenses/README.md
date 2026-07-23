@@ -64,10 +64,6 @@ project.
   Source: https://crates.io/crates/rsubs-lib
   Path source: https://github.com/nujievik/rsubs-lib
   
-- **serde_json**
-  License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/serde_json
-  
 - **strum**
   License: MIT
   Source: https://crates.io/crates/strum

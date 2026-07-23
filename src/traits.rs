@@ -1,6 +1,12 @@
 pub(crate) mod lazy_fields;
 
 use crate::Result;
+use std::{
+    ffi::OsString,
+    fs,
+    io::{BufWriter, Write},
+    path::Path,
+};
 
 /// Provides a delayed initialization for expensive operations.
 pub trait TryFinalizeInit {
@@ -8,16 +14,36 @@ pub trait TryFinalizeInit {
     fn try_finalize_init(&mut self) -> Result<()>;
 }
 
-/// Converts a value to JSON-compatible arguments.
-pub trait ToJsonArgs {
+/// Converts a value to txt config arguments.
+pub trait ToTxtConfig {
     /// Appends arguments to the given `args` vector.
-    fn append_json_args(&self, args: &mut Vec<String>);
+    fn append_args(&self, args: &mut Vec<OsString>);
 
-    /// Returns arguments.
-    fn to_json_args(&self) -> Vec<String> {
+    /// Returns vector of arguments.
+    fn to_args(&self) -> Vec<OsString> {
         let mut args = Vec::new();
-        self.append_json_args(&mut args);
+        self.append_args(&mut args);
         args
+    }
+
+    /// Writes args to the given file path.
+    fn write<P: AsRef<Path>>(&self, path: P) -> Result<()> {
+        let args = self.to_args();
+
+        if args.is_empty() {
+            return Ok(());
+        }
+
+        let file = fs::File::create(path)?;
+        let mut writer = BufWriter::new(file);
+
+        for arg in args {
+            writer.write_all(arg.as_encoded_bytes())?;
+            writer.write_all(b"\n")?;
+        }
+
+        writer.flush()?;
+        Ok(())
     }
 }
 

@@ -87,7 +87,7 @@ pub enum Msg {
     LMedia,
     LMultipleTracksOrTypeTrack,
     LangNotSupLog,
-    LoadingJson,
+    LoadingTxtConfig,
     MediaNumOutOfRange,
     Muxing,
     NoExtMediaFound,

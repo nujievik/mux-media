@@ -177,8 +177,8 @@ fn get_langs() {
     }
 }
 
-build_test_to_json_args!(
-    to_json_args_names, names, "names";
+build_test_to_args!(
+    to_args_names, names, "names";
     vec![],
     vec!["--names", "x"],
     vec!["--names", "1:a,2:b,8:c"],
@@ -187,8 +187,8 @@ build_test_to_json_args!(
     vec!["--names", "1:a,2-8:b,eng:c"],
 );
 
-build_test_to_json_args!(
-    to_json_args_langs, langs, "langs";
+build_test_to_args!(
+    to_args_langs, langs, "langs";
     vec![],
     vec!["--langs", "eng"],
     vec!["--langs", "1:eng,2:rus,8:und"],

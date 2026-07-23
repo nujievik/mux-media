@@ -10,7 +10,7 @@ fn test_is_default() {
     assert!(!cs.is_default());
 }
 
-build_test_to_json_args!(
-    test_to_json_args, chapters, "chapters";
+build_test_to_args!(
+    test_to_args, chapters, "chapters";
     vec!["--no-chapters"],
 );

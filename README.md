@@ -45,8 +45,8 @@ Run `mux-media -h` to display help.
 |                              | Description                                                      |
 |------------------------------|------------------------------------------------------------------|
 | I/O options:                 | |
-| `-i, --input <dir>` | Top-level media directory |
-| `-o, --output <out[,put]>` | Output paths pattern: `out{num}[put]` |
+| `-i, --input <path>` | Set input file OR directory with files |
+| `-o, --output <dir>` | Save muxed files to directory |
 | `-r, --range <n[-m]>` | Number range of media-files |
 | `--skip <n[,m]...>` | Patterns of files to skip | 
 | `--depth <n>` | Scan subdirectories up to this depth |
@@ -58,8 +58,8 @@ Run `mux-media -h` to display help.
 | `-v, --verbose...` | Increase logging |
 | `-q, --quiet` | Suppress logging |
 | `-e, --exit-on-err` | Skip muxing next files if error occurs |
-| `--load <json>` | Load config from JSON |
-| `--save-config` | Save config to JSON in the input directory |
+| `--load <txt>` | Load .txt config |
+| `--save-config` | Save config to .txt in the input directory |
 | | |
 | Auto flags: | |
 | `--no-auto` | Disable all auto below |
@@ -103,8 +103,8 @@ Run `mux-media -h` to display help.
 | `-V, --version` | Show version |
 | `-h, --help` | Show help |
 
-Alternative CLI, you can configure a [JSON file](
-https://github.com/nujievik/mux-media/blob/main/mux-media.json) in a
+Alternative CLI, you can configure a [config file](
+https://github.com/nujievik/mux-media/blob/main/mux-media-config.txt) in a
 top-level media directory.
 
 

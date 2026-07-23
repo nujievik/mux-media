@@ -1,5 +1,6 @@
-use crate::{IsDefault, ToJsonArgs};
+use crate::{IsDefault, ToTxtConfig};
 use log::LevelFilter;
+use std::ffi::OsString;
 
 /// A wrapper around [`log::LevelFilter`].
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -28,10 +29,10 @@ impl IsDefault for LogLevel {
     }
 }
 
-impl ToJsonArgs for LogLevel {
-    fn append_json_args(&self, args: &mut Vec<String>) {
+impl ToTxtConfig for LogLevel {
+    fn append_args(&self, args: &mut Vec<OsString>) {
         match self.0 {
-            LevelFilter::Off | LevelFilter::Error => args.push(to_json_args!(Quiet)),
+            LevelFilter::Off | LevelFilter::Error => args.push(to_args!(Quiet)),
             LevelFilter::Warn | LevelFilter::Info => (),
             LevelFilter::Debug => args.push("-v".into()),
             LevelFilter::Trace => args.push("-vv".into()),

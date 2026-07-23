@@ -382,8 +382,8 @@ fn is_save_langs() {
     }
 }
 
-build_test_to_json_args!(
-    to_json_args, streams, "streams";
+build_test_to_args!(
+    to_args, streams, "streams";
     vec!["--no-streams"],
     vec!["--streams", "0"],
     vec!["--streams", "1,2,8"],

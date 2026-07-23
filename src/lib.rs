@@ -29,7 +29,7 @@ pub use i18n::Msg;
 pub use run::run;
 
 pub use traits::{
-    Field, ToJsonArgs, TryFinalizeInit,
+    Field, ToTxtConfig, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},
 };
 

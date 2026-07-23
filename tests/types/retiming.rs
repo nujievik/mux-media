@@ -25,8 +25,8 @@ fn test_args() {
     assert!(new(&["--no-linked"]).no_linked);
 }
 
-crate::build_test_to_json_args!(
-    test_to_json_args, retiming, "retiming";
+crate::build_test_to_args!(
+    test_to_args, retiming, "retiming";
     vec!["--no-linked"],
     vec!["--rm-segments", "*.srt"],
     vec!["--rm-segments", "*.srt", "--no-linked"],

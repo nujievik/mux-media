@@ -2,7 +2,6 @@ use crate::{Result, StreamType, ffmpeg};
 use std::{
     ffi::{OsStr, OsString},
     fs::{File, canonicalize},
-    io::BufWriter,
     path::{Path, PathBuf},
 };
 
@@ -12,30 +11,6 @@ pub(crate) fn parse_inverse_str(s: &str) -> (bool, &str) {
     } else {
         (false, s)
     }
-}
-
-#[inline]
-pub(crate) fn try_write_args_to_json<I, T>(args: I, json: &Path) -> Result<Vec<String>>
-where
-    I: IntoIterator<Item = T>,
-    T: AsRef<OsStr>,
-{
-    let args = args
-        .into_iter()
-        .map(|arg| {
-            arg.as_ref().to_str().map(|s| s.to_string()).ok_or_else(|| {
-                let path = Path::new(arg.as_ref());
-                format!("Unsupported UTF-8 symbol in '{}'", path.display()).into()
-            })
-        })
-        .collect::<Result<Vec<String>>>()?;
-
-    let file = File::create(json)?;
-    let writer = BufWriter::new(file);
-
-    serde_json::to_writer_pretty(writer, &args)?;
-
-    Ok(args)
 }
 
 #[inline(always)]

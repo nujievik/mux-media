@@ -1,6 +1,6 @@
 pub(crate) mod fields;
 pub(crate) mod new;
-mod to_json_args;
+mod to_args;
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
@@ -53,6 +53,6 @@ pub struct ConfigTarget {
 }
 
 impl Config {
-    const JSON_NAME: &str = "mux-media.json";
+    const CONFIG_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "-config.txt");
     const JOBS_DEFAULT: u8 = 1;
 }
