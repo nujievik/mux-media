@@ -19,7 +19,7 @@ impl Config {
             return Ok(());
         }
 
-        let json = self.input.dir.join(Self::JSON_NAME);
+        let json = self.input.dir().join(Self::JSON_NAME);
 
         match try_write_args_to_json(args, &json) {
             Ok(_) => Ok(()),

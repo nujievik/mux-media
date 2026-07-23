@@ -19,7 +19,7 @@ impl Retiming<'_, '_> {
     ) -> Result<Retiming<'a, 'b>> {
         let mut cache = CacheMatroska::default();
         let (base, i_base_stream, i_matroska_chapters) = try_base(mi, order, &mut cache)?;
-        let base_dir = base.parent().unwrap_or(&mi.cfg.input.dir);
+        let base_dir = base.parent().unwrap_or(mi.cfg.input.dir());
 
         let cs = try_chapters(mi, &cache, &base, i_matroska_chapters, base_dir)?;
         let len = cs.len();

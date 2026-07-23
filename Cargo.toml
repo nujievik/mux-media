@@ -29,6 +29,7 @@ features = ["codec", "format"]
 [dependencies]
 chardet = "0.2"
 clap = "4"
+either = "1.16.0"
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 enum-map = "2"

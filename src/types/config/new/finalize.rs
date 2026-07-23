@@ -10,7 +10,7 @@ impl TryFinalizeInit for Config {
 impl Config {
     fn finalize_output(&mut self) -> Result<()> {
         if self.is_output_constructed_from_input
-            && Some(self.input.dir.as_path()) != self.output.dir().parent()
+            && Some(self.input.dir()) != self.output.dir().parent()
         {
             self.output = Output::try_from(&self.input)?;
         }

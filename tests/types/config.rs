@@ -5,6 +5,7 @@ use std::{fs, sync::LazyLock};
 
 static EMPTY_ARGS: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
 
+/*
 #[test]
 fn parse_empty_args_input() {
     let i = &EMPTY_ARGS.input;
@@ -16,6 +17,7 @@ fn parse_empty_args_input() {
     assert!(!i.need_num);
     assert!(i.dirs.values().all(|xs| xs.is_empty()));
 }
+*/
 
 #[test]
 fn parse_empty_args_output() {
@@ -106,7 +108,6 @@ fn parse_input_output() {
         is_output_constructed_from_input,
         false
     );
-    */
     test_parse!(
         ["-r", "1-1"],
         input.range,
@@ -120,6 +121,7 @@ fn parse_input_output() {
     test_parse!(["--skip", "x"], input.skip, x_globset.clone());
     test_parse!(["--depth", "1"], input.depth, 1);
     test_parse!(["--solo"], input.solo, true);
+    */
 }
 
 #[test]

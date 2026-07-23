@@ -1,5 +1,5 @@
 use super::Output;
-use crate::{Input, MuxError, Result, TryFinalizeInit};
+use crate::{Input, InputType, MuxError, Result, TryFinalizeInit};
 use std::path::{Path, PathBuf};
 
 impl Output {
@@ -36,7 +36,11 @@ impl TryFrom<&Input> for Output {
     type Error = MuxError;
 
     fn try_from(input: &Input) -> Result<Output> {
-        Self::new(input.dir.join("muxed"))
+        let i_dir: &Path = match &input.ty {
+            InputType::Dir(d) => d,
+            InputType::Files(xs) => xs[0].parent().unwrap_or(Path::new(".")),
+        };
+        Self::new(i_dir.join("muxed"))
     }
 }
 
@@ -51,7 +55,7 @@ fn new_dir(path: &Path) -> Result<PathBuf> {
     if path.is_file() {
         Err("Is not a directory".into())
     } else {
-        let dir: PathBuf = try_absolutize(path)?.components().collect();
+        let dir: PathBuf = try_absolutize(path.into())?.components().collect();
         Ok(crate::ensure_long_path_prefix(dir))
     }
 }
@@ -61,7 +65,7 @@ fn new_temp_dir(dir: &Path) -> PathBuf {
     dir.join(TEMP_SUBDIRECTORY_NAME)
 }
 
-fn try_absolutize(path: &Path) -> Result<PathBuf> {
+fn try_absolutize(path: PathBuf) -> Result<PathBuf> {
     #[cfg(unix)]
     {
         if path.starts_with("~") {
@@ -70,7 +74,7 @@ fn try_absolutize(path: &Path) -> Result<PathBuf> {
     }
 
     if path.is_absolute() {
-        Ok(path.into())
+        Ok(path)
     } else {
         let mut new = std::env::current_dir()?;
         new.push(path);

@@ -1,8 +1,9 @@
 use super::super::{Config, ConfigTarget};
 use crate::{
     AutoFlags, Chapters, CliArg, DefaultDispositions, Dispositions, ForcedDispositions,
-    GlobSetPattern, Input, LangCode, LangMetadata, LogLevel, Msg, MuxError, NameMetadata, Output,
-    RangeUsize, RetimingOptions, StreamType, Streams, Target, VERSION, Value, undashed,
+    GlobSetPattern, Input, InputType, LangCode, LangMetadata, LogLevel, Msg, MuxError,
+    NameMetadata, Output, RangeUsize, RetimingOptions, StreamType, Streams, Target, VERSION, Value,
+    undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
@@ -332,7 +333,11 @@ impl FromArgMatches for Config {
 
         fn input(cfg: &mut Config, m: &mut ArgMatches) {
             let input = &mut cfg.input;
-            upd!(input.dir, m, Input, PathBuf);
+
+            if let Some(Ok(ty)) = try_input_ty(m) {
+                input.ty = ty;
+            }
+
             upd!(input.range, m, Range, RangeUsize, @opt);
             upd!(input.skip, m, Skip, GlobSetPattern, @opt);
             upd!(input.depth, m, Depth, u8);
@@ -341,8 +346,8 @@ impl FromArgMatches for Config {
 
             input.need_num = input.range.is_some();
 
-            if input.dirs.values().any(|v| !v.is_empty()) {
-                input.dirs = Default::default();
+            if input.file_dirs.values().any(|v| !v.is_empty()) {
+                input.file_dirs = Default::default();
             }
         }
 
@@ -471,21 +476,35 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
 }
 
 fn try_input(m: &mut ArgMatches) -> Result<Input, Error> {
-    let dir = match rm!(m, Input, PathBuf) {
-        Some(dir) => dir,
-        None => Input::try_default_dir()?,
+    let ty = match try_input_ty(m) {
+        Some(res) => res?,
+        None => InputType::Dir(Input::try_default_dir()?),
     };
     let range = rm!(m, Range, RangeUsize);
 
     Ok(Input {
         need_num: range.is_some(),
-        dir,
+        ty,
         range,
         skip: rm!(m, Skip, GlobSetPattern),
         depth: rm_or!(m, Depth, u8, || Input::DEPTH_DEFAULT),
         solo: flag!(m, Solo),
-        dirs: Default::default(),
+        file_dirs: Default::default(),
     })
+}
+
+fn try_input_ty(m: &mut ArgMatches) -> Option<Result<InputType, Error>> {
+    let mut paths: Vec<_> = m.remove_many::<PathBuf>(undashed!(Input))?.collect();
+
+    if paths.is_empty() {
+        None
+    } else if paths.len() > 1 && paths.iter().any(|x| x.is_dir()) {
+        Some(Err(err!("must be only one directory").into()))
+    } else if paths.len() == 1 && paths[0].is_dir() {
+        Some(Ok(InputType::Dir(paths.pop().unwrap())))
+    } else {
+        Some(Ok(InputType::Files(paths)))
+    }
 }
 
 fn get_chapters(m: &mut ArgMatches) -> Option<Chapters> {

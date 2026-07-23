@@ -1,5 +1,5 @@
 use super::Blocks;
-use super::val_parsers::{InputDirParser, OutputParser};
+use super::val_parsers::{InputPathParser, OutputParser};
 use crate::{GlobSetPattern, Msg, RangeUsize, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
@@ -13,9 +13,10 @@ impl Blocks {
                 Arg::new(undashed!(Input))
                     .short('i')
                     .long(undashed!(Input))
-                    .value_name("dir")
+                    .value_name("path")
                     .help(Msg::HelpInput.as_str_localized())
-                    .value_parser(ValueParser::new(InputDirParser)),
+                    .action(ArgAction::Append)
+                    .value_parser(ValueParser::new(InputPathParser)),
             )
             .arg(
                 Arg::new(undashed!(Output))
