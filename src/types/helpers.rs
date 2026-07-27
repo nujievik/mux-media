@@ -17,7 +17,7 @@ pub(crate) fn parse_inverse_str(s: &str) -> (bool, &str) {
 pub(crate) fn try_canonicalize_and_open(path: impl AsRef<Path>) -> Result<PathBuf> {
     let path = canonicalize(path)?;
     if !path.is_file() {
-        return Err("Is not a file".into());
+        return Err(err!("Is not a file"));
     }
     File::open(&path)?;
     Ok(path)
@@ -36,7 +36,7 @@ pub(crate) fn os_str_tail(prefix: &OsStr, longer: &OsStr) -> Result<OsString> {
     let longer_b = longer.as_encoded_bytes();
 
     if !longer_b.starts_with(prefix_b) {
-        return Err(format!("Longer {:?} is not starts with {:?}", longer, prefix).into());
+        return Err(err!("Longer {:?} is not starts with {:?}", longer, prefix));
     }
 
     let prefix_len = prefix_b.len();

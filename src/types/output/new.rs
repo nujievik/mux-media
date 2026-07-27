@@ -53,7 +53,7 @@ impl TryFinalizeInit for Output {
 
 fn new_dir(path: &Path) -> Result<PathBuf> {
     if path.is_file() {
-        Err("Is not a directory".into())
+        Err(err!("is not a directory"))
     } else {
         let dir: PathBuf = try_absolutize(path.into())?.components().collect();
         Ok(crate::ensure_long_path_prefix(dir))

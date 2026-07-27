@@ -32,13 +32,13 @@ impl FromStr for GlobSetPattern {
 
         for pattern in s.split(',') {
             let glob =
-                Glob::new(pattern).map_err(|e| format!("Invalid pattern '{}': {}", pattern, e))?;
+                Glob::new(pattern).map_err(|e| err!("Invalid pattern '{}': {}", pattern, e))?;
             builder.add(glob);
         }
 
         let glob_set = builder
             .build()
-            .map_err(|e| format!("Failed to build patterns: {}", e))?;
+            .map_err(|e| err!("Failed to build patterns: {}", e))?;
 
         Ok(Self {
             glob_set,

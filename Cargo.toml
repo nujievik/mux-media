@@ -42,6 +42,7 @@ rayon = "1"
 rsubs-lib = "0.3.4"
 strum = "0.27"
 strum_macros = "0.27"
+thiserror = "2"
 time = "0.3"
 walkdir = "2"
 

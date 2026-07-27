@@ -13,7 +13,7 @@ impl MediaInfo<'_> {
             .iter()
             .filter_map(|(p, _)| p.file_stem())
             .min_by_key(|s| s.len())
-            .ok_or("Not found any file_stem()")?;
+            .ok_or_else(|| err!("Not found any file_stem()"))?;
 
         Ok(shortest.to_owned())
     }

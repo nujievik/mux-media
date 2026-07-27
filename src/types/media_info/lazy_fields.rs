@@ -200,7 +200,7 @@ impl MediaInfo<'_> {
 fn new_state_and_result<T>(res: Result<T>) -> (CacheState<T>, Result<()>) {
     let r = match res {
         Ok(_) => Ok(()),
-        Err(ref e) => Err(e.clone()),
+        Err(ref e) => Err(err!("{}", e)),
     };
     let state = CacheState::from_res(res);
     (state, r)
@@ -328,7 +328,7 @@ macro_rules! lazy_path_fields {
             fn try_init(&mut self, src: &Path) -> Result<()> {
                 match self.cache.of_files.get(src).map(|e| &e.$map_field) {
                     Some(Cached(_)) => return Ok(()),
-                    Some(Failed(e)) => return Err(*e.clone()),
+                    Some(Failed(e)) => return Err(err!("{}", e)),
                     _ => {}
                 }
 
@@ -374,7 +374,7 @@ macro_rules! lazy_path_fields {
 
                 match self.cache.of_files.get_mut(src) {
                     Some(cache) => cache.$map_field.try_mut(),
-                    None => Err("Unexpected None cache".into()),
+                    None => Err(err!("Unexpected None cache")),
                 }
             }
 

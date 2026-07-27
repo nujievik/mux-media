@@ -169,7 +169,7 @@ fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<Streams
 
     let rtm = match Retiming::try_new(mi, &order) {
         Ok(rtm) => rtm,
-        Err(e) if e.code == 0 => return Ok(order),
+        Err(e) if e.code() == 0 => return Ok(order),
         Err(e) => return Err(e),
     };
 

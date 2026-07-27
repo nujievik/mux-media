@@ -47,7 +47,7 @@ impl MediaInfo<'_> {
             .into_iter()
             .chain(video)
             .max()
-            .ok_or_else(|| "Not found playable time".into());
+            .ok_or_else(|| err!("Not found playable time"));
 
         let cache = self.cache.of_files.get_mut(src).unwrap();
         cache.playable_duration = CacheState::from_res(playable);
