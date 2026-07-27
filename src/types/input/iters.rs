@@ -169,7 +169,8 @@ impl Input {
 
     #[inline(always)]
     fn init_media_number(&self) -> Option<MediaNumber> {
-        self.need_num
+        self.range
+            .is_some()
             .then(|| self.iter_media_in_dir(self.dir()).skip(1).next())
             .flatten()
             .and_then(|path| path.file_stem().map(MediaNumber::from))

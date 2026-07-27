@@ -1,6 +1,6 @@
 use super::super::{Config, ConfigTarget};
 use crate::{
-    AutoFlags, Chapters, CliArg, DefaultDispositions, Dispositions, ForcedDispositions,
+    AutoFlags, Chapters, CliArg, DefaultDispositions, Dispositions, Extension, ForcedDispositions,
     GlobSetPattern, Input, InputType, LangCode, LangMetadata, LogLevel, Msg, MuxError,
     NameMetadata, Output, RangeUsize, RetimingOptions, StreamType, Streams, Target, VERSION, Value,
     undashed,
@@ -344,8 +344,6 @@ impl FromArgMatches for Config {
 
             upd_flag!(input.solo, m, Solo);
 
-            input.need_num = input.range.is_some();
-
             if input.file_dirs.values().any(|v| !v.is_empty()) {
                 input.file_dirs = Default::default();
             }
@@ -480,12 +478,10 @@ fn try_input(m: &mut ArgMatches) -> Result<Input, Error> {
         Some(res) => res?,
         None => InputType::Dir(Input::try_default_dir()?),
     };
-    let range = rm!(m, Range, RangeUsize);
 
     Ok(Input {
-        need_num: range.is_some(),
         ty,
-        range,
+        range: rm!(m, Range, RangeUsize),
         skip: rm!(m, Skip, GlobSetPattern),
         depth: rm_or!(m, Depth, u8, || Input::DEPTH_DEFAULT),
         solo: flag!(m, Solo),
@@ -499,9 +495,14 @@ fn try_input_ty(m: &mut ArgMatches) -> Option<Result<InputType, Error>> {
     if paths.is_empty() {
         None
     } else if paths.len() > 1 && paths.iter().any(|x| x.is_dir()) {
-        Some(Err(err!("must be only one directory").into()))
+        Some(Err(err!("must be only 1 directory").into()))
     } else if paths.len() == 1 && paths[0].is_dir() {
         Some(Ok(InputType::Dir(paths.pop().unwrap())))
+    } else if !paths
+        .iter()
+        .any(|p| Extension::new_from_path(p).is_some_and(|ext| ext.is_media()))
+    {
+        Some(Err(err!("must be at least 1 media file").into()))
     } else {
         Some(Ok(InputType::Files(paths)))
     }

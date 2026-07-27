@@ -12,11 +12,10 @@ use std::path::{Path, PathBuf};
 pub struct Input {
     // must ensures that files is unempty.
     pub(crate) ty: InputType,
-    pub(crate) range: Option<RangeUsize>,
-    pub(crate) skip: Option<GlobSetPattern>,
-    pub(crate) depth: u8,
-    pub(crate) solo: bool,
-    pub(crate) need_num: bool,
+    pub range: Option<RangeUsize>,
+    pub skip: Option<GlobSetPattern>,
+    pub depth: u8,
+    pub solo: bool,
     pub(crate) file_dirs: EnumMap<InputFileType, Vec<ArcPathBuf>>,
 }
 
@@ -35,7 +34,7 @@ pub enum InputFileType {
 }
 
 impl Input {
-    pub(crate) fn dir(&self) -> &Path {
+    pub fn dir(&self) -> &Path {
         match &self.ty {
             InputType::Dir(dir) => dir,
             InputType::Files(xs) => &xs[0].parent().unwrap_or(Path::new(".")),

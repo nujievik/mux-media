@@ -1,5 +1,5 @@
 use super::{Input, InputFileType, InputType, iters::DirIter};
-use crate::{Msg, Result, TryFinalizeInit};
+use crate::{Extension, Msg, Result, TryFinalizeInit};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -56,13 +56,18 @@ impl Input {
     ///
     /// # Errors
     ///
-    /// Returns an error if the path doesn't exist or its unreadable.
+    /// Returns an error if:
+    /// - The path doesn't exist or its unreadable.
+    /// - The path is file with unsupported extension.
     pub(crate) fn try_canonicalize_and_read(path: impl AsRef<Path>) -> Result<PathBuf> {
         let path = fs::canonicalize(path)?;
         if path.is_dir() {
             let _ = fs::read_dir(&path)?;
         } else {
-            let _ = fs::read(&path)?;
+            if let None = Extension::new_from_path(&path) {
+                return Err(err!("File '{}' has unsupported extension", path.display()));
+            }
+            let _ = fs::File::open(&path)?;
         };
         Ok(path)
     }
