@@ -13,6 +13,7 @@ macro_rules! some_or {
     };
 }
 
+mod cli;
 mod functions;
 mod i18n;
 /// Field markers for [`Config`] and [`MediaInfo`].
@@ -24,6 +25,7 @@ mod types;
 pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
+pub use cli::{arg::CliArg, logger::CliLogger};
 pub use functions::{ensure_long_path_prefix, ensure_trailing_sep, mux};
 pub use i18n::Msg;
 pub use run::run;
@@ -38,7 +40,6 @@ pub use types::{
     auto_flags::AutoFlags,
     chapters::Chapters,
     char_encoding::CharEncoding,
-    cli_arg::CliArg,
     codec_id::CodecId,
     config::{Config, ConfigTarget},
     container::Container,
@@ -56,7 +57,6 @@ pub use types::{
     media_number::MediaNumber,
     metadata::{LangMetadata, Metadata, NameMetadata},
     mux_error::MuxError,
-    mux_logger::MuxLogger,
     output::Output,
     range::RangeUsize,
     retiming::options::{RetimingOptions, RetimingOptionsParts},

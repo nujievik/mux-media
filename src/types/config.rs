@@ -1,5 +1,5 @@
 pub(crate) mod fields;
-pub(crate) mod new;
+mod finalize;
 mod to_args;
 
 #[allow(unused_imports)]
@@ -53,6 +53,6 @@ pub struct ConfigTarget {
 }
 
 impl Config {
-    const CONFIG_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "-config.txt");
-    const JOBS_DEFAULT: u8 = 1;
+    pub(crate) const CONFIG_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "-config.txt");
+    pub(crate) const JOBS_DEFAULT: u8 = 1;
 }

@@ -5,7 +5,7 @@ mod header;
 mod init_external_fonts;
 
 use crate::{
-    Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit,
+    CliLogger, Config, MediaInfo, Msg, MuxError, Result, StreamsOrder, TryFinalizeInit,
     ffmpeg::{self, format},
     markers::*,
 };
@@ -59,7 +59,7 @@ pub fn run() -> Result<()> {
     }
 
     let cfg = init_cfg()?;
-    MuxLogger::init_with_filter(*cfg.log_level);
+    CliLogger::init_with_filter(*cfg.log_level);
     init_ffmpeg(&cfg)?;
 
     let result = cfg.mux();

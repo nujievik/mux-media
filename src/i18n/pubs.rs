@@ -1,6 +1,6 @@
 use super::Msg;
 
-use crate::{LangCode, MuxLogger, Result};
+use crate::{CliLogger, LangCode, Result};
 use std::{
     fmt,
     sync::{LazyLock, RwLock},
@@ -98,7 +98,7 @@ impl Msg {
         Self::try_upd_lang(lang).unwrap_or_else(|e| {
             eprintln!(
                 "{}{}: {}. {} '{}'",
-                MuxLogger::color_prefix(log::Level::Warn),
+                CliLogger::color_prefix(log::Level::Warn),
                 Self::ErrUpdLang,
                 e,
                 Self::Using,

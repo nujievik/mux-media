@@ -7,8 +7,6 @@ mod auto_flags;
 mod chapters;
 #[path = "types/char_encoding.rs"]
 mod char_encoding;
-#[path = "types/cli_arg.rs"]
-mod cli_arg;
 #[path = "types/config.rs"]
 mod config;
 #[path = "types/dispositions.rs"]

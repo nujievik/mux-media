@@ -9,7 +9,7 @@ use std::sync::LazyLock;
 #[cfg(unix)]
 use supports_color::{Stream, on};
 
-static LOGGER: MuxLogger = MuxLogger;
+static LOGGER: CliLogger = CliLogger;
 static INIT: Once = Once::new();
 
 #[cfg(unix)]
@@ -18,17 +18,17 @@ static STDERR_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stderr).is_
 static STDOUT_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stdout).is_some());
 
 /// A logger imlementing the [`log`] logger.
-pub struct MuxLogger;
+pub struct CliLogger;
 
-impl MuxLogger {
+impl CliLogger {
     /// Initializes the global logger with the given [`LevelFilter`].
     ///
     /// This is safe to call multiple times; initialization will only occur once.
     /// ```
-    /// use mux_media::MuxLogger;
+    /// use mux_media::CliLogger;
     /// let f = log::LevelFilter::Warn;
-    /// MuxLogger::init_with_filter(f);
-    /// MuxLogger::init_with_filter(f);
+    /// CliLogger::init_with_filter(f);
+    /// CliLogger::init_with_filter(f);
     /// ```
     pub fn init_with_filter(filter: LevelFilter) {
         INIT.call_once(|| {
@@ -87,7 +87,7 @@ impl MuxLogger {
     }
 }
 
-impl Log for MuxLogger {
+impl Log for CliLogger {
     fn enabled(&self, metadata: &Metadata) -> bool {
         metadata.level() <= Level::Trace
     }

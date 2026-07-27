@@ -1,7 +1,7 @@
 mod into;
 mod new;
 
-use crate::{MuxLogger, ffmpeg};
+use crate::{CliLogger, ffmpeg};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -67,9 +67,9 @@ impl MuxError {
     pub fn print(&self) {
         let manual = || {
             if self.use_stderr() {
-                let prefix = MuxLogger::color_prefix(log::Level::Error);
+                let prefix = CliLogger::color_prefix(log::Level::Error);
                 eprintln!("{}{}", prefix, self);
-                eprintln!("\n{}", MuxLogger::try_help());
+                eprintln!("\n{}", CliLogger::try_help());
             } else {
                 println!("{}", self);
             }

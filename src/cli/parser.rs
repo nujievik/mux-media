@@ -1,13 +1,67 @@
-use super::super::{Config, ConfigTarget};
+mod auto;
+mod global;
+mod io;
+mod other;
+mod retiming;
+mod streams;
+mod target;
+mod val_parsers;
+
 use crate::{
-    AutoFlags, Chapters, CliArg, DefaultDispositions, Dispositions, Extension, ForcedDispositions,
-    GlobSetPattern, Input, InputType, LangCode, LangMetadata, LogLevel, Msg, MuxError,
-    NameMetadata, Output, RangeUsize, RetimingOptions, StreamType, Streams, Target, VERSION, Value,
-    undashed,
+    AutoFlags, Chapters, CliArg, Config, ConfigTarget, DefaultDispositions, Dispositions,
+    Extension, ForcedDispositions, GlobSetPattern, Input, InputType, LangCode, LangMetadata,
+    LogLevel, Msg, MuxError, NameMetadata, Output, RangeUsize, RetimingOptions, StreamType,
+    Streams, Target, VERSION, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
 use std::{collections::HashMap, path::PathBuf};
+
+impl CommandFactory for Config {
+    fn command() -> Command {
+        Blocks::new()
+            .io()
+            .global()
+            .auto()
+            .streams()
+            .target()
+            .retiming()
+            .other()
+            .version()
+            .help()
+            .0
+    }
+
+    fn command_for_update() -> Command {
+        Self::command()
+    }
+}
+
+impl CommandFactory for ConfigTarget {
+    fn command() -> Command {
+        Blocks::new().target().version().help().0
+    }
+
+    fn command_for_update() -> Command {
+        Self::command()
+    }
+}
+
+struct Blocks(pub Command);
+
+impl Blocks {
+    // other fn impl Blocks in modules
+    fn new() -> Self {
+        Self(
+            Command::new(env!("CARGO_PKG_NAME"))
+                .no_binary_name(true)
+                .version(concat!("v", env!("CARGO_PKG_VERSION")))
+                .disable_help_flag(true)
+                .disable_version_flag(true)
+                .override_usage(concat!(env!("CARGO_PKG_NAME"), " [options]")),
+        )
+    }
+}
 
 macro_rules! rm {
     ($matches:ident, $arg:ident, $ty:ty) => {

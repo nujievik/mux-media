@@ -1,5 +1,5 @@
 use super::Container;
-use crate::{Extension, Msg, MuxLogger, Output};
+use crate::{Extension, Msg, CliLogger, Output};
 
 impl Container {
     pub fn new(output: &Output) -> Container {
@@ -11,7 +11,7 @@ impl Container {
             _ => {
                 eprintln!(
                     "{}{}. {} Matroska (.mkv)",
-                    MuxLogger::color_prefix(log::Level::Warn),
+                    CliLogger::color_prefix(log::Level::Warn),
                     Msg::UnsupOutContainerExt,
                     Msg::Using,
                 );
