@@ -42,7 +42,7 @@ impl Output {
         for dir in dirs.iter().rev() {
             if let Err(err) = fs::create_dir(dir) {
                 if !dir.exists() {
-                    remove_created_dir_chain(&self.dir, dirs.len());
+                    remove_created_dir_chain(&self.temp_dir, dirs.len());
                     return Err(err.into());
                 }
             }
