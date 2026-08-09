@@ -6,7 +6,7 @@ use crate::{
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
-use std::{collections::HashMap, path::PathBuf};
+use std::{collections::HashMap, ffi::CStr, path::PathBuf};
 
 macro_rules! rm {
     ($matches:ident, $arg:ident, $ty:ty) => {
@@ -447,8 +447,37 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
     arg(m, CliArg::ListLangs, LangCode::print_list_langs)?;
 
     arg(m, CliArg::Version, || {
-        println!("{}", VERSION);
+        println!("{}\n", VERSION);
+
+        unsafe {
+            use ffmpeg_next::sys;
+
+            let ver = CStr::from_ptr(sys::av_version_info()).to_string_lossy();
+            let config = CStr::from_ptr(sys::avcodec_configuration()).to_string_lossy();
+
+            println!("ffmpeg version {}", ver);
+            println!("  configuration: {}", config);
+            println!(
+                "  libavutil    {}. {}.{}",
+                sys::LIBAVUTIL_VERSION_MAJOR,
+                sys::LIBAVUTIL_VERSION_MINOR,
+                sys::LIBAVUTIL_VERSION_MICRO
+            );
+            println!(
+                "  libavcodec   {}. {}.{}",
+                sys::LIBAVCODEC_VERSION_MAJOR,
+                sys::LIBAVCODEC_VERSION_MINOR,
+                sys::LIBAVCODEC_VERSION_MICRO
+            );
+            println!(
+                "  libavformat  {}. {}.{}",
+                sys::LIBAVFORMAT_VERSION_MAJOR,
+                sys::LIBAVFORMAT_VERSION_MINOR,
+                sys::LIBAVFORMAT_VERSION_MICRO
+            );
+        }
     })?;
+
     arg(m, CliArg::Help, || {
         let mut cmd = Config::command();
         if let Err(_) = cmd.print_help() {
