@@ -1,0 +1,25 @@
+FROM alpine:3.18 AS builder
+
+RUN apk add --no-cache \
+    build-base \
+    coreutils \
+    git \
+    tar \
+    nasm \
+    yasm \
+    pkgconfig
+
+WORKDIR /tmp
+RUN git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg
+
+WORKDIR /tmp/ffmpeg
+
+RUN ./configure --prefix=/ffmpeg_build --cc=gcc --pkg-config-flags="--static" --extra-cflags="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -static" --extra-ldflags="-static" \
+    --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
+    --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
+    --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
+    --disable-sse3 --disable-ssse3 --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
+    --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
+    --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic
+
+RUN make -j$(nproc) && make install

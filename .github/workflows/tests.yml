@@ -11,49 +11,98 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  run:
-    runs-on: ${{ matrix.os }}
-
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
+  windows-x64-static:
+    runs-on: windows-latest
     env:
-      WIN_FFMPEG_DOWNLOAD_URL: https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-full-shared.7z
+      TARGET: x86_64-pc-windows-msvc
+      FFMPEG_DIR: ${{ github.workspace }}/target/x86_64-pc-windows-msvc/mux-media-ffmpeg
+      RUSTFLAGS: "-C target-cpu=generic"
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install MSYS2 and Dependencies
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          path-type: inherit
+          install: >-
+            git
+            make
+            diffutils
+            yasm
+
+      - name: Build & Install static FFmpeg
+        shell: msys2 {0}
+        run: |
+          SRC_DIR=$(cygpath -u "${{ github.workspace }}/target/ffmpeg-src")
+          PREFIX_DIR=$(cygpath -ua "${{ env.FFMPEG_DIR }}")
+
+          git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
+          cd $SRC_DIR
+          ./configure --toolchain=msvc --arch=x86_64 --target-os=win64 --prefix="$PREFIX_DIR" \
+            --pkg-config-flags="--static" --extra-cflags="-MD" \
+            --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
+            --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
+            --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
+            --disable-sse3 --disable-ssse3 --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
+            --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
+            --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic || {
+              echo "=== CONFIGURATION FAILED ==="
+              cat ffbuild/config.log
+              exit 1
+            }
+
+          make -j$(nproc)
+          make install
+
+      - name: Build & Test Static Release
+        run: cargo test --release --features ffmpeg-static --target ${{ env.TARGET }}
+
+
+  macos-arm64-static:
+    runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y clang libavcodec-dev libavformat-dev libavutil-dev pkg-config
-
-      - name: Install dependencies (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          $VCINSTALLDIR = $(& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath)
-          Add-Content $env:GITHUB_ENV "LIBCLANG_PATH=${VCINSTALLDIR}\VC\Tools\LLVM\x64\bin`n"
-          Invoke-WebRequest "${env:WIN_FFMPEG_DOWNLOAD_URL}" -OutFile ffmpeg-release-full-shared.7z
-          7z x ffmpeg-release-full-shared.7z
-          mkdir ffmpeg
-          mv ffmpeg-*/* ffmpeg/
-          Add-Content $env:GITHUB_ENV "FFMPEG_DIR=${pwd}\ffmpeg`n"
-          Add-Content $env:GITHUB_PATH "${pwd}\ffmpeg\bin`n"
-
-      - name: Install dependencies (macOS)
-        if: matrix.os == 'macos-latest'
+      - name: Install dependencies
         run: brew install pkg-config ffmpeg
 
-      - name: Build
-        run: cargo -vv build
+      - name: Build & Test Static Release
+        run: cargo test --release --features ffmpeg-build
 
-      - name: Test
-        run: cargo -vv test
 
-      - name: Build Release
-        run: cargo -vv build --release
+  linux-x64-static:
+    runs-on: ubuntu-latest
 
-      - name: Test Release
-        run: cargo -vv test --release
+    env:
+      TARGET: x86_64-unknown-linux-musl
+      FFMPEG_DIR: ${{ github.workspace }}/target/x86_64-unknown-linux-musl/mux-media-ffmpeg
+      CFLAGS: "-march=x86-64 -mtune=generic"
+      CXXFLAGS: "-march=x86-64 -mtune=generic"
+      RUSTFLAGS: "-C target-cpu=generic"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install musl tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Install Rust target
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Build & Install static FFmpeg
+        run: |
+          mkdir -p ${{ env.FFMPEG_DIR }}
+          docker build -f Dockerfile.ffmpeg.${{ env.TARGET }} -t ffmpeg-musl-builder .
+          docker create --name extractor ffmpeg-musl-builder
+          docker cp extractor:/ffmpeg_build/. ${{ env.FFMPEG_DIR }}
+          docker rm extractor
+
+      - name: Build & Test Static Release
+        run: cargo test --release --features ffmpeg-static --target ${{ env.TARGET }}

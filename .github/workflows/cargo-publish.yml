@@ -1,0 +1,53 @@
+name: Cargo Publish
+
+on:
+  workflow_call:
+    inputs:
+      additional_args:
+        required: false
+        type: string
+        default: ''
+
+    secrets:
+      CRATES_TOKEN:
+        required: false
+
+jobs:
+  cargo-publish:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: x86_64-unknown-linux-musl
+      FFMPEG_DIR: ${{ github.workspace }}/target/mux-media-ffmpeg
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cargo login
+        env:
+          TOKEN: ${{ secrets.CRATES_TOKEN }}
+        if: env.TOKEN != ''
+        run: cargo login "${{ secrets.CRATES_TOKEN }}"
+
+      - name: Install Rust target
+        run: rustup target add ${{ env.TARGET }}
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools
+
+      - name: Build & Install static FFmpeg
+        run: |
+          mkdir -p ${{ env.FFMPEG_DIR }}
+          docker build -f Dockerfile.ffmpeg.${{ env.TARGET }} -t ffmpeg-musl-builder .
+          docker create --name extractor ffmpeg-musl-builder
+          docker cp extractor:/ffmpeg_build/. ${{ env.FFMPEG_DIR }}
+          docker rm extractor
+
+      - name: Cargo publish
+        run: |
+          if [ -n "${{ inputs.additional_args }}" ]; then
+            cargo publish --features ffmpeg-static --target ${{ env.TARGET }} ${{ inputs.additional_args }}
+          else
+            cargo publish --features ffmpeg-static --target ${{ env.TARGET }}
+          fi
