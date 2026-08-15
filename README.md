@@ -1,6 +1,6 @@
 # mux-media
 
-A CLI utility for muxing media (e.g. video, audio, subtitles).
+A CLI utility to mux (merge) video, audio, and subtitles.
 
 [![Tests](https://github.com/nujievik/mux-media/actions/workflows/tests.yml/badge.svg)](https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
 
@@ -106,66 +106,6 @@ Run `mux-media -h` to display help.
 Alternative CLI, you can configure a [JSON file](
 https://github.com/nujievik/mux-media/blob/main/mux-media.json) in a
 top-level media directory.
-
-
-## Manual Build 🤓
-
-See examples in [workflows](
-https://github.com/nujievik/mux-media/blob/main/.github/workflows).
-
-### Shared-ffmpeg Build
-
-1. Install [Rust](https://www.rust-lang.org/tools/install)
-
-2. [Configure ffmpeg-next build](
-https://github.com/zmwangx/rust-ffmpeg/wiki/Notes-on-building)
-
-3. Clone the repo:
-```
-git clone https://github.com/nujievik/mux-media --depth 1
-```
-
-4. Enter the project directory:
-```
-cd mux-media
-```
-
-5. Build:
-```
-cargo build --release --locked
-```
-
-On success, the binary will be in `target/release/mux-media`.
-
-### Static-ffmpeg Build
-
-Run [steps 1-4](#shared-ffmpeg-build) and then:
-
-#### Unix
-
-Use ffmpeg-build feature:
-```
-cargo build --release --locked --features ffmpeg-build
-```
-
-#### Windows
-
-1. Install static ffmpeg:
-```
-vcpkg install ffmpeg:x64-windows-static-md
-```
-
-2. Set VCPKG_ROOT variable to vcpkg.exe directory.
-
-3. Set RUSTFLAGS:
-```
-set RUSTFLAGS=-l mfplat -l mf -l mfuuid -l strmiids -l ole32 -l uuid
-```
-
-4. Use ffmpeg-static feature:
-```
-cargo build --release --locked --features ffmpeg-static
-```
 
 
 ## Alternative GUI Utilities

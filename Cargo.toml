@@ -1,10 +1,10 @@
 [package]
 name = "mux-media"
-version = "0.16.4"
+version = "0.16.5"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.85"
-description = "A CLI utility for muxing media (e.g. video, audio, subtitles)."
+description = "A CLI utility to mux (merge) video, audio, and subtitles."
 repository = "https://github.com/nujievik/mux-media"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]
@@ -12,6 +12,7 @@ categories = ["command-line-utilities", "multimedia"]
 
 include = [
     "Cargo.toml",
+    "Dockerfile*",
     "README.md",
     "src/**",
 ]
@@ -19,10 +20,10 @@ include = [
 [features]
 default = []
 ffmpeg-static = ["ffmpeg-next/static"]
-ffmpeg-build = ["ffmpeg-next/build"]
+ffmpeg-build = ["ffmpeg-static", "ffmpeg-next/build"]
 
 [dependencies.ffmpeg-next]
-version = "8.1"
+version = "=8.1.0"
 default-features = false
 features = ["codec", "format"]
 
