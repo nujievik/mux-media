@@ -30,6 +30,9 @@ jobs:
           brew update
           brew install nasm make
 
+      - name: Install Rust target
+        run: rustup target add ${{ env.TARGET }}
+
       - name: Build & Install static FFmpeg
         run: |
           SRC_DIR="${{ github.workspace }}/target/ffmpeg-src"
