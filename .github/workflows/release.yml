@@ -15,26 +15,39 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  macos-x64-build:
+  macos-builds:
     runs-on: macos-latest
+    
     env:
-      TARGET: x86_64-apple-darwin
-      FFMPEG_DIR: ${{ github.workspace }}/target/x86_64-apple-darwin/mux-media-ffmpeg
-      RUSTFLAGS: "-C target-cpu=core2"
-      CC: "clang -arch x86_64"
-      CXX: "clang++ -arch x86_64"
-      RC_ARCHS: "x86_64"
+      CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: "-C target-cpu=core2"
+      CC_x86_64_apple_darwin: "clang -arch x86_64"
+      CXX_x86_64_apple_darwin: "clang++ -arch x86_64"
+      RC_ARCHS_x86_64_apple_darwin: "x86_64"
 
+    strategy:
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            ffmpeg_configure_flags: --arch=arm64
+            release_suffix: macOS-arm64
+
+          - target: x86_64-apple-darwin
+            ffmpeg_configure_flags: --arch=x86_64 --cc="clang -arch x86_64" --extra-cflags="-arch x86_64 -march=core2" --extra-ldflags="-arch x86_64"
+            release_suffix: macOS-x64
+      
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set FFMPEG_DIR
+        run: echo "FFMPEG_DIR=${{ github.workspace }}/target/${{ matrix.target }}/mux-media-ffmpeg" >> $GITHUB_ENV
+
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+      
       - name: Install Dependencies
         run: |
           brew update
           brew install nasm make
-
-      - name: Install Rust target
-        run: rustup target add ${{ env.TARGET }}
 
       - name: Build & Install static FFmpeg
         run: |
@@ -42,13 +55,12 @@ jobs:
           
           git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
           cd $SRC_DIR
-          ./configure --arch=x86_64 --target-os=darwin --prefix="${{ env.FFMPEG_DIR }}" \
-            --cc="clang -arch x86_64" --extra-cflags="-arch x86_64 -march=core2" --extra-ldflags="-arch x86_64" \
-            --pkg-config-flags="--static" \
+          ./configure --target-os=darwin --prefix="${{ env.FFMPEG_DIR }}" \
+            ${{ matrix.ffmpeg_configure_flags }} --pkg-config-flags="--static" \
             --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
             --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
             --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
-            --disable-asm --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
+            --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
             --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
             --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic || {
               echo "=== CONFIGURATION FAILED ==="
@@ -60,9 +72,9 @@ jobs:
             make install
 
       - name: Build
-        run: cargo build --release --features ffmpeg-static --target ${{ env.TARGET }}
+        run: cargo build --release --features ffmpeg-static --target ${{ matrix.target }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mux-media-macOS-x64
+          name: mux-media-${{ matrix.release_suffix }}
           path: target/release/mux-media
