@@ -11,43 +11,31 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  windows-x64-static:
-    runs-on: windows-latest
+  macos-arm64-static:
+    runs-on: macos-latest
     env:
-      TARGET: x86_64-pc-windows-msvc
-      FFMPEG_DIR: ${{ github.workspace }}/target/x86_64-pc-windows-msvc/mux-media-ffmpeg
-      RUSTFLAGS: "-C target-cpu=generic"
+      FFMPEG_DIR: ${{ github.workspace }}/target/aarch64-apple-darwin/mux-media-ffmpeg
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install MSYS2 and Dependencies
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: MINGW64
-          update: true
-          path-type: inherit
-          install: >-
-            git
-            make
-            diffutils
-            yasm
+      - name: Install Dependencies
+        run: |
+          brew update
+          brew install nasm make
 
       - name: Build & Install static FFmpeg
-        shell: msys2 {0}
         run: |
-          SRC_DIR=$(cygpath -u "${{ github.workspace }}/target/ffmpeg-src")
-          PREFIX_DIR=$(cygpath -ua "${{ env.FFMPEG_DIR }}")
-
+          SRC_DIR="${{ github.workspace }}/target/ffmpeg-src"
+          
           git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
           cd $SRC_DIR
-          ./configure --toolchain=msvc --arch=x86_64 --target-os=win64 --prefix="$PREFIX_DIR" \
-            --pkg-config-flags="--static" --extra-cflags="-MD" \
+          ./configure --arch=arm64 --target-os=darwin --prefix="${{ env.FFMPEG_DIR }}" \
+            --pkg-config-flags="--static" \
             --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
             --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
             --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
-            --disable-sse3 --disable-ssse3 --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
+            --disable-asm --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
             --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
             --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic || {
               echo "=== CONFIGURATION FAILED ==="
@@ -55,54 +43,8 @@ jobs:
               exit 1
             }
 
-          make -j$(nproc)
-          make install
+            make -j$(sysctl -n hw.ncpu)
+            make install
 
       - name: Build & Test Static Release
-        run: cargo test --release --features ffmpeg-static --target ${{ env.TARGET }}
-
-
-  macos-arm64-static:
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: brew install pkg-config ffmpeg
-
-      - name: Build & Test Static Release
-        run: cargo test --release --features ffmpeg-build
-
-
-  linux-x64-static:
-    runs-on: ubuntu-latest
-
-    env:
-      TARGET: x86_64-unknown-linux-musl
-      FFMPEG_DIR: ${{ github.workspace }}/target/x86_64-unknown-linux-musl/mux-media-ffmpeg
-      CFLAGS: "-march=x86-64 -mtune=generic"
-      CXXFLAGS: "-march=x86-64 -mtune=generic"
-      RUSTFLAGS: "-C target-cpu=generic"
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install musl tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y musl-tools
-
-      - name: Install Rust target
-        run: rustup target add ${{ env.TARGET }}
-
-      - name: Build & Install static FFmpeg
-        run: |
-          mkdir -p ${{ env.FFMPEG_DIR }}
-          docker build -f Dockerfile.ffmpeg.${{ env.TARGET }} -t ffmpeg-musl-builder .
-          docker create --name extractor ffmpeg-musl-builder
-          docker cp extractor:/ffmpeg_build/. ${{ env.FFMPEG_DIR }}
-          docker rm extractor
-
-      - name: Build & Test Static Release
-        run: cargo test --release --features ffmpeg-static --target ${{ env.TARGET }}
+        run: cargo test --release --features ffmpeg-static
