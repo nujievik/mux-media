@@ -36,7 +36,7 @@ jobs:
           
           git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
           cd $SRC_DIR
-          ./configure --toolchain=msvc --arch=x86_64 --target-os=darwin --prefix="${{ env.FFMPEG_DIR }}" \
+          ./configure --arch=x86_64 --target-os=darwin --prefix="${{ env.FFMPEG_DIR }}" \
             --pkg-config-flags="--static" \
             --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
             --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
