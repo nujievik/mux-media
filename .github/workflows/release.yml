@@ -41,7 +41,7 @@ jobs:
             --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
             --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
             --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
-            --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
+            --disable-asm --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
             --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
             --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic || {
               echo "=== CONFIGURATION FAILED ==="
