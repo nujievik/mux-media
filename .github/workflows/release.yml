@@ -19,6 +19,8 @@ jobs:
     runs-on: macos-latest
     
     env:
+      FFMPEG_DIR: ${{ github.workspace }}/target/mux-media-ffmpeg
+      
       CARGO_TARGET_X86_64_APPLE_DARWIN_RUSTFLAGS: "-C target-cpu=core2"
       CC_x86_64_apple_darwin: "clang -arch x86_64"
       CXX_x86_64_apple_darwin: "clang++ -arch x86_64"
@@ -37,9 +39,6 @@ jobs:
       
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set FFMPEG_DIR
-        run: echo "FFMPEG_DIR=${{ github.workspace }}/target/${{ matrix.target }}/mux-media-ffmpeg" >> $GITHUB_ENV
 
       - name: Install Rust target
         run: rustup target add ${{ matrix.target }}
@@ -77,4 +76,4 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mux-media-${{ matrix.release_suffix }}
-          path: target/release/mux-media
+          path: target/${{ matrix.target }}/release/mux-media
