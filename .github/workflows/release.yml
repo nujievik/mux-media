@@ -15,75 +15,33 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  cargo-publish-dry-run:
-    uses: ./.github/workflows/cargo-publish.yml
-    with:
-      additional_args: '--dry-run'
-
-
-  windows-builds:
-    runs-on: windows-latest
-
+  macos-x64-build:
+    runs-on: macos-latest
     env:
-      FFMPEG_DIR: ${{ github.workspace }}/target/mux-media-ffmpeg
-
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-pc-windows-msvc
-            msvc_arch: x64
-            mingw_msystem: MINGW64
-            ffmpeg_configure_flags: --arch=x86_64 --target-os=win64
-            release_suffix: Windows-x64
-
-          - target: i686-pc-windows-msvc
-            msvc_arch: x86
-            mingw_msystem: MINGW32
-            ffmpeg_configure_flags: --arch=x86 --target-os=win32
-            release_suffix: Windows-x32
-
-          - target: aarch64-pc-windows-msvc
-            msvc_arch: x64_arm64
-            mingw_msystem: MINGW64
-            ffmpeg_configure_flags: --arch=arm64 --target-os=win64 --enable-cross-compile --disable-asm
-            release_suffix: Windows-arm64
-
+      TARGET: x86_64-apple-darwin
+      FFMPEG_DIR: ${{ github.workspace }}/target/x86_64-apple-darwin/mux-media-ffmpeg
+      RUSTFLAGS: "-C target-cpu=core2"
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
-        with:
-          arch: ${{ matrix.msvc_arch }}
 
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Install MSYS2 and Dependencies
-        uses: msys2/setup-msys2@v2
-        with:
-          msystem: ${{ matrix.mingw_msystem }}
-          update: true
-          path-type: inherit
-          install: >-
-            git
-            make
-            diffutils
-            yasm
+      - name: Install Dependencies
+        run: |
+          brew update
+          brew install nasm make
 
       - name: Build & Install static FFmpeg
-        shell: msys2 {0}
         run: |
-          SRC_DIR=$(cygpath -u "${{ github.workspace }}/target/ffmpeg-src")
-          PREFIX_DIR=$(cygpath -ua "${{ env.FFMPEG_DIR }}")
-
+          SRC_DIR="${{ github.workspace }}/target/ffmpeg-src"
+          
           git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
           cd $SRC_DIR
-          ./configure --toolchain=msvc ${{ matrix.ffmpeg_configure_flags }} --prefix="$PREFIX_DIR" \
-            --pkg-config-flags="--static" --extra-cflags="-MD" \
+          ./configure --toolchain=msvc --arch=x86_64 --target-os=darwin --prefix="${{ env.FFMPEG_DIR }}" \
+            --pkg-config-flags="--static" \
             --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
             --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
             --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
-            --disable-sse3 --disable-ssse3 --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
+            --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
             --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
             --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic || {
               echo "=== CONFIGURATION FAILED ==="
@@ -91,121 +49,13 @@ jobs:
               exit 1
             }
 
-          make -j$(nproc)
-          make install
+            make -j$(sysctl -n hw.ncpu)
+            make install
 
       - name: Build
-        run: cargo build --release --features ffmpeg-static --target ${{ matrix.target }}
+        run: cargo build --release --features ffmpeg-static --target ${{ env.TARGET }}
 
       - uses: actions/upload-artifact@v4
         with:
-          name: mux-media-${{ matrix.release_suffix }}
-          path: target/${{ matrix.target }}/release/mux-media.exe
-
-
-  macos-arm64-build:
-    runs-on: macos-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: brew install pkg-config ffmpeg
-
-      - name: Build
-        run: cargo build --release --features ffmpeg-build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mux-media-macOS-arm64
+          name: mux-media-macOS-x64
           path: target/release/mux-media
-
-
-  linux-builds:
-    runs-on: ubuntu-latest
-
-    env:
-      FFMPEG_DIR: ${{ github.workspace }}/target/mux-media-ffmpeg
-
-      CFLAGS_x86_64_unknown_linux_musl: "-march=x86-64 -mtune=generic"
-      CXXFLAGS_x86_64_unknown_linux_musl: "-march=x86-64 -mtune=generic"
-      CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-C target-cpu=generic"
-
-      CFLAGS_i686_unknown_linux_musl: "-march=pentium4 -mtune=generic -m32"
-      CXXFLAGS_i686_unknown_linux_musl: "-march=pentium4 -mtune=generic -m32"
-      CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_LINKER: "gcc"
-      CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-C target-cpu=pentium4 -C link-args=-m32"
-
-    strategy:
-      matrix:
-        include:
-          - target: x86_64-unknown-linux-musl
-            dependencies: musl-tools
-            release_suffix: Linux-x64
-
-          - target: i686-unknown-linux-musl
-            dependencies: musl-tools gcc-multilib
-            release_suffix: Linux-x32
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ matrix.dependencies }}
-
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Build & Install static FFmpeg
-        run: |
-          mkdir -p ${{ env.FFMPEG_DIR }}
-          docker build -f Dockerfile.ffmpeg.${{ matrix.target }} -t ffmpeg-musl-builder .
-          docker create --name extractor ffmpeg-musl-builder
-          docker cp extractor:/ffmpeg_build/. ${{ env.FFMPEG_DIR }}
-          docker rm extractor
-
-      - name: Build
-        run: cargo build --release --features ffmpeg-static --target ${{ matrix.target }}
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mux-media-${{ matrix.release_suffix }}
-          path: target/${{ matrix.target }}/release/mux-media
-
-
-  github-release:
-    runs-on: ubuntu-latest
-    needs: [cargo-publish-dry-run, windows-builds, macos-arm64-build, linux-builds]
-
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: mux-media-*
-          path: artifacts
-          merge-multiple: false
-
-      - name: Archive each artifact
-        run: |
-          mkdir release
-          for dir in artifacts/*; do
-            name=$(basename "$dir")
-            (cd "$dir" && zip -r "../../release/${name}.zip" .)
-          done
-
-      - name: Set tag name
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "RELEASE_TAG=${{ github.event.inputs.version }}" >> $GITHUB_ENV
-          else
-            echo "RELEASE_TAG=${{ github.ref_name }}" >> $GITHUB_ENV
-          fi
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.RELEASE_TAG }}
-          files: release/*.zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
