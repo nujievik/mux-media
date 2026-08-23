@@ -257,3 +257,9 @@ jobs:
           files: release/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
+  cargo-publish:
+    needs: github-release
+    uses: ./.github/workflows/cargo-publish.yml
+    secrets: inherit
