@@ -49,7 +49,8 @@ jobs:
             --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
             --disable-sse3 --disable-ssse3 --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
             --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
-            --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic || {
+            --disable-shared --enable-static --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic \
+            --enable-muxer=matroska --enable-muxer=matroska_audio --enable-muxer=ass --enable-muxer=srt --enable-muxer=webvtt || {
               echo "=== CONFIGURATION FAILED ==="
               cat ffbuild/config.log
               exit 1
@@ -64,15 +65,42 @@ jobs:
 
   macos-arm64-static:
     runs-on: macos-latest
+    env:
+      FFMPEG_DIR: ${{ github.workspace }}/target/aarch64-apple-darwin/mux-media-ffmpeg
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: brew install pkg-config ffmpeg
+      - name: Install Dependencies
+        run: |
+          brew update
+          brew install nasm make
+
+      - name: Build & Install static FFmpeg
+        run: |
+          SRC_DIR="${{ github.workspace }}/target/ffmpeg-src"
+
+          git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
+          cd $SRC_DIR
+          ./configure --arch=arm64 --target-os=darwin --prefix="${{ env.FFMPEG_DIR }}" \
+            --pkg-config-flags="--static" \
+            --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
+            --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
+            --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
+            --disable-asm --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
+            --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
+            --disable-shared --enable-static --enable-protocol=file --enable-avcodec --enable-avformat --cpu=generic \
+            --enable-muxer=matroska --enable-muxer=matroska_audio --enable-muxer=ass --enable-muxer=srt --enable-muxer=webvtt || {
+              echo "=== CONFIGURATION FAILED ==="
+              cat ffbuild/config.log
+              exit 1
+            }
+
+            make -j$(sysctl -n hw.ncpu)
+            make install
 
       - name: Build & Test Static Release
-        run: cargo test --release --features ffmpeg-build
+        run: cargo test --release --features ffmpeg-static
 
 
   linux-x64-static:

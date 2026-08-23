@@ -23,6 +23,7 @@ RUN ./configure --prefix=/ffmpeg_build --cc=gcc --pkg-config-flags="--static" \
     --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
     --disable-sse3 --disable-ssse3 --disable-sse4 --disable-sse42 --disable-avx --disable-xop --disable-fma3 --disable-fma4 \
     --disable-avx2 --disable-avx512 --disable-avx512icl --disable-aesni --disable-clmul \
-    --disable-shared --enable-static --enable-muxer=matroska --enable-protocol=file --enable-avcodec --enable-avformat
+    --disable-shared --enable-static --enable-protocol=file --enable-avcodec --enable-avformat \
+    --enable-muxer=matroska --enable-muxer=matroska_audio --enable-muxer=ass --enable-muxer=srt --enable-muxer=webvtt
 
 RUN make -j$(nproc) && make install
