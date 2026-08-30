@@ -85,7 +85,7 @@ fn set_ost_dispositions(
         let v = values.get(&i_key, &stream.lang).unwrap_or_else(|| {
             if auto[ty] {
                 let cnt = counts[stream.ty][ty];
-                cnt < values.max(ty)
+                cnt < values.max_for_stream_type(ty, stream.ty)
             } else {
                 false
             }
