@@ -7,6 +7,10 @@ macro_rules! is_any {
 }
 
 impl Extension {
+    pub(crate) fn is_attach(&self) -> bool {
+        is_any!(self, Jpeg Jpg Png)
+    }
+
     pub(crate) fn is_font(&self) -> bool {
         is_any!(self, Otf Ttf)
     }
@@ -21,6 +25,10 @@ impl Extension {
 
     pub(crate) fn is_subs(&self) -> bool {
         is_any!(self, Ass Mks Srt Ssa Sub Sup Vtt)
+    }
+
+    pub(crate) fn new_and_is_attach(bytes: &[u8]) -> bool {
+        Self::new(bytes).is_some_and(|ext| ext.is_attach())
     }
 
     pub(crate) fn new_and_is_font(bytes: &[u8]) -> bool {

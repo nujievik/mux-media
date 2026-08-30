@@ -27,12 +27,13 @@ impl MediaInfo<'_> {
                 let params = stream.parameters();
                 let codec = CodecId(params.id());
 
+                let is_attach = || codec.is_attach() || is_attach_filename(&filename);
                 let is_font = || codec.is_font() || is_font_filename(&filename);
 
                 let ty = match params.medium() {
                     Type::Audio => StreamType::Audio,
                     Type::Subtitle => StreamType::Sub,
-                    Type::Video if codec.is_attach() => StreamType::Attach,
+                    Type::Video if is_attach() => StreamType::Attach,
                     Type::Video => StreamType::Video,
                     Type::Attachment if is_font() => StreamType::Font,
                     Type::Attachment => StreamType::Attach,
@@ -55,6 +56,14 @@ impl MediaInfo<'_> {
             })
             .collect())
     }
+}
+
+fn is_attach_filename(opt_s: &Option<String>) -> bool {
+    opt_s.as_ref().is_some_and(|s| {
+        Path::new(s)
+            .extension()
+            .is_some_and(|ext| Extension::new_and_is_attach(ext.as_encoded_bytes()))
+    })
 }
 
 fn is_font_filename(opt_s: &Option<String>) -> bool {
