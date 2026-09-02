@@ -8,7 +8,7 @@ fn new(args: &[&str]) -> AutoFlags {
 #[test]
 fn test_empty() {
     let f = new(&[]);
-    assert_eq!(false, f.pro);
+    assert_eq!(false, f.no_auto);
     assert_eq!(Value::Auto(true), f.defaults);
     assert_eq!(Value::Auto(true), f.forceds);
     assert_eq!(Value::Auto(true), f.names);
@@ -17,9 +17,9 @@ fn test_empty() {
 }
 
 #[test]
-fn test_pro() {
-    let f = new(&["--pro"]);
-    assert_eq!(true, f.pro);
+fn test_no_auto() {
+    let f = new(&["--no-auto"]);
+    assert_eq!(true, f.no_auto);
     assert_eq!(Value::Auto(false), f.defaults);
     assert_eq!(Value::Auto(false), f.forceds);
     assert_eq!(Value::Auto(false), f.names);
@@ -48,13 +48,13 @@ fn test_manual_off() {
 }
 
 #[test]
-fn test_manual_on_with_pro() {
+fn test_manual_on_with_no_auto() {
     let v = Value::User(true);
-    assert_eq!(v, new(&["--pro", "--auto-defaults"]).defaults);
-    assert_eq!(v, new(&["--pro", "--auto-forceds"]).forceds);
-    assert_eq!(v, new(&["--pro", "--auto-names"]).names);
-    assert_eq!(v, new(&["--pro", "--auto-langs"]).langs);
-    assert_eq!(v, new(&["--pro", "--auto-encs"]).encs);
+    assert_eq!(v, new(&["--no-auto", "--auto-defaults"]).defaults);
+    assert_eq!(v, new(&["--no-auto", "--auto-forceds"]).forceds);
+    assert_eq!(v, new(&["--no-auto", "--auto-names"]).names);
+    assert_eq!(v, new(&["--no-auto", "--auto-langs"]).langs);
+    assert_eq!(v, new(&["--no-auto", "--auto-encs"]).encs);
 }
 
 crate::build_test_to_json_args!(
@@ -65,9 +65,9 @@ crate::build_test_to_json_args!(
     vec!["--no-auto-names"],
     vec!["--no-auto-langs"],
     vec!["--no-auto-encs"],
-    vec!["--pro", "--auto-defaults"],
-    vec!["--pro", "--auto-forceds"],
-    vec!["--pro", "--auto-names"],
-    vec!["--pro", "--auto-langs"],
-    vec!["--pro", "--auto-encs"],
+    vec!["--no-auto", "--auto-defaults"],
+    vec!["--no-auto", "--auto-forceds"],
+    vec!["--no-auto", "--auto-names"],
+    vec!["--no-auto", "--auto-langs"],
+    vec!["--no-auto", "--auto-encs"],
 );

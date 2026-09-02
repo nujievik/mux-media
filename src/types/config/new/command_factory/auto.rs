@@ -10,10 +10,9 @@ impl Blocks {
             .0
             .next_help_heading(Msg::HelpAutoFlags.as_str_localized())
             .arg(
-                Arg::new(undashed!(Pro))
-                    .short('p')
-                    .long(undashed!(Pro))
-                    .help(Msg::HelpPro.as_str_localized())
+                Arg::new(undashed!(NoAuto))
+                    .long(undashed!(NoAuto))
+                    .help(Msg::HelpNoAuto.as_str_localized())
                     .action(ArgAction::SetTrue),
             );
 

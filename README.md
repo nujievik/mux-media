@@ -62,7 +62,7 @@ Run `mux-media -h` to display help.
 | `--save-config` | Save config to JSON in the input directory |
 | | |
 | Auto flags: | |
-| `-p, --pro` | Disable all auto below |
+| `--no-auto` | Disable all auto below |
 | `--auto-defaults / --no-auto-defaults` | Auto set default flags |
 | `--auto-forceds / --no-auto-forceds` | Auto set forced flags |
 | `--auto-names / --no-auto-names` | Auto set stream names |

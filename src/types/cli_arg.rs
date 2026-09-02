@@ -40,7 +40,7 @@ enum_cli_arg! {
     Load => "load",
     SaveConfig => "save-config",
     Reencode => "reencode",
-    Pro => "pro",
+    NoAuto => "no-auto",
     HelpAutoDefaults => "auto-defaults / --no-auto-defaults",
     AutoDefaults => "auto-defaults",
     NoAutoDefaults => "no-auto-defaults",

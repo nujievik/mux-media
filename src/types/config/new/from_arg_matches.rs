@@ -202,26 +202,26 @@ impl FromArgMatches for Config {
         fn auto_flags(m: &mut ArgMatches) -> AutoFlags {
             let mut new = AutoFlags::default();
 
-            if flag!(m, Pro) {
-                new.pro = true;
+            if flag!(m, NoAuto) {
+                new.no_auto = true;
             }
-            let pro = new.pro;
+            let no_auto = new.no_auto;
 
-            new.defaults = val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), pro);
-            new.forceds = val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), pro);
-            new.names = val(flag!(m, AutoNames), flag!(m, NoAutoNames), pro);
-            new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), pro);
-            new.encs = val(flag!(m, AutoEncs), flag!(m, NoAutoEncs), pro);
+            new.defaults = val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), no_auto);
+            new.forceds = val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), no_auto);
+            new.names = val(flag!(m, AutoNames), flag!(m, NoAutoNames), no_auto);
+            new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), no_auto);
+            new.encs = val(flag!(m, AutoEncs), flag!(m, NoAutoEncs), no_auto);
 
             return new;
 
-            fn val(arg: bool, no_arg: bool, pro: bool) -> Value<bool> {
+            fn val(arg: bool, no_arg: bool, no_auto: bool) -> Value<bool> {
                 if arg {
                     Value::User(true)
                 } else if no_arg {
                     Value::User(false)
                 } else {
-                    Value::Auto(!pro)
+                    Value::Auto(!no_auto)
                 }
             }
         }
@@ -365,50 +365,50 @@ impl FromArgMatches for Config {
         fn auto_flags(cfg: &mut Config, m: &mut ArgMatches) {
             let auto = &mut cfg.auto_flags;
 
-            if flag!(m, Pro) {
-                auto.pro = true;
+            if flag!(m, NoAuto) {
+                auto.no_auto = true;
             }
-            let pro = auto.pro;
+            let no_auto = auto.no_auto;
 
             upd(
                 flag!(m, AutoDefaults),
                 flag!(m, NoAutoDefaults),
-                pro,
+                no_auto,
                 &mut auto.defaults,
             );
             upd(
                 flag!(m, AutoForceds),
                 flag!(m, NoAutoForceds),
-                pro,
+                no_auto,
                 &mut auto.forceds,
             );
 
             upd(
                 flag!(m, AutoNames),
                 flag!(m, NoAutoNames),
-                pro,
+                no_auto,
                 &mut auto.names,
             );
             upd(
                 flag!(m, AutoLangs),
                 flag!(m, NoAutoLangs),
-                pro,
+                no_auto,
                 &mut auto.langs,
             );
             upd(
                 flag!(m, AutoEncs),
                 flag!(m, NoAutoEncs),
-                pro,
+                no_auto,
                 &mut auto.encs,
             );
 
-            fn upd(arg: bool, no_arg: bool, pro: bool, val: &mut Value<bool>) {
+            fn upd(arg: bool, no_arg: bool, no_auto: bool, val: &mut Value<bool>) {
                 if arg {
                     *val = Value::User(true)
                 } else if no_arg {
                     *val = Value::User(false)
                 } else if val.is_auto() {
-                    *val = Value::User(!pro)
+                    *val = Value::User(!no_auto)
                 }
             }
         }

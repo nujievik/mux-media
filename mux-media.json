@@ -16,7 +16,7 @@
   "--save-config",
   "--jobs",
   "1",
-  "--pro",
+  "--no-auto",
   "--auto-defaults",
   "--auto-forceds",
   "--auto-names",
