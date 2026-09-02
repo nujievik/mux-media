@@ -78,6 +78,7 @@ use is_default::IsDefault;
 use functions::add_copy_stream;
 use types::{
     helpers,
+    input::InputType,
     retiming::{RetimedStream, Retiming, RetimingChapter},
     stream::supported::StreamsSupported,
 };

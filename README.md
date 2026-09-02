@@ -45,7 +45,7 @@ Run `mux-media -h` to display help.
 |                              | Description                                                      |
 |------------------------------|------------------------------------------------------------------|
 | I/O options:                 | |
-| `-i, --input <dir>` | Top-level media directory |
+| `-i, --input <path>` | Set input file OR directory with files |
 | `-o, --output <dir>` | Save muxed files to directory |
 | `-r, --range <n[-m]>` | Number range of media-files |
 | `--skip <n[,m]...>` | Patterns of files to skip | 

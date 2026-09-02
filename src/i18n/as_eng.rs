@@ -23,7 +23,7 @@ impl_msg_as_str!(
     HelpGlobalOptions => "Global options",
     HelpHelp => "Show help",
     HelpIOOptions => "I/O options",
-    HelpInput => "Top-level media directory",
+    HelpInput => "Set input file OR directory with files",
     HelpJobs => "Max parallel muxing",
     HelpLangs => "Set stream languages",
     HelpListContainers => "Show supported output containers",

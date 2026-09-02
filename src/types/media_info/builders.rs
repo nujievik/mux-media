@@ -35,7 +35,7 @@ impl MediaInfo<'_> {
         src.parent()
             .ok_or_else(|| err!("Path '{}' has not parent()", src.display()))
             .and_then(|parent| {
-                helpers::os_str_tail(self.cfg.input.dir.as_os_str(), parent.as_os_str())
+                helpers::os_str_tail(self.cfg.input.dir().as_os_str(), parent.as_os_str())
                     .map(|os| os.to_string_lossy().into_owned())
             })
     }

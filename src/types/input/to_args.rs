@@ -2,10 +2,7 @@ use crate::{Input, ToJsonArgs};
 
 impl ToJsonArgs for Input {
     fn append_json_args(&self, args: &mut Vec<String>) {
-        if let Some(dir) = self.dir.to_str() {
-            args.push(to_json_args!(Input));
-            args.push(dir.to_owned());
-        }
+        todo!();
 
         if let Some(range) = &self.range {
             args.push(to_json_args!(Range));

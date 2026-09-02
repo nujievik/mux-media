@@ -73,7 +73,7 @@ impl MediaInfo<'_> {
         // From parent
         if let Some(n) = src
             .parent()
-            .filter(|p| p.as_os_str().len() != self.cfg.input.dir.as_os_str().len())
+            .filter(|p| p.as_os_str().len() != self.cfg.input.dir().as_os_str().len())
             .and_then(|p| p.file_name())
             .map(|p| p.to_string_lossy().into_owned())
         {

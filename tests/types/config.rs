@@ -8,13 +8,11 @@ static EMPTY_ARGS: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
 #[test]
 fn parse_empty_args_input() {
     let i = &EMPTY_ARGS.input;
-    assert_eq!(&i.dir, &fs::canonicalize(".").unwrap());
+    assert_eq!(i.dir(), &fs::canonicalize(".").unwrap());
     assert!(i.range.is_none());
     assert!(i.skip.is_none());
     assert_eq!(i.depth, 16);
     assert!(!i.solo);
-    assert!(!i.need_num);
-    assert!(i.dirs.values().all(|xs| xs.is_empty()));
 }
 
 #[test]
@@ -86,38 +84,27 @@ macro_rules! test_parse {
 
 #[test]
 fn parse_input_output() {
-    let i = data("");
-    let o = data("muxed/");
+    let i = data("input/1/");
+    let o = i.join("muxed");
 
-    /*
-    test_parse!(
-        [p("-i"), &i],
-        input.dir,
-        i.clone(),
-        output.dir,
-        o.clone(),
-        is_output_constructed_from_input,
-        true
-    );
-    test_parse!(
-        [p("-o"), &o],
-        output.dir,
-        o.clone(),
-        is_output_constructed_from_input,
-        false
-    );
-    */
+    let c = cfg([p("-i"), &i]);
+    assert_eq!(c.input.dir(), &i);
+    assert_eq!(c.output.dir(), &o);
+    assert!(c.is_output_constructed_from_input);
+
+    let c = cfg([p("-o"), &o]);
+    assert_eq!(c.output.dir(), &o);
+    assert!(!c.is_output_constructed_from_input);
+
     test_parse!(
         ["-r", "1-1"],
         input.range,
-        Some(RangeUsize::try_from((1, 1)).unwrap()),
-        input.need_num,
-        true
+        Some(RangeUsize::try_from((1, 1)).unwrap())
     );
 
     let x_globset = Some("x".parse::<GlobSetPattern>().unwrap());
+    test_parse!(["--skip", "x"], input.skip, x_globset);
 
-    test_parse!(["--skip", "x"], input.skip, x_globset.clone());
     test_parse!(["--depth", "1"], input.depth, 1);
     test_parse!(["--solo"], input.solo, true);
 }

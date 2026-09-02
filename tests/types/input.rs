@@ -1,4 +1,5 @@
 use crate::common::*;
+use clap::Parser;
 use mux_media::*;
 use std::{
     collections::HashSet,
@@ -186,4 +187,55 @@ fn test_solo() {
         exp,
         input.iter_media_grouped_by_stem().next().unwrap().files
     );
+}
+
+#[test]
+fn err_multi_dirs() {
+    let dir = data_media("1/");
+    let args = [p("-i"), &dir, p("-i"), &dir];
+    Config::try_parse_from(&args).unwrap_err();
+}
+
+#[test]
+fn files() {
+    let dir = data_media("1/");
+    let mkv = dir.join("1.mkv");
+    let srt = dir.join("1.srt");
+
+    let input = new(&[p("-i"), &mkv, p("-i"), &srt]);
+    let expected = vec![vec![mkv, srt]];
+
+    iter_media_and_assert(&input, &dir, &expected);
+}
+
+#[test]
+fn font_files() {
+    let mkv = data_media("1/1.mkv");
+    let otf = data("otf.otf");
+    let ttf = data("ttf.ttf");
+
+    let input = new(&[p("-i"), &mkv, p("-i"), &otf, p("-i"), &ttf]);
+    let expected = vec![otf, ttf];
+    assert_eq!(input.collect_fonts(), expected);
+}
+
+#[test]
+fn err_mix_file_and_dir() {
+    let dir = data_media("1/");
+    let args = [p("-i"), &dir, p("-i"), &dir.join("1.mkv")];
+    Config::try_parse_from(&args).unwrap_err();
+}
+
+#[test]
+fn err_unsupported_file_extension() {
+    let args = [p("-i"), &data("txt.txt")];
+    Config::try_parse_from(&args).unwrap_err();
+}
+
+#[test]
+fn err_only_fonts() {
+    let otf = data("otf.otf");
+    let ttf = data("ttf.ttf");
+    let args = [p("-i"), &otf, p("-i"), &ttf];
+    Config::try_parse_from(&args).unwrap_err();
 }
