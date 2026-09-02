@@ -1,7 +1,7 @@
 mod get;
 mod max;
 mod new;
-mod to_json_args;
+mod to_args;
 pub(crate) mod ty;
 
 use crate::{IsDefault, Lang, RangeUsize};

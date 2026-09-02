@@ -197,8 +197,8 @@ fn max_user() {
     }
 }
 
-build_test_to_json_args!(
-    to_json_args_defaults, defaults, "defaults";
+build_test_to_args!(
+    to_args_defaults, defaults, "defaults";
     vec![],
     vec!["--max-defaults", "5"],
     vec!["--defaults", "true"],
@@ -206,8 +206,8 @@ build_test_to_json_args!(
     vec!["--defaults", "false", "--max-defaults", "1"],
 );
 
-build_test_to_json_args!(
-    to_json_args_forceds, forceds, "forceds";
+build_test_to_args!(
+    to_args_forceds, forceds, "forceds";
     vec![],
     vec!["--max-forceds", "5"],
     vec!["--forceds", "true"],

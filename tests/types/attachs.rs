@@ -126,11 +126,11 @@ macro_rules! test_save_attach {
 test_save_attach!(test_fonts_save_attach, fonts_str);
 test_save_attach!(test_other_save_attach, other_str);
 
-macro_rules! build_test_attachs_to_json_args {
-    ( $( $fn:ident, $field:ident, $json_dir:expr, $arg:expr, $no_arg:expr );* ) => {
+macro_rules! build_test_attachs_to_args {
+    ( $( $fn:ident, $field:ident, $txt_dir:expr, $arg:expr, $no_arg:expr );* ) => {
         $(
-            build_test_to_json_args!(
-                $fn, $field, $json_dir, @diff_in_out;
+            build_test_to_args!(
+                $fn, $field, $txt_dir, @diff_in_out;
                 vec![], vec![],
                 vec![$no_arg], vec![$no_arg],
                 vec![$arg, "1"], vec![$arg, "1"],
@@ -142,7 +142,7 @@ macro_rules! build_test_attachs_to_json_args {
     };
 }
 
-build_test_attachs_to_json_args!(
-    test_fonts_to_json_args, font_attachs, "font_attachs", "--fonts", "--no-fonts";
-    test_others_to_json_args, other_attachs, "other_tracks", "--attachs", "--no-attachs"
+build_test_attachs_to_args!(
+    test_fonts_to_args, font_attachs, "font_attachs", "--fonts", "--no-fonts";
+    test_others_to_args, other_attachs, "other_tracks", "--attachs", "--no-attachs"
 );

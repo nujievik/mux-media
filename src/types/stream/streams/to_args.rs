@@ -1,14 +1,15 @@
 use super::Streams;
-use crate::{IsDefault, ToJsonArgs};
+use crate::{IsDefault, ToTxtConfig};
+use std::ffi::OsString;
 
-impl ToJsonArgs for Streams {
-    fn append_json_args(&self, args: &mut Vec<String>) {
+impl ToTxtConfig for Streams {
+    fn append_args(&self, args: &mut Vec<OsString>) {
         if self.is_default() {
             return;
         }
 
         if self.no_flag {
-            args.push(to_json_args!(NoStreams));
+            args.push(to_args!(NoStreams));
             return;
         }
 
@@ -17,8 +18,8 @@ impl ToJsonArgs for Streams {
             s => s,
         };
 
-        args.push(to_json_args!(Streams));
-        args.push(arg);
+        args.push(to_args!(Streams));
+        args.push(arg.into());
     }
 }
 

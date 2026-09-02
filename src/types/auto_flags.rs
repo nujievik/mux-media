@@ -1,5 +1,6 @@
-use crate::{DispositionType, IsDefault, ToJsonArgs, Value};
+use crate::{DispositionType, IsDefault, ToTxtConfig, Value};
 use enum_map::{EnumMap, enum_map};
+use std::ffi::OsString;
 
 /// An auto-flags configuration.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -42,25 +43,25 @@ impl IsDefault for AutoFlags {
     }
 }
 
-macro_rules! push_json_args {
+macro_rules! push_args {
     ($args:ident; $( $val:expr, $arg:ident, $no_arg:ident ),*) => {{
         $(
             match $val {
-                Value::User(true) => $args.push(to_json_args!($arg)),
-                Value::User(false) => $args.push(to_json_args!($no_arg)),
+                Value::User(true) => $args.push(to_args!($arg)),
+                Value::User(false) => $args.push(to_args!($no_arg)),
                 _ => (),
             }
         )*
     }};
 }
 
-impl ToJsonArgs for AutoFlags {
-    fn append_json_args(&self, args: &mut Vec<String>) {
+impl ToTxtConfig for AutoFlags {
+    fn append_args(&self, args: &mut Vec<OsString>) {
         if self.no_auto {
-            args.push(to_json_args!(NoAuto));
+            args.push(to_args!(NoAuto));
         }
 
-        push_json_args!(
+        push_args!(
             args;
             self.defaults, AutoDefaults, NoAutoDefaults,
             self.forceds, AutoForceds, NoAutoForceds,

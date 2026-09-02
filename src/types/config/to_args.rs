@@ -1,33 +1,28 @@
 use super::{Config, ConfigTarget};
-use crate::{Result, ToJsonArgs, types::helpers::try_write_args_to_json};
+use crate::{Result, ToTxtConfig};
+use std::ffi::OsString;
 
 impl Config {
-    /// Tries save mux config to JSON in the input directory.
+    /// Tries save config to .txt in the input directory.
     ///
     /// Does nothing if [`Config::save_config`] is `false`, returning Ok().
     ///
     /// # Errors
     ///
-    /// Returns an error if write args to JSON fails.
+    /// Returns an error if write args to .txt fails.
     pub fn try_save_config(&self) -> Result<()> {
         if !self.save_config {
             return Ok(());
         }
 
-        let args = self.to_json_args();
-        if args.is_empty() {
-            return Ok(());
-        }
+        let txt = self.input.dir().join(Self::CONFIG_NAME);
 
-        let json = self.input.dir().join(Self::JSON_NAME);
-
-        match try_write_args_to_json(args, &json) {
-            Ok(_) => Ok(()),
-            Err(e) => Err(err!("Fail save current config to json: {}", e)),
+        match self.write(txt) {
+            Ok(()) => Ok(()),
+            Err(e) => Err(err!("Fail save current config to txt: {}", e)),
         }
     }
 
-    /// Tries save mux config to JSON in the input directory, logging warning on fail.
     pub(crate) fn save_config_or_warn(&self) {
         if let Err(e) = self.try_save_config() {
             log::warn!("{}", e);
@@ -38,23 +33,23 @@ impl Config {
 macro_rules! append_args_from_fields {
     ($self:ident, $args:ident; $( $field:ident ),* $(,)?) => {{
         $(
-            $self.$field.append_json_args($args);
+            $self.$field.append_args($args);
         )*
     }};
 }
 
-impl ToJsonArgs for Config {
-    fn append_json_args(&self, args: &mut Vec<String>) {
-        args.push(to_json_args!(Locale));
-        args.push(self.locale.to_string());
+impl ToTxtConfig for Config {
+    fn append_args(&self, args: &mut Vec<OsString>) {
+        args.push(to_args!(Locale));
+        args.push(self.locale.to_string().into());
 
         append_args_from_fields!(self, args; input, output, log_level);
 
-        to_json_args!(@push_true, self, args; exit_on_err, ExitOnErr, save_config, SaveConfig);
+        to_args!(@push_true, self, args; exit_on_err, ExitOnErr, save_config, SaveConfig);
 
         if self.jobs != Self::JOBS_DEFAULT {
-            args.push(to_json_args!(Jobs));
-            args.push(format!("{}", self.jobs));
+            args.push(to_args!(Jobs));
+            args.push(format!("{}", self.jobs).into());
         }
 
         append_args_from_fields!(
@@ -80,10 +75,10 @@ impl ToJsonArgs for Config {
                         continue;
                     }
                 };
-                args.push(to_json_args!(Target));
-                args.push(t.to_string());
+                args.push(to_args!(Target));
+                args.push(t.to_string().into());
                 let len = args.len();
-                t_cfg.append_json_args(args);
+                t_cfg.append_args(args);
 
                 // if nothing appended removes target.
                 if args.len() == len {
@@ -98,14 +93,14 @@ macro_rules! append_args_from_opt_fields {
     ($self:ident, $args:ident; $( $field:ident ),*) => {{
         $(
             if let Some(val) = $self.$field.as_ref() {
-                val.append_json_args($args);
+                val.append_args($args);
             }
         )*
     }};
 }
 
-impl ToJsonArgs for ConfigTarget {
-    fn append_json_args(&self, args: &mut Vec<String>) {
+impl ToTxtConfig for ConfigTarget {
+    fn append_args(&self, args: &mut Vec<OsString>) {
         append_args_from_opt_fields!(
             self, args;
             streams,

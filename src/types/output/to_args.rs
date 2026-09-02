@@ -1,14 +1,9 @@
-use crate::{Output, ToJsonArgs};
+use crate::{Output, ToTxtConfig};
+use std::ffi::OsString;
 
-impl ToJsonArgs for Output {
-    fn append_json_args(&self, args: &mut Vec<String>) {
-        let path = if let Some(s) = self.dir.as_os_str().to_str() {
-            String::from(s)
-        } else {
-            return;
-        };
-
-        args.push(to_json_args!(Output));
-        args.push(path);
+impl ToTxtConfig for Output {
+    fn append_args(&self, args: &mut Vec<OsString>) {
+        args.push(to_args!(Output));
+        args.push(OsString::from(&self.dir));
     }
 }

@@ -51,7 +51,7 @@ impl Blocks {
                 Arg::new(undashed!(Load))
                     .long(undashed!(Load))
                     .alias("load-config")
-                    .value_name("json")
+                    .value_name("txt")
                     .help(Msg::HelpLoad.as_str_localized())
                     .value_parser(ValueParser::new(ConfigParser)),
             )
