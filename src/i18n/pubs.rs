@@ -83,9 +83,7 @@ impl Msg {
         }
 
         if !Self::is_supported_lang(lang) {
-            return Err([(Self::LangNotSupLog, format!(": '{}'", lang))]
-                .as_slice()
-                .into());
+            return Err(err!("{}: '{}'", Msg::LangNotSupLog, lang));
         }
 
         let mut l = LANG.write().map_err(|_| err!("Fail LANG_CODE.write()"))?;
@@ -102,7 +100,7 @@ impl Msg {
                 "{}{}: {}. {} '{}'",
                 MuxLogger::color_prefix(log::Level::Warn),
                 Self::ErrUpdLang,
-                e.as_str_localized(),
+                e,
                 Self::Using,
                 Self::lang()
             );

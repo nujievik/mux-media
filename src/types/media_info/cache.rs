@@ -1,6 +1,4 @@
-use crate::{
-    ArcPathBuf, CharEncoding, Duration, IsDefault, MuxError, Result, Stream, StreamsOrder, Target,
-};
+use crate::{ArcPathBuf, CharEncoding, Duration, IsDefault, Result, Stream, StreamsOrder, Target};
 use std::{collections::HashMap, ffi::OsString, mem};
 
 /// A state of cache field.
@@ -9,7 +7,7 @@ pub enum CacheState<T> {
     #[default]
     NotCached,
     Cached(T),
-    Failed(Box<MuxError>),
+    Failed(String),
 }
 
 /// A cache of [`MediaInfo`](crate::MediaInfo).
@@ -49,15 +47,15 @@ impl<T> CacheState<T> {
     pub(crate) fn from_res(res: Result<T>) -> CacheState<T> {
         match res {
             Ok(v) => CacheState::Cached(v),
-            Err(e) => CacheState::Failed(Box::new(e)),
+            Err(e) => CacheState::Failed(e.to_string()),
         }
     }
 
     pub(crate) fn try_get(&self) -> Result<&T> {
         match self {
             CacheState::Cached(val) => Ok(val),
-            CacheState::NotCached => Err("Not cached any".into()),
-            CacheState::Failed(e) => Err(*e.clone()),
+            CacheState::NotCached => Err(err!("Not cached any")),
+            CacheState::Failed(e) => Err(err!("{}", e)),
         }
     }
 
@@ -71,8 +69,8 @@ impl<T> CacheState<T> {
     pub(crate) fn try_mut(&mut self) -> Result<&mut T> {
         match self {
             CacheState::Cached(val) => Ok(val),
-            CacheState::NotCached => Err("Not cached any".into()),
-            CacheState::Failed(e) => Err(*e.clone()),
+            CacheState::NotCached => Err(err!("Not cached any")),
+            CacheState::Failed(e) => Err(err!("{}", e)),
         }
     }
 
@@ -86,8 +84,8 @@ impl<T> CacheState<T> {
     pub(crate) fn try_take(&mut self) -> Result<T> {
         match mem::take(self) {
             CacheState::Cached(val) => Ok(val),
-            CacheState::NotCached => Err("Not cached any".into()),
-            CacheState::Failed(e) => Err(*e.clone()),
+            CacheState::NotCached => Err(err!("Not cached any")),
+            CacheState::Failed(e) => Err(err!("{}", e)),
         }
     }
 

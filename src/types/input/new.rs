@@ -18,9 +18,7 @@ impl TryFinalizeInit for Input {
         };
 
         if let None = self.iter_media_in_dir(dir).next() {
-            return Err([(Msg::NoInputDirMedia, format!(": {}", dir.display()))]
-                .as_slice()
-                .into());
+            return Err(err!("{}: {}", Msg::NoInputDirMedia, dir.display()));
         }
 
         let skip = match &self.skip {

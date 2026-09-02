@@ -50,7 +50,7 @@ pub(crate) fn warn_not_recognized_media(path: &Path, e: MuxError) {
         "{} '{}': {}. {}",
         Msg::NotRecognizedMedia,
         path.display(),
-        e.as_str_localized(),
+        e,
         Msg::Skipping
     )
 }

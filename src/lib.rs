@@ -1,6 +1,6 @@
 macro_rules! err {
     ( $($arg:tt)* ) => {
-        crate::MuxError::from(format!($($arg)*))
+        crate::MuxError::new_with(format!($($arg)*))
     };
 }
 
@@ -55,7 +55,7 @@ pub use types::{
     },
     media_number::MediaNumber,
     metadata::{LangMetadata, Metadata, NameMetadata},
-    mux_error::{MuxError, kind::MuxErrorKind},
+    mux_error::MuxError,
     mux_logger::MuxLogger,
     output::Output,
     range::RangeUsize,

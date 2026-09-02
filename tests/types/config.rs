@@ -54,8 +54,7 @@ fn assert_ok_exit(args: &[&str]) {
     assert_eq!(err.kind(), ErrorKind::DisplayVersion);
 
     let err = MuxError::from(err);
-    assert_eq!(err.code, 0);
-    assert_eq!(err.kind, MuxErrorKind::Ok);
+    assert_eq!(err.code(), 0);
 }
 
 #[test]
