@@ -45,7 +45,7 @@ impl ToTxtConfig for Config {
 
         append_args_from_fields!(self, args; input, output, log_level);
 
-        to_args!(@push_true, self, args; exit_on_err, ExitOnErr, save_config, SaveConfig);
+        to_args!(@push_true, self, args; exit_on_err, ExitOnErr);
 
         if self.jobs != Self::JOBS_DEFAULT {
             args.push(to_args!(Jobs));

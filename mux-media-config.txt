@@ -12,7 +12,6 @@ PATH/TO/OUTPUT/DIRECTORY
 16
 --verbose
 --exit-on-err
---save-config
 --jobs
 1
 --no-auto
