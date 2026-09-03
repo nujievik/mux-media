@@ -1,9 +1,5 @@
 impl_msg_as_str!(
     as_eng,
-    FailSaveConfig => "fail save config",
-    FailUpdateLanguage => "fail update language",
-    FileIsAlreadyExists => "File is already exists",
-    FoundRepeat => "Found repeat",
     HelpAttachs => "[!]Save other attachments",
     HelpAudio => "[!]Save audio streams",
     HelpAutoDefaults => "Auto set default flags",
@@ -58,19 +54,25 @@ impl_msg_as_str!(
     HelpVerbosity => "Increase logging",
     HelpVersion => "Show version",
     HelpVideo => "[!]Save video streams",
-    LMedia => "media",
-    LangNotSupLog => "Language is not supported for logging",
+
+    FailSaveConfig => "fail save config",
+    FailUpdateLanguage => "fail update language",
+    FileIsAlreadyExists => "file is already exists",
+    FoundRepeat => "found repeat",
+    LanguageIsNotSupportedForLogging => "language is not supported for logging",
     LoadingTxtConfig => "Loading .txt config",
-    MediaNumOutOfRange => "Media number is out of range",
+    Media => "media",
+    MediaNumberIsOutOfRange => "media number is out of range",
     Muxing => "Muxing",
-    NoExtMediaFound => "No external media found",
-    NoInputDirMedia => "No media found in the input directory",
-    NotMuxedAny => "Not muxed any media",
-    NotOutSaveAny => "Not found any save stream for output",
-    NotRecognizedMedia => "Not recognized media file",
+    NoExternalMediaFound => "no external media found",
+    NoInputDirMedia => "no media found in the input directory",
+    NotMuxedAny => "not muxed any media",
+    NotOutSaveAny => "not found any save stream for output",
+    NotRecognizedMedia => "not recognized media file",
     Skipping => "Skipping",
     SuccessMuxed => "Success muxed",
     Using => "Using",
+
     ListTargets => r#"Supported targets (in order of priority):
  1. Path to a file
  2. Path to the parent directory of the file

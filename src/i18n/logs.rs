@@ -16,7 +16,7 @@ pub(crate) fn warn_file_is_already_exists(path: &Path) {
 pub(crate) fn warn_no_ext_media(stem: &OsStr) {
     warn!(
         "{}. {} '{}'",
-        Msg::NoExtMediaFound,
+        Msg::NoExternalMediaFound,
         Msg::Skipping,
         AsRef::<Path>::as_ref(stem).display()
     )
@@ -56,7 +56,7 @@ pub(crate) fn debug_found_repeat(stem: &OsStr) {
 pub(crate) fn debug_media_out_of_range(stem: &OsStr) {
     debug!(
         "{}. {} '{}'",
-        Msg::MediaNumOutOfRange,
+        Msg::MediaNumberIsOutOfRange,
         Msg::Skipping,
         AsRef::<Path>::as_ref(stem).display(),
     )

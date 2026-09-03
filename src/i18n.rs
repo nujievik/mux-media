@@ -21,10 +21,6 @@ mod pubs;
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum Msg {
-    FailSaveConfig,
-    FailUpdateLanguage,
-    FileIsAlreadyExists,
-    FoundRepeat,
     HelpAttachs,
     HelpAudio,
     HelpAutoDefaults,
@@ -79,12 +75,17 @@ pub enum Msg {
     HelpVerbosity,
     HelpVersion,
     HelpVideo,
-    LMedia,
-    LangNotSupLog,
+
+    FailSaveConfig,
+    FailUpdateLanguage,
+    FileIsAlreadyExists,
+    FoundRepeat,
+    LanguageIsNotSupportedForLogging,
     LoadingTxtConfig,
-    MediaNumOutOfRange,
+    Media,
+    MediaNumberIsOutOfRange,
     Muxing,
-    NoExtMediaFound,
+    NoExternalMediaFound,
     NoInputDirMedia,
     NotMuxedAny,
     NotOutSaveAny,
@@ -92,5 +93,6 @@ pub enum Msg {
     Skipping,
     SuccessMuxed,
     Using,
+
     ListTargets,
 }

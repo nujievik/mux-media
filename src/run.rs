@@ -68,7 +68,7 @@ pub fn run() -> Result<()> {
     result.map(|cnt| match cnt {
         0 => warn!("{}", Msg::NotMuxedAny),
         _ => {
-            info!("{} {} {}", Msg::SuccessMuxed, cnt, Msg::LMedia);
+            info!("{} {} {}", Msg::SuccessMuxed, cnt, Msg::Media);
             cfg.save_config_or_warn();
         }
     })
