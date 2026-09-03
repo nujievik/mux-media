@@ -2,6 +2,7 @@ impl_msg_as_str!(
     as_eng,
     ContainerDoesNotSupport => "Container does not support",
     ErrUpdLang => "Update language failed",
+    FailSaveConfig => "fail save config",
     FileIsAlreadyExists => "File is already exists",
     FileTypeNotSup => "File type is not supported",
     FoundRepeat => "Found repeat",

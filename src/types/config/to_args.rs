@@ -1,6 +1,6 @@
 use super::{Config, ConfigTarget};
-use crate::{Result, ToTxtConfig};
-use std::ffi::OsString;
+use crate::{Result, ToTxtConfig, Msg};
+use std::{fs, ffi::OsString};
 
 impl Config {
     /// Tries save config to .txt in the input directory.
@@ -15,17 +15,21 @@ impl Config {
             return Ok(());
         }
 
-        let txt = self.input.dir().join(Self::CONFIG_NAME);
+        let txt = Config::txt_path(self.input.dir());
 
-        match self.write(txt) {
-            Ok(()) => Ok(()),
-            Err(e) => Err(err!("Fail save current config to txt: {}", e)),
+        if let Some(dir) = txt.parent() {
+            if !dir.exists() {
+                fs::create_dir(dir)?;
+            }
         }
+
+        self.write(txt)?;
+        Ok(())
     }
 
     pub(crate) fn save_config_or_warn(&self) {
         if let Err(e) = self.try_save_config() {
-            log::warn!("{}", e);
+            log::warn!("{}: {}", Msg::FailSaveConfig, e);
         }
     }
 }

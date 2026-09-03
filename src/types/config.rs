@@ -8,7 +8,7 @@ use crate::{
     AutoFlags, Chapters, Container, DefaultDispositions, ForcedDispositions, Input, IsDefault,
     LangCode, LangMetadata, LogLevel, NameMetadata, Output, RetimingOptions, Streams, Target,
 };
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 /// A configuration.
 ///
@@ -53,6 +53,12 @@ pub struct ConfigTarget {
 }
 
 impl Config {
-    const CONFIG_NAME: &str = concat!(env!("CARGO_PKG_NAME"), "-config.txt");
     const JOBS_DEFAULT: u8 = 1;
+
+    fn txt_path(base: impl Into<PathBuf>) -> PathBuf {
+        let mut p = base.into();
+        p.push(concat!(".", env!("CARGO_PKG_NAME")));
+        p.push("config.txt");
+        p
+    }
 }

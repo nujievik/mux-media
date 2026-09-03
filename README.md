@@ -104,8 +104,8 @@ Run `mux-media -h` to display help.
 | `-h, --help` | Show help |
 
 Alternative CLI, you can configure a [config file](
-https://github.com/nujievik/mux-media/blob/main/mux-media-config.txt) in a
-top-level media directory.
+https://github.com/nujievik/mux-media/blob/main/.mux-media/config.txt) in a
+.mux-media subdirectory in a media directory.
 
 
 ## Alternative GUI Utilities

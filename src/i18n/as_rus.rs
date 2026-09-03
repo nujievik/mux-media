@@ -2,6 +2,7 @@ impl_msg_as_str!(
     as_rus,
     ContainerDoesNotSupport => "Контейнер не поддерживает",
     ErrUpdLang => "Не удалось обновить язык",
+    FailSaveConfig => "ошибка сохранения конфига",
     FileIsAlreadyExists => "Файл уже существует",
     FileTypeNotSup => "Тип файла не поддерживается",
     FoundRepeat => "Найден повтор",

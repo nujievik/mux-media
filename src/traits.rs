@@ -29,12 +29,12 @@ pub trait ToTxtConfig {
     /// Writes args to the given file path.
     fn write<P: AsRef<Path>>(&self, path: P) -> Result<()> {
         let args = self.to_args();
+        let file = fs::File::create(path)?;
 
         if args.is_empty() {
             return Ok(());
         }
 
-        let file = fs::File::create(path)?;
         let mut writer = BufWriter::new(file);
 
         for arg in args {

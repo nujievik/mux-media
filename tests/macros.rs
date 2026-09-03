@@ -43,7 +43,7 @@ macro_rules! build_test_to_args {
         let _ = std::fs::create_dir_all(&dir);
 
         let add_args = vec!["--locale", "eng", "--input", in_dir, "--output", &out_dir, "--save-config"];
-        let txt = dir.clone().join("mux-media-config.txt");
+        let txt = dir.clone().join(".mux-media").join("config.txt");
 
         $(
             let mc_args = $crate::common::append_str_vecs([add_args.clone(), $right]);
@@ -53,7 +53,7 @@ macro_rules! build_test_to_args {
             let right = mc.$field.to_args();
             assert_eq!(left, right);
 
-            let left = $crate::common::append_str_vecs([add_args.clone(), $left]);
+            let left = $crate::common::append_str_vecs([&add_args[..add_args.len() - 1], $left.as_slice()]);
             mc.try_save_config().unwrap();
             let right = $crate::common::read_txt_args(&txt);
 

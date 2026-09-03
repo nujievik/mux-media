@@ -23,6 +23,7 @@ mod pubs;
 pub enum Msg {
     ContainerDoesNotSupport,
     ErrUpdLang,
+    FailSaveConfig,
     FileIsAlreadyExists,
     FileTypeNotSup,
     FoundRepeat,

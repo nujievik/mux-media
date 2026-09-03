@@ -67,15 +67,21 @@ where
         .collect()
 }
 
-pub fn append_str_vecs<I, S>(vecs: I) -> Vec<OsString>
+pub fn append_str_vecs<I, T, S>(vecs: I) -> Vec<OsString>
 where
-    I: IntoIterator<Item = Vec<S>>,
+    I: IntoIterator<Item = T>,
+    T: AsRef<[S]>,
     S: AsRef<str>,
 {
-    vecs.into_iter()
-        .flatten()
-        .map(|s| OsString::from(s_sep(s.as_ref())))
-        .collect()
+    let mut out = Vec::new();
+
+    for vec in vecs {
+        for s in vec.as_ref() {
+            out.push(OsString::from(s_sep(s.as_ref())));
+        }
+    }
+
+    out
 }
 
 pub fn read_txt_args(path: &Path) -> Vec<OsString> {

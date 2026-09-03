@@ -51,16 +51,16 @@ impl Config {
                 .as_ref()
                 .and_then(|m| {
                     m.get_one::<PathBuf>(undashed!(Input))
-                        .map(|d| d.join(Config::CONFIG_NAME))
+                        .map(|d| Config::txt_path(d))
                 })
                 .or_else(|| {
                     cli_matches
                         .get_one::<PathBuf>(undashed!(Input))
-                        .map(|d| d.join(Config::CONFIG_NAME))
+                        .map(|d| Config::txt_path(d))
                 })
                 .or_else(|| {
                     Input::try_default_dir()
-                        .map(|d| d.join(Config::CONFIG_NAME))
+                        .map(|d| Config::txt_path(d))
                         .ok()
                 });
 
