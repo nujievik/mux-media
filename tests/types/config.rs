@@ -29,7 +29,6 @@ fn parse_empty_args() {
     assert_eq!(e.log_level, Default::default());
     assert!(!e.exit_on_err);
     assert!(!e.save_config);
-    assert!(!e.reencode);
     assert_eq!(1, e.jobs);
     assert_eq!(&e.auto_flags, &Default::default());
     assert_eq!(&e.streams, &Default::default());
@@ -39,7 +38,6 @@ fn parse_empty_args() {
     assert_eq!(&e.langs, &Default::default());
     assert_eq!(&e.retiming_options, &Default::default());
     assert_eq!(&e.targets, &Default::default());
-    assert_eq!(&e.container, &Default::default());
     assert!(e.is_output_constructed_from_input);
 }
 
@@ -59,17 +57,11 @@ fn assert_ok_exit(args: &[&str]) {
 
 #[test]
 fn test_ok_exit() {
-    [
-        "-h",
-        "-V",
-        "--list-targets",
-        "--list-containers",
-        "--list-langs",
-    ]
-    .iter()
-    .for_each(|arg| {
-        assert_ok_exit(&[arg]);
-    })
+    ["-h", "-V", "--list-targets", "--list-langs"]
+        .iter()
+        .for_each(|arg| {
+            assert_ok_exit(&[arg]);
+        })
 }
 
 macro_rules! test_parse {
@@ -116,7 +108,6 @@ fn parse_global() {
     test_parse!(["-q"], log_level, LogLevel(LevelFilter::Error));
     test_parse!(["-e"], exit_on_err, true);
     test_parse!(["--save-config"], save_config, true);
-    test_parse!(["--reencode"], reencode, true);
     test_parse!(["--jobs", "8"], jobs, 8);
 }
 
@@ -241,7 +232,6 @@ fn test_aliases_of_args() {
         vec!["-vv", "-vvv", "-vvvvvvv"],
         vec!["-q", "--quiet"],
         vec!["-e", "--exit-on-err", "--exit-on-error"],
-        vec!["--reencode", "--re-encode"],
         vec!["-A", "--no-audio"],
         vec!["-S", "--no-subs"],
         vec!["-D", "--no-video"],
@@ -300,7 +290,8 @@ fn test_target_switching() {
         "true",
         "--target",
         "global",
-        "--reencode",
+        "--jobs",
+        "8",
         "--target",
         "subs",
         "--defaults",
@@ -310,7 +301,7 @@ fn test_target_switching() {
     assert!(cfg.exit_on_err);
     assert!(cfg.target(CfgDefaults, "video").single_val.unwrap());
     assert!(cfg.target(CfgDefaults, "audio").single_val.unwrap());
-    assert!(cfg.reencode);
+    assert_eq!(cfg.jobs, 8);
     assert!(cfg.target(CfgDefaults, "sub").single_val.unwrap());
 
     assert!(cfg.defaults.single_val.is_none());

@@ -1,12 +1,9 @@
 impl_msg_as_str!(
     as_eng,
-    ContainerDoesNotSupport => "Container does not support",
-    ErrUpdLang => "Update language failed",
     FailSaveConfig => "fail save config",
+    FailUpdateLanguage => "fail update language",
     FileIsAlreadyExists => "File is already exists",
-    FileTypeNotSup => "File type is not supported",
     FoundRepeat => "Found repeat",
-    FromPackage => "From package",
     HelpAttachs => "[!]Save other attachments",
     HelpAudio => "[!]Save audio streams",
     HelpAutoDefaults => "Auto set default flags",
@@ -27,7 +24,6 @@ impl_msg_as_str!(
     HelpInput => "Set input file OR directory with files",
     HelpJobs => "Max parallel muxing",
     HelpLangs => "Set stream languages",
-    HelpListContainers => "Show supported output containers",
     HelpListLangs => "Show supported language codes",
     HelpListTargets => "Show supported targets",
     HelpLoad => "Load .txt config",
@@ -49,7 +45,6 @@ impl_msg_as_str!(
     HelpParts => "[!]Save parts for chapter names",
     HelpQuiet => "Suppress logging",
     HelpRange => "Number range of media-files",
-    HelpReencode => "Force reencode",
     HelpRetimingOptions => "Retiming options",
     HelpSaveConfig => "Save config to .txt in the input directory",
     HelpSaveStreams => "Save streams",
@@ -63,36 +58,22 @@ impl_msg_as_str!(
     HelpVerbosity => "Increase logging",
     HelpVersion => "Show version",
     HelpVideo => "[!]Save video streams",
-    InstallIt => "Please install it, add to system PATH and re-run",
     LMedia => "media",
-    LMultipleTracksOrTypeTrack => "multiple tracks or type track",
     LangNotSupLog => "Language is not supported for logging",
     LoadingTxtConfig => "Loading .txt config",
     MediaNumOutOfRange => "Media number is out of range",
     Muxing => "Muxing",
     NoExtMediaFound => "No external media found",
     NoInputDirMedia => "No media found in the input directory",
-    NoStemMedia => "No media found for stem",
-    NotFound => "Not found",
-    NotFoundTrack => "Not found track",
     NotMuxedAny => "Not muxed any media",
     NotOutSaveAny => "Not found any save stream for output",
     NotRecognizedMedia => "Not recognized media file",
-    RunCommand => "Run command",
-    RunningCommand => "Running command",
     Skipping => "Skipping",
     SuccessMuxed => "Success muxed",
-    UnsupOutContainerExt => "Unsupported output container extension",
-    UnsupRetimingExt => "Unsupported extension for retiming",
     Using => "Using",
     ListTargets => r#"Supported targets (in order of priority):
  1. Path to a file
  2. Path to the parent directory of the file
  3. Stream type: video, audio, subs, fonts, or attachs
  4. Global (default)"#,
-    ListContainers => r#"Supported containers:
- 1. Matroska (.mkv). Universal default container
- 2. AVI (.avi). Legacy
- 3. MP4 (.mp4). MPEG-4 Part 10
- 4. Webm (.webm). YouTube format"#,
 );

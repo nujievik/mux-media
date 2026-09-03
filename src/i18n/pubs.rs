@@ -99,7 +99,7 @@ impl Msg {
             eprintln!(
                 "{}{}: {}. {} '{}'",
                 MuxLogger::color_prefix(log::Level::Warn),
-                Self::ErrUpdLang,
+                Self::FailUpdateLanguage,
                 e,
                 Self::Using,
                 Self::lang()

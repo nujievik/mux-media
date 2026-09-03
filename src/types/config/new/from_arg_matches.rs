@@ -174,7 +174,6 @@ impl FromArgMatches for Config {
                 log_level: log_level(m),
                 exit_on_err: flag!(m, ExitOnErr),
                 save_config: flag!(m, SaveConfig),
-                reencode: flag!(m, Reencode),
                 jobs: rm_or!(m, Jobs, u8, || Config::JOBS_DEFAULT),
                 auto_flags: auto_flags(m),
                 streams: streams!(m, Streams, NoStreams),
@@ -185,7 +184,6 @@ impl FromArgMatches for Config {
                 langs: rm_or!(m, Langs, LangMetadata, LangMetadata::default),
                 retiming_options: retiming_options(m),
                 targets: targets(m),
-                container: Default::default(),
                 is_output_constructed_from_input,
             })
         }
@@ -269,7 +267,6 @@ impl FromArgMatches for Config {
 
         upd_flag!(self.exit_on_err, m, ExitOnErr);
         upd_flag!(self.save_config, m, SaveConfig);
-        upd_flag!(self.reencode, m, Reencode);
         upd!(self.jobs, m, Jobs, u8);
 
         auto_flags(self, m);
@@ -443,9 +440,6 @@ pub(super) fn get_locale(m: &ArgMatches) -> Option<LangCode> {
 
 pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
     arg(m, CliArg::ListTargets, Target::print_list_targets)?;
-    arg(m, CliArg::ListContainers, || {
-        println!("{}", Msg::ListContainers)
-    })?;
     arg(m, CliArg::ListLangs, LangCode::print_list_langs)?;
 
     arg(m, CliArg::Version, || {

@@ -1,6 +1,6 @@
 use super::{Config, ConfigTarget};
-use crate::{Result, ToTxtConfig, Msg};
-use std::{fs, ffi::OsString};
+use crate::{Msg, Result, ToTxtConfig};
+use std::{ffi::OsString, fs};
 
 impl Config {
     /// Tries save config to .txt in the input directory.

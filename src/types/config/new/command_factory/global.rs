@@ -60,14 +60,6 @@ impl Blocks {
                     .long(undashed!(SaveConfig))
                     .help(Msg::HelpSaveConfig.as_str_localized())
                     .action(ArgAction::SetTrue),
-            )
-            .arg(
-                Arg::new(undashed!(Reencode))
-                    .long(undashed!(Reencode))
-                    .alias("re-encode")
-                    .help(Msg::HelpReencode.as_str_localized())
-                    .hide(true)
-                    .action(ArgAction::SetTrue),
             );
 
         self

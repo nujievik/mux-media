@@ -1,18 +1,6 @@
-use crate::{Container, Msg, MuxError};
+use crate::{Msg, MuxError};
 use log::{debug, warn};
 use std::{ffi::OsStr, path::Path};
-
-pub(crate) fn warn_container_does_not_support(cont: Container, src: &Path, i_stream: usize) {
-    warn!(
-        "{} {} {}. {} '{}' stream {}",
-        cont,
-        Msg::ContainerDoesNotSupport,
-        Msg::LMultipleTracksOrTypeTrack,
-        Msg::Skipping,
-        src.display(),
-        i_stream
-    );
-}
 
 #[inline(always)]
 pub(crate) fn warn_file_is_already_exists(path: &Path) {

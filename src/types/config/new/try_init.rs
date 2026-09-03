@@ -58,11 +58,7 @@ impl Config {
                         .get_one::<PathBuf>(undashed!(Input))
                         .map(|d| Config::txt_path(d))
                 })
-                .or_else(|| {
-                    Input::try_default_dir()
-                        .map(|d| Config::txt_path(d))
-                        .ok()
-                });
+                .or_else(|| Input::try_default_dir().map(|d| Config::txt_path(d)).ok());
 
             let opt = match input_txt.and_then(|j| try_read_txt_args(&j).ok()) {
                 Some(args) => Some(Config::try_parse_from(args)?),

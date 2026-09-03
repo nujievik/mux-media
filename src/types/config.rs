@@ -5,8 +5,8 @@ mod to_args;
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
 use crate::{
-    AutoFlags, Chapters, Container, DefaultDispositions, ForcedDispositions, Input, IsDefault,
-    LangCode, LangMetadata, LogLevel, NameMetadata, Output, RetimingOptions, Streams, Target,
+    AutoFlags, Chapters, DefaultDispositions, ForcedDispositions, Input, IsDefault, LangCode,
+    LangMetadata, LogLevel, NameMetadata, Output, RetimingOptions, Streams, Target,
 };
 use std::{collections::HashMap, path::PathBuf};
 
@@ -26,7 +26,6 @@ pub struct Config {
     pub log_level: LogLevel,
     pub exit_on_err: bool,
     pub save_config: bool,
-    pub reencode: bool,
     pub auto_flags: AutoFlags,
     pub streams: Streams,
     pub chapters: Chapters,
@@ -36,7 +35,6 @@ pub struct Config {
     pub langs: LangMetadata,
     pub retiming_options: RetimingOptions,
     pub targets: Option<HashMap<Target, ConfigTarget>>,
-    pub container: Container,
     pub is_output_constructed_from_input: bool,
 }
 

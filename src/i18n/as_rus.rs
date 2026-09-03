@@ -1,12 +1,9 @@
 impl_msg_as_str!(
     as_rus,
-    ContainerDoesNotSupport => "Контейнер не поддерживает",
-    ErrUpdLang => "Не удалось обновить язык",
     FailSaveConfig => "ошибка сохранения конфига",
+    FailUpdateLanguage => "не удалось обновить язык",
     FileIsAlreadyExists => "Файл уже существует",
-    FileTypeNotSup => "Тип файла не поддерживается",
     FoundRepeat => "Найден повтор",
-    FromPackage => "Из пакета",
     HelpAttachs => "[!]Сохранить другие вложения",
     HelpAudio => "[!]Сохранить аудио потоки",
     HelpAutoDefaults => "Автонастройка default флагов",
@@ -27,7 +24,6 @@ impl_msg_as_str!(
     HelpInput => "Входной файл или директория с файлами",
     HelpJobs => "Максимум параллельных муксирований",
     HelpLangs => "Установить языки потоков",
-    HelpListContainers => "Показать поддерживаемые выходные контейнеры",
     HelpListLangs => "Показать поддерживаемые языковые коды",
     HelpListTargets => "Показать поддерживаемые цели",
     HelpLoad => "Загрузить .txt конфиг",
@@ -49,7 +45,6 @@ impl_msg_as_str!(
     HelpParts => "[!]Сохранить части для имен глав",
     HelpQuiet => "Подавить логирование",
     HelpRange => "Диапазон номеров медиа-файлов",
-    HelpReencode => "Форсировать перекодирование",
     HelpRetimingOptions => "Ретайминг опции",
     HelpSaveConfig => "Сохранить конфиг в .txt в медиа-директории",
     HelpSaveStreams => "Сохранить потоки",
@@ -63,36 +58,22 @@ impl_msg_as_str!(
     HelpVerbosity => "Увеличить логирование",
     HelpVersion => "Показать версию",
     HelpVideo => "[!]Сохранить видео потоки",
-    InstallIt => "Пожалуйста, установите его, добавьте в системный PATH и перезапустите",
     LMedia => "медиа",
-    LMultipleTracksOrTypeTrack => "несколько дорожек или тип дорожки",
     LangNotSupLog => "Язык не поддерживается для ведения журнала",
     LoadingTxtConfig => "Загрузка .txt конфига",
     MediaNumOutOfRange => "Номер медиа вне диапазона",
     Muxing => "Муксирование",
     NoExtMediaFound => "Не найдено внешних медиа",
     NoInputDirMedia => "Не найдены медиа в стартовой директории",
-    NoStemMedia => "Не найдены медиа для stem",
-    NotFound => "Не найден",
-    NotFoundTrack => "Не найдено дорожки",
     NotMuxedAny => "Медиа не муксированы",
     NotOutSaveAny => "Не найдено сохраняемого потока для выходного файла",
     NotRecognizedMedia => "Не распознан медиа файл",
-    RunCommand => "Выполнить команду",
-    RunningCommand => "Выполнение команды",
     Skipping => "Пропуск",
     SuccessMuxed => "Успешно муксировано",
-    UnsupOutContainerExt => "Неподдерживаемое расширение выходного контейнера",
-    UnsupRetimingExt => "Неподдерживаемое расширение для ретайминга",
     Using => "Используется",
     ListTargets => r#"Поддерживаемые цели (в порядке приоритета):
  1. Путь к файлу
  2. Путь к родительской директории файла
  3. Тип потока: video, audio, subs, fonts или attachs
  4. Global (по умолчанию)"#,
-    ListContainers => r#"Поддерживаемые контейнеры:
- 1. Matroska (.mkv). Универсальный контейнер по умолчанию
- 2. AVI (.avi). Устаревший
- 3. MP4 (.mp4). MPEG-4 Part 10
- 4. Webm (.webm). YouTube формат"#,
 );

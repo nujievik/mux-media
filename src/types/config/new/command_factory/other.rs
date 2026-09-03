@@ -8,13 +8,6 @@ impl Blocks {
             .0
             .next_help_heading(Msg::HelpOtherOptions.as_str_localized())
             .arg(
-                Arg::new(undashed!(ListContainers))
-                    .long(undashed!(ListContainers))
-                    .help(Msg::HelpListContainers.as_str_localized())
-                    .hide(true)
-                    .action(ArgAction::SetTrue),
-            )
-            .arg(
                 Arg::new(undashed!(ListLangs))
                     .long(undashed!(ListLangs))
                     .alias("list-languages")

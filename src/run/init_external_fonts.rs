@@ -1,5 +1,5 @@
 use crate::{
-    ArcPathBuf, CacheMIOfFile, CacheState, Config, Container, Extension, MediaInfo, Result,
+    ArcPathBuf, CacheMIOfFile, CacheState, Config, Extension, MediaInfo, Result,
     ffmpeg::{self, sys},
 };
 use std::{
@@ -10,10 +10,6 @@ use std::{
 };
 
 pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, CacheMIOfFile)> {
-    if !matches!(cfg.container, Container::Matroska) {
-        return None;
-    }
-
     let fonts = cfg.input.collect_fonts();
     if fonts.is_empty() {
         return None;

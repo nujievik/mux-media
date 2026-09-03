@@ -41,7 +41,6 @@ pub use types::{
     cli_arg::CliArg,
     codec_id::CodecId,
     config::{Config, ConfigTarget},
-    container::Container,
     dispositions::{DefaultDispositions, Dispositions, ForcedDispositions, ty::DispositionType},
     duration::Duration,
     extension::Extension,
@@ -80,5 +79,4 @@ use types::{
     helpers,
     input::InputType,
     retiming::{RetimedStream, Retiming, RetimingChapter},
-    stream::supported::StreamsSupported,
 };

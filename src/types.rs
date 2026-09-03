@@ -71,7 +71,6 @@ pub(crate) mod char_encoding;
 pub(crate) mod cli_arg;
 pub(crate) mod codec_id;
 pub mod config;
-pub(crate) mod container;
 pub(crate) mod dispositions;
 pub(crate) mod duration;
 pub(crate) mod extension;
