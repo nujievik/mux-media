@@ -91,7 +91,7 @@ pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
 pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
-pub use functions::{ensure_long_path_prefix, ensure_trailing_sep, mux};
+pub use functions::{ensure_long_path_prefix, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
 pub use run::run;

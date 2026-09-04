@@ -115,8 +115,9 @@ const ALT_SEP_BYTE: u8 = b'\\';
 #[cfg(windows)]
 const ALT_SEP_BYTE: u8 = b'/';
 
+const SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[SEP_BYTE]) };
+
 pub fn s_sep(s: &str) -> String {
-    const SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[SEP_BYTE]) };
     const ALT_SEP_STR: &str = unsafe { str::from_utf8_unchecked(&[ALT_SEP_BYTE]) };
 
     s.replace(ALT_SEP_STR, SEP_STR)
@@ -138,4 +139,16 @@ fn ensure_platform_seps(oss: impl AsRef<OsStr>) -> PathBuf {
 fn has_trailing_sep(oss: impl AsRef<OsStr>) -> bool {
     let bytes = oss.as_ref().as_encoded_bytes();
     bytes.ends_with(&[SEP_BYTE]) || bytes.ends_with(&[ALT_SEP_BYTE])
+}
+
+fn ensure_trailing_sep(path: impl Into<PathBuf>) -> PathBuf {
+    let path = path.into();
+
+    if path.as_os_str().as_encoded_bytes().ends_with(&[SEP_BYTE]) {
+        return path;
+    }
+
+    let mut path = path.into_os_string();
+    path.push(SEP_STR);
+    path.into()
 }

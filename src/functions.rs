@@ -1,39 +1,12 @@
 use crate::ffmpeg::{self, codec, format};
 use crate::{Config, Result};
-use std::path::{MAIN_SEPARATOR, PathBuf};
+use std::path::PathBuf;
 
 /// Tries run muxing, returning a count of successfully muxed media files.
 ///
 /// Delegates implementation to [`Config::mux`].
 pub fn mux(cfg: &Config) -> Result<usize> {
     cfg.mux()
-}
-
-/// Adds trailing [`MAIN_SEPARATOR`] if missing.
-///
-/// ```
-/// # use mux_media::ensure_trailing_sep;
-/// # use std::path::{PathBuf, MAIN_SEPARATOR};
-/// #
-/// let s = format!("path{}", MAIN_SEPARATOR);
-/// let expected = PathBuf::from(&s);
-/// assert_eq!(&expected, &ensure_trailing_sep("path"));
-/// assert_eq!(&expected, &ensure_trailing_sep(s));
-/// ```
-#[inline]
-pub fn ensure_trailing_sep(path: impl Into<PathBuf>) -> PathBuf {
-    const SEP_BYTES: &[u8] = &[MAIN_SEPARATOR as u8];
-    const SEP_STR: &str = unsafe { str::from_utf8_unchecked(SEP_BYTES) };
-
-    let path = path.into();
-
-    if path.as_os_str().as_encoded_bytes().ends_with(SEP_BYTES) {
-        return path;
-    }
-
-    let mut path = path.into_os_string();
-    path.push(SEP_STR);
-    path.into()
 }
 
 /// Returns a path unchanged (Unix).
