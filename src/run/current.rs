@@ -1,6 +1,6 @@
 use crate::{
-    ArcPathBuf, CacheMIOfFile, Config, MediaInfo, MuxError, Result, i18n::logs, markers::MICmnStem,
-    types::input::iters::MediaGroupedByStem,
+    ArcPathBuf, CacheMIOfFile, Config, MediaGroupedByStem, MediaInfo, MuxError, Result, i18n::logs,
+    markers::MICmnStem,
 };
 use log::error;
 use std::{

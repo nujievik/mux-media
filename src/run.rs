@@ -4,6 +4,7 @@ mod encoder;
 mod header;
 mod init_external_fonts;
 
+use crate::config::MarkConfigChapters;
 use crate::{
     Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit,
     ffmpeg::{self, format},
@@ -183,7 +184,7 @@ fn copy_chapters(
     let it = order.iter_first_entries().filter_map(|ord| {
         let target_paths = mi.get(MITargetPaths, &ord.key)?;
         let chapters = cfg
-            .get_targets(CfgChapters, target_paths)
+            .get_targets(MarkConfigChapters, target_paths)
             .unwrap_or(&mi.cfg.chapters);
 
         if chapters.no_flag {

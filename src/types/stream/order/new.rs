@@ -1,4 +1,5 @@
 use super::{StreamsOrder, StreamsOrderItem};
+use crate::config::{MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams};
 use crate::{
     ArcPathBuf, Lang, LangCode, MediaInfo, Result, RetimedStream, Retiming, StreamType, markers::*,
 };
@@ -78,7 +79,7 @@ fn try_sorted_src_stream_ty(
                 return;
             }
 
-            let (i, cfg_streams) = cfg.stream_val(CfgStreams, &target_paths, stream);
+            let (i, cfg_streams) = cfg.stream_val(MarkConfigStreams, &target_paths, stream);
             if !cfg_streams.is_save(&i, &stream.lang) {
                 return;
             }
@@ -102,9 +103,9 @@ fn try_sorted_src_stream_ty(
             let lang = &stream.lang;
             let it_signs = mi.it_signs(src, stream);
 
-            let (i, defaults) = cfg.stream_val(CfgDefaults, &target_paths, stream);
+            let (i, defaults) = cfg.stream_val(MarkConfigDefaults, &target_paths, stream);
             let default = defaults.get(&i, &lang);
-            let (i, forceds) = cfg.stream_val(CfgForceds, &target_paths, stream);
+            let (i, forceds) = cfg.stream_val(MarkConfigForceds, &target_paths, stream);
             let forced = forceds.get(&i, &lang);
 
             let key = OrderSortKey::new(ty, default, forced, it_signs, lang, locale);

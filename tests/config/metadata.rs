@@ -1,0 +1,197 @@
+use super::*;
+
+#[test]
+fn parse_names_default() {
+    let xs = ConfigNameMetadata::default();
+    assert_eq!(xs, cfg::<_, &str>([]).names);
+}
+
+#[test]
+fn parse_langs_default() {
+    let xs = ConfigLangMetadata::default();
+    assert_eq!(xs, cfg::<_, &str>([]).langs);
+}
+
+#[test]
+fn parse_names_single_val() {
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.single_val = Some("x".into());
+    assert_eq!(xs, cfg(["--names", "x"]).names);
+}
+
+#[test]
+fn parse_langs_single_val() {
+    let mut xs = ConfigLangMetadata::default();
+    xs.0.single_val = Some(lang!(Eng));
+    assert_eq!(xs, cfg(["--langs", "eng"]).langs);
+}
+
+#[test]
+fn parse_names_idxs() {
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.idxs = Some([(0, "a".into()), (8, "b".into())].into());
+
+    assert_eq!(xs, cfg(["--names", "0:a,8:b"]).names);
+}
+
+#[test]
+fn parse_langs_idxs() {
+    let mut xs = ConfigLangMetadata::default();
+    xs.0.idxs = Some([(0, lang!(Eng)), (8, lang!(Rus))].into());
+
+    assert_eq!(xs, cfg(["--langs", "0:eng,8:rus"]).langs);
+}
+
+#[test]
+fn parse_names_ranges() {
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.ranges = Some(
+        [
+            (range::new("0-1"), "a".into()),
+            (range::new("8-8"), "b".into()),
+        ]
+        .into(),
+    );
+
+    assert_eq!(xs, cfg(["--names", "0-1:a,8-8:b"]).names);
+}
+
+#[test]
+fn parse_langs_ranges() {
+    let mut xs = ConfigLangMetadata::default();
+    xs.0.ranges = Some(
+        [
+            (range::new("0-1"), lang!(Eng)),
+            (range::new("8-8"), lang!(Rus)),
+        ]
+        .into(),
+    );
+
+    assert_eq!(xs, cfg(["--langs", "0-1:eng,8-8:rus"]).langs);
+}
+
+#[test]
+fn parse_names_langs() {
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.langs = Some([(lang!(Eng), "a".into()), (lang!(Rus), "b".into())].into());
+
+    assert_eq!(xs, cfg(["--names", "eng:a,rus:b"]).names);
+}
+
+#[test]
+fn parse_langs_langs() {
+    let mut xs = ConfigLangMetadata::default();
+    xs.0.langs = Some([(lang!(Eng), lang!(Rus)), (lang!(Rus), lang!(Eng))].into());
+
+    assert_eq!(xs, cfg(["--langs", "eng:rus,rus:eng"]).langs);
+}
+
+#[test]
+fn get_default() {
+    let names = ConfigNameMetadata::default();
+    let langs = ConfigLangMetadata::default();
+
+    for (i, lang) in iter_i_lang() {
+        assert_eq!(None, names.get(i, lang));
+        assert_eq!(None, langs.get(i, lang));
+    }
+    for (i, lang) in iter_alt_i_lang() {
+        assert_eq!(None, names.get(i, lang));
+        assert_eq!(None, langs.get(i, lang));
+    }
+}
+
+#[test]
+fn get_single_val() {
+    let x = String::from("x");
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.single_val = Some(x.clone());
+
+    for (i, lang) in iter_i_lang() {
+        assert_eq!(Some(&x), xs.get(i, lang));
+    }
+    for (i, lang) in iter_alt_i_lang() {
+        assert_eq!(Some(&x), xs.get(i, lang));
+    }
+}
+
+#[test]
+fn get_idxs() {
+    let x = String::from("x");
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.idxs = Some(
+        [
+            (0, x.clone()),
+            (1, x.clone()),
+            (8, x.clone()),
+            (!0 - 1, x.clone()),
+        ]
+        .into(),
+    );
+
+    for (i, lang) in iter_i_lang() {
+        assert_eq!(Some(&x), xs.get(i, lang));
+    }
+    for (i, lang) in iter_alt_i_lang() {
+        assert_eq!(None, xs.get(i, lang));
+    }
+}
+
+#[test]
+fn get_ranges() {
+    let x = String::from("x");
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.ranges = Some(vec![
+        (range::new("0-1"), x.clone()),
+        (range::new("8-8"), x.clone()),
+        (range::new(&format!("{}", usize::MAX - 1)), x.clone()),
+    ]);
+
+    for (i, lang) in iter_i_lang() {
+        assert_eq!(Some(&x), xs.get(i, lang));
+    }
+    for (i, lang) in iter_alt_i_lang() {
+        assert_eq!(None, xs.get(i, lang));
+    }
+}
+
+#[test]
+fn get_langs() {
+    let x = String::from("x");
+    let mut xs = ConfigNameMetadata::default();
+    xs.0.langs = Some(
+        [
+            (lang!(Eng), x.clone()),
+            (lang!(Rus), x.clone()),
+            (lang!(Und), x.clone()),
+        ]
+        .into(),
+    );
+
+    for (i, lang) in iter_i_lang() {
+        assert_eq!(Some(&x), xs.get(i, lang));
+    }
+    for (i, lang) in iter_alt_i_lang() {
+        assert_eq!(None, xs.get(i, lang));
+    }
+}
+
+build_test_to_args!(
+    to_args_names, names, "names";
+    vec![],
+    vec!["--names", "x"],
+    vec!["--names", "1:a,2:b,8:c"],
+    vec!["--names", "1-2:a,8-8:c"],
+    vec!["--names", "eng:a,rus:b,und:c"],
+    vec!["--names", "1:a,2-8:b,eng:c"],
+);
+
+build_test_to_args!(
+    to_args_langs, langs, "langs";
+    vec![],
+    vec!["--langs", "eng"],
+    vec!["--langs", "1:eng,2:rus,8:und"],
+    vec!["--langs", "1-2:eng,8-8:rus"],
+    vec!["--langs", "eng:und,rus:eng,und:rus"],
+    vec!["--langs", "1:eng,2-8:rus,eng:und"],
+);

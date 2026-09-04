@@ -1,4 +1,5 @@
 use super::MediaInfo;
+use crate::config::{MarkConfigLangs, MarkConfigNames};
 use crate::{
     ArcPathBuf, IsDefault, Lang, LangCode, Result, Stream, Target, TryFinalizeInit, Value,
     markers::*,
@@ -53,7 +54,7 @@ impl MediaInfo<'_> {
     }
 
     fn get_name(&mut self, src: &Path, ts: &Vec<Target>, stream: &Stream) -> Option<Value<String>> {
-        let (i, names) = self.cfg.stream_val(CfgNames, ts, stream);
+        let (i, names) = self.cfg.stream_val(MarkConfigNames, ts, stream);
 
         if let Some(n) = names.get(&i, &stream.lang) {
             return Some(Value::User(n.clone()));
@@ -84,7 +85,7 @@ impl MediaInfo<'_> {
     }
 
     fn get_lang(&mut self, src: &Path, ts: &Vec<Target>, stream: &Stream) -> Option<Value<Lang>> {
-        let (i, langs) = self.cfg.stream_val(CfgLangs, ts, stream);
+        let (i, langs) = self.cfg.stream_val(MarkConfigLangs, ts, stream);
 
         if let Some(l) = langs.get(&i, &stream.lang) {
             return Some(Value::User(l.clone()));

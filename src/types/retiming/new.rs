@@ -170,7 +170,7 @@ fn i_end_chp(cfg: &Config, cs: &Vec<RetimingChapter>, mut i: usize) -> usize {
     let uid = &cs[i].uid;
     for j in (i + 1)..cs.len() {
         let eq_uid = uid == &cs[j].uid;
-        let save = cfg.retiming_options.is_save_chapter(&cs[j]);
+        let save = cfg.retiming.is_save_chapter(&cs[j]);
 
         if eq_uid && save {
             i = j;
@@ -190,7 +190,7 @@ fn save_then_src(
     base_dir: &Path,
     c: &RetimingChapter,
 ) -> Option<ArcPathBuf> {
-    if !mi.cfg.retiming_options.is_save_chapter(c) {
+    if !mi.cfg.retiming.is_save_chapter(c) {
         return None;
     }
 
@@ -293,7 +293,7 @@ fn try_base(
         }
     }
 
-    if mi.cfg.retiming_options.parts.is_default() {
+    if mi.cfg.retiming.parts.is_default() {
         return Err(MuxError::new_ok());
     }
 

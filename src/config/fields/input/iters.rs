@@ -1,0 +1,220 @@
+use super::{ConfigInput, InputFileType, InputType};
+#[allow(unused_imports)]
+use crate::TryFinalizeInit;
+use crate::{ArcPathBuf, Extension, MediaNumber, i18n::logs, types::helpers};
+use either::Either;
+use globset::GlobSet;
+use std::{
+    collections::HashSet,
+    ffi::OsString,
+    path::{Path, PathBuf},
+};
+use walkdir::{IntoIter, WalkDir};
+
+macro_rules! iter_any_files_in_dir {
+    ($fn:ident, $new_and_is_ty:ident) => {
+        #[doc = concat!("Returns an iterator over `", stringify!($exts), "` files in a directory.")]
+        pub(crate) fn $fn(&self, dir: impl AsRef<Path>) -> impl Iterator<Item = PathBuf> {
+            std::fs::read_dir(dir)
+                .ok()
+                .into_iter()
+                .flat_map(|rd| rd.filter_map(Result::ok))
+                .map(|e| e.path())
+                .filter(|path| {
+                    if path.is_dir() {
+                        return false;
+                    }
+
+                    let ext = some_or!(path.extension(), return false);
+                    if !Extension::$new_and_is_ty(ext.as_encoded_bytes()) {
+                        return false;
+                    }
+
+                    if let Some(pat) = &self.skip {
+                        if pat.glob_set.is_match(path) {
+                            return false;
+                        }
+                    }
+
+                    true
+                })
+        }
+    };
+}
+
+impl ConfigInput {
+    iter_any_files_in_dir!(iter_media_in_dir, new_and_is_media);
+    iter_any_files_in_dir!(iter_fonts_in_dir, new_and_is_font);
+    iter_any_files_in_dir!(iter_matroska_in_dir, new_and_is_matroska);
+
+    /// Collects all font files from the discovered directories.
+    ///
+    /// # Warning
+    ///
+    /// This method assumes [`ConfigInput::try_finalize_init`] was called beforehand.
+    /// If it wasn’t this will simply return an empty vector.
+    ///
+    /// ```
+    /// use clap::Parser;
+    /// use mux_media::Config;
+    ///
+    /// let i = Config::parse_from::<_, &str>([]).input;
+    /// assert!(i.collect_fonts().is_empty());
+    /// ```
+    pub fn collect_fonts(&self) -> Vec<PathBuf> {
+        match &self.ty {
+            InputType::Dir(_) => self.file_dirs[InputFileType::Font]
+                .iter()
+                .flat_map(|dir| self.iter_fonts_in_dir(dir))
+                .collect(),
+            InputType::Files(files) => files
+                .iter()
+                .filter(|f| {
+                    f.is_file()
+                        && f.extension()
+                            .is_some_and(|ext| Extension::new_and_is_font(ext.as_encoded_bytes()))
+                })
+                .cloned()
+                .collect(),
+        }
+    }
+
+    /// Returns an iterator over grouped media files by stem from discovered directories.
+    ///
+    /// # Warning
+    ///
+    /// This method assumes [`ConfigInput::try_finalize_init`] was called beforehand.
+    /// If it wasn’t, the iterator will yield no items.
+    ///
+    /// ```
+    /// use clap::Parser;
+    /// use mux_media::Config;
+    ///
+    /// let i = Config::parse_from::<_, &str>([]).input;
+    /// assert_eq!(None, i.iter_media_grouped_by_stem().next());
+    /// ```
+    pub fn iter_media_grouped_by_stem(&self) -> impl Iterator<Item = MediaGroupedByStem> {
+        match &self.ty {
+            InputType::Dir(dir) => {
+                let mut media_number = self.init_media_number();
+                let mut processed = HashSet::<OsString>::new();
+
+                let it = self.iter_media_in_dir(dir).filter_map(move |path| {
+                    let up_stem = path.file_stem()?;
+
+                    if processed.contains(up_stem) {
+                        logs::debug_found_repeat(up_stem);
+                        return None;
+                    }
+
+                    if let Some(num) = media_number.as_mut() {
+                        num.upd(up_stem);
+
+                        if self
+                            .range
+                            .as_ref()
+                            .map_or(false, |range| !range.contains(&num.to_usize()))
+                        {
+                            logs::debug_media_out_of_range(up_stem);
+                            return None;
+                        }
+                    }
+
+                    let matched: Vec<PathBuf> = self.file_dirs[InputFileType::Media]
+                        .iter()
+                        .flat_map(|dir| self.iter_media_in_dir(dir))
+                        .filter(|p| {
+                            p.file_stem()
+                                .map_or(false, |stem| helpers::os_str_starts_with(up_stem, stem))
+                        })
+                        .collect();
+
+                    if !self.solo && matched.len() < 2 {
+                        logs::warn_no_ext_media(up_stem);
+                        return None;
+                    }
+
+                    processed.insert(up_stem.to_owned());
+
+                    Some(MediaGroupedByStem {
+                        files: matched,
+                        stem: up_stem.to_owned(),
+                    })
+                });
+
+                Either::Left(it)
+            }
+
+            InputType::Files(xs) => {
+                let files: Vec<PathBuf> = xs
+                    .iter()
+                    .filter(|f| {
+                        f.is_file()
+                            && f.extension().is_some_and(|ext| {
+                                Extension::new_and_is_media(ext.as_encoded_bytes())
+                            })
+                    })
+                    .cloned()
+                    .collect();
+
+                let stem = match files[0].file_stem() {
+                    Some(s) => OsString::from(s),
+                    None => OsString::new(),
+                };
+
+                Either::Right(std::iter::once(MediaGroupedByStem { files, stem }))
+            }
+        }
+    }
+
+    #[inline(always)]
+    fn init_media_number(&self) -> Option<MediaNumber> {
+        self.range
+            .is_some()
+            .then(|| self.iter_media_in_dir(self.dir()).skip(1).next())
+            .flatten()
+            .and_then(|path| path.file_stem().map(MediaNumber::from))
+    }
+}
+
+/// A media files that share a common stem.
+#[derive(Debug, PartialEq)]
+pub struct MediaGroupedByStem {
+    pub files: Vec<PathBuf>,
+    pub stem: OsString,
+}
+
+pub(super) struct DirIter<'a> {
+    walker: IntoIter,
+    skip: Option<&'a GlobSet>,
+}
+
+impl<'a> DirIter<'a> {
+    pub fn new(root: &Path, depth: usize, skip: Option<&'a GlobSet>) -> Self {
+        let walker = WalkDir::new(root)
+            .follow_links(false)
+            .max_depth(depth)
+            .into_iter();
+
+        Self { walker, skip }
+    }
+}
+
+impl<'a> Iterator for DirIter<'a> {
+    type Item = ArcPathBuf;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        while let Some(entry) = self.walker.next() {
+            let entry = match entry {
+                Ok(entry) if entry.file_type().is_dir() => entry,
+                _ => continue,
+            };
+            let path = entry.path();
+
+            if !self.skip.is_some_and(|gs| gs.is_match(path)) {
+                return Some(path.into());
+            }
+        }
+        None
+    }
+}

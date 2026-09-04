@@ -1,6 +1,5 @@
 mod audio;
 mod new;
-pub(crate) mod options;
 mod subs;
 mod video;
 

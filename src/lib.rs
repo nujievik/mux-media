@@ -13,6 +13,73 @@ macro_rules! some_or {
     };
 }
 
+macro_rules! deref_singleton_tuple_struct {
+    ($wrapper:ty, $inner:ty) => {
+        impl std::ops::Deref for $wrapper {
+            type Target = $inner;
+
+            fn deref(&self) -> &Self::Target {
+                &self.0
+            }
+        }
+    };
+
+    ($wrapper:ty, $inner:ty, @from_str) => {
+        deref_singleton_tuple_struct!($wrapper, $inner);
+
+        impl std::str::FromStr for $wrapper {
+            type Err = $crate::MuxError;
+
+            fn from_str(s: &str) -> $crate::Result<Self> {
+                s.parse::<$inner>().map(Self).map_err(Into::into)
+            }
+        }
+    };
+}
+
+macro_rules! to_args {
+    ($arg:ident) => {
+        std::ffi::OsString::from($crate::dashed!($arg))
+    };
+
+    (@push_true, $self:ident, $args:ident; $( $field:ident, $arg:ident ),*) => {{
+        $(
+            if $self.$field {
+                $args.push(to_args!($arg));
+            }
+        )*
+    }};
+
+    (@get_values, $self:expr) => {{
+        let mut map = std::collections::BTreeSet::<String>::new();
+
+        if let Some(xs) = $self.idxs.as_ref() {
+            xs.iter().for_each(|(k, v)| {
+                map.insert(format!("{}:{}", k, v));
+            });
+        }
+
+        if let Some(xs) = $self.ranges.as_ref() {
+            xs.iter().for_each(|(k, v)| {
+                map.insert(format!("{}:{}", k, v));
+            });
+        }
+
+        if let Some(xs) = $self.langs.as_ref() {
+            xs.iter().for_each(|(k, v)| {
+                map.insert(format!("{}:{}", k, v));
+            });
+        }
+
+        if map.is_empty() {
+            $self.single_val.as_ref().map(|v| v.to_string())
+        } else {
+            Some(map.into_iter().collect::<Vec<_>>().join(","))
+        }
+    }};
+}
+
+pub mod config;
 mod functions;
 mod i18n;
 /// Field markers for [`Config`] and [`MediaInfo`].
@@ -28,6 +95,8 @@ pub use functions::{ensure_long_path_prefix, ensure_trailing_sep, mux};
 pub use i18n::Msg;
 pub use run::run;
 
+pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
+
 pub use traits::{
     Field, ToTxtConfig, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},
@@ -35,34 +104,24 @@ pub use traits::{
 
 pub use types::{
     arc_path_buf::ArcPathBuf,
-    auto_flags::AutoFlags,
-    chapters::Chapters,
     char_encoding::CharEncoding,
     cli_arg::CliArg,
     codec_id::CodecId,
-    config::{Config, ConfigTarget},
-    dispositions::{DefaultDispositions, Dispositions, ForcedDispositions, ty::DispositionType},
     duration::Duration,
     extension::Extension,
     globset_pattern::GlobSetPattern,
-    input::{Input, InputFileType, iters::MediaGroupedByStem},
     lang::{Lang, LangCode},
-    log_level::LogLevel,
     media_info::{
         MediaInfo,
         cache::{CacheMI, CacheMIOfFile, CacheMIOfGroup, CacheState},
     },
     media_number::MediaNumber,
-    metadata::{LangMetadata, Metadata, NameMetadata},
     mux_error::MuxError,
     mux_logger::MuxLogger,
-    output::Output,
     range::RangeUsize,
-    retiming::options::{RetimingOptions, RetimingOptionsParts},
     stream::{
         Stream,
         order::{StreamsOrder, StreamsOrderItem},
-        streams::Streams,
         ty::StreamType,
     },
     target::Target,
@@ -74,9 +133,9 @@ static VERSION: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VER
 use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;
 
+use config::MediaGroupedByStem;
 use functions::add_copy_stream;
 use types::{
     helpers,
-    input::InputType,
     retiming::{RetimedStream, Retiming, RetimingChapter},
 };
