@@ -47,14 +47,14 @@ Run `mux-media -h` to display help.
 | I/O options:                 | |
 | `-i, --input <path>` | Set input file OR directory with files |
 | `-o, --output <dir>` | Save muxed files to directory |
-| `-r, --range <n[-m]>` | Number range of media-files |
-| `--skip <n[,m]...>` | Patterns of files to skip | 
+| `-r, --range <n[-m]>` | Mux files with filename in-range only |
+| `--skip <n[,m]...>` | Set patterns of filepaths to skip | 
 | `--depth <n>` | Scan subdirectories up to this depth |
-| `--solo` | Process media without external tracks |
+| `--solo` | Mux orphan files too |
 | | |
 | Global options: | |
-| `-l, --locale <lng>` | Locale language (for logging and sort) |
-| `-j, --jobs <n>` | Max parallel muxing |
+| `-l, --locale <lng>` | Set log language |
+| `-j, --jobs <n>` | Set max parallel muxing |
 | `-v, --verbose...` | Increase logging |
 | `-q, --quiet` | Suppress logging |
 | `-e, --exit-on-err` | Skip muxing next files if error occurs |
@@ -103,9 +103,9 @@ Run `mux-media -h` to display help.
 | `-V, --version` | Show version |
 | `-h, --help` | Show help |
 
-Alternative CLI, you can configure a [config file](
-https://github.com/nujievik/mux-media/blob/main/.mux-media/config.txt) in a
-.mux-media subdirectory in a media directory.
+Alternatively, you can create a [config file](
+https://github.com/nujievik/mux-media/blob/main/.mux-media/config.txt)
+in the .mux-media subdirectory of your media directory.
 
 
 ## Alternative GUI Utilities

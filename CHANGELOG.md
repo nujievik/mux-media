@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-09-04
+
+### Added
+- Set Input as file list.
+
+### Changed
+- API.
+- Disable write --save-config flag to config: its disable rewrite config without explicit --save-config.
+- Log messages.
+- Move config file to .mux-media/config.txt.
+- Output config to directory only.
+- Rename --names args to --titles to match ffmpeg metadata fields.
+- Rename --pro to --no-auto to match --no-auto-langs and other args.
+- Set disposition default,forced for attach and font to 0 by default.
+
+### Fixed
+- Write retiming options to config file.
+
 
 ## [0.16.7] - 2026-08-30
 
