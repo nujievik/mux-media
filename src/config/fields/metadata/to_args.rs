@@ -13,5 +13,5 @@ macro_rules! to_args_impl {
     };
 }
 
-to_args_impl!(ConfigNameMetadata, Names);
+to_args_impl!(ConfigTitleMetadata, Titles);
 to_args_impl!(ConfigLangMetadata, Langs);

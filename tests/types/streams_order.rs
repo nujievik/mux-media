@@ -54,16 +54,16 @@ fn test_forceds_order() {
 
 #[test]
 fn test_it_signs_order() {
-    body_test_order(&["--names", "0:signs", "--locale", "eng"], [0, 1, 2]);
-    body_test_order(&["--names", "1:signs", "--locale", "eng"], [1, 2, 0]);
-    body_test_order(&["--names", "2:signs", "--locale", "eng"], [2, 1, 0]);
+    body_test_order(&["--titles", "0:signs", "--locale", "eng"], [0, 1, 2]);
+    body_test_order(&["--titles", "1:signs", "--locale", "eng"], [1, 2, 0]);
+    body_test_order(&["--titles", "2:signs", "--locale", "eng"], [2, 1, 0]);
 
-    body_test_order(&["--names", "0:x надписи", "--locale", "eng"], [0, 1, 2]);
-    body_test_order(&["--names", "1:ab надписи", "--locale", "eng"], [1, 2, 0]);
-    body_test_order(&["--names", "2:cde_надписи", "--locale", "eng"], [2, 1, 0]);
+    body_test_order(&["--titles", "0:x надписи", "--locale", "eng"], [0, 1, 2]);
+    body_test_order(&["--titles", "1:ab надписи", "--locale", "eng"], [1, 2, 0]);
+    body_test_order(&["--titles", "2:cde_надписи", "--locale", "eng"], [2, 1, 0]);
 
-    body_test_order(&["--names", "0:SIGns", "--locale", "eng"], [0, 1, 2]);
-    body_test_order(&["--names", "0:НаДпИси", "--locale", "eng"], [0, 1, 2]);
+    body_test_order(&["--titles", "0:SIGns", "--locale", "eng"], [0, 1, 2]);
+    body_test_order(&["--titles", "0:НаДпИси", "--locale", "eng"], [0, 1, 2]);
 }
 
 #[test]

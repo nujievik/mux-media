@@ -17,7 +17,7 @@ PATH/TO/OUTPUT/DIRECTORY
 --no-auto
 --auto-defaults
 --auto-forceds
---auto-names
+--auto-titles
 --auto-langs
 --auto-encs
 --target
@@ -37,7 +37,7 @@ global
 1
 --max-forceds
 0
---names
+--titles
 0:your cool name,1-10:could be here
 --langs
 0:eng,1:jpn

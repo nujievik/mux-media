@@ -68,5 +68,5 @@ macro_rules! from_str_impl {
     };
 }
 
-from_str_impl!(ConfigNameMetadata, String);
+from_str_impl!(ConfigTitleMetadata, String);
 from_str_impl!(ConfigLangMetadata, Lang);

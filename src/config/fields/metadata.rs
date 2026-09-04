@@ -10,7 +10,7 @@ use std::{
 
 /// A `title` metadata configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
-pub struct ConfigNameMetadata(pub ConfigMetadata<String>);
+pub struct ConfigTitleMetadata(pub ConfigMetadata<String>);
 
 /// A `language` metadata configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
@@ -28,5 +28,5 @@ where
     pub langs: Option<HashMap<Lang, T>>,
 }
 
-deref_singleton_tuple_struct!(ConfigNameMetadata, ConfigMetadata<String>);
+deref_singleton_tuple_struct!(ConfigTitleMetadata, ConfigMetadata<String>);
 deref_singleton_tuple_struct!(ConfigLangMetadata, ConfigMetadata<Lang>);

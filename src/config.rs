@@ -3,14 +3,14 @@ pub(crate) mod new;
 mod to_args;
 
 pub use fields::{
-    MarkConfigChapters, MarkConfigDefaults, MarkConfigForceds, MarkConfigLangs, MarkConfigNames,
-    MarkConfigStreams,
+    MarkConfigChapters, MarkConfigDefaults, MarkConfigForceds, MarkConfigLangMetadata,
+    MarkConfigStreams, MarkConfigTitleMetadata,
     auto_flags::ConfigAutoFlags,
     chapters::ConfigChapters,
     dispositions::ConfigDispositions,
     input::ConfigInput,
     log_level::ConfigLogLevel,
-    metadata::{ConfigLangMetadata, ConfigMetadata, ConfigNameMetadata},
+    metadata::{ConfigLangMetadata, ConfigMetadata, ConfigTitleMetadata},
     output::ConfigOutput,
     retiming::{ConfigRetiming, ConfigRetimingParts},
     streams::ConfigStreams,
@@ -44,7 +44,7 @@ pub struct Config {
     pub chapters: ConfigChapters,
     pub defaults: ConfigDispositions,
     pub forceds: ConfigDispositions,
-    pub names: ConfigNameMetadata,
+    pub titles: ConfigTitleMetadata,
     pub langs: ConfigLangMetadata,
     pub retiming: ConfigRetiming,
     pub targets: Option<HashMap<Target, ConfigTarget>>,
@@ -59,7 +59,7 @@ pub struct ConfigTarget {
     pub chapters: Option<ConfigChapters>,
     pub defaults: Option<ConfigDispositions>,
     pub forceds: Option<ConfigDispositions>,
-    pub names: Option<ConfigNameMetadata>,
+    pub titles: Option<ConfigTitleMetadata>,
     pub langs: Option<ConfigLangMetadata>,
 }
 

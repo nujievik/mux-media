@@ -9,8 +9,8 @@ pub(crate) mod retiming;
 pub(crate) mod streams;
 
 use super::{
-    Config, ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigNameMetadata,
-    ConfigStreams, ConfigTarget,
+    Config, ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigTarget,
+    ConfigTitleMetadata,
 };
 use crate::{DispositionType, Field, Stream, Target};
 use std::path::Path;
@@ -148,6 +148,6 @@ fields! {
     chapters, ConfigChapters => MarkConfigChapters,
     defaults, ConfigDispositions => MarkConfigDefaults,
     forceds, ConfigDispositions => MarkConfigForceds,
-    names, ConfigNameMetadata => MarkConfigNames,
-    langs, ConfigLangMetadata => MarkConfigLangs,
+    titles, ConfigTitleMetadata => MarkConfigTitleMetadata,
+    langs, ConfigLangMetadata => MarkConfigLangMetadata,
 }

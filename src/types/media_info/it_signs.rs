@@ -7,7 +7,7 @@ impl MediaInfo<'_> {
             return false;
         }
 
-        return parse(stream.name.as_ref().map(|v| &**v))
+        return parse(stream.title.as_ref().map(|v| &**v))
             || parse(self.get(MIPathTail, src))
             || parse(self.get(MIRelativeUpmost, src));
 

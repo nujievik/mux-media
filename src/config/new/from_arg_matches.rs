@@ -1,6 +1,6 @@
 use super::super::{
     Config, ConfigAutoFlags, ConfigChapters, ConfigDispositions, ConfigInput, ConfigLangMetadata,
-    ConfigLogLevel, ConfigNameMetadata, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigTarget,
+    ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigTarget, ConfigTitleMetadata,
     InputType,
 };
 use crate::{
@@ -182,7 +182,7 @@ impl FromArgMatches for Config {
                 chapters: get_chapters(m).unwrap_or_else(|| ConfigChapters::default()),
                 defaults: dispositions!(m, Defaults, MaxDefaults),
                 forceds: dispositions!(m, Forceds, MaxForceds),
-                names: rm_or!(m, Names, ConfigNameMetadata, ConfigNameMetadata::default),
+                titles: rm_or!(m, Titles, ConfigTitleMetadata, ConfigTitleMetadata::default),
                 langs: rm_or!(m, Langs, ConfigLangMetadata, ConfigLangMetadata::default),
                 retiming: retiming(m),
                 targets: targets(m),
@@ -210,7 +210,7 @@ impl FromArgMatches for Config {
 
             new.defaults = val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), no_auto);
             new.forceds = val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), no_auto);
-            new.names = val(flag!(m, AutoNames), flag!(m, NoAutoNames), no_auto);
+            new.titles = val(flag!(m, AutoTitles), flag!(m, NoAutoTitles), no_auto);
             new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), no_auto);
             new.encs = val(flag!(m, AutoEncs), flag!(m, NoAutoEncs), no_auto);
 
@@ -385,10 +385,10 @@ impl FromArgMatches for Config {
             );
 
             upd(
-                flag!(m, AutoNames),
-                flag!(m, NoAutoNames),
+                flag!(m, AutoTitles),
+                flag!(m, NoAutoTitles),
                 no_auto,
-                &mut auto.names,
+                &mut auto.titles,
             );
             upd(
                 flag!(m, AutoLangs),
@@ -571,7 +571,7 @@ impl FromArgMatches for ConfigTarget {
             chapters: get_chapters(m),
             defaults: get_dispositions!(m, Defaults, MaxDefaults),
             forceds: get_dispositions!(m, Forceds, MaxForceds),
-            names: rm!(m, Names, ConfigNameMetadata),
+            titles: rm!(m, Titles, ConfigTitleMetadata),
             langs: rm!(m, Langs, ConfigLangMetadata),
         })
     }
@@ -583,7 +583,7 @@ impl FromArgMatches for ConfigTarget {
         trg_upd_dispositions!(self.defaults, m, Defaults, MaxDefaults);
         trg_upd_dispositions!(self.forceds, m, Forceds, MaxForceds);
 
-        upd!(self.names, m, Names, ConfigNameMetadata, @opt);
+        upd!(self.titles, m, Titles, ConfigTitleMetadata, @opt);
         upd!(self.langs, m, Langs, ConfigLangMetadata, @opt);
 
         return Ok(());

@@ -21,7 +21,7 @@ pub struct Stream {
     pub lang: Value<Lang>,
 
     /// Metadata `title`.
-    pub name: Option<Value<String>>,
+    pub title: Option<Value<String>>,
 
     /// Metadata `filename`.
     pub filename: Option<String>,

@@ -21,7 +21,7 @@ impl MediaInfo<'_> {
                     .get("language")
                     .map(|v| Lang::new(v))
                     .unwrap_or_default();
-                let name = meta.get("title").map(|v| Value::Auto(v.to_owned()));
+                let title = meta.get("title").map(|v| Value::Auto(v.to_owned()));
                 let filename = meta.get("filename").map(|s| s.to_owned());
 
                 let params = stream.parameters();
@@ -50,7 +50,7 @@ impl MediaInfo<'_> {
                     i_ty,
                     codec,
                     lang: Value::Auto(lang),
-                    name,
+                    title,
                     filename,
                 }
             })

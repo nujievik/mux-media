@@ -1,5 +1,5 @@
 use super::Blocks;
-use crate::config::{ConfigDispositions, ConfigLangMetadata, ConfigNameMetadata, ConfigStreams};
+use crate::config::{ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigTitleMetadata};
 use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
@@ -75,11 +75,11 @@ impl Blocks {
                     .value_parser(clap::value_parser!(usize)),
             )
             .arg(
-                Arg::new(undashed!(Names))
-                    .long(undashed!(Names))
+                Arg::new(undashed!(Titles))
+                    .long(undashed!(Titles))
                     .value_name("[n:]N[,m:N]...")
-                    .help(Msg::HelpNames.as_str_localized())
-                    .value_parser(ValueParser::new(ConfigNameMetadata::from_str)),
+                    .help(Msg::HelpTitles.as_str_localized())
+                    .value_parser(ValueParser::new(ConfigTitleMetadata::from_str)),
             )
             .arg(
                 Arg::new(undashed!(Langs))

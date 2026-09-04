@@ -260,31 +260,31 @@ fn test_relative_upmost() {
 }
 
 #[test]
-fn test_stream_name() {
+fn test_stream_title() {
     let mut mi = new();
 
     [
-        ("a", "name/a_name.mks", ""),
-        ("bc", "name/bc_name.mks", ""),
-        ("abc", "name/begin.abc.mks", "begin"),
-        ("tail", "name/begin.tail.mks", "begin"),
-        ("abc", "name/begin  .abc ..mks", "begin"),
-        ("abc", "name/other_begin.abc.mks", "other_begin"),
-        ("a", "name/from_parent/a/begin.mks", "begin"),
-        ("bc", "name/from_parent/bc/begin.mks", "begin"),
+        ("a", "title/a_title.mks", ""),
+        ("bc", "title/bc_title.mks", ""),
+        ("abc", "title/begin.abc.mks", "begin"),
+        ("tail", "title/begin.tail.mks", "begin"),
+        ("abc", "title/begin  .abc ..mks", "begin"),
+        ("abc", "title/other_begin.abc.mks", "other_begin"),
+        ("a", "title/from_parent/a/begin.mks", "begin"),
+        ("bc", "title/from_parent/bc/begin.mks", "begin"),
     ]
     .into_iter()
-    .for_each(|(name, f, cmn_stem)| {
+    .for_each(|(title, f, cmn_stem)| {
         let f = data(f);
         mi.clear();
         mi.try_insert(&f).unwrap();
         mi.set_cmn(MICmnStem, cmn_stem.into());
         mi.try_finalize_init_streams().unwrap();
 
-        let exp = String::from(name);
+        let exp = String::from(title);
         assert_eq!(
             Some(&exp),
-            mi.try_get(MIStreams, &f).unwrap()[0].name.as_deref()
+            mi.try_get(MIStreams, &f).unwrap()[0].title.as_deref()
         );
     })
 }

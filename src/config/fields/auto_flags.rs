@@ -9,7 +9,7 @@ pub struct ConfigAutoFlags {
     pub no_auto: bool,
     pub defaults: Value<bool>,
     pub forceds: Value<bool>,
-    pub names: Value<bool>,
+    pub titles: Value<bool>,
     pub langs: Value<bool>,
     pub encs: Value<bool>,
 }
@@ -26,7 +26,7 @@ impl Default for ConfigAutoFlags {
             no_auto: false,
             defaults: Value::Auto(true),
             forceds: Value::Auto(true),
-            names: Value::Auto(true),
+            titles: Value::Auto(true),
             langs: Value::Auto(true),
             encs: Value::Auto(true),
         }
@@ -37,7 +37,7 @@ impl IsDefault for ConfigAutoFlags {
         matches!(self.no_auto, false)
             && matches!(self.defaults, Value::Auto(true))
             && matches!(self.forceds, Value::Auto(true))
-            && matches!(self.names, Value::Auto(true))
+            && matches!(self.titles, Value::Auto(true))
             && matches!(self.langs, Value::Auto(true))
             && matches!(self.encs, Value::Auto(true))
     }
@@ -65,7 +65,7 @@ impl ToTxtConfig for ConfigAutoFlags {
             args;
             self.defaults, AutoDefaults, NoAutoDefaults,
             self.forceds, AutoForceds, NoAutoForceds,
-            self.names, AutoNames, NoAutoNames,
+            self.titles, AutoTitles, NoAutoTitles,
             self.langs, AutoLangs, NoAutoLangs,
             self.encs, AutoEncs, NoAutoEncs
         );

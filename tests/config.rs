@@ -66,7 +66,7 @@ fn parse_empty_args() {
     assert_eq!(&e.streams, &Default::default());
     assert_eq!(&e.defaults, &Default::default());
     assert_eq!(&e.forceds, &Default::default());
-    assert_eq!(&e.names, &Default::default());
+    assert_eq!(&e.titles, &Default::default());
     assert_eq!(&e.langs, &Default::default());
     assert_eq!(&e.retiming, &Default::default());
     assert_eq!(&e.targets, &Default::default());
@@ -220,12 +220,12 @@ fn parse_dispositions() {
 }
 
 #[test]
-fn parse_names() {
+fn parse_titles() {
     let xs = ConfigMetadata {
         single_val: Some(String::from("x")),
         ..Default::default()
     };
-    test_parse!(["--names", "x"], names, ConfigNameMetadata(xs));
+    test_parse!(["--titles", "x"], titles, ConfigTitleMetadata(xs));
 }
 
 #[test]

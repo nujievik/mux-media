@@ -1,9 +1,9 @@
 use super::*;
 
 #[test]
-fn parse_names_default() {
-    let xs = ConfigNameMetadata::default();
-    assert_eq!(xs, cfg::<_, &str>([]).names);
+fn parse_titles_default() {
+    let xs = ConfigTitleMetadata::default();
+    assert_eq!(xs, cfg::<_, &str>([]).titles);
 }
 
 #[test]
@@ -13,10 +13,10 @@ fn parse_langs_default() {
 }
 
 #[test]
-fn parse_names_single_val() {
-    let mut xs = ConfigNameMetadata::default();
+fn parse_titles_single_val() {
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.single_val = Some("x".into());
-    assert_eq!(xs, cfg(["--names", "x"]).names);
+    assert_eq!(xs, cfg(["--titles", "x"]).titles);
 }
 
 #[test]
@@ -27,11 +27,11 @@ fn parse_langs_single_val() {
 }
 
 #[test]
-fn parse_names_idxs() {
-    let mut xs = ConfigNameMetadata::default();
+fn parse_titles_idxs() {
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.idxs = Some([(0, "a".into()), (8, "b".into())].into());
 
-    assert_eq!(xs, cfg(["--names", "0:a,8:b"]).names);
+    assert_eq!(xs, cfg(["--titles", "0:a,8:b"]).titles);
 }
 
 #[test]
@@ -43,8 +43,8 @@ fn parse_langs_idxs() {
 }
 
 #[test]
-fn parse_names_ranges() {
-    let mut xs = ConfigNameMetadata::default();
+fn parse_titles_ranges() {
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.ranges = Some(
         [
             (range::new("0-1"), "a".into()),
@@ -53,7 +53,7 @@ fn parse_names_ranges() {
         .into(),
     );
 
-    assert_eq!(xs, cfg(["--names", "0-1:a,8-8:b"]).names);
+    assert_eq!(xs, cfg(["--titles", "0-1:a,8-8:b"]).titles);
 }
 
 #[test]
@@ -71,11 +71,11 @@ fn parse_langs_ranges() {
 }
 
 #[test]
-fn parse_names_langs() {
-    let mut xs = ConfigNameMetadata::default();
+fn parse_titles_langs() {
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.langs = Some([(lang!(Eng), "a".into()), (lang!(Rus), "b".into())].into());
 
-    assert_eq!(xs, cfg(["--names", "eng:a,rus:b"]).names);
+    assert_eq!(xs, cfg(["--titles", "eng:a,rus:b"]).titles);
 }
 
 #[test]
@@ -88,15 +88,15 @@ fn parse_langs_langs() {
 
 #[test]
 fn get_default() {
-    let names = ConfigNameMetadata::default();
+    let titles = ConfigTitleMetadata::default();
     let langs = ConfigLangMetadata::default();
 
     for (i, lang) in iter_i_lang() {
-        assert_eq!(None, names.get(i, lang));
+        assert_eq!(None, titles.get(i, lang));
         assert_eq!(None, langs.get(i, lang));
     }
     for (i, lang) in iter_alt_i_lang() {
-        assert_eq!(None, names.get(i, lang));
+        assert_eq!(None, titles.get(i, lang));
         assert_eq!(None, langs.get(i, lang));
     }
 }
@@ -104,7 +104,7 @@ fn get_default() {
 #[test]
 fn get_single_val() {
     let x = String::from("x");
-    let mut xs = ConfigNameMetadata::default();
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.single_val = Some(x.clone());
 
     for (i, lang) in iter_i_lang() {
@@ -118,7 +118,7 @@ fn get_single_val() {
 #[test]
 fn get_idxs() {
     let x = String::from("x");
-    let mut xs = ConfigNameMetadata::default();
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.idxs = Some(
         [
             (0, x.clone()),
@@ -140,7 +140,7 @@ fn get_idxs() {
 #[test]
 fn get_ranges() {
     let x = String::from("x");
-    let mut xs = ConfigNameMetadata::default();
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.ranges = Some(vec![
         (range::new("0-1"), x.clone()),
         (range::new("8-8"), x.clone()),
@@ -158,7 +158,7 @@ fn get_ranges() {
 #[test]
 fn get_langs() {
     let x = String::from("x");
-    let mut xs = ConfigNameMetadata::default();
+    let mut xs = ConfigTitleMetadata::default();
     xs.0.langs = Some(
         [
             (lang!(Eng), x.clone()),
@@ -177,13 +177,13 @@ fn get_langs() {
 }
 
 build_test_to_args!(
-    to_args_names, names, "names";
+    to_args_titles, titles, "titles";
     vec![],
-    vec!["--names", "x"],
-    vec!["--names", "1:a,2:b,8:c"],
-    vec!["--names", "1-2:a,8-8:c"],
-    vec!["--names", "eng:a,rus:b,und:c"],
-    vec!["--names", "1:a,2-8:b,eng:c"],
+    vec!["--titles", "x"],
+    vec!["--titles", "1:a,2:b,8:c"],
+    vec!["--titles", "1-2:a,8-8:c"],
+    vec!["--titles", "eng:a,rus:b,und:c"],
+    vec!["--titles", "1:a,2-8:b,eng:c"],
 );
 
 build_test_to_args!(

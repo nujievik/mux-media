@@ -123,7 +123,7 @@ use std::path::{Path, PathBuf};
 ///     assert_eq!(&o[1].src(), &first);
 ///     ```
 ///
-/// 4. It `Sub` stream and has an signs-key in stream name or Path:
+/// 4. It `Sub` stream and has an signs-key in stream title or Path:
 ///     - true
 ///     - false
 ///
@@ -147,7 +147,7 @@ use std::path::{Path, PathBuf};
 ///     # let second = dir.join("2.srt");
 ///     #
 ///     # let p: fn(&str) -> &Path = Path::new;
-///     let args = [p("-i"), &dir, p("--target"), &second, p("--names"), p("has key signs")];
+///     let args = [p("-i"), &dir, p("--target"), &second, p("--titles"), p("has key signs")];
 ///     # let cfg = Config::parse_from(args);
 ///     #
 ///     # let mut mi = MediaInfo::new(&cfg, 0);

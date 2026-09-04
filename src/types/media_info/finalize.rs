@@ -1,5 +1,5 @@
 use super::MediaInfo;
-use crate::config::{MarkConfigLangs, MarkConfigNames};
+use crate::config::{MarkConfigLangMetadata, MarkConfigTitleMetadata};
 use crate::{
     ArcPathBuf, IsDefault, Lang, LangCode, Result, Stream, Target, TryFinalizeInit, Value,
     markers::*,
@@ -39,8 +39,8 @@ impl MediaInfo<'_> {
         let ts = self.try_take(MITargetPaths, src)?;
 
         for stream in streams.iter_mut() {
-            if let Some(n) = self.get_name(src, &ts, stream) {
-                stream.name = Some(n);
+            if let Some(n) = self.get_title(src, &ts, stream) {
+                stream.title = Some(n);
             }
             if let Some(l) = self.get_lang(src, &ts, stream) {
                 stream.lang = l;
@@ -53,14 +53,19 @@ impl MediaInfo<'_> {
         Ok(())
     }
 
-    fn get_name(&mut self, src: &Path, ts: &Vec<Target>, stream: &Stream) -> Option<Value<String>> {
-        let (i, names) = self.cfg.stream_val(MarkConfigNames, ts, stream);
+    fn get_title(
+        &mut self,
+        src: &Path,
+        ts: &Vec<Target>,
+        stream: &Stream,
+    ) -> Option<Value<String>> {
+        let (i, titles) = self.cfg.stream_val(MarkConfigTitleMetadata, ts, stream);
 
-        if let Some(n) = names.get(&i, &stream.lang) {
+        if let Some(n) = titles.get(&i, &stream.lang) {
             return Some(Value::User(n.clone()));
         }
 
-        if stream.name.as_ref().is_some_and(|n| !n.is_empty()) || !*self.cfg.auto_flags.names {
+        if stream.title.as_ref().is_some_and(|n| !n.is_empty()) || !*self.cfg.auto_flags.titles {
             return None;
         }
 
@@ -85,7 +90,7 @@ impl MediaInfo<'_> {
     }
 
     fn get_lang(&mut self, src: &Path, ts: &Vec<Target>, stream: &Stream) -> Option<Value<Lang>> {
-        let (i, langs) = self.cfg.stream_val(MarkConfigLangs, ts, stream);
+        let (i, langs) = self.cfg.stream_val(MarkConfigLangMetadata, ts, stream);
 
         if let Some(l) = langs.get(&i, &stream.lang) {
             return Some(Value::User(l.clone()));
@@ -101,7 +106,7 @@ impl MediaInfo<'_> {
                 .filter(|c| !c.is_default())
         };
 
-        parse(stream.name.as_ref().map(|v| &**v))
+        parse(stream.title.as_ref().map(|v| &**v))
             .or_else(|| parse(self.get(MIPathTail, src)))
             .or_else(|| parse(self.get(MIRelativeUpmost, src)))
             .map(|code| Value::Auto(Lang::Code(code)))

@@ -86,7 +86,7 @@ impl ToTxtConfig for Config {
 
         append_args_from_fields!(
             self, args;
-            names,
+            titles,
             langs,
             retiming,
         );
@@ -144,7 +144,7 @@ impl ToTxtConfig for ConfigTarget {
 
         append_args_from_opt_fields!(
             self, args;
-            names,
+            titles,
             langs,
         );
     }
