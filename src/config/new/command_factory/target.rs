@@ -14,7 +14,7 @@ impl Blocks {
                     .short('t')
                     .long(undashed!(Target))
                     .value_name("trg")
-                    .help(Msg::HelpTargetHelp.as_str_localized())
+                    .help(Msg::HelpTarget.as_str_localized())
                     .trailing_var_arg(true)
                     .allow_hyphen_values(true)
                     .num_args(1..),

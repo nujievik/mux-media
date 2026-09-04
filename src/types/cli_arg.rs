@@ -32,6 +32,7 @@ enum_cli_arg! {
     Skip => "skip",
     Depth => "depth",
     Solo => "solo",
+
     Locale => "locale",
     Jobs => "jobs",
     Verbose => "verbose",
@@ -39,6 +40,7 @@ enum_cli_arg! {
     ExitOnErr => "exit-on-err",
     Load => "load",
     SaveConfig => "save-config",
+
     NoAuto => "no-auto",
     HelpAutoDefaults => "auto-defaults / --no-auto-defaults",
     AutoDefaults => "auto-defaults",
@@ -55,10 +57,7 @@ enum_cli_arg! {
     HelpAutoEncs => "auto-encs / --no-auto-encs",
     AutoEncs => "auto-encs",
     NoAutoEncs => "no-auto-encs",
-    Target => "target",
-    ListTargets => "list-targets",
-    Streams => "streams",
-    NoStreams => "no-streams",
+
     Audio => "audio",
     NoAudio => "no-audio",
     Subs => "subs",
@@ -69,6 +68,11 @@ enum_cli_arg! {
     NoFonts => "no-fonts",
     Attachs => "attachs",
     NoAttachs => "no-attachs",
+
+    Target => "target",
+    ListTargets => "list-targets",
+    Streams => "streams",
+    NoStreams => "no-streams",
     Chapters => "chapters",
     NoChapters => "no-chapters",
     Defaults => "defaults",
@@ -77,8 +81,10 @@ enum_cli_arg! {
     MaxForceds => "max-forceds",
     Titles => "titles",
     Langs => "langs",
+
     Parts => "parts",
     NoLinked => "no-linked",
+
     ListLangs => "list-langs",
     Version => "version",
     Help => "help",
