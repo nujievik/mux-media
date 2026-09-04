@@ -1,7 +1,5 @@
-use crate::{
-    ArcPathBuf, CacheMIOfFile, Config, MediaGroupedByStem, MediaInfo, MuxError, Result, i18n::logs,
-    markers::MICmnStem,
-};
+use crate::media_info::{MarkMediaInfoStem, MediaInfoCacheOfFile};
+use crate::{ArcPathBuf, Config, MediaGroupedByStem, MediaInfo, MuxError, Result, i18n::logs};
 use log::error;
 use std::{
     ffi::OsString,
@@ -11,7 +9,7 @@ use std::{
 
 pub fn mux_current_files(
     cfg: &Config,
-    fonts: Option<&(ArcPathBuf, CacheMIOfFile)>,
+    fonts: Option<&(ArcPathBuf, MediaInfoCacheOfFile)>,
     cnt: &Mutex<usize>,
     mi: &mut MediaInfo<'_>,
     m: MediaGroupedByStem,
@@ -39,7 +37,7 @@ pub fn mux_current_files(
 }
 
 fn init_current_files(
-    fonts: Option<&(ArcPathBuf, CacheMIOfFile)>,
+    fonts: Option<&(ArcPathBuf, MediaInfoCacheOfFile)>,
     mi: &mut MediaInfo,
     stem: OsString,
     files: Vec<PathBuf>,
@@ -50,7 +48,7 @@ fn init_current_files(
         return MuxCurrent::Continue;
     }
 
-    mi.set_cmn(MICmnStem, stem);
+    mi.set_cmn(MarkMediaInfoStem, stem);
 
     if let Err(e) = mi
         .try_insert_many(files)

@@ -2,9 +2,10 @@ mod cache;
 mod external_segments;
 
 use super::{Retiming, RetimingChapter, RetimingPart};
+use crate::media_info::*;
 use crate::{
     ArcPathBuf, Config, Duration, MediaInfo, MuxError, Result, StreamType, StreamsOrder, ffmpeg,
-    markers::*, types::helpers,
+    types::helpers,
 };
 use cache::CacheMatroska;
 use external_segments::find_external_segment;
@@ -81,7 +82,7 @@ fn try_times(
 ) -> Result<(Duration, f64, Duration, f64)> {
     const ACCEPT_VIDEO_OFFSET: f64 = 10.0; // seconds
 
-    let duration = *mi.try_get(MIVideoDuration, src)?;
+    let duration = *mi.try_get(MarkMediaInfoVideoDuration, src)?;
     let zero_start_offset = start.as_secs_f64();
     let end_offset = duration.as_secs_f64() - end.as_secs_f64();
 
@@ -246,9 +247,9 @@ fn try_chapters(
             let duration = match uid {
                 Some(u) => {
                     let src = find_external_segment(mi, cache, base_dir, u)?;
-                    *mi.try_get(MIPlayableDuration, &src)?
+                    *mi.try_get(MarkMediaInfoPlayableDuration, &src)?
                 }
-                None => *mi.try_get(MIPlayableDuration, &base)?,
+                None => *mi.try_get(MarkMediaInfoPlayableDuration, &base)?,
             };
             push(c, c.time_start.into(), duration);
         }

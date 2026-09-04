@@ -2,7 +2,9 @@ use crate::ffmpeg::{
     self,
     format::{self, context},
 };
-use crate::{Config, MediaInfo, Result, StreamsOrderItem, markers::MISubCharEncoding};
+use crate::{
+    Config, MediaInfo, Result, StreamsOrderItem, media_info::MarkMediaInfoSubCharEncoding,
+};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use log::{debug, warn};
@@ -46,7 +48,7 @@ fn new_ictx(mi: &mut MediaInfo, ord: &StreamsOrderItem) -> Result<context::Input
 
 fn get_sub_charenc<'a>(mi: &'a mut MediaInfo, src: &Path) -> Option<&'a str> {
     if *mi.cfg.auto_flags.encs {
-        mi.get(MISubCharEncoding, src)
+        mi.get(MarkMediaInfoSubCharEncoding, src)
             .and_then(|enc| enc.get_ffmpeg_sub_charenc())
     } else {
         None

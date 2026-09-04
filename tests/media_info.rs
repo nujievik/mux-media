@@ -1,8 +1,10 @@
+mod common;
+
 #[path = "media_info/durations.rs"]
 mod durations;
 
-use crate::{common::*, *};
-use mux_media::{markers::*, *};
+use common::*;
+use mux_media::{media_info::*, *};
 use std::sync::LazyLock;
 
 static CONFIG: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
@@ -21,15 +23,15 @@ fn test_empty() {
 fn test_set_cmn_stem() {
     ["x", "a", "bc"].iter().for_each(|s| {
         let mut mi = new();
-        mi.set_cmn(MICmnStem, s.into());
-        assert_eq!(s, mi.try_get_cmn(MICmnStem).unwrap());
+        mi.set_cmn(MarkMediaInfoStem, s.into());
+        assert_eq!(s, mi.try_get_cmn(MarkMediaInfoStem).unwrap());
     })
 }
 
 #[test]
 fn test_clear() {
     let mut mi = new();
-    mi.set_cmn(MICmnStem, "x".into());
+    mi.set_cmn(MarkMediaInfoStem, "x".into());
     mi.try_insert(data("srt.srt")).unwrap();
     mi.clear();
 
@@ -80,7 +82,7 @@ fn test_cmn_stem() {
         .into_iter()
         .for_each(|(stem, f)| {
             mi.try_insert(data(f)).unwrap();
-            assert_eq!(stem, mi.try_get_cmn(MICmnStem).unwrap());
+            assert_eq!(stem, mi.try_get_cmn(MarkMediaInfoStem).unwrap());
             mi.clear();
         });
 
@@ -92,21 +94,21 @@ fn test_cmn_stem() {
     .iter()
     .for_each(|f| mi.try_insert(data(f)).unwrap());
 
-    assert_eq!("x1_set", mi.try_get_cmn(MICmnStem).unwrap());
+    assert_eq!("x1_set", mi.try_get_cmn(MarkMediaInfoStem).unwrap());
 }
 
 #[test]
 fn test_cmn_streams_order() {
     let mut mi = new();
     mi.try_insert(data("audio_x1.mka")).unwrap();
-    mi.try_init_cmn(MICmnStreamsOrder).unwrap();
+    mi.try_init_cmn(MarkMediaInfoStreamsOrder).unwrap();
 }
 
 #[test]
 fn test_sub_charset() {
     let mut mi = new();
-    let empty = || char_encoding::empty();
-    let new = |s: &str| char_encoding::new(s);
+    let empty = || CharEncoding::Utf8Compatible;
+    let new = |s: &str| CharEncoding::NotUtf8Compatible(s.into());
 
     [
         ("srt.srt", empty()),
@@ -115,10 +117,13 @@ fn test_sub_charset() {
     ]
     .iter()
     .for_each(|(f, enc)| {
-        assert_eq!(enc, mi.try_get(MISubCharEncoding, &data(f)).unwrap());
+        assert_eq!(
+            enc,
+            mi.try_get(MarkMediaInfoSubCharEncoding, &data(f)).unwrap()
+        );
     });
 
-    mi.try_get(MISubCharEncoding, &data("audio_x1.mka"))
+    mi.try_get(MarkMediaInfoSubCharEncoding, &data("audio_x1.mka"))
         .unwrap_err();
 }
 
@@ -136,7 +141,7 @@ fn test_streams() {
     ]
     .iter()
     .for_each(|f| {
-        mi.try_get(MIStreams, data(f)).unwrap();
+        mi.try_get(MarkMediaInfoStreams, data(f)).unwrap();
     })
 }
 
@@ -152,7 +157,10 @@ fn test_targets_empty_user_input() {
     let empty = Vec::<Target>::new();
 
     TEST_TARGETS.iter().flat_map(|fs| fs.iter()).for_each(|f| {
-        assert_eq!(&empty, mi.try_get(MITargetPaths, &data(f)).unwrap());
+        assert_eq!(
+            &empty,
+            mi.try_get(MarkMediaInfoTargetPaths, &data(f)).unwrap()
+        );
     });
 }
 
@@ -169,7 +177,7 @@ fn test_targets_path_only() {
             let mut mi = MediaInfo::new(&cfg, 0);
             let left = build_targets(&[Target::Path(ArcPathBuf::from(&f))]);
 
-            assert_eq!(&left, mi.try_get(MITargetPaths, &f).unwrap());
+            assert_eq!(&left, mi.try_get(MarkMediaInfoTargetPaths, &f).unwrap());
         })
     })
 }
@@ -185,7 +193,7 @@ fn test_targets_parent_only() {
             let mut mi = MediaInfo::new(&cfg, 0);
             let left = build_targets(&[Target::Path(ArcPathBuf::from(&parent))]);
 
-            assert_eq!(&left, mi.try_get(MITargetPaths, &f).unwrap());
+            assert_eq!(&left, mi.try_get(MarkMediaInfoTargetPaths, &f).unwrap());
         })
     })
 }
@@ -207,7 +215,7 @@ fn test_targets_all() {
                 Target::Path(ArcPathBuf::from(&parent)),
             ]);
 
-            assert_eq!(&left, mi.try_get(MITargetPaths, &f).unwrap());
+            assert_eq!(&left, mi.try_get(MarkMediaInfoTargetPaths, &f).unwrap());
         })
     })
 }
@@ -216,7 +224,7 @@ fn test_targets_all() {
 fn test_path_tail() {
     let mut mi = new();
 
-    mi.set_cmn(MICmnStem, "".into());
+    mi.set_cmn(MarkMediaInfoStem, "".into());
 
     [
         ("audio_x1", "audio_x1.mka"),
@@ -225,16 +233,22 @@ fn test_path_tail() {
     ]
     .iter()
     .for_each(|(exp, f)| {
-        assert_eq!(&exp.to_string(), mi.get(MIPathTail, &data(f)).unwrap());
+        assert_eq!(
+            &exp.to_string(),
+            mi.get(MarkMediaInfoPathTail, &data(f)).unwrap()
+        );
     });
 
     mi.clear();
-    mi.set_cmn(MICmnStem, "s".into());
+    mi.set_cmn(MarkMediaInfoStem, "s".into());
 
     [("ub_x1", "sub_x1.mks"), ("rt", "srt.srt")]
         .iter()
         .for_each(|(exp, f)| {
-            assert_eq!(&exp.to_string(), mi.get(MIPathTail, &data(f)).unwrap());
+            assert_eq!(
+                &exp.to_string(),
+                mi.get(MarkMediaInfoPathTail, &data(f)).unwrap()
+            );
         })
 }
 
@@ -255,7 +269,7 @@ fn test_relative_upmost() {
     .iter()
     .for_each(|(exp, f)| {
         let f = data(f);
-        assert_eq!(exp, mi.try_get(MIRelativeUpmost, &f).unwrap());
+        assert_eq!(exp, mi.try_get(MarkMediaInfoRelativeUpmost, &f).unwrap());
     })
 }
 
@@ -278,13 +292,15 @@ fn test_stream_title() {
         let f = data(f);
         mi.clear();
         mi.try_insert(&f).unwrap();
-        mi.set_cmn(MICmnStem, cmn_stem.into());
+        mi.set_cmn(MarkMediaInfoStem, cmn_stem.into());
         mi.try_finalize_init_streams().unwrap();
 
         let exp = String::from(title);
         assert_eq!(
             Some(&exp),
-            mi.try_get(MIStreams, &f).unwrap()[0].title.as_deref()
+            mi.try_get(MarkMediaInfoStreams, &f).unwrap()[0]
+                .title
+                .as_deref()
         );
     })
 }
@@ -306,10 +322,10 @@ fn test_stream_lang() {
         let f = data(f);
         mi.clear();
         mi.try_insert(&f).unwrap();
-        mi.set_cmn(MICmnStem, cmn_stem.into());
+        mi.set_cmn(MarkMediaInfoStem, cmn_stem.into());
         mi.try_finalize_init_streams().unwrap();
 
-        assert_eq!(lang, *mi.try_get(MIStreams, &f).unwrap()[0].lang);
+        assert_eq!(lang, *mi.try_get(MarkMediaInfoStreams, &f).unwrap()[0].lang);
     });
 
     let cfg = cfg([p("-i"), &data("")]);
@@ -327,6 +343,6 @@ fn test_stream_lang() {
         mi.try_insert(&f).unwrap();
         mi.try_finalize_init_streams().unwrap();
 
-        assert_eq!(lang, *mi.try_get(MIStreams, &f).unwrap()[0].lang);
+        assert_eq!(lang, *mi.try_get(MarkMediaInfoStreams, &f).unwrap()[0].lang);
     });
 }

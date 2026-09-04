@@ -1,4 +1,5 @@
-use crate::{CodecId, Extension, MediaInfo, markers::MIStreams};
+use crate::media_info::MarkMediaInfoStreams;
+use crate::{CodecId, Extension, MediaInfo};
 use std::path::Path;
 
 #[derive(Copy, Clone, Debug)]
@@ -27,7 +28,7 @@ impl SubType {
         use crate::ffmpeg::codec::id::Id;
 
         let c = *mi
-            .immut(MIStreams, src)
+            .immut(MarkMediaInfoStreams, src)
             .map(|xs| &xs[i_stream].codec)
             .unwrap_or(&CodecId::default());
 

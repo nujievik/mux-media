@@ -1,24 +1,23 @@
-use super::MediaInfo;
+use super::*;
 use crate::config::{MarkConfigLangMetadata, MarkConfigTitleMetadata};
 use crate::{
     ArcPathBuf, IsDefault, Lang, LangCode, Result, Stream, Target, TryFinalizeInit, Value,
-    markers::*,
 };
 use std::path::Path;
 
 impl TryFinalizeInit for MediaInfo<'_> {
     fn try_finalize_init(&mut self) -> Result<()> {
-        self.try_init_cmn(MICmnStem)?;
+        self.try_init_cmn(MarkMediaInfoStem)?;
 
         let sources: Vec<ArcPathBuf> = self.cache.of_files.keys().cloned().collect();
         for src in sources.iter() {
             let src = src.as_path();
             self.try_finalize_init_streams_src(src)?;
-            self.try_init(MIPathTail, src)?;
-            self.try_init(MIRelativeUpmost, src)?;
-            self.try_init(MISubCharEncoding, src)?;
-            self.try_init(MITargetPaths, src)?;
-            self.try_init(MIPlayableDuration, src)?;
+            self.try_init(MarkMediaInfoPathTail, src)?;
+            self.try_init(MarkMediaInfoRelativeUpmost, src)?;
+            self.try_init(MarkMediaInfoSubCharEncoding, src)?;
+            self.try_init(MarkMediaInfoTargetPaths, src)?;
+            self.try_init(MarkMediaInfoPlayableDuration, src)?;
         }
 
         Ok(())
@@ -35,8 +34,8 @@ impl MediaInfo<'_> {
     }
 
     fn try_finalize_init_streams_src(&mut self, src: &Path) -> Result<()> {
-        let mut streams = self.try_take(MIStreams, src)?;
-        let ts = self.try_take(MITargetPaths, src)?;
+        let mut streams = self.try_take(MarkMediaInfoStreams, src)?;
+        let ts = self.try_take(MarkMediaInfoTargetPaths, src)?;
 
         for stream in streams.iter_mut() {
             if let Some(n) = self.get_title(src, &ts, stream) {
@@ -47,8 +46,8 @@ impl MediaInfo<'_> {
             }
         }
 
-        self.set(MIStreams, src, streams);
-        self.set(MITargetPaths, src, ts);
+        self.set(MarkMediaInfoStreams, src, streams);
+        self.set(MarkMediaInfoTargetPaths, src, ts);
 
         Ok(())
     }
@@ -69,7 +68,7 @@ impl MediaInfo<'_> {
             return None;
         }
 
-        if let Some(n) = self.get(MIPathTail, src).and_then(|tail| {
+        if let Some(n) = self.get(MarkMediaInfoPathTail, src).and_then(|tail| {
             let s = tail.trim_matches(&['.', ' ']);
             (s.len() > 2).then(|| s.to_owned())
         }) {
@@ -107,8 +106,8 @@ impl MediaInfo<'_> {
         };
 
         parse(stream.title.as_ref().map(|v| &**v))
-            .or_else(|| parse(self.get(MIPathTail, src)))
-            .or_else(|| parse(self.get(MIRelativeUpmost, src)))
+            .or_else(|| parse(self.get(MarkMediaInfoPathTail, src)))
+            .or_else(|| parse(self.get(MarkMediaInfoRelativeUpmost, src)))
             .map(|code| Value::Auto(Lang::Code(code)))
     }
 }

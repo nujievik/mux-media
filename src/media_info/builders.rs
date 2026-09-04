@@ -1,8 +1,8 @@
 mod durations;
 mod streams;
 
-use super::MediaInfo;
-use crate::{CharEncoding, Extension, Result, StreamsOrder, Target, markers::*, types::helpers};
+use super::*;
+use crate::{CharEncoding, Extension, Result, StreamsOrder, Target, types::helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
@@ -23,7 +23,7 @@ impl MediaInfo<'_> {
     }
 
     pub(crate) fn build_path_tail(&mut self, src: &Path) -> Result<String> {
-        let cmn_stem = self.try_get_cmn(MICmnStem)?;
+        let cmn_stem = self.try_get_cmn(MarkMediaInfoStem)?;
         src.file_stem()
             .ok_or_else(|| err!("Path '{}' has not file_stem()", src.display()))
             .and_then(|stem| {

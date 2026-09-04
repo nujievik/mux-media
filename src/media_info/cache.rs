@@ -12,15 +12,15 @@ pub enum CacheState<T> {
 
 /// A cache of [`MediaInfo`](crate::MediaInfo).
 #[derive(Clone, Debug, Default, IsDefault)]
-pub struct CacheMI {
-    pub of_group: CacheMIOfGroup,
-    pub of_files: HashMap<ArcPathBuf, CacheMIOfFile>,
+pub struct MediaInfoCache {
+    pub of_group: MediaInfoCacheOfGroup,
+    pub of_files: HashMap<ArcPathBuf, MediaInfoCacheOfFile>,
 }
 
 /// A cache of [`MediaInfo`](crate::MediaInfo) common for stem-grouped files.
 #[derive(Clone, Debug, Default, IsDefault)]
 #[non_exhaustive]
-pub struct CacheMIOfGroup {
+pub struct MediaInfoCacheOfGroup {
     pub stem: CacheState<OsString>,
     pub streams_order: CacheState<StreamsOrder>,
 }
@@ -28,7 +28,7 @@ pub struct CacheMIOfGroup {
 /// A cache of [`MediaInfo`](crate::MediaInfo) is separate for each file.
 #[derive(Clone, Debug, Default, IsDefault)]
 #[non_exhaustive]
-pub struct CacheMIOfFile {
+pub struct MediaInfoCacheOfFile {
     pub streams: CacheState<Vec<Stream>>,
     pub path_tail: CacheState<String>,
     pub relative_upmost: CacheState<String>,

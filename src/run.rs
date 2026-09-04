@@ -5,10 +5,10 @@ mod header;
 mod init_external_fonts;
 
 use crate::config::MarkConfigChapters;
+use crate::media_info::{MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths};
 use crate::{
     Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit,
     ffmpeg::{self, format},
-    markers::*,
 };
 use buf_packets::BufPackets;
 use encoder::{Encode, Encoder};
@@ -108,7 +108,7 @@ impl Config {
 impl MediaInfo<'_> {
     /// Tries muxing all files from [`MediaInfo::cache`] to `dest`.
     pub fn mux_files(&mut self, dest: &Path) -> Result<()> {
-        let order = self.try_take_cmn(MICmnStreamsOrder)?;
+        let order = self.try_take_cmn(MarkMediaInfoStreamsOrder)?;
         let mut octx = format::output(dest)?;
         let (mut icontexts, mut encoders, idx_map) = header::write_header(self, &order, &mut octx)?;
 
@@ -166,7 +166,7 @@ impl MediaInfo<'_> {
         }
 
         copy_chapters(self, &order, &icontexts, &mut octx);
-        self.set_cmn(MICmnStreamsOrder, order);
+        self.set_cmn(MarkMediaInfoStreamsOrder, order);
 
         octx.write_trailer()?;
         info!("\r{} '{}'", Msg::SuccessMuxed, dest.display());
@@ -182,7 +182,7 @@ fn copy_chapters(
 ) {
     let cfg = mi.cfg;
     let it = order.iter_first_entries().filter_map(|ord| {
-        let target_paths = mi.get(MITargetPaths, &ord.key)?;
+        let target_paths = mi.get(MarkMediaInfoTargetPaths, &ord.key)?;
         let chapters = cfg
             .get_targets(MarkConfigChapters, target_paths)
             .unwrap_or(&mi.cfg.chapters);

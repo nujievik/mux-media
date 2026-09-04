@@ -1,12 +1,12 @@
 use crate::common::*;
-use mux_media::{markers::*, *};
+use mux_media::{media_info::*, *};
 use std::sync::LazyLock;
 
-static CACHE_LANGS_MKV: LazyLock<CacheMI> = LazyLock::new(|| {
+static CACHE_LANGS_MKV: LazyLock<MediaInfoCache> = LazyLock::new(|| {
     let file = data("streams_order/langs.mkv");
     let cfg = cfg::<_, &str>([]);
     let mut mi = MediaInfo::new(&cfg, 0);
-    mi.try_init(MIStreams, &file).unwrap();
+    mi.try_init(MarkMediaInfoStreams, &file).unwrap();
     mi.cache
 });
 
@@ -16,7 +16,7 @@ fn body_test_order(args: &[&str], expected: [usize; 3]) {
     mi.cache = CACHE_LANGS_MKV.clone();
     mi.try_finalize_init_streams().unwrap();
 
-    let order = mi.try_take_cmn(MICmnStreamsOrder).unwrap();
+    let order = mi.try_take_cmn(MarkMediaInfoStreamsOrder).unwrap();
     expected.iter().enumerate().for_each(|(i, exp)| {
         assert_eq!(exp, &order[i].i_stream);
     });
@@ -71,8 +71,8 @@ fn test_track_type_order() {
     let file = data("streams_order/reverse_stream_types.mkv");
     let cfg = cfg::<_, &str>([]);
     let mut mi = MediaInfo::new(&cfg, 0);
-    mi.try_init(MIStreams, &file).unwrap();
-    let order = mi.try_take_cmn(MICmnStreamsOrder).unwrap();
+    mi.try_init(MarkMediaInfoStreams, &file).unwrap();
+    let order = mi.try_take_cmn(MarkMediaInfoStreamsOrder).unwrap();
 
     [2, 1, 0].into_iter().enumerate().for_each(|(i, exp)| {
         assert_eq!(exp, order[i].i_stream);
@@ -96,7 +96,7 @@ fn test_path_name_order() {
         .iter()
         .for_each(|f| mi.try_insert(dir.join(f)).unwrap());
 
-    let order = mi.try_take_cmn(MICmnStreamsOrder).unwrap();
+    let order = mi.try_take_cmn(MarkMediaInfoStreamsOrder).unwrap();
     files.iter().enumerate().for_each(|(i, f)| {
         assert_eq!(&dir.join(f), order[i].src());
     })
@@ -119,7 +119,7 @@ fn test_saved_streams() {
         let cfg = cfg(args);
         let mut mi = MediaInfo::new(&cfg, 0);
         mi.try_insert(data(f)).unwrap();
-        let xs = mi.try_get_cmn(MICmnStreamsOrder).unwrap();
+        let xs = mi.try_get_cmn(MarkMediaInfoStreamsOrder).unwrap();
         assert_eq!(len, xs.len());
     })
 }
@@ -137,7 +137,7 @@ fn skip_sub_streams() {
         mi.try_insert(data(f)).unwrap();
     }
 
-    let order = mi.try_take_cmn(MICmnStreamsOrder).unwrap();
+    let order = mi.try_take_cmn(MarkMediaInfoStreamsOrder).unwrap();
     assert_eq!(2, order.len());
     assert_eq!(StreamType::Video, order[0].ty);
     assert_eq!(StreamType::Audio, order[1].ty);

@@ -1,5 +1,6 @@
+use crate::media_info::MediaInfoCacheOfFile;
 use crate::{
-    ArcPathBuf, CacheMIOfFile, CacheState, Config, Extension, MediaInfo, Result,
+    ArcPathBuf, CacheState, Config, Extension, MediaInfo, Result,
     ffmpeg::{self, sys},
 };
 use std::{
@@ -9,7 +10,7 @@ use std::{
     ptr,
 };
 
-pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, CacheMIOfFile)> {
+pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, MediaInfoCacheOfFile)> {
     let fonts = cfg.input.collect_fonts();
     if fonts.is_empty() {
         return None;
@@ -29,7 +30,7 @@ pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, CacheMIOf
         Ok(xs) => xs,
         Err(e) => return fall(e),
     };
-    let cache = CacheMIOfFile {
+    let cache = MediaInfoCacheOfFile {
         streams: CacheState::Cached(streams),
         ..Default::default()
     };

@@ -2,9 +2,10 @@ mod input_stream;
 
 use super::{Encode, Encoder};
 use crate::ffmpeg::{self, Dictionary, format::context};
+use crate::media_info::{MarkMediaInfoStreams, MarkMediaInfoTargetPaths};
 use crate::{
     DispositionType, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
-    VERSION, immut, markers::*,
+    VERSION, immut,
 };
 use enum_map::EnumMap;
 
@@ -23,7 +24,7 @@ pub(super) fn write_header(
 
     for ord in &order.0 {
         let ist = input_stream::new(mi, &mut icontexts, ord)?;
-        let st = &immut!(@try, mi, MIStreams, &ord.key)?[ord.key_i_stream];
+        let st = &immut!(@try, mi, MarkMediaInfoStreams, &ord.key)?[ord.key_i_stream];
 
         let (mut ost, enc) = Encoder::new(&ist, octx)?;
         ost.set_metadata(new_ost_metadata(st, &ist));
@@ -75,7 +76,7 @@ fn set_ost_dispositions(
     stream: &Stream,
     ost: &mut ffmpeg::StreamMut,
 ) {
-    let target_paths = some_or!(mi.immut(MITargetPaths, &ord.key), return);
+    let target_paths = some_or!(mi.immut(MarkMediaInfoTargetPaths, &ord.key), return);
 
     let st = unsafe { &mut *ost.as_mut_ptr() };
 

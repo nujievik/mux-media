@@ -1,8 +1,7 @@
 use super::{StreamsOrder, StreamsOrderItem};
 use crate::config::{MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams};
-use crate::{
-    ArcPathBuf, Lang, LangCode, MediaInfo, Result, RetimedStream, Retiming, StreamType, markers::*,
-};
+use crate::media_info::*;
+use crate::{ArcPathBuf, Lang, LangCode, MediaInfo, Result, RetimedStream, Retiming, StreamType};
 use log::warn;
 use rayon::prelude::*;
 use std::{cmp::Ordering, collections::HashSet};
@@ -66,8 +65,8 @@ fn try_sorted_src_stream_ty(
     let mut attach_names: HashSet<String> = HashSet::new();
 
     for (i_src, src) in sources.iter().enumerate() {
-        let streams = mi.try_take(MIStreams, src)?;
-        let target_paths = mi.try_take(MITargetPaths, src)?;
+        let streams = mi.try_take(MarkMediaInfoStreams, src)?;
+        let target_paths = mi.try_take(MarkMediaInfoTargetPaths, src)?;
 
         streams.iter().for_each(|stream| {
             let ty = stream.ty;
@@ -112,8 +111,8 @@ fn try_sorted_src_stream_ty(
             track_streams.push((i_src, stream.i, ty, key));
         });
 
-        mi.set(MIStreams, src, streams);
-        mi.set(MITargetPaths, src, target_paths);
+        mi.set(MarkMediaInfoStreams, src, streams);
+        mi.set(MarkMediaInfoTargetPaths, src, target_paths);
     }
 
     track_streams.sort_by(|a, b| a.3.cmp(&b.3));

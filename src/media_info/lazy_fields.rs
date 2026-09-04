@@ -1,6 +1,6 @@
-use super::MediaInfo;
+use super::{MediaInfo, MediaInfoCacheOfFile};
 use crate::{
-    ArcPathBuf, CacheMIOfFile,
+    ArcPathBuf,
     CacheState::{self, Cached, Failed, NotCached},
     CharEncoding, Duration, LazyField, LazyPathField, Result, Stream, StreamsOrder, Target,
 };
@@ -282,10 +282,10 @@ macro_rules! lazy_fields {
 }
 
 /// Marker of [`MediaInfo`] fields, that stores
-pub struct MICache;
+pub struct MarkMediaInfoCacheOfFile;
 
-impl LazyPathField<MICache> for MediaInfo<'_> {
-    type FieldType = CacheMIOfFile;
+impl LazyPathField<MarkMediaInfoCacheOfFile> for MediaInfo<'_> {
+    type FieldType = MediaInfoCacheOfFile;
 
     fn try_init(&mut self, src: &Path) -> Result<()> {
         if let None = self.cache.of_files.get(src) {
@@ -295,7 +295,7 @@ impl LazyPathField<MICache> for MediaInfo<'_> {
     }
 
     fn try_mut(&mut self, src: &Path) -> Result<&mut Self::FieldType> {
-        <Self as LazyPathField<MICache>>::try_init(self, src).unwrap();
+        <Self as LazyPathField<MarkMediaInfoCacheOfFile>>::try_init(self, src).unwrap();
         Ok(self.cache.of_files.get_mut(src).unwrap())
     }
 
@@ -307,11 +307,11 @@ impl LazyPathField<MICache> for MediaInfo<'_> {
     }
 
     fn try_take(&mut self, src: &Path) -> Result<Self::FieldType> {
-        <Self as LazyPathField<MICache>>::try_init(self, src).unwrap();
+        <Self as LazyPathField<MarkMediaInfoCacheOfFile>>::try_init(self, src).unwrap();
         Ok(mem::take(self.cache.of_files.get_mut(src).unwrap()))
     }
 
-    fn set(&mut self, src: &Path, value: CacheMIOfFile) {
+    fn set(&mut self, src: &Path, value: MediaInfoCacheOfFile) {
         let _ = self.cache.of_files.insert(src.into(), value);
     }
 }
@@ -337,7 +337,7 @@ macro_rules! lazy_path_fields {
                 match self.cache.of_files.get_mut(src) {
                     Some(fields) => fields.$map_field = state,
                     None => {
-                        let mut cache = CacheMIOfFile::default();
+                        let mut cache = MediaInfoCacheOfFile::default();
                         cache.$map_field = state;
                         self.cache.of_files.insert(ArcPathBuf::from(src), cache);
                     }
@@ -359,7 +359,7 @@ macro_rules! lazy_path_fields {
                 match self.cache.of_files.get_mut(src) {
                     Some(fields) => fields.$map_field = state,
                     None => {
-                        let mut cache = CacheMIOfFile::default();
+                        let mut cache = MediaInfoCacheOfFile::default();
                         cache.$map_field = state;
                         self.cache.of_files.insert(ArcPathBuf::from(src), cache);
                     }
@@ -425,19 +425,19 @@ macro_rules! lazy_path_fields {
 }
 
 lazy_fields!(
-    stem, OsString, build_stem => MICmnStem;
-    streams_order, StreamsOrder, build_streams_order => MICmnStreamsOrder;
+    stem, OsString, build_stem => MarkMediaInfoStem;
+    streams_order, StreamsOrder, build_streams_order => MarkMediaInfoStreamsOrder;
 );
 
 lazy_path_fields!(
-    streams, Vec<Stream>, build_streams => MIStreams;
-    path_tail, String, build_path_tail => MIPathTail;
-    relative_upmost, String, build_relative_upmost => MIRelativeUpmost;
+    streams, Vec<Stream>, build_streams => MarkMediaInfoStreams;
+    path_tail, String, build_path_tail => MarkMediaInfoPathTail;
+    relative_upmost, String, build_relative_upmost => MarkMediaInfoRelativeUpmost;
 
-    sub_char_encoding, CharEncoding, build_sub_char_encoding => MISubCharEncoding;
-    target_paths, Vec<Target>, build_target_paths => MITargetPaths;
+    sub_char_encoding, CharEncoding, build_sub_char_encoding => MarkMediaInfoSubCharEncoding;
+    target_paths, Vec<Target>, build_target_paths => MarkMediaInfoTargetPaths;
 
-    audio_duration, Duration, build_audio_duration => MIAudioDuration;
-    video_duration, Duration, build_video_duration => MIVideoDuration;
-    playable_duration, Duration, build_playable_duration => MIPlayableDuration;
+    audio_duration, Duration, build_audio_duration => MarkMediaInfoAudioDuration;
+    video_duration, Duration, build_video_duration => MarkMediaInfoVideoDuration;
+    playable_duration, Duration, build_playable_duration => MarkMediaInfoPlayableDuration;
 );

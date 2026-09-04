@@ -7,7 +7,6 @@ pub(crate) mod extension;
 pub(crate) mod globset_pattern;
 pub(crate) mod helpers;
 pub(crate) mod lang;
-pub(crate) mod media_info;
 pub(crate) mod media_number;
 pub(crate) mod mux_error;
 pub(crate) mod mux_logger;

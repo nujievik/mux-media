@@ -82,8 +82,7 @@ macro_rules! to_args {
 pub mod config;
 mod functions;
 mod i18n;
-/// Field markers for [`Config`] and [`MediaInfo`].
-pub mod markers;
+pub mod media_info;
 mod run;
 mod traits;
 mod types;
@@ -91,17 +90,15 @@ mod types;
 pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
+pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
 pub use functions::{ensure_long_path_prefix, ensure_trailing_sep, mux};
 pub use i18n::Msg;
+pub use media_info::MediaInfo;
 pub use run::run;
-
-pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
-
 pub use traits::{
     Field, ToTxtConfig, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},
 };
-
 pub use types::{
     arc_path_buf::ArcPathBuf,
     char_encoding::CharEncoding,
@@ -111,10 +108,6 @@ pub use types::{
     extension::Extension,
     globset_pattern::GlobSetPattern,
     lang::{Lang, LangCode},
-    media_info::{
-        MediaInfo,
-        cache::{CacheMI, CacheMIOfFile, CacheMIOfGroup, CacheState},
-    },
     media_number::MediaNumber,
     mux_error::MuxError,
     mux_logger::MuxLogger,
@@ -135,6 +128,7 @@ use is_default::IsDefault;
 
 use config::MediaGroupedByStem;
 use functions::add_copy_stream;
+use media_info::cache::CacheState;
 use types::{
     helpers,
     retiming::{RetimedStream, Retiming, RetimingChapter},

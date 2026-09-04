@@ -1,26 +1,26 @@
-use super::MediaInfo;
-use crate::{CacheState, Duration, Result, StreamType, ffmpeg, markers::*, types::helpers};
+use super::*;
+use crate::{CacheState, Duration, Result, StreamType, ffmpeg, types::helpers};
 use std::{iter, path::Path};
 
 impl MediaInfo<'_> {
     pub(crate) fn build_audio_duration(&mut self, src: &Path) -> Result<Duration> {
         self.try_cache_durations(src)?;
-        self.try_get(MIAudioDuration, src).copied()
+        self.try_get(MarkMediaInfoAudioDuration, src).copied()
     }
 
     pub(crate) fn build_video_duration(&mut self, src: &Path) -> Result<Duration> {
         self.try_cache_durations(src)?;
-        self.try_get(MIVideoDuration, src).copied()
+        self.try_get(MarkMediaInfoVideoDuration, src).copied()
     }
 
     pub(crate) fn build_playable_duration(&mut self, src: &Path) -> Result<Duration> {
         self.try_cache_durations(src)?;
-        self.try_get(MIPlayableDuration, src).copied()
+        self.try_get(MarkMediaInfoPlayableDuration, src).copied()
     }
 
     fn try_cache_durations(&mut self, src: &Path) -> Result<()> {
-        let _ = self.try_init(MIStreams, src)?;
-        let cache = self.try_immut(MICache, src)?;
+        let _ = self.try_init(MarkMediaInfoStreams, src)?;
+        let cache = self.try_immut(MarkMediaInfoCacheOfFile, src)?;
 
         let a = StreamType::Audio;
         let v = StreamType::Video;
@@ -38,8 +38,8 @@ impl MediaInfo<'_> {
             cache.video_duration = CacheState::from_res(res);
         }
 
-        let audio = self.immut(MIAudioDuration, src).copied();
-        let video = self.immut(MIVideoDuration, src).copied();
+        let audio = self.immut(MarkMediaInfoAudioDuration, src).copied();
+        let video = self.immut(MarkMediaInfoVideoDuration, src).copied();
 
         // The playable duration is the longest duration of any video or audio track,
         // not a subtitle track.
@@ -59,7 +59,7 @@ impl MediaInfo<'_> {
 fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Duration> {
     const BASE: i64 = ffmpeg::ffi::AV_TIME_BASE as i64;
 
-    let streams = mi.try_immut(MIStreams, src)?;
+    let streams = mi.try_immut(MarkMediaInfoStreams, src)?;
     let mut ictx = ffmpeg::format::input(src)?;
     let mut duration = (0i64, 0i64, 0f64);
 

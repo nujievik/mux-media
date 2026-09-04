@@ -1,5 +1,5 @@
 use super::*;
-use crate::{Stream, markers::*};
+use crate::Stream;
 
 impl MediaInfo<'_> {
     pub(crate) fn it_signs(&mut self, src: &Path, stream: &Stream) -> bool {
@@ -8,8 +8,8 @@ impl MediaInfo<'_> {
         }
 
         return parse(stream.title.as_ref().map(|v| &**v))
-            || parse(self.get(MIPathTail, src))
-            || parse(self.get(MIRelativeUpmost, src));
+            || parse(self.get(MarkMediaInfoPathTail, src))
+            || parse(self.get(MarkMediaInfoRelativeUpmost, src));
 
         fn parse(opt_s: Option<&String>) -> bool {
             opt_s.is_some_and(|s| {
