@@ -10,6 +10,6 @@ fn test_is_default() {
 }
 
 build_test_to_args!(
-    test_to_args, chapters, "chapters";
+    test_to_args, "chapters";
     vec!["--no-chapters"],
 );

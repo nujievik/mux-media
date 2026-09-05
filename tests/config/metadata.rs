@@ -177,7 +177,7 @@ fn get_langs() {
 }
 
 build_test_to_args!(
-    to_args_titles, titles, "titles";
+    to_args_titles, "titles";
     vec![],
     vec!["--titles", "x"],
     vec!["--titles", "1:a,2:b,8:c"],
@@ -187,7 +187,7 @@ build_test_to_args!(
 );
 
 build_test_to_args!(
-    to_args_langs, langs, "langs";
+    to_args_langs, "langs";
     vec![],
     vec!["--langs", "eng"],
     vec!["--langs", "1:eng,2:rus,8:und"],

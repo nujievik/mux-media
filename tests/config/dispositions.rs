@@ -197,7 +197,7 @@ fn max_user() {
 }
 
 build_test_to_args!(
-    to_args_defaults, defaults, "defaults";
+    to_args_defaults, "defaults";
     vec![],
     vec!["--max-defaults", "5"],
     vec!["--defaults", "true"],
@@ -206,7 +206,7 @@ build_test_to_args!(
 );
 
 build_test_to_args!(
-    to_args_forceds, forceds, "forceds";
+    to_args_forceds, "forceds";
     vec![],
     vec!["--max-forceds", "5"],
     vec!["--forceds", "true"],

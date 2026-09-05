@@ -57,7 +57,7 @@ fn test_manual_on_with_no_auto() {
 }
 
 crate::build_test_to_args!(
-    test_to_args, auto_flags, "auto_flags";
+    test_to_args, "auto_flags";
     vec![],
     vec!["--no-auto-defaults"],
     vec!["--no-auto-forceds"],

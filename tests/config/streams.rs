@@ -382,7 +382,7 @@ fn is_save_langs() {
 }
 
 build_test_to_args!(
-    to_args, streams, "streams";
+    to_args, "streams";
     vec!["--no-streams"],
     vec!["--streams", "0"],
     vec!["--streams", "1,2,8"],

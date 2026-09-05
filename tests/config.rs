@@ -334,4 +334,4 @@ fn test_target_switching() {
     assert!(cfg.defaults.single_val.is_none());
 }
 
-build_test_to_args!(overwrite_to_args, overwrite, "config_overwrite"; vec!["--overwrite"]);
+build_test_to_args!(overwrite_to_args, "config_overwrite"; vec!["--overwrite"]);

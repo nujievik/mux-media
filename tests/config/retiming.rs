@@ -27,7 +27,7 @@ fn test_args() {
 }
 
 crate::build_test_to_args!(
-    test_to_args, retiming, "retiming";
+    test_to_args, "retiming";
     vec![],
     vec!["--no-linked"],
     vec!["--parts", "*.srt"],
