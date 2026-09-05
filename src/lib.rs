@@ -127,7 +127,7 @@ use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;
 
 use config::MediaGroupedByStem;
-use functions::add_copy_stream;
+use functions::{add_copy_stream, display};
 use media_info::cache::CacheState;
 use types::{
     helpers,

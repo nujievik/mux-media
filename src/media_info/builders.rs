@@ -2,7 +2,7 @@ mod durations;
 mod streams;
 
 use super::*;
-use crate::{CharEncoding, Extension, Result, StreamsOrder, Target, types::helpers};
+use crate::{CharEncoding, Extension, Result, StreamsOrder, Target, display, types::helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
@@ -25,7 +25,7 @@ impl MediaInfo<'_> {
     pub(crate) fn build_path_tail(&mut self, src: &Path) -> Result<String> {
         let cmn_stem = self.try_get_cmn(MarkMediaInfoStem)?;
         src.file_stem()
-            .ok_or_else(|| err!("Path '{}' has not file_stem()", src.display()))
+            .ok_or_else(|| err!("Path '{}' has not file_stem()", display(src)))
             .and_then(|stem| {
                 helpers::os_str_tail(cmn_stem, stem).map(|os| os.to_string_lossy().into_owned())
             })
@@ -33,7 +33,7 @@ impl MediaInfo<'_> {
 
     pub(crate) fn build_relative_upmost(&self, src: &Path) -> Result<String> {
         src.parent()
-            .ok_or_else(|| err!("Path '{}' has not parent()", src.display()))
+            .ok_or_else(|| err!("Path '{}' has not parent()", display(src)))
             .and_then(|parent| {
                 helpers::os_str_tail(self.cfg.input.dir().as_os_str(), parent.as_os_str())
                     .map(|os| os.to_string_lossy().into_owned())

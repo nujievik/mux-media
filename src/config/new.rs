@@ -3,7 +3,7 @@ mod finalize;
 mod from_arg_matches;
 
 use super::ConfigInput;
-use crate::{Config, Msg, Result, undashed};
+use crate::{Config, Msg, Result, display, undashed};
 use clap::{ArgMatches, Command, CommandFactory, FromArgMatches, Parser};
 use from_arg_matches::{get_locale, printable_args};
 use std::{
@@ -90,7 +90,7 @@ impl Config {
             let reader = BufReader::new(file);
             let lines: Vec<String> = reader.lines().collect::<std::io::Result<Vec<_>>>()?;
 
-            println!("{} '{}'...", Msg::LoadingTxtConfig, txt.display());
+            println!("{} '{}'...", Msg::LoadingTxtConfig, display(txt));
             Ok(lines)
         }
     }

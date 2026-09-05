@@ -5,7 +5,7 @@ mod ty;
 mod xs;
 
 use super::{RetimedStream, Retiming};
-use crate::{Duration, Result};
+use crate::{Duration, Result, display};
 use destination::Destination;
 use log::warn;
 use rsubs_lib::{SRT, SRTLine, SSA, SSAEvent, VTT, VTTLine};
@@ -24,7 +24,7 @@ impl Retiming<'_, '_> {
             }
             warn!(
                 "Fail retiming '{}' stream {} as .{}: {}. Try retime as .srt",
-                src.display(),
+                display(src),
                 i_stream,
                 dest.ty.as_ext(),
                 err

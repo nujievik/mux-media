@@ -1,5 +1,5 @@
 use super::{ConfigInput, InputFileType, InputType, iters::DirIter};
-use crate::{Extension, Msg, Result, TryFinalizeInit};
+use crate::{Extension, Msg, Result, TryFinalizeInit, display};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -18,7 +18,7 @@ impl TryFinalizeInit for ConfigInput {
         };
 
         if let None = self.iter_media_in_dir(dir).next() {
-            return Err(err!("{}: {}", Msg::NoInputDirMedia, dir.display()));
+            return Err(err!("{}: {}", Msg::NoInputDirMedia, display(dir)));
         }
 
         let skip = match &self.skip {
@@ -63,7 +63,7 @@ impl ConfigInput {
             let _ = fs::read_dir(&path)?;
         } else {
             if let None = Extension::new_from_path(&path) {
-                return Err(err!("file '{}' has unsupported extension", path.display()));
+                return Err(err!("file '{}' has unsupported extension", display(&path)));
             }
             let _ = fs::File::open(&path)?;
         };

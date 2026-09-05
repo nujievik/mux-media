@@ -8,7 +8,7 @@ use crate::ffmpeg::{
     format::{self, context},
 };
 use crate::{
-    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, add_copy_stream,
+    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, add_copy_stream, display,
 };
 use std::path::{Path, PathBuf};
 
@@ -135,7 +135,7 @@ fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
                 log::error!(
                     "Fail concat retimed parts of '{}'. Output file may be corrupted
 Try --no-linked or --parts [!]n[,m] to fix",
-                    src.display()
+                    display(src)
                 );
                 was_error = true;
             }

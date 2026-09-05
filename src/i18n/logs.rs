@@ -1,4 +1,4 @@
-use crate::{Msg, MuxError};
+use crate::{Msg, MuxError, display};
 use log::{debug, warn};
 use std::{ffi::OsStr, path::Path};
 
@@ -8,7 +8,7 @@ pub(crate) fn warn_file_is_already_exists(path: &Path) {
         "{}. {} '{}'",
         Msg::FileIsAlreadyExists,
         Msg::Skipping,
-        path.display()
+        display(path)
     )
 }
 
@@ -27,7 +27,7 @@ pub(crate) fn warn_not_out_save_any(out: &Path) {
     warn!(
         "{} '{}'. {}",
         Msg::NotOutSaveAny,
-        out.display(),
+        display(out),
         Msg::Skipping
     )
 }
@@ -37,7 +37,7 @@ pub(crate) fn warn_not_recognized_media(path: &Path, e: MuxError) {
     warn!(
         "{} '{}': {}. {}",
         Msg::NotRecognizedMedia,
-        path.display(),
+        display(path),
         e,
         Msg::Skipping
     )

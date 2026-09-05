@@ -1,4 +1,4 @@
-use crate::{ArcPathBuf, Msg, Result, StreamType};
+use crate::{ArcPathBuf, Msg, Result, StreamType, display};
 use std::{
     borrow::Borrow,
     ffi::OsStr,
@@ -25,7 +25,7 @@ impl Target {
         }
 
         let path = fs::canonicalize(os)
-            .map_err(|e| err!("Incorrect path target '{}': {}", Path::new(os).display(), e))?;
+            .map_err(|e| err!("Incorrect path target '{}': {}", display(os), e))?;
 
         return Ok(Self::Path(path.into()));
 

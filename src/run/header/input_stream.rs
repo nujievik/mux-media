@@ -3,7 +3,7 @@ use crate::ffmpeg::{
     format::{self, context},
 };
 use crate::{
-    Config, MediaInfo, Result, StreamsOrderItem, media_info::MarkMediaInfoSubCharEncoding,
+    Config, MediaInfo, Result, StreamsOrderItem, display, media_info::MarkMediaInfoSubCharEncoding,
 };
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
@@ -36,7 +36,7 @@ fn new_ictx(mi: &mut MediaInfo, ord: &StreamsOrderItem) -> Result<context::Input
             warn!(
                 "Fail reencode charset to UTF-8: {}. Copying src subtitles '{}'",
                 err,
-                src.display()
+                display(src)
             );
             format::input(src)
         }
@@ -62,7 +62,7 @@ fn new_ictx_reencode_subs(
     src: &Path,
     charenc: &str,
 ) -> Result<context::Input> {
-    debug!("Reencoding subtitle charset '{}'...", src.display());
+    debug!("Reencoding subtitle charset '{}'...", display(src));
 
     let enc = Encoding::for_label_no_replacement(charenc.as_bytes())
         .ok_or_else(|| err!("Unrecognized charenc key '{}'", charenc))?;

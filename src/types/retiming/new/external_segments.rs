@@ -1,5 +1,5 @@
 use super::CacheMatroska;
-use crate::{ArcPathBuf, MediaInfo, MuxError, Result};
+use crate::{ArcPathBuf, MediaInfo, MuxError, Result, display};
 use rayon::prelude::*;
 use std::{
     collections::{HashMap, HashSet},
@@ -71,7 +71,7 @@ pub(super) fn find_external_segment(
         err!(
             "Not found external matroska segment '{:?}' in the directory '{}'",
             uid,
-            dir.display()
+            display(dir)
         )
     }
 }

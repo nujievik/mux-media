@@ -1,6 +1,6 @@
 use super::{RetimedStream, Retiming, try_concat, write_stream_copy_header};
 use crate::{
-    Duration, Result,
+    Duration, Result, display,
     ffmpeg::{Packet, Rescale, format},
 };
 use rayon::prelude::*;
@@ -11,7 +11,7 @@ impl Retiming<'_, '_> {
         if i_stream != self.i_base_stream && src != self.base.as_path() {
             return Err(err!(
                 "Unsupported retiming more than 1 video track at a time. Skipping {} stream {}",
-                src.display(),
+                display(src),
                 i_stream
             ));
         }

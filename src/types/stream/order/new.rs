@@ -1,7 +1,9 @@
 use super::{StreamsOrder, StreamsOrderItem};
 use crate::config::{MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams};
 use crate::media_info::*;
-use crate::{ArcPathBuf, Lang, LangCode, MediaInfo, Result, RetimedStream, Retiming, StreamType};
+use crate::{
+    ArcPathBuf, Lang, LangCode, MediaInfo, Result, RetimedStream, Retiming, StreamType, display,
+};
 use log::warn;
 use rayon::prelude::*;
 use std::{cmp::Ordering, collections::HashSet};
@@ -178,7 +180,7 @@ fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<Streams
                     Err(e) => {
                         warn!(
                             "Fail retime '{}' stream {}: {}. Skipping",
-                            m.key.display(),
+                            display(&m.key),
                             m.i_stream,
                             e
                         );

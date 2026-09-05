@@ -7,7 +7,7 @@ mod init_external_fonts;
 use crate::config::MarkConfigChapters;
 use crate::media_info::{MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths};
 use crate::{
-    Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit,
+    Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit, display,
     ffmpeg::{self, format},
 };
 use buf_packets::BufPackets;
@@ -122,7 +122,7 @@ impl MediaInfo<'_> {
             LevelFilter::Error => false,
             _ => self.cfg.jobs <= 1,
         };
-        info!("{} '{}...", Msg::Muxing, dest.display());
+        info!("{} '{}...", Msg::Muxing, display(dest));
 
         // packets/msg frequency
         let mut progress_frequency = 50usize;
@@ -169,7 +169,7 @@ impl MediaInfo<'_> {
         self.set_cmn(MarkMediaInfoStreamsOrder, order);
 
         octx.write_trailer()?;
-        info!("\r{} '{}'", Msg::SuccessMuxed, dest.display());
+        info!("\r{} '{}'", Msg::SuccessMuxed, display(dest));
         Ok(())
     }
 }
