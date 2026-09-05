@@ -48,10 +48,8 @@ time = "0.3"
 walkdir = "2"
 
 [target.'cfg(windows)'.dependencies]
+enable-ansi-support = "0.3.1"
 winapi = { version = "0.3", features = ["winnls"] }
-
-[target.'cfg(unix)'.dependencies]
-supports-color = "3"
 
 [dev-dependencies]
 phf = { version = "0.13", features = ["macros"] }

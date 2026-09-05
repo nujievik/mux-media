@@ -1,21 +1,18 @@
 use log::{Level, LevelFilter, Log, Metadata, Record};
 use std::{
+    env,
     io::{self, Write},
-    sync::Once,
+    io::{IsTerminal, stderr, stdout},
+    sync::{LazyLock, Once},
 };
-
-#[cfg(unix)]
-use std::sync::LazyLock;
-#[cfg(unix)]
-use supports_color::{Stream, on};
 
 static LOGGER: MuxLogger = MuxLogger;
 static INIT: Once = Once::new();
 
-#[cfg(unix)]
-static STDERR_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stderr).is_some());
-#[cfg(unix)]
-static STDOUT_ON_COLOR: LazyLock<bool> = LazyLock::new(|| on(Stream::Stdout).is_some());
+static STDOUT_ON_COLOR: LazyLock<bool> =
+    LazyLock::new(|| should_enable_color(stdout().is_terminal()));
+static STDERR_ON_COLOR: LazyLock<bool> =
+    LazyLock::new(|| should_enable_color(stderr().is_terminal()));
 
 /// A logger imlementing the [`log`] logger.
 pub struct MuxLogger;
@@ -46,16 +43,6 @@ impl MuxLogger {
     /// - ANSI color codes are applied to `Error` and `Warn` if stderr supports color.
     /// - ANSI color codes are applied to `Debug` and `Trace` if stdout supports color.
     pub(crate) fn color_prefix(level: Level) -> &'static str {
-        #[cfg(windows)]
-        match level {
-            Level::Error => "Error: ",
-            Level::Warn => "Warning: ",
-            Level::Debug => "Debug: ",
-            Level::Trace => "Trace: ",
-            _ => "",
-        }
-
-        #[cfg(unix)]
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31mError\x1b[0m: ",
             Level::Error => "Error: ",
@@ -71,18 +58,10 @@ impl MuxLogger {
 
     /// Returns a colored or plain clap-style try help string.
     pub(crate) fn try_help() -> &'static str {
-        #[cfg(windows)]
-        {
+        if *STDERR_ON_COLOR {
+            "For more information, try '\x1b[34m--help\x1b[0m'."
+        } else {
             "For more information, try '--help'."
-        }
-
-        #[cfg(unix)]
-        {
-            if *STDERR_ON_COLOR {
-                "For more information, try '\x1b[34m--help\x1b[0m'."
-            } else {
-                "For more information, try '--help'."
-            }
         }
     }
 }
@@ -115,4 +94,27 @@ impl Log for MuxLogger {
     }
 
     fn flush(&self) {}
+}
+
+fn should_enable_color(stream_is_terminal: bool) -> bool {
+    if !stream_is_terminal {
+        return false;
+    }
+
+    if env::var_os("NO_COLOR").is_some() {
+        return false;
+    }
+    if env::var("TERM").unwrap_or_default() == "dumb" {
+        return false;
+    }
+
+    #[cfg(windows)]
+    {
+        enable_ansi_support::enable_ansi_support().is_ok()
+    }
+
+    #[cfg(unix)]
+    {
+        true
+    }
 }
