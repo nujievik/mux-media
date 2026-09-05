@@ -93,24 +93,17 @@ impl ToTxtConfig for Config {
 
         if let Some(targets) = &self.targets {
             for (t, t_cfg) in targets {
-                let t = match t.to_str() {
-                    Some(s) => s,
-                    None => {
-                        log::warn!(
-                            "Fail save config for target '{}': unsupported UTF-8 symbol. Skipping",
-                            t.as_path().display()
-                        );
-                        continue;
-                    }
-                };
                 args.push(to_args!(Target));
-                args.push(t.to_string().into());
+                args.push(t.as_path().into());
+
                 let len = args.len();
                 t_cfg.append_args(args);
 
                 // if nothing appended removes target.
                 if args.len() == len {
-                    let _ = args.drain(len - 2..len);
+                    for _ in 0..2 {
+                        let _ = args.pop();
+                    }
                 }
             }
         }

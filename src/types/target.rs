@@ -41,14 +41,6 @@ impl Target {
         }
     }
 
-    pub(crate) fn to_str(&self) -> Option<&str> {
-        match self {
-            Self::Global => Some("global"),
-            Self::Stream(ty) => Some(ty.as_ref()),
-            Self::Path(p) => p.to_str(),
-        }
-    }
-
     /// Returns a [`Path`] representation.
     pub(crate) fn as_path(&self) -> &Path {
         match self {
