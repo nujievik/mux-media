@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.17.1] - 2026-09-05
+
+### Added
+- --overwrite arg to overwrite input files.
+- Support NO_COLOR, TERM=dumb envs to disable color logs.
+- Windows: color logs.
+
+### Changed
+- Log messages.
+- Windows: display paths without `\\?\` prefix in logs.
+
+### Fixed
+- Convert target config to txt if target contains non-UTF8 character.
+
+
 ## [0.17.0] - 2026-09-04
 
 ### Added
@@ -55,31 +71,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove ANSI-codes in Windows logs.
 - Remove AVX-512 require for prebuilt Linux binary.
 
+
 ## [0.16.3] - 2026-01-29
 
 ### Added
 - Percentage progress in 1-job mode. (Adventurer_Kun idea)
+
 
 ## [0.16.2] - 2026-01-20
 
 ### Fixed
 - Panic while skip streams.
 
+
 ## [0.16.1] - 2026-01-03
 
 ### Added
-
 - `--auto-encs` (restored, was removed in 0.16.0).
+
 
 ## [0.16.0] - 2026-01-01
 
 ### Added
-
 - Common sort internal & external fonts and attachs.
 - Static build via `ffmpeg-static` and `ffmpeg-build` features.
 
 ### Changed
-
 - Auto `default`: first track of each type.
 - Decrease default jobs to 1 (was 4).
 - Indexes of each stream type starts from 0.
@@ -91,7 +108,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support any format language string.
 
 ### Removed
-
 - External tools (ffprobe, ffmpeg and mkvmerge).
 - Output containers except Matroska.
 - Reencoding.
@@ -101,7 +117,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `--chapters`.
 
 ### Fixed
-
 - MediaInfo durations.
 - Retiming SSA/ASS subtitles.
 - Retiming single part.
