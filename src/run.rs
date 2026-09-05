@@ -122,7 +122,7 @@ impl MediaInfo<'_> {
             LevelFilter::Error => false,
             _ => self.cfg.jobs <= 1,
         };
-        info!("{} '{}...", Msg::Muxing, display(dest));
+        info!("{} '{}'...", Msg::Muxing, display(dest));
 
         // packets/msg frequency
         let mut progress_frequency = 50usize;

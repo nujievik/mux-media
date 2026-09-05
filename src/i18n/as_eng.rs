@@ -59,9 +59,12 @@ impl_msg_as_str!(
     HelpVersion => "Show version",
     HelpHelp => "Show help",
 
+    ConvertingSubtitleEncoding => "Converting subtitle encoding",
     FailSaveConfig => "fail save config",
     FailUpdateLanguage => "fail update language",
+    FileAlreadyExists => "file already exists",
     FileIsAlreadyExists => "file is already exists",
+    FileNotCached => "file not cached",
     FoundRepeat => "found repeat",
     LanguageIsNotSupportedForLogging => "language is not supported for logging",
     LoadingTxtConfig => "Loading .txt config",
@@ -70,11 +73,13 @@ impl_msg_as_str!(
     Muxing => "Muxing",
     NoExternalMediaFound => "no external media found",
     NoInputDirMedia => "no media found in the input directory",
+    NotASubtitleFile => "not a subtitle file",
     NotMuxedAny => "not muxed any media",
     NotOutSaveAny => "not found any save stream for output",
     NotRecognizedMedia => "not recognized media file",
     Skipping => "Skipping",
     SuccessMuxed => "Success muxed",
+    UnsupportedFileExtension => "unsupported file extension",
     Using => "Using",
 
     ListTargets => r#"Supported targets (in order of priority):

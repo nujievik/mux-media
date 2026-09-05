@@ -2,7 +2,7 @@ mod durations;
 mod streams;
 
 use super::*;
-use crate::{CharEncoding, Extension, Result, StreamsOrder, Target, display, types::helpers};
+use crate::{CharEncoding, Extension, Msg, Result, StreamsOrder, Target, display, types::helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
@@ -46,7 +46,7 @@ impl MediaInfo<'_> {
         }) {
             Ok(CharEncoding::new(src))
         } else {
-            Err(err!("Is not subtitle file"))
+            Err(err!("{}", Msg::NotASubtitleFile))
         }
     }
 

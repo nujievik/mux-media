@@ -59,9 +59,12 @@ impl_msg_as_str!(
     HelpVersion => "Показать версию",
     HelpHelp => "Показать справку",
 
+    ConvertingSubtitleEncoding => "Конвертация кодировки субтитров",
     FailSaveConfig => "ошибка сохранения конфига",
     FailUpdateLanguage => "не удалось обновить язык",
+    FileAlreadyExists => "файл уже существует",
     FileIsAlreadyExists => "файл уже существует",
+    FileNotCached => "файл не кеширован",
     FoundRepeat => "найден повтор",
     LanguageIsNotSupportedForLogging => "язык не поддерживается для логирования",
     LoadingTxtConfig => "Загрузка .txt конфига",
@@ -70,11 +73,13 @@ impl_msg_as_str!(
     Muxing => "Муксирование",
     NoExternalMediaFound => "не найдено внешних медиа",
     NoInputDirMedia => "не найдены медиа в стартовой директории",
+    NotASubtitleFile => "не файл субтитров",
     NotMuxedAny => "медиа не смуксированы",
     NotOutSaveAny => "не найдено сохраняемого потока для выходного файла",
     NotRecognizedMedia => "не распознан медиа файл",
     Skipping => "Пропуск",
     SuccessMuxed => "Успешно смуксировано",
+    UnsupportedFileExtension => "неподдерживаемое расширение файла",
     Using => "Используется",
 
     ListTargets => r#"Поддерживаемые цели (в порядке приоритета):

@@ -3,6 +3,7 @@ macro_rules! impl_msg_as_str {
         impl $crate::Msg {
             #[inline(always)]
             pub(in crate::i18n) fn $fn(self) -> &'static str {
+                #[allow(deprecated)]
                 match self {
                     $( Self::$enum_var => $text ),*
                 }
@@ -80,9 +81,13 @@ pub enum Msg {
     HelpVersion,
     HelpHelp,
 
+    ConvertingSubtitleEncoding,
     FailSaveConfig,
     FailUpdateLanguage,
+    FileAlreadyExists,
+    #[deprecated]
     FileIsAlreadyExists,
+    FileNotCached,
     FoundRepeat,
     LanguageIsNotSupportedForLogging,
     LoadingTxtConfig,
@@ -91,11 +96,13 @@ pub enum Msg {
     Muxing,
     NoExternalMediaFound,
     NoInputDirMedia,
+    NotASubtitleFile,
     NotMuxedAny,
     NotOutSaveAny,
     NotRecognizedMedia,
     Skipping,
     SuccessMuxed,
+    UnsupportedFileExtension,
     Using,
 
     ListTargets,

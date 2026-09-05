@@ -6,7 +6,7 @@ use std::{ffi::OsStr, path::Path};
 pub(crate) fn warn_file_is_already_exists(path: &Path) {
     warn!(
         "{}. {} '{}'",
-        Msg::FileIsAlreadyExists,
+        Msg::FileAlreadyExists,
         Msg::Skipping,
         display(path)
     )

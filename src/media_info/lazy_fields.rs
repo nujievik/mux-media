@@ -2,8 +2,7 @@ use super::{MediaInfo, MediaInfoCacheOfFile};
 use crate::{
     ArcPathBuf,
     CacheState::{self, Cached, Failed, NotCached},
-    CharEncoding, Duration, LazyField, LazyPathField, Result, Stream, StreamsOrder, Target,
-    display,
+    CharEncoding, Duration, LazyField, LazyPathField, Msg, Result, Stream, StreamsOrder, Target,
 };
 use std::{ffi::OsString, mem, path::Path};
 
@@ -304,7 +303,7 @@ impl LazyPathField<MarkMediaInfoCacheOfFile> for MediaInfo<'_> {
         self.cache
             .of_files
             .get(src)
-            .ok_or_else(|| err!("Not cached file '{}'", display(src)))
+            .ok_or_else(|| err!("{}", Msg::FileNotCached))
     }
 
     fn try_take(&mut self, src: &Path) -> Result<Self::FieldType> {
@@ -389,7 +388,7 @@ macro_rules! lazy_path_fields {
             fn try_immut(&self, src: &Path) -> Result<&Self::FieldType> {
                 self.cache
                     .of_files.get(src)
-                    .ok_or_else(|| err!("Not cached file '{}'", display(src)))
+                    .ok_or_else(|| err!("{}", Msg::FileNotCached))
                     .and_then(|cache| cache.$map_field.try_get())
             }
 
@@ -405,7 +404,7 @@ macro_rules! lazy_path_fields {
                 self.cache
                     .of_files
                     .get_mut(src)
-                    .ok_or_else(|| err!("Not cached file '{}'", display(src)))
+                    .ok_or_else(|| err!("{}", Msg::FileNotCached))
                     .and_then(|cache| cache.$map_field.try_take())
             }
 
