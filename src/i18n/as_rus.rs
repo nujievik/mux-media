@@ -10,6 +10,7 @@ impl_msg_as_str!(
 
     HelpGlobalOptions => "Глобальные опции",
     HelpLocale => "Установить язык логов",
+    HelpOverwrite => "Перезаписать исходные файлы",
     HelpJobs => "Максимум параллельных муксирований",
     HelpVerbosity => "Увеличить логирование",
     HelpQuiet => "Подавить логирование",
@@ -58,6 +59,15 @@ impl_msg_as_str!(
     HelpListLangs => "Показать поддерживаемые языковые коды",
     HelpVersion => "Показать версию",
     HelpHelp => "Показать справку",
+
+    MuxingTo => "Муксирование в",
+    SuccessfullyMuxedTo => "Успешно смуксировано в",
+    SuccessfullyMuxed => "Успешно смуксировано",
+    RemovingInputFile => "удаление исходного файла",
+    InputFileSuccessfullyRemoved => "исходный файл успешно удалён",
+    MuxedFile => "Смуксированный файл",
+    SuccessfullyMovedTo => "успешно перемещён в",
+    FailOverwriteInputFiles => "ошибка перезаписи исходных файлов",
 
     ConvertingSubtitleEncoding => "Конвертация кодировки субтитров",
     FailSaveConfig => "ошибка сохранения конфига",

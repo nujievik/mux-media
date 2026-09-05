@@ -32,6 +32,7 @@ pub enum Msg {
 
     HelpGlobalOptions,
     HelpLocale,
+    HelpOverwrite,
     HelpJobs,
     HelpVerbosity,
     HelpQuiet,
@@ -81,6 +82,15 @@ pub enum Msg {
     HelpVersion,
     HelpHelp,
 
+    MuxingTo,
+    SuccessfullyMuxedTo,
+    SuccessfullyMuxed,
+    RemovingInputFile,
+    InputFileSuccessfullyRemoved,
+    MuxedFile,
+    SuccessfullyMovedTo,
+    FailOverwriteInputFiles,
+
     ConvertingSubtitleEncoding,
     FailSaveConfig,
     FailUpdateLanguage,
@@ -93,6 +103,7 @@ pub enum Msg {
     LoadingTxtConfig,
     Media,
     MediaNumberIsOutOfRange,
+    #[deprecated]
     Muxing,
     NoExternalMediaFound,
     NoInputDirMedia,
@@ -101,6 +112,7 @@ pub enum Msg {
     NotOutSaveAny,
     NotRecognizedMedia,
     Skipping,
+    #[deprecated]
     SuccessMuxed,
     UnsupportedFileExtension,
     Using,

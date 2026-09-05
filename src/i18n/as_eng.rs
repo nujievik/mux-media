@@ -10,6 +10,7 @@ impl_msg_as_str!(
 
     HelpGlobalOptions => "Global options",
     HelpLocale => "Set log language",
+    HelpOverwrite => "Overwrite input files",
     HelpJobs => "Set max parallel muxing",
     HelpVerbosity => "Increase logging",
     HelpQuiet => "Suppress logging",
@@ -58,6 +59,15 @@ impl_msg_as_str!(
     HelpListLangs => "Show supported language codes",
     HelpVersion => "Show version",
     HelpHelp => "Show help",
+
+    MuxingTo => "Muxing to",
+    SuccessfullyMuxedTo => "Successfully muxed to",
+    SuccessfullyMuxed => "Successfully muxed",
+    RemovingInputFile => "removing input file",
+    InputFileSuccessfullyRemoved => "input file successfully removed",
+    MuxedFile => "Muxed file",
+    SuccessfullyMovedTo => "successfully moved to",
+    FailOverwriteInputFiles => "fail overwrite input files",
 
     ConvertingSubtitleEncoding => "Converting subtitle encoding",
     FailSaveConfig => "fail save config",

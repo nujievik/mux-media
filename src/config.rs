@@ -35,6 +35,7 @@ pub struct Config {
     pub input: ConfigInput,
     pub output: ConfigOutput,
     pub locale: LangCode,
+    pub overwrite: bool,
     pub jobs: u8,
     pub log_level: ConfigLogLevel,
     pub exit_on_err: bool,

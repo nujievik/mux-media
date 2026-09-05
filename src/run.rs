@@ -12,7 +12,7 @@ use crate::{
 };
 use buf_packets::BufPackets;
 use encoder::{Encode, Encoder};
-use log::{LevelFilter, error, info, warn};
+use log::{LevelFilter, debug, error, info, warn};
 use rayon::prelude::*;
 use std::{
     fs,
@@ -69,7 +69,7 @@ pub fn run() -> Result<()> {
     result.map(|cnt| match cnt {
         0 => warn!("{}", Msg::NotMuxedAny),
         _ => {
-            info!("{} {} {}", Msg::SuccessMuxed, cnt, Msg::Media);
+            info!("{} {} {}", Msg::SuccessfullyMuxed, cnt, Msg::Media);
             cfg.save_config_or_warn();
         }
     })
@@ -101,6 +101,10 @@ impl Config {
             }
         })?;
 
+        if let Err(e) = remove_input_fonts(self) {
+            warn!("{}: {}", Msg::FailOverwriteInputFiles, e);
+        }
+
         Ok(cnt.into_inner().unwrap_or(0))
     }
 }
@@ -109,67 +113,78 @@ impl MediaInfo<'_> {
     /// Tries muxing all files from [`MediaInfo::cache`] to `dest`.
     pub fn mux_files(&mut self, dest: &Path) -> Result<()> {
         let order = self.try_take_cmn(MarkMediaInfoStreamsOrder)?;
-        let mut octx = format::output(dest)?;
-        let (mut icontexts, mut encoders, idx_map) = header::write_header(self, &order, &mut octx)?;
 
-        let mut iters: Vec<_> = icontexts
-            .iter_mut()
-            .map(|ictx| Box::new(ictx.packets()))
-            .collect();
-        let mut buf_packets = BufPackets::new(&mut iters);
+        // scope to drop berore overwrite
+        {
+            let mut octx = format::output(dest)?;
+            let (mut icontexts, mut encoders, idx_map) =
+                header::write_header(self, &order, &mut octx)?;
 
-        let need_write_progress = match log::max_level() {
-            LevelFilter::Error => false,
-            _ => self.cfg.jobs <= 1,
-        };
-        info!("{} '{}'...", Msg::Muxing, display(dest));
+            let mut iters: Vec<_> = icontexts
+                .iter_mut()
+                .map(|ictx| Box::new(ictx.packets()))
+                .collect();
+            let mut buf_packets = BufPackets::new(&mut iters);
 
-        // packets/msg frequency
-        let mut progress_frequency = 50usize;
-        let mut cnt = 0usize;
-        let mut percentage = 0u64;
-        let first_file_size = new_first_file_size(&order, need_write_progress);
-        let mut writed = 0u64;
-
-        loop {
-            let (idx, (ist, mut packet)) = match buf_packets.take_minimal() {
-                Some(tuple) => tuple,
-                None => break,
+            let need_write_progress = match log::max_level() {
+                LevelFilter::Error => false,
+                _ => self.cfg.jobs <= 1,
             };
-            buf_packets.fill_idx(idx);
+            info!("{} '{}'...", Msg::MuxingTo, display(dest));
 
-            if need_write_progress && idx == 0 {
-                if cnt > progress_frequency {
-                    let p = writed * 100 / first_file_size;
-                    if p > percentage {
-                        percentage = p;
-                        print!("\r{:2}%", p);
-                        let _ = io::stdout().flush();
-                    } else {
-                        progress_frequency = progress_frequency * 2;
+            // packets/msg frequency
+            let mut progress_frequency = 50usize;
+            let mut cnt = 0usize;
+            let mut percentage = 0u64;
+            let first_file_size = new_first_file_size(&order, need_write_progress);
+            let mut writed = 0u64;
+
+            loop {
+                let (idx, (ist, mut packet)) = match buf_packets.take_minimal() {
+                    Some(tuple) => tuple,
+                    None => break,
+                };
+                buf_packets.fill_idx(idx);
+
+                if need_write_progress && idx == 0 {
+                    if cnt > progress_frequency {
+                        let p = writed * 100 / first_file_size;
+                        if p > percentage {
+                            percentage = p;
+                            print!("\r{:2}%", p);
+                            let _ = io::stdout().flush();
+                        } else {
+                            progress_frequency = progress_frequency * 2;
+                        }
+                        cnt = 0;
                     }
-                    cnt = 0;
+                    writed += packet.size() as u64;
+                    cnt += 1;
                 }
-                writed += packet.size() as u64;
-                cnt += 1;
+
+                let enc = match idx_map[idx].get(ist.index()) {
+                    Some(Some(i)) => &mut encoders[*i],
+                    _ => continue,
+                };
+                enc.processing_packet(&mut octx, &mut packet)?;
             }
 
-            let enc = match idx_map[idx].get(ist.index()) {
-                Some(Some(i)) => &mut encoders[*i],
-                _ => continue,
-            };
-            enc.processing_packet(&mut octx, &mut packet)?;
+            for enc in &mut encoders {
+                enc.finalize(&mut octx)?;
+            }
+
+            copy_chapters(self, &order, &icontexts, &mut octx);
+
+            octx.write_trailer()?;
         }
 
-        for enc in &mut encoders {
-            enc.finalize(&mut octx)?;
+        info!("\r{} '{}'", Msg::SuccessfullyMuxedTo, display(dest));
+
+        if let Err(e) = overwrite(self.cfg, dest, &order) {
+            warn!("{}: {}", Msg::FailOverwriteInputFiles, e);
         }
 
-        copy_chapters(self, &order, &icontexts, &mut octx);
         self.set_cmn(MarkMediaInfoStreamsOrder, order);
-
-        octx.write_trailer()?;
-        info!("\r{} '{}'", Msg::SuccessMuxed, display(dest));
         Ok(())
     }
 }
@@ -213,4 +228,52 @@ fn new_first_file_size(order: &StreamsOrder, need_write_progress: bool) -> u64 {
         _ => 1,
     };
     if size > 0 { size } else { 1 }
+}
+
+fn overwrite(cfg: &Config, src: &Path, order: &StreamsOrder) -> Result<()> {
+    if !cfg.overwrite {
+        return Ok(());
+    }
+
+    let dest_file_name = src.file_name().ok_or_else(|| err!("fail get file name"))?;
+    let dest = cfg.input.dir().join(dest_file_name);
+
+    for x in order.iter_first_entries() {
+        let path = x.src();
+
+        // its share temp fonts - do not delete
+        if path.parent().map_or(false, |p| p == cfg.output.temp_dir()) {
+            continue;
+        }
+
+        debug!("{} '{}'...", Msg::RemovingInputFile, display(path));
+        fs::remove_file(path)?;
+        debug!("{} '{}'", Msg::InputFileSuccessfullyRemoved, display(path));
+    }
+
+    fs::rename(src, &dest)?;
+    info!(
+        "{} '{}' {} '{}'",
+        Msg::MuxedFile,
+        Msg::SuccessfullyMovedTo,
+        display(src),
+        display(&dest)
+    );
+
+    Ok(())
+}
+
+fn remove_input_fonts(cfg: &Config) -> Result<()> {
+    use crate::config::fields::input::InputFileType;
+
+    if !cfg.overwrite {
+        return Ok(());
+    }
+
+    for f in cfg.input.file_dirs[InputFileType::Font].iter() {
+        debug!("{} '{}'...", Msg::RemovingInputFile, display(f));
+        fs::remove_file(f)?;
+        debug!("{} '{}'", Msg::InputFileSuccessfullyRemoved, display(f));
+    }
+    Ok(())
 }

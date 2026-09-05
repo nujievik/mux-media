@@ -17,6 +17,13 @@ impl Blocks {
                     .value_parser(ValueParser::new(LangCode::from_str)),
             )
             .arg(
+                Arg::new(undashed!(Overwrite))
+                    .short('w')
+                    .long(undashed!(Overwrite))
+                    .help(Msg::HelpOverwrite.as_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
                 Arg::new(undashed!(Jobs))
                     .short('j')
                     .long(undashed!(Jobs))

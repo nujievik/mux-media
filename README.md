@@ -54,6 +54,7 @@ Run `mux-media -h` to display help.
 | | |
 | Global options: | |
 | `-l, --locale <lng>` | Set log language |
+| `-w, --overwrite` | Overwrite input files |
 | `-j, --jobs <n>` | Set max parallel muxing |
 | `-v, --verbose...` | Increase logging |
 | `-q, --quiet` | Suppress logging |

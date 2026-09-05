@@ -34,6 +34,7 @@ enum_cli_arg! {
     Solo => "solo",
 
     Locale => "locale",
+    Overwrite => "overwrite",
     Jobs => "jobs",
     Verbose => "verbose",
     Quiet => "quiet",

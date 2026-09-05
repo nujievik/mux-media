@@ -173,6 +173,7 @@ impl FromArgMatches for Config {
                 input,
                 output,
                 locale,
+                overwrite: flag!(m, Overwrite),
                 log_level: log_level(m),
                 exit_on_err: flag!(m, ExitOnErr),
                 save_config: flag!(m, SaveConfig),
@@ -267,6 +268,7 @@ impl FromArgMatches for Config {
         output(self, m);
         log_level(self, m);
 
+        upd_flag!(self.overwrite, m, Overwrite);
         upd_flag!(self.exit_on_err, m, ExitOnErr);
         upd_flag!(self.save_config, m, SaveConfig);
         upd!(self.jobs, m, Jobs, u8);
