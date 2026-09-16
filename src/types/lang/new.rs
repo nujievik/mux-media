@@ -96,9 +96,10 @@ impl FromStr for LangCode {
 
 fn get_code(s: &str) -> Option<LangCode> {
     fn str_to_ascii_words(s: &str) -> impl Iterator<Item = &str> {
-        use lazy_regex::{Lazy, Regex, regex};
-        static REGEX_ASCII_WORD: &Lazy<Regex> = regex!(r"[a-zA-Z]+");
-        REGEX_ASCII_WORD.find_iter(s).map(|mat| mat.as_str())
+        s.as_bytes()
+            .split(|b| !b.is_ascii_alphabetic())
+            .filter(|w| !w.is_empty())
+            .map(|w| unsafe { str::from_utf8_unchecked(w) })
     }
 
     let mut buf = [0u8; 3];

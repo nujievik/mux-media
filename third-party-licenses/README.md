@@ -43,10 +43,6 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/is_default
   
-- **lazy-regex**
-  License: MIT
-  https://crates.io/crates/lazy-regex
-  
 - **log**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/log

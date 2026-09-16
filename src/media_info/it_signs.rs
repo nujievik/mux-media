@@ -21,9 +21,8 @@ impl MediaInfo<'_> {
         }
 
         fn str_to_words(s: &str) -> impl Iterator<Item = &str> {
-            use lazy_regex::{Lazy, Regex, regex};
-            static REGEX_WORD: &Lazy<Regex> = regex!(r"[a-zA-Z]+|[а-яА-ЯёЁ]+");
-            REGEX_WORD.find_iter(s).map(|mat| mat.as_str().trim())
+            s.split(|c: char| !c.is_alphabetic())
+                .filter(|w| !w.is_empty())
         }
     }
 }
