@@ -7,9 +7,6 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum MuxError {
-    #[error("config parse: {0}")]
-    ConfigParse(#[from] clap::Error),
-
     #[error("ffmpeg: {0}")]
     Ffmpeg(#[from] ffmpeg::Error),
 
@@ -26,6 +23,9 @@ pub enum MuxError {
 #[derive(Debug, Error)]
 #[non_exhaustive]
 pub enum MuxErrorParse {
+    #[error("config: {0}")]
+    Config(#[from] clap::Error),
+
     #[error("float: {0}")]
     Float(#[from] std::num::ParseFloatError),
 
@@ -46,7 +46,7 @@ pub struct MuxErrorOther {
 impl MuxError {
     pub fn code(&self) -> i32 {
         match self {
-            MuxError::ConfigParse(e) => e.exit_code(),
+            MuxError::Parse(MuxErrorParse::Config(e)) => e.exit_code(),
             MuxError::Other(e) => e.code,
             _ => 1,
         }
@@ -59,7 +59,7 @@ impl MuxError {
 
     /// Prints formatted and colored error to stdout or stderr according to its error kind.
     pub fn print(&self) {
-        if let MuxError::ConfigParse(e) = self {
+        if let MuxError::Parse(MuxErrorParse::Config(e)) = self {
             if let Ok(()) = e.print() {
                 return;
             }

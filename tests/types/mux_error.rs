@@ -11,7 +11,7 @@ fn test_from_clap_error() {
     assert_eq!(2, err.code());
 
     match err {
-        MuxError::ConfigParse(_) => (),
+        MuxError::Parse(MuxErrorParse::Config(_)) => (),
         _ => panic!("Must be MuxError::ConfigParse"),
     }
 }

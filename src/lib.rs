@@ -109,7 +109,7 @@ pub use types::{
     globset_pattern::GlobSetPattern,
     lang::{Lang, LangCode},
     media_number::MediaNumber,
-    mux_error::MuxError,
+    mux_error::{MuxError, MuxErrorParse},
     mux_logger::MuxLogger,
     range::RangeUsize,
     stream::{

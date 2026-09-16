@@ -11,6 +11,7 @@ macro_rules! from_any_parse {
     };
 }
 
+from_any_parse!(clap::Error, Config);
 from_any_parse!(num::ParseFloatError, Float);
 from_any_parse!(num::ParseIntError, Int);
 from_any_parse!(subtitle_lines::Error, SubtitleLines);

@@ -1,9 +1,9 @@
-use super::MuxError;
+use super::{MuxError, MuxErrorParse};
 
 impl From<MuxError> for clap::Error {
     fn from(err: MuxError) -> clap::Error {
         match err {
-            MuxError::ConfigParse(e) => e,
+            MuxError::Parse(MuxErrorParse::Config(e)) => e,
             e => {
                 if !e.use_stderr() {
                     return clap::Error::new(clap::error::ErrorKind::DisplayVersion);
