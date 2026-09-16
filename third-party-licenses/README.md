@@ -59,11 +59,6 @@ project.
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/rayon
   
-- **rsubs-lib**
-  License: MIT
-  Source: https://crates.io/crates/rsubs-lib
-  Path source: https://github.com/nujievik/rsubs-lib
-  
 - **strum**
   License: MIT
   Source: https://crates.io/crates/strum
@@ -72,19 +67,23 @@ project.
   License: MIT
   Source: https://crates.io/crates/strum_macros
   
-- **supports-color**
-  License: Apache-2.0
-  Source: https://crates.io/crates/supports-color
-  
-- **time**
+- **subtitle-lines**
   License: MIT OR Apache-2.0
-  Source: https://crates.io/crates/time
+  Source: https://crates.io/crates/subtitle-lines
+  
+- **thiserror**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/thiserror
   
 - **walkdir**
   License: Unlicense OR MIT
   Source: https://crates.io/crates/walkdir
   
 ### Windows builds only
+
+- **enable-ansi-support**
+  License: MIT
+  Source: https://crates.io/crates/enable-ansi-support
   
 - **winapi**
   License: MIT OR Apache-2.0

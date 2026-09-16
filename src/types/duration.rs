@@ -28,20 +28,6 @@ impl From<Duration> for time::Duration {
     }
 }
 
-impl From<::time::Time> for Duration {
-    fn from(t: ::time::Time) -> Duration {
-        let (h, m, s, nanos) = t.as_hms_nano();
-        let secs = h as u64 * 3600 + m as u64 * 60 + s as u64;
-        Duration::new(secs, nanos)
-    }
-}
-
-impl From<Duration> for ::time::Time {
-    fn from(d: Duration) -> ::time::Time {
-        ::time::Time::MIDNIGHT + time::Duration::from(d)
-    }
-}
-
 impl FromStr for Duration {
     type Err = MuxError;
 

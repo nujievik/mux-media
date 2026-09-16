@@ -44,7 +44,6 @@ strum = "0.27"
 strum_macros = "0.27"
 subtitle-lines = "0.3.0"
 thiserror = "2"
-time = "0.3"
 walkdir = "2"
 
 [target.'cfg(windows)'.dependencies]
