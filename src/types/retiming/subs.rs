@@ -2,17 +2,21 @@ mod base;
 mod destination;
 mod external;
 mod ty;
-mod xs;
 
 use super::{RetimedStream, Retiming};
 use crate::{Duration, Result, display};
 use destination::Destination;
 use log::warn;
-use rsubs_lib::{SRT, SRTLine, SSA, SSAEvent, VTT, VTTLine};
-use std::{collections::HashMap, fs, path::Path, time::Duration as StdDuration};
-use time::Time;
+use std::{
+    fs,
+    io::{BufWriter, Write},
+    path::{Path, PathBuf},
+};
+use subtitle_lines::{
+    AssLines, FromBytes, SrtLines, StreamingIterator, VttLines, ass::line::AssLine,
+    srt::line::SrtLine, vtt::line::VttLine,
+};
 use ty::SubType;
-use xs::Subs;
 
 impl Retiming<'_, '_> {
     pub(crate) fn try_sub(&self, i: usize, src: &Path, i_stream: usize) -> Result<RetimedStream> {
@@ -82,99 +86,7 @@ impl Retiming<'_, '_> {
     }
 }
 
-fn save_idxs(rsub: &Subs, trg_start: Time, trg_end: Time) -> Vec<usize> {
-    rsub.iter_i_start_end()
-        .filter_map(|(i, start, end)| {
-            if start > trg_end || end < trg_start {
-                None
-            } else {
-                Some(i)
-            }
-        })
-        .collect()
-}
-
-fn push_retimed_srt_lines(
-    lines: &mut Vec<SRTLine>,
-    sequence_number: &mut u32,
-    old: &Vec<SRTLine>,
-    idxs: Vec<usize>,
-    offset: f64,
-) {
-    let (sign, offset) = sign_duration(offset);
-    for i in idxs {
-        let (start, end) = retime_start_end(old[i].start, old[i].end, sign, offset);
-        lines.push(SRTLine {
-            sequence_number: *sequence_number,
-            start,
-            end,
-            text: old[i].text.clone(),
-        });
-        *sequence_number += 1;
-    }
-}
-
-fn push_retimed_ssa_events(
-    events: &mut Vec<SSAEvent>,
-    old: &Vec<SSAEvent>,
-    idxs: Vec<usize>,
-    offset: f64,
-) {
-    let (sign, offset) = sign_duration(offset);
-    for i in idxs {
-        let (start, end) = retime_start_end(old[i].start, old[i].end, sign, offset);
-        events.push(SSAEvent {
-            layer: old[i].layer,
-            start,
-            end,
-            style: old[i].style.clone(),
-            name: old[i].name.clone(),
-            margin_l: old[i].margin_l,
-            margin_r: old[i].margin_r,
-            margin_v: old[i].margin_v,
-            effect: old[i].effect.clone(),
-            text: old[i].text.clone(),
-            line_type: old[i].line_type.clone(),
-        });
-    }
-}
-
-fn push_retimed_vtt_lines(
-    lines: &mut Vec<VTTLine>,
-    old: &Vec<VTTLine>,
-    idxs: Vec<usize>,
-    offset: f64,
-) {
-    let (sign, offset) = sign_duration(offset);
-    for i in idxs {
-        let (start, end) = retime_start_end(old[i].start, old[i].end, sign, offset);
-        lines.push(VTTLine {
-            identifier: old[i].identifier.clone(),
-            start,
-            end,
-            settings: old[i].settings.clone(),
-            text: old[i].text.clone(),
-        });
-    }
-}
-
-fn retime_start_end(start: Time, end: Time, sign: bool, offset: StdDuration) -> (Time, Time) {
-    if sign {
-        (start + offset, end + offset)
-    } else {
-        (start - offset, end - offset)
-    }
-}
-
-// true is sign positive
-fn sign_duration(offset: f64) -> (bool, StdDuration) {
-    (
-        offset.is_sign_positive(),
-        StdDuration::from_secs_f64(offset.abs()),
-    )
-}
-
-fn try_extract(src: &Path, i_stream: usize, dest: &Destination) -> Result<()> {
+fn try_extract(src: &Path, i_stream: usize, dest_ty: SubType, dest_path: &Path) -> Result<()> {
     use crate::ffmpeg::{Rational, format};
 
     let mut ictx = format::input(&src)?;
@@ -182,13 +94,13 @@ fn try_extract(src: &Path, i_stream: usize, dest: &Destination) -> Result<()> {
         .stream(i_stream)
         .ok_or_else(|| err!("invalid stream index"))?;
 
-    let out_time_base = match dest.ty {
+    let out_time_base = match dest_ty {
         SubType::Ssa => Rational::new(1, 100),
         _ => Rational::new(1, 1000),
     };
     let codec_id = istream.parameters().id();
 
-    let mut octx = format::output(&dest.path)?;
+    let mut octx = format::output(dest_path)?;
 
     let ostream_index = {
         let mut ostream = octx.add_stream(codec_id)?;
@@ -210,5 +122,107 @@ fn try_extract(src: &Path, i_stream: usize, dest: &Destination) -> Result<()> {
     }
 
     octx.write_trailer()?;
+    Ok(())
+}
+
+fn merge(dest: &Destination, splits: &[PathBuf]) -> Result<()> {
+    let f = fs::File::create(&dest.path)?;
+    let mut writer = BufWriter::new(f);
+
+    match dest.ty {
+        SubType::Ssa => {
+            let mut first_split_lines = AssLines::open_file(&splits[0])?;
+            let mut is_written_events_mark = false;
+            let mut buf_section_mark: Option<Vec<u8>> = None;
+
+            while let Some(l) = first_split_lines.next() {
+                match &l {
+                    AssLine::SectionMark(mark) => {
+                        let bytes = mark.as_bytes();
+
+                        if is_written_events_mark {
+                            buf_section_mark = Some(bytes.into());
+                            break;
+                        }
+
+                        if bytes == b"[Events]" {
+                            is_written_events_mark = true;
+                        }
+                    }
+                    _ => (),
+                };
+                writer.write(l.as_bytes())?;
+                writer.write(b"\n")?;
+            }
+
+            for split in splits.iter().skip(1) {
+                let mut lines = AssLines::open_file(split)?;
+                let mut is_written_event = false;
+
+                while let Some(line) = lines.next() {
+                    match &line {
+                        AssLine::Event(_) => {
+                            writer.write(line.as_bytes())?;
+                            writer.write(b"\n")?;
+                            is_written_event = true;
+                        }
+                        AssLine::SectionMark(_) if is_written_event => break,
+                        _ => (),
+                    }
+                }
+            }
+
+            writer.write(b"\n")?;
+
+            if let Some(bytes) = buf_section_mark {
+                writer.write(&bytes)?;
+                writer.write(b"\n")?;
+            }
+
+            while let Some(l) = first_split_lines.next() {
+                writer.write(l.as_bytes())?;
+                writer.write(b"\n")?;
+            }
+        }
+        SubType::Srt => {
+            let mut is_written_blank = true;
+            for split in splits {
+                if !is_written_blank {
+                    writer.write(b"\n")?;
+                }
+                let mut lines = SrtLines::open_file(split)?;
+                while let Some(l) = lines.next() {
+                    writer.write(l.as_bytes())?;
+                    writer.write(b"\n")?;
+                    is_written_blank = matches!(l, SrtLine::Blank);
+                }
+            }
+        }
+        SubType::Vtt => {
+            let mut is_written_blank = true;
+            let mut is_first = true;
+
+            for split in splits {
+                if !is_written_blank {
+                    writer.write(b"\n")?;
+                }
+                let mut lines = VttLines::open_file(split)?;
+                while let Some(l) = lines.next() {
+                    match &l {
+                        _ if is_first => (),
+                        VttLine::Blank
+                        | VttLine::CueId(_)
+                        | VttLine::TimeRangeAndStyle(_)
+                        | VttLine::Text(_) => (),
+                        _ => continue,
+                    }
+                    writer.write(l.as_bytes())?;
+                    writer.write(b"\n")?;
+                    is_written_blank = matches!(l, VttLine::Blank);
+                }
+                is_first = false;
+            }
+        }
+    };
     Ok(())
 }

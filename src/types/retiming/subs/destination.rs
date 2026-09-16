@@ -40,3 +40,14 @@ impl Retiming<'_, '_> {
         Destination { src_ext, ty, path }
     }
 }
+
+impl Destination {
+    pub(super) fn destination_split(&self, i: usize) -> PathBuf {
+        self.path.parent().unwrap().join(format!(
+            "{}-{}.{}",
+            self.path.file_stem().unwrap().to_str().unwrap(),
+            i,
+            self.ty.as_ext()
+        ))
+    }
+}

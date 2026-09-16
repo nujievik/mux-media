@@ -220,7 +220,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d630bccd429a5bb5a64b5e94f693bfc48c9f8566418fda4c494cc94f911f87cc"
 dependencies = [
  "powerfmt",
- "serde",
 ]
 
 [[package]]
@@ -380,23 +379,22 @@ dependencies = [
 
 [[package]]
 name = "is_default"
-version = "0.1.4"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69c42b6708d2986e39794e2b1fc0ddbb767e1d73535e4077ef881a45fa6e0117"
+checksum = "5e75e2b5206afaa6bc6ef225a85efd6edfe00f3b6f88ca09faac01fa16f9f725"
 dependencies = [
  "is_default_derive",
 ]
 
 [[package]]
 name = "is_default_derive"
-version = "0.1.0"
+version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "48e39759983a5bcbb0d7af0dd31b5a94c360e433018bdcc10a05944b3094f113"
+checksum = "d9db26bb1af839b3e236746359c662b255cd787dc7d5339c2fb06a2ebe55c6c5"
 dependencies = [
  "proc-macro-crate",
- "proc-macro2",
  "quote",
- "syn 2.0.106",
+ "syn 3.0.3",
 ]
 
 [[package]]
@@ -413,12 +411,6 @@ checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
 dependencies = [
  "either",
 ]
-
-[[package]]
-name = "itoa"
-version = "1.0.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "lazy-regex"
@@ -507,9 +499,9 @@ dependencies = [
  "phf 0.13.1",
  "rand 0.9.2",
  "rayon",
- "rsubs-lib",
  "strum",
  "strum_macros",
+ "subtitle-lines",
  "thiserror",
  "time",
  "walkdir",
@@ -787,17 +779,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "caf4aa5b0f434c91fe5c7f1ecb6a5ece2130b02ad2a590589dda5146df959001"
 
 [[package]]
-name = "rsubs-lib"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6cccd363d956d25e7dc83d8ab1607b85003ee91c288ceed256fd4b3d5abe6d0f"
-dependencies = [
- "regex",
- "serde",
- "time",
-]
-
-[[package]]
 name = "rustc-hash"
 version = "2.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -819,7 +800,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fd6c24dee235d0da097043389623fb913daddf92c76e9f5a1db88607a0bcbd1d"
 dependencies = [
  "serde_core",
- "serde_derive",
 ]
 
 [[package]]
@@ -879,6 +859,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "subtitle-lines"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ada6eb8b1b64cced8a4f9af3b99b12f36a6ce2f248d5a5f3e50016faefda01c"
+
+[[package]]
 name = "syn"
 version = "2.0.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -927,12 +913,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "91e7d9e3bb61134e77bde20dd4825b97c010155709965fedf0f49bb138e52a9d"
 dependencies = [
  "deranged",
- "itoa",
  "num-conv",
  "powerfmt",
  "serde",
  "time-core",
- "time-macros",
 ]
 
 [[package]]
@@ -940,16 +924,6 @@ name = "time-core"
 version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40868e7c1d2f0b8d73e4a8c7f0ff63af4f6d19be117e90bd73eb1d62cf831c6b"
-
-[[package]]
-name = "time-macros"
-version = "0.2.24"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30cfb0125f12d9c277f35663a0a33f8c30190f4e4574868a330595412d34ebf3"
-dependencies = [
- "num-conv",
- "time-core",
-]
 
 [[package]]
 name = "toml_datetime"

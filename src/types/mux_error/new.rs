@@ -13,9 +13,7 @@ macro_rules! from_any_parse {
 
 from_any_parse!(num::ParseFloatError, Float);
 from_any_parse!(num::ParseIntError, Int);
-from_any_parse!(rsubs_lib::SRTError, SrtSubtitles);
-from_any_parse!(rsubs_lib::SSAError, SsaSubtitles);
-from_any_parse!(rsubs_lib::VTTError, VttSubtitles);
+from_any_parse!(subtitle_lines::Error, SubtitleLines);
 
 impl MuxError {
     pub(crate) fn new_with(message: String) -> MuxError {

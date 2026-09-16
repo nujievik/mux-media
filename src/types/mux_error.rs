@@ -32,14 +32,8 @@ pub enum MuxErrorParse {
     #[error("int: {0}")]
     Int(#[from] std::num::ParseIntError),
 
-    #[error("srt subtitles: {0}")]
-    SrtSubtitles(#[from] rsubs_lib::SRTError),
-
-    #[error("ssa subtitles: {0}")]
-    SsaSubtitles(#[from] rsubs_lib::SSAError),
-
-    #[error("vtt subtitles: {0}")]
-    VttSubtitles(#[from] rsubs_lib::VTTError),
+    #[error("subtitle lines: {0}")]
+    SubtitleLines(#[from] subtitle_lines::Error),
 }
 
 #[derive(Debug, Error)]
