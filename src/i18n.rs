@@ -83,7 +83,6 @@ pub enum Msg {
     HelpHelp,
 
     MuxingTo,
-    SuccessfullyMuxedTo,
     SuccessfullyMuxed,
     RemovingInputFile,
     InputFileSuccessfullyRemoved,
@@ -95,16 +94,12 @@ pub enum Msg {
     FailSaveConfig,
     FailUpdateLanguage,
     FileAlreadyExists,
-    #[deprecated]
-    FileIsAlreadyExists,
     FileNotCached,
     FoundRepeat,
     LanguageIsNotSupportedForLogging,
     LoadingTxtConfig,
     Media,
     MediaNumberIsOutOfRange,
-    #[deprecated]
-    Muxing,
     NoExternalMediaFound,
     NoInputDirMedia,
     NotASubtitleFile,
@@ -112,8 +107,6 @@ pub enum Msg {
     NotOutSaveAny,
     NotRecognizedMedia,
     Skipping,
-    #[deprecated]
-    SuccessMuxed,
     UnsupportedFileExtension,
     Using,
 

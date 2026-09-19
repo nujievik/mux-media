@@ -178,7 +178,7 @@ impl MediaInfo<'_> {
             octx.write_trailer()?;
         }
 
-        info!("\r{} '{}'", Msg::SuccessfullyMuxedTo, display(dest));
+        info!("\r{} '{}'", Msg::SuccessfullyMuxed, display(dest));
 
         if let Err(e) = overwrite(self.cfg, dest, &order) {
             warn!("{}: {}", Msg::FailOverwriteInputFiles, e);
