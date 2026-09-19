@@ -1,6 +1,5 @@
 use super::*;
 use std::collections::HashMap;
-use subtitle_lines::Time;
 use subtitle_lines::{SubtitleLines, WriteOptions};
 
 impl Retiming<'_, '_> {
@@ -26,16 +25,19 @@ impl Retiming<'_, '_> {
 
             let extracted_stream = sources.get(src_path).unwrap();
 
-            opts.start = Some(p.start.0.into());
-            opts.end = Some(p.end.0.into());
+            opts.start = Some(p.start);
+            opts.end = Some(p.end);
 
-            let (is_add_time, offset) = is_add_time_offset(self, i_part);
+            let offset = SignedTime::new(
+                true,
+                self.len_prev_nonuid_parts(i_part) + self.len_prev_uid_parts(i_part),
+            ) - p.start;
 
-            if is_add_time {
-                opts.add_time = Some(offset);
+            if offset.is_positive() {
+                opts.add_time = Some(offset.as_unsigned_time());
                 opts.sub_time = None;
             } else {
-                opts.sub_time = Some(offset);
+                opts.sub_time = Some(offset.as_unsigned_time());
                 opts.add_time = None;
             }
 
@@ -48,13 +50,4 @@ impl Retiming<'_, '_> {
 
         merge(dest, &splits)
     }
-}
-
-fn is_add_time_offset(rtm: &Retiming<'_, '_>, i_part: usize) -> (bool, Time) {
-    let p = &rtm.parts[i_part];
-    let offset =
-        rtm.len_prev_nonuid_parts(i_part) + rtm.len_prev_uid_parts(i_part) - p.start.as_secs_f64();
-    let is_add_time = offset.is_sign_positive();
-    let offset = Time::from(Duration::from_secs_f64(offset.abs()).0);
-    (is_add_time, offset)
 }

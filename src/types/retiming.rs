@@ -1,5 +1,6 @@
 mod audio;
 mod new;
+mod signed_time;
 mod subs;
 mod video;
 
@@ -8,9 +9,12 @@ use crate::ffmpeg::{
     format::{self, context},
 };
 use crate::{
-    ArcPathBuf, Duration, MediaInfo, Result, StreamType, StreamsOrderItem, add_copy_stream, display,
+    ArcPathBuf, MediaInfo, Result, StreamType, StreamsOrderItem, Time, add_copy_stream, display,
 };
+use signed_time::SignedTime;
 use std::path::{Path, PathBuf};
+
+const MILLISECOND_TIME_BASE: Rational = Rational(1, 1000);
 
 #[derive(Debug)]
 pub struct Retiming<'a, 'b> {
@@ -27,8 +31,8 @@ pub struct Retiming<'a, 'b> {
 
 #[derive(Debug)]
 pub struct RetimingChapter {
-    pub start: Duration,
-    pub end: Duration,
+    pub start: Time,
+    pub end: Time,
     pub uid: Option<Vec<u8>>,
     pub title: Option<String>,
 }
@@ -38,10 +42,10 @@ pub struct RetimingPart {
     pub i_start_chp: usize,
     pub i_end_chp: usize,
     pub src: ArcPathBuf,
-    pub start: Duration,
-    pub start_offset: f64,
-    pub end: Duration,
-    pub end_offset: f64,
+    pub start: Time,
+    pub start_offset: SignedTime,
+    pub end: Time,
+    pub end_offset: SignedTime,
 }
 
 #[derive(Debug, Default)]
@@ -64,14 +68,23 @@ impl Retiming<'_, '_> {
         }
     }
 
-    fn chapters_nonuid(&self, i_chp: usize) -> f64 {
+    fn chapters_nonuid(&self, i_chp: usize) -> Time {
         let uid = &self.chapters[i_chp].uid;
         self.chapters[..i_chp]
             .iter()
             .filter(|c| &c.uid != uid)
-            .map(|c| c.end.as_secs_f64() - c.start.as_secs_f64())
+            .map(|c| c.end - c.start)
             .sum()
     }
+}
+
+fn time_to_ts(time: Time, dest_time_base: Rational) -> i64 {
+    (time.as_millis() as i64).rescale(MILLISECOND_TIME_BASE, dest_time_base)
+}
+
+fn ts_to_time(ts: i64, ts_time_base: Rational) -> Time {
+    let millis = ts.rescale(ts_time_base, MILLISECOND_TIME_BASE);
+    Time::from_millis(millis as u64)
 }
 
 // Returns (input stream time base, output stream time base, output stream index).
@@ -132,7 +145,7 @@ fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
 
             packet.set_stream(ost_index);
             if packet.write_interleaved(&mut octx).is_err() && !was_error {
-                log::error!(
+                log::warn!(
                     "Fail concat retimed parts of '{}'. Output file may be corrupted
 Try --no-linked or --parts [!]n[,m] to fix",
                     display(src)

@@ -1,6 +1,6 @@
-use super::{RetimedStream, Retiming, try_concat, write_stream_copy_header};
+use super::*;
 use crate::{
-    Duration, Result, display,
+    Result, display,
     ffmpeg::{Packet, Rescale, format},
 };
 use rayon::prelude::*;
@@ -20,7 +20,7 @@ impl Retiming<'_, '_> {
     }
 
     pub(super) fn init_base_splits(&mut self) -> Result<()> {
-        let raw_splits: Vec<(usize, f64, f64, PathBuf)> = self
+        let raw_splits: Vec<(usize, Time, Time, PathBuf)> = self
             .parts
             .par_iter()
             .enumerate()
@@ -38,11 +38,11 @@ impl Retiming<'_, '_> {
             .into_iter()
             .map(|(i, start, end, split)| {
                 let p = &mut self.parts[i];
-                p.start_offset += start - p.start.as_secs_f64();
-                p.end_offset += end - p.end.as_secs_f64();
+                p.start_offset += SignedTime::new(true, start) - p.start;
+                p.end_offset += SignedTime::new(true, end) - p.end;
 
-                p.start = Duration::from_secs_f64(start);
-                p.end = Duration::from_secs_f64(end);
+                p.start = start;
+                p.end = end;
                 split
             })
             .collect();
@@ -62,14 +62,15 @@ impl Retiming<'_, '_> {
     }
 }
 
+// returns (start, end)
 fn try_split(
     src: &Path,
     i_stream: usize,
     dest: &Path,
-    trg_start: Duration,
-    trg_end: Duration,
-) -> Result<(f64, f64)> {
-    const ACCEPT_VIDEO_OFFSET: f64 = 1.0; // seconds
+    trg_start: Time,
+    trg_end: Time,
+) -> Result<(Time, Time)> {
+    const ACCEPT_VIDEO_OFFSET: Time = Time::from_secs(1);
 
     let mut ictx = format::input(&src)?;
     let mut octx = format::output(&dest)?;
@@ -77,13 +78,9 @@ fn try_split(
     let (ist_time_base, ost_time_base, ost_index) =
         write_stream_copy_header(&ictx, i_stream, &mut octx)?;
 
-    let seconds_to_ts = |secs: f64| {
-        let tb = ost_time_base.0 as f64 / ost_time_base.1 as f64;
-        (secs / tb).round() as i64
-    };
-    let start_ts = seconds_to_ts(trg_start.as_secs_f64());
-    let end_ts = seconds_to_ts(trg_end.as_secs_f64());
-    let accept = seconds_to_ts(ACCEPT_VIDEO_OFFSET);
+    let start_ts = time_to_ts(trg_start, ost_time_base);
+    let end_ts = time_to_ts(trg_end, ost_time_base);
+    let accept = time_to_ts(ACCEPT_VIDEO_OFFSET, ost_time_base);
 
     let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
 
@@ -147,6 +144,8 @@ fn try_split(
     let min_pts = min_pts.ok_or_else(|| err!("Not written a packet"))?;
     octx.write_trailer()?;
 
-    let to_seconds = |ts| ts as f64 * ost_time_base.0 as f64 / ost_time_base.1 as f64;
-    Ok((to_seconds(min_pts), to_seconds(max_pts)))
+    Ok((
+        ts_to_time(min_pts, ost_time_base),
+        ts_to_time(max_pts, ost_time_base),
+    ))
 }

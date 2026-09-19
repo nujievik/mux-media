@@ -1,8 +1,6 @@
-use super::{RetimedStream, Retiming, try_concat, write_stream_copy_header};
-use crate::{
-    Duration, Result,
-    ffmpeg::{Rescale, format},
-};
+use super::*;
+use crate::Result;
+use crate::ffmpeg::{Rescale, format};
 use std::path::{Path, PathBuf};
 
 impl Retiming<'_, '_> {
@@ -23,7 +21,7 @@ impl Retiming<'_, '_> {
     }
 
     fn try_base_audio(&self, i_stream: usize) -> Result<Vec<PathBuf>> {
-        let mut len_offset = 0f64;
+        let mut len_offset = SignedTime::ZERO;
 
         self.parts
             .iter()
@@ -33,9 +31,10 @@ impl Retiming<'_, '_> {
                     .temp_dir
                     .join(format!("{}-aud-base-{}-{}.mka", self.job, i_stream, i));
 
-                let start_f64 = p.start.as_secs_f64();
-                let start = if start_f64 - len_offset > 0.0 {
-                    Duration::from_secs_f64(start_f64 - len_offset)
+                let start_minus_len_offset = SignedTime::new(true, p.start) - len_offset;
+
+                let start = if start_minus_len_offset.is_positive() {
+                    start_minus_len_offset.as_unsigned_time()
                 } else {
                     p.start
                 };
@@ -48,7 +47,7 @@ impl Retiming<'_, '_> {
 
     fn try_external_audio(&self, i: usize, src: &Path, i_stream: usize) -> Result<Vec<PathBuf>> {
         let mut segments: Vec<PathBuf> = Vec::with_capacity(self.chapters.len());
-        let mut len_offset = 0f64;
+        let mut len_offset = SignedTime::ZERO;
 
         for p in self.parts.iter() {
             let uid = &self.chapters[p.i_start_chp].uid;
@@ -63,22 +62,23 @@ impl Retiming<'_, '_> {
 
                 let chp_nonuid = self.chapters_nonuid(i_chp);
 
-                let mut start = chp.start.as_secs_f64() + p.start_offset + chp_nonuid;
-                if start - len_offset > 0.0 {
-                    start -= len_offset;
-                }
+                let signed_start = p.start_offset + chp.start + chp_nonuid;
+                let start_minus_len_offset = signed_start - len_offset;
+
+                let trg_start = if start_minus_len_offset.is_positive() {
+                    start_minus_len_offset.as_unsigned_time()
+                } else {
+                    signed_start.as_unsigned_time()
+                };
 
                 let end_offset = if i_chp == p.i_end_chp {
                     p.end_offset
                 } else {
                     p.start_offset
                 };
-                let end = chp.end.as_secs_f64() + end_offset + chp_nonuid;
+                let trg_end = (end_offset + chp.end + chp_nonuid).as_unsigned_time();
 
-                let trg_start = Duration::from_secs_f64(start);
-                let trg_end = Duration::from_secs_f64(end);
                 len_offset = try_split(src, i_stream, &dest, trg_start, trg_end)?;
-
                 segments.push(dest);
             }
         }
@@ -87,25 +87,22 @@ impl Retiming<'_, '_> {
     }
 }
 
+// returns end offset
 fn try_split(
     src: &Path,
     i_stream: usize,
     dest: &Path,
-    trg_start: Duration,
-    trg_end: Duration,
-) -> Result<f64> {
+    trg_start: Time,
+    trg_end: Time,
+) -> Result<SignedTime> {
     let mut ictx = format::input(&src)?;
     let mut octx = format::output(&dest)?;
 
     let (ist_time_base, ost_time_base, ost_index) =
         write_stream_copy_header(&ictx, i_stream, &mut octx)?;
 
-    let duration_to_ts = |dur: Duration| {
-        let tb = ost_time_base.0 as f64 / ost_time_base.1 as f64;
-        (dur.as_secs_f64() / tb).round() as i64
-    };
-    let start_ts = duration_to_ts(trg_start);
-    let end_ts = duration_to_ts(trg_end);
+    let start_ts = time_to_ts(trg_start, ost_time_base);
+    let end_ts = time_to_ts(trg_end, ost_time_base);
 
     let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
 
@@ -137,9 +134,12 @@ fn try_split(
 
     octx.write_trailer()?;
 
-    let expected_duration = end_ts - start_ts;
-    let offset = last_pts - expected_duration;
-    let offset = offset as f64 * ost_time_base.0 as f64 / ost_time_base.1 as f64;
+    let expected_duration_ts = end_ts - start_ts;
+    let offset_ts = last_pts - expected_duration_ts;
+    let is_positive = offset_ts.is_positive();
 
-    Ok(offset)
+    let offset = offset_ts.rescale(ost_time_base, MILLISECOND_TIME_BASE);
+    let offset = Time::from_millis(offset.abs() as u64);
+
+    Ok(SignedTime::new(is_positive, offset))
 }

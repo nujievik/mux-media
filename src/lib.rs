@@ -95,6 +95,7 @@ pub use functions::{ensure_long_path_prefix, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
 pub use run::run;
+pub use subtitle_lines::Time;
 pub use traits::{
     Field, ToTxtConfig, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},
@@ -104,7 +105,6 @@ pub use types::{
     char_encoding::CharEncoding,
     cli_arg::CliArg,
     codec_id::CodecId,
-    duration::Duration,
     extension::Extension,
     globset_pattern::GlobSetPattern,
     lang::{Lang, LangCode},

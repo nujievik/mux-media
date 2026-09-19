@@ -19,17 +19,15 @@ impl Retiming<'_, '_> {
 
         for (i_part, p) in self.parts.iter().enumerate() {
             for i_chp in p.i_start_chp..=p.i_end_chp {
-                if let Some((start, end, is_add_time, offset)) =
-                    get_start_end_offset(self, i_part, i_chp)
-                {
+                if let Some((start, end, offset)) = get_start_end_offset(self, i_part, i_chp) {
                     opts.start = Some(start);
                     opts.end = Some(end);
 
-                    if is_add_time {
-                        opts.add_time = Some(offset);
+                    if offset.is_positive() {
+                        opts.add_time = Some(offset.as_unsigned_time());
                         opts.sub_time = None;
                     } else {
-                        opts.sub_time = Some(offset);
+                        opts.sub_time = Some(offset.as_unsigned_time());
                         opts.add_time = None;
                     }
 
@@ -51,7 +49,7 @@ fn get_start_end_offset(
     rtm: &Retiming<'_, '_>,
     i_part: usize,
     i_chp: usize,
-) -> Option<(Time, Time, bool, Time)> {
+) -> Option<(Time, Time, SignedTime)> {
     let p = &rtm.parts[i_part];
     let uid = &rtm.chapters[p.i_start_chp].uid;
     let chp = &rtm.chapters[i_chp];
@@ -62,17 +60,20 @@ fn get_start_end_offset(
 
     let chp_nonuid = rtm.chapters_nonuid(i_chp);
 
-    let trg_start = Duration::from_secs_f64(chp.start.as_secs_f64() + p.start_offset + chp_nonuid);
+    let trg_start = p.start_offset + chp.start + chp_nonuid;
+
     let end_offset = if i_chp == p.i_end_chp {
         p.end_offset
     } else {
         p.start_offset
     };
-    let trg_end = Duration::from_secs_f64(chp.end.as_secs_f64() + end_offset + chp_nonuid);
+    let trg_end = end_offset + chp.end + chp_nonuid;
 
-    let offset = rtm.len_prev_parts(i_part) - p.start.as_secs_f64() - chp_nonuid;
-    let is_add_time = offset.is_sign_positive();
-    let offset = Time::from(Duration::from_secs_f64(offset.abs()).0);
+    let offset = SignedTime::new(true, rtm.len_prev_parts(i_part)) - p.start - chp_nonuid;
 
-    Some((trg_start.0.into(), trg_end.0.into(), is_add_time, offset))
+    Some((
+        trg_start.as_unsigned_time(),
+        trg_end.as_unsigned_time(),
+        offset,
+    ))
 }

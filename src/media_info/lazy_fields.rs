@@ -2,7 +2,7 @@ use super::{MediaInfo, MediaInfoCacheOfFile};
 use crate::{
     ArcPathBuf,
     CacheState::{self, Cached, Failed, NotCached},
-    CharEncoding, Duration, LazyField, LazyPathField, Msg, Result, Stream, StreamsOrder, Target,
+    CharEncoding, LazyField, LazyPathField, Msg, Result, Stream, StreamsOrder, Target, Time,
 };
 use std::{ffi::OsString, mem, path::Path};
 
@@ -437,7 +437,7 @@ lazy_path_fields!(
     sub_char_encoding, CharEncoding, build_sub_char_encoding => MarkMediaInfoSubCharEncoding;
     target_paths, Vec<Target>, build_target_paths => MarkMediaInfoTargetPaths;
 
-    audio_duration, Duration, build_audio_duration => MarkMediaInfoAudioDuration;
-    video_duration, Duration, build_video_duration => MarkMediaInfoVideoDuration;
-    playable_duration, Duration, build_playable_duration => MarkMediaInfoPlayableDuration;
+    audio_duration, Time, build_audio_duration => MarkMediaInfoAudioDuration;
+    video_duration, Time, build_video_duration => MarkMediaInfoVideoDuration;
+    playable_duration, Time, build_playable_duration => MarkMediaInfoPlayableDuration;
 );

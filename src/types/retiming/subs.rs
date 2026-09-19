@@ -3,8 +3,8 @@ mod destination;
 mod external;
 mod ty;
 
-use super::{RetimedStream, Retiming};
-use crate::{Duration, Result, display};
+use super::{RetimedStream, Retiming, SignedTime};
+use crate::{Result, Time, display};
 use destination::Destination;
 use log::warn;
 use std::{
@@ -60,28 +60,25 @@ impl Retiming<'_, '_> {
 }
 
 impl Retiming<'_, '_> {
-    fn len_prev_uid_parts(&self, i_part: usize) -> f64 {
+    fn len_prev_uid_parts(&self, i_part: usize) -> Time {
         let src = &self.parts[i_part].src;
         self.parts[..i_part]
             .iter()
             .filter(|p| &p.src == src)
-            .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
+            .map(|p| p.end - p.start)
             .sum()
     }
 
-    fn len_prev_parts(&self, i_part: usize) -> f64 {
-        self.parts[..i_part]
-            .iter()
-            .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
-            .sum()
+    fn len_prev_parts(&self, i_part: usize) -> Time {
+        self.parts[..i_part].iter().map(|p| p.end - p.start).sum()
     }
 
-    fn len_prev_nonuid_parts(&self, i_part: usize) -> f64 {
+    fn len_prev_nonuid_parts(&self, i_part: usize) -> Time {
         let src = &self.parts[i_part].src;
         self.parts[..i_part]
             .iter()
             .filter(|p| &p.src != src)
-            .map(|p| p.end.as_secs_f64() - p.start.as_secs_f64())
+            .map(|p| p.end - p.start)
             .sum()
     }
 }

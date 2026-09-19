@@ -1,4 +1,4 @@
-use crate::{ArcPathBuf, CharEncoding, Duration, IsDefault, Result, Stream, StreamsOrder, Target};
+use crate::{ArcPathBuf, CharEncoding, IsDefault, Result, Stream, StreamsOrder, Target, Time};
 use std::{collections::HashMap, ffi::OsString, mem};
 
 /// A state of cache field.
@@ -38,9 +38,9 @@ pub struct MediaInfoCacheOfFile {
     /// crate::Config::targets).
     pub target_paths: CacheState<Vec<Target>>,
 
-    pub audio_duration: CacheState<Duration>,
-    pub video_duration: CacheState<Duration>,
-    pub playable_duration: CacheState<Duration>,
+    pub audio_duration: CacheState<Time>,
+    pub video_duration: CacheState<Time>,
+    pub playable_duration: CacheState<Time>,
 }
 
 impl<T> CacheState<T> {

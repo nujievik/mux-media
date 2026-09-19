@@ -2,7 +2,6 @@ pub(crate) mod arc_path_buf;
 pub(crate) mod char_encoding;
 pub(crate) mod cli_arg;
 pub(crate) mod codec_id;
-pub(crate) mod duration;
 pub(crate) mod extension;
 pub(crate) mod globset_pattern;
 pub(crate) mod helpers;

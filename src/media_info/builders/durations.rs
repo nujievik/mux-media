@@ -1,19 +1,20 @@
 use super::*;
-use crate::{CacheState, Duration, Result, StreamType, ffmpeg, types::helpers};
+use crate::ffmpeg::{self, Rescale};
+use crate::{CacheState, Result, StreamType, Time, types::helpers};
 use std::{iter, path::Path};
 
 impl MediaInfo<'_> {
-    pub(crate) fn build_audio_duration(&mut self, src: &Path) -> Result<Duration> {
+    pub(crate) fn build_audio_duration(&mut self, src: &Path) -> Result<Time> {
         self.try_cache_durations(src)?;
         self.try_get(MarkMediaInfoAudioDuration, src).copied()
     }
 
-    pub(crate) fn build_video_duration(&mut self, src: &Path) -> Result<Duration> {
+    pub(crate) fn build_video_duration(&mut self, src: &Path) -> Result<Time> {
         self.try_cache_durations(src)?;
         self.try_get(MarkMediaInfoVideoDuration, src).copied()
     }
 
-    pub(crate) fn build_playable_duration(&mut self, src: &Path) -> Result<Duration> {
+    pub(crate) fn build_playable_duration(&mut self, src: &Path) -> Result<Time> {
         self.try_cache_durations(src)?;
         self.try_get(MarkMediaInfoPlayableDuration, src).copied()
     }
@@ -56,12 +57,13 @@ impl MediaInfo<'_> {
     }
 }
 
-fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Duration> {
+fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Time> {
     const BASE: i64 = ffmpeg::ffi::AV_TIME_BASE as i64;
+    const MILLISECOND_TIME_BASE: ffmpeg::Rational = ffmpeg::Rational(1, 1000);
 
     let streams = mi.try_immut(MarkMediaInfoStreams, src)?;
     let mut ictx = ffmpeg::format::input(src)?;
-    let mut duration = (0i64, 0i64, 0f64);
+    let mut duration = (0i64, 0i64, MILLISECOND_TIME_BASE);
 
     let ictx_dur = ictx.duration();
     let seek_targets = [
@@ -74,7 +76,7 @@ fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Durati
     streams.iter().filter(|s| s.ty == ty).for_each(|s| {
         let stream = some_or!(ictx.streams().skip(s.i).next(), return);
         let mut opened = some_or!(helpers::try_ffmpeg_opened(ty, &stream).ok(), return);
-        let base = helpers::ffmpeg_stream_time_base(&stream);
+        let time_base = stream.time_base();
 
         seek_targets.iter().for_each(|seek| {
             if duration.0 != 0 {
@@ -99,7 +101,7 @@ fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Durati
                     if time > duration.0 {
                         duration.0 = time;
                         duration.1 = packet.duration();
-                        duration.2 = base;
+                        duration.2 = time_base;
                     }
                 }
             }
@@ -107,8 +109,8 @@ fn try_duration(mi: &MediaInfo<'_>, src: &Path, ty: StreamType) -> Result<Durati
     });
 
     return if duration.0 != 0 {
-        let secs = (duration.0 as f64 + duration.1 as f64) * duration.2;
-        Ok(Duration::from_secs_f64(secs))
+        let millis = (duration.0 + duration.1).rescale(duration.2, MILLISECOND_TIME_BASE);
+        Ok(Time::from_millis(millis as u64))
     } else {
         Err(err!("Fail get duration"))
     };

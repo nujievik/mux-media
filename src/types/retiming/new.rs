@@ -1,10 +1,10 @@
 mod cache;
 mod external_segments;
 
-use super::{Retiming, RetimingChapter, RetimingPart};
+use super::*;
 use crate::media_info::*;
 use crate::{
-    ArcPathBuf, Config, Duration, MediaInfo, MuxError, Result, StreamType, StreamsOrder, ffmpeg,
+    ArcPathBuf, Config, MediaInfo, MuxError, Result, StreamType, StreamsOrder, Time, ffmpeg,
     types::helpers,
 };
 use cache::CacheMatroska;
@@ -69,7 +69,7 @@ impl Retiming<'_, '_> {
         };
         rtm.init_base_splits()?;
 
-        return Ok(rtm);
+        Ok(rtm)
     }
 }
 
@@ -77,23 +77,23 @@ fn try_times(
     mi: &mut MediaInfo,
     src: &Path,
     i_stream: usize,
-    start: Duration,
-    end: Duration,
-) -> Result<(Duration, f64, Duration, f64)> {
-    const ACCEPT_VIDEO_OFFSET: f64 = 10.0; // seconds
+    start: Time,
+    end: Time,
+) -> Result<(Time, SignedTime, Time, SignedTime)> {
+    const ACCEPT_VIDEO_OFFSET: Time = Time::from_secs(10);
 
     let duration = *mi.try_get(MarkMediaInfoVideoDuration, src)?;
-    let zero_start_offset = start.as_secs_f64();
-    let end_offset = duration.as_secs_f64() - end.as_secs_f64();
 
-    let (start, start_offset) = if zero_start_offset < ACCEPT_VIDEO_OFFSET {
-        (Duration::default(), zero_start_offset)
+    let (start, start_offset) = if start < ACCEPT_VIDEO_OFFSET {
+        (Time::ZERO, SignedTime::new(true, start))
     } else {
         try_nearest_time_offset(src, i_stream, start, duration)?
     };
 
-    let (end, end_offset) = if end_offset.abs() < ACCEPT_VIDEO_OFFSET {
-        (duration, end_offset)
+    let duration_offset = SignedTime::new(true, duration) - end;
+
+    let (end, end_offset) = if duration_offset.as_unsigned_time() < ACCEPT_VIDEO_OFFSET {
+        (duration, duration_offset)
     } else {
         try_nearest_time_offset(src, i_stream, end, duration)?
     };
@@ -103,27 +103,26 @@ fn try_times(
     fn try_nearest_time_offset(
         src: &Path,
         i_stream: usize,
-        target: Duration,
-        duration: Duration,
-    ) -> Result<(Duration, f64)> {
-        let t = target.as_secs_f64();
+        target: Time,
+        duration: Time,
+    ) -> Result<(Time, SignedTime)> {
         let first = try_i_frame(src, i_stream, target)?;
+        let first_offset = SignedTime::new(true, target) - first;
+
         let second = {
-            let offset = (t - first.as_secs_f64()) / 2.0;
-            let t = Duration::from_secs_f64(t + offset);
-            try_i_frame(src, i_stream, t)?
+            let offset = first_offset.as_unsigned_time().as_millis() / 2;
+            let offset = SignedTime::new(first_offset.is_positive(), Time::from_millis(offset));
+            let trg = (offset + target).as_unsigned_time();
+            try_i_frame(src, i_stream, trg)?
         };
-        let third = {
-            let t = Duration::from_secs_f64(t + t - first.as_secs_f64());
-            try_i_frame(src, i_stream, t)?
-        };
+        let third = try_i_frame(src, i_stream, (first_offset + target).as_unsigned_time())?;
 
         // unwraps safe
         let (nearest, offset) = [first, second, third, duration]
             .into_iter()
-            .map(|d| {
-                let diff = d.as_secs_f64() - t;
-                (d, diff, diff.abs())
+            .map(|time| {
+                let offset = SignedTime::new(true, target) - time;
+                (time, offset, offset.as_unsigned_time())
             })
             .min_by(|a, b| a.2.partial_cmp(&b.2).unwrap())
             .map(|t| (t.0, t.1))
@@ -132,13 +131,18 @@ fn try_times(
         Ok((nearest, offset))
     }
 
-    fn try_i_frame(src: &Path, i_stream: usize, target: Duration) -> Result<Duration> {
+    fn try_i_frame(src: &Path, i_stream: usize, target: Time) -> Result<Time> {
         let mut ictx = ffmpeg::format::input(src)?;
         let stream = ictx.stream(i_stream).ok_or(ffmpeg::Error::StreamNotFound)?;
-        let (i, tb) = helpers::ffmpeg_stream_i_tb(&stream);
+        let (i, _) = helpers::ffmpeg_stream_i_tb(&stream);
+        let ist_time_base = stream.time_base();
 
         let mut opened = helpers::try_ffmpeg_opened(StreamType::Video, &stream)?;
-        let seek_target = (target.as_secs_f64() * f64::from(ffmpeg::ffi::AV_TIME_BASE)) as i64;
+        let seek_target = (target.as_millis() as i64).rescale(
+            MILLISECOND_TIME_BASE,
+            Rational(1, ffmpeg::ffi::AV_TIME_BASE),
+        );
+
         ictx.seek(seek_target, ..)?;
         opened.flush();
 
@@ -152,10 +156,7 @@ fn try_times(
             loop {
                 let mut frame = ffmpeg::util::frame::Video::empty();
                 match opened.receive_frame(&mut frame) {
-                    Ok(_) => {
-                        let pts_time = frame.pts().map(|pts| pts as f64 * tb).unwrap_or(0f64);
-                        return Ok(Duration::from_secs_f64(pts_time));
-                    }
+                    Ok(_) => return Ok(ts_to_time(frame.pts().unwrap_or(0), ist_time_base)),
                     Err(ffmpeg::Error::Other { errno: 11 }) => break,
                     Err(ffmpeg::Error::Eof) => break,
                     Err(e) => return Err(err!("Ffmpeg decoder error: {}", e)),
@@ -258,14 +259,11 @@ fn try_chapters(
     } else {
         let ictx = ffmpeg::format::input(base)?;
         ictx.chapters()
-            .map(|c| {
-                let tb = helpers::rational_as_f64(c.time_base());
-                RetimingChapter {
-                    start: Duration::from_secs_f64(c.start() as f64 * tb),
-                    end: Duration::from_secs_f64(c.end() as f64 * tb),
-                    uid: None,
-                    title: c.metadata().get("title").map(|v| v.to_owned()),
-                }
+            .map(|c| RetimingChapter {
+                start: ts_to_time(c.start(), c.time_base()),
+                end: ts_to_time(c.end(), c.time_base()),
+                uid: None,
+                title: c.metadata().get("title").map(|v| v.to_owned()),
             })
             .collect()
     };
