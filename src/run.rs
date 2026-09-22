@@ -54,7 +54,11 @@ pub fn run() -> Result<()> {
             cfg.output.remove_created_dirs();
             Err(e.into())
         } else {
-            ffmpeg::log::set_level(ffmpeg::log::Level::Quiet);
+            let lvl = match cfg.log_level.0 {
+                LevelFilter::Trace => ffmpeg::log::Level::Trace,
+                _ => ffmpeg::log::Level::Quiet,
+            };
+            ffmpeg::log::set_level(lvl);
             Ok(())
         }
     }
