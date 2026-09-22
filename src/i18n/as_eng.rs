@@ -68,6 +68,13 @@ impl_msg_as_str!(
     SuccessfullyMovedTo => "successfully moved to",
     FailOverwriteInputFiles => "fail overwrite input files",
 
+    NonMonotonicDts => "non-monotonic DTS",
+    Previous => "previous",
+    Current => "current",
+    ChangingTo => "changing to",
+    ThisMayResultInIncorrectTimestampsInTheOutputFile => "This may result in incorrect timestamps in the output file",
+    PtsLessThanDts => "PTS less than DTS",
+
     ConvertingSubtitleEncoding => "Converting subtitle encoding",
     FailSaveConfig => "fail save config",
     FailUpdateLanguage => "fail update language",

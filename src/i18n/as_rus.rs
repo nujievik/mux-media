@@ -68,6 +68,13 @@ impl_msg_as_str!(
     SuccessfullyMovedTo => "успешно перемещён в",
     FailOverwriteInputFiles => "ошибка перезаписи исходных файлов",
 
+    NonMonotonicDts => "немонотонный DTS",
+    Previous => "предыдущий",
+    Current => "текущий",
+    ChangingTo => "изменён на",
+    ThisMayResultInIncorrectTimestampsInTheOutputFile => "Это может привести к появлению неверных временных меток в выходном файле",
+    PtsLessThanDts => "PTS меньше DTS",
+
     ConvertingSubtitleEncoding => "Конвертация кодировки субтитров",
     FailSaveConfig => "ошибка сохранения конфига",
     FailUpdateLanguage => "не удалось обновить язык",

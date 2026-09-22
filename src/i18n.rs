@@ -90,6 +90,13 @@ pub enum Msg {
     SuccessfullyMovedTo,
     FailOverwriteInputFiles,
 
+    NonMonotonicDts,
+    Previous,
+    Current,
+    ChangingTo,
+    ThisMayResultInIncorrectTimestampsInTheOutputFile,
+    PtsLessThanDts,
+
     ConvertingSubtitleEncoding,
     FailSaveConfig,
     FailUpdateLanguage,
