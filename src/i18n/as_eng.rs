@@ -75,6 +75,11 @@ impl_msg_as_str!(
     ThisMayResultInIncorrectTimestampsInTheOutputFile => "This may result in incorrect timestamps in the output file",
     PtsLessThanDts => "PTS less than DTS",
 
+    Error => "Error",
+    Warning => "Warning",
+    Debug => "Debug",
+    Trace => "Trace",
+
     ConvertingSubtitleEncoding => "Converting subtitle encoding",
     FailSaveConfig => "fail save config",
     FailUpdateLanguage => "fail update language",

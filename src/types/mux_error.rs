@@ -66,9 +66,15 @@ impl MuxError {
         }
 
         if self.use_stderr() {
-            let prefix = MuxLogger::color_prefix(log::Level::Error);
-            eprintln!("{}{}", prefix, self);
-            eprintln!("\n{}", MuxLogger::try_help());
+            use log::Level::Error as E;
+            eprintln!(
+                "{}{}{}{}\n{}",
+                MuxLogger::prefix_prefix(E),
+                MuxLogger::prefix_root(E),
+                MuxLogger::prefix_suffix(E),
+                self,
+                MuxLogger::try_help()
+            );
         } else {
             println!("{}", self);
         }

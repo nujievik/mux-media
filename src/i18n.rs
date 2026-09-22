@@ -97,6 +97,11 @@ pub enum Msg {
     ThisMayResultInIncorrectTimestampsInTheOutputFile,
     PtsLessThanDts,
 
+    Error,
+    Warning,
+    Debug,
+    Trace,
+
     ConvertingSubtitleEncoding,
     FailSaveConfig,
     FailUpdateLanguage,

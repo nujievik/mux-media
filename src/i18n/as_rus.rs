@@ -75,6 +75,11 @@ impl_msg_as_str!(
     ThisMayResultInIncorrectTimestampsInTheOutputFile => "Это может привести к появлению неверных временных меток в выходном файле",
     PtsLessThanDts => "PTS меньше DTS",
 
+    Error => "Ошибка",
+    Warning => "Предупреждение",
+    Debug => "Отладка",
+    Trace => "Отладка",
+
     ConvertingSubtitleEncoding => "Конвертация кодировки субтитров",
     FailSaveConfig => "ошибка сохранения конфига",
     FailUpdateLanguage => "не удалось обновить язык",

@@ -99,10 +99,14 @@ impl Msg {
 
     /// Tries update the current language; logs a warning to `stderr` on failure.
     pub fn upd_lang_or_warn(lang: LangCode) {
+        use log::Level::Warn;
+
         Self::try_upd_lang(lang).unwrap_or_else(|e| {
             eprintln!(
-                "{}{}: {}. {} '{}'",
-                MuxLogger::color_prefix(log::Level::Warn),
+                "{}{}{}{}: {}. {} '{}'",
+                MuxLogger::prefix_prefix(Warn),
+                MuxLogger::prefix_root(Warn),
+                MuxLogger::prefix_suffix(Warn),
                 Self::FailUpdateLanguage,
                 e,
                 Self::Using,
