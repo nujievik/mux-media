@@ -15,7 +15,7 @@ pub fn mux_current_files(
     m: MediaGroupedByStem,
 ) -> Result<()> {
     let mut out = cfg.output.dir().join(&m.stem);
-    out.set_extension("mkv");
+    out.add_extension("mkv");
 
     match init_current_files(fonts, mi, m.stem, m.files, &out) {
         MuxCurrent::Ok(()) => (),
