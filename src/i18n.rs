@@ -82,7 +82,12 @@ pub enum Msg {
     HelpVersion,
     HelpHelp,
 
+    WritingExternalFontsToTempFile,
+    ExternalFontsSuccessfullyWritten,
+    FailWriteExternalFonts,
+
     MuxingTo,
+    MuxingFiles,
     SuccessfullyMuxed,
     RemovingInputFile,
     InputFileSuccessfullyRemoved,

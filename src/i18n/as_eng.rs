@@ -60,7 +60,12 @@ impl_msg_as_str!(
     HelpVersion => "Show version",
     HelpHelp => "Show help",
 
+    WritingExternalFontsToTempFile => "writing external fonts to temp file",
+    ExternalFontsSuccessfullyWritten => "external fonts successfully written",
+    FailWriteExternalFonts => "fail write external fonts",
+
     MuxingTo => "Muxing to",
+    MuxingFiles => "muxing files",
     SuccessfullyMuxed => "Successfully muxed",
     RemovingInputFile => "removing input file",
     InputFileSuccessfullyRemoved => "input file successfully removed",

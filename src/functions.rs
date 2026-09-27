@@ -99,3 +99,18 @@ where
 
     path.display()
 }
+
+pub(crate) fn display_file_list<I, P>(it: I) -> String
+where
+    I: Iterator<Item = P>,
+    P: AsRef<Path>,
+{
+    use std::fmt::Write;
+
+    let mut list = String::from("[");
+    for f in it {
+        let _ = write!(&mut list, "\n  '{}'", display(&f));
+    }
+    list.push_str("\n]");
+    list
+}

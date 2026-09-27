@@ -1,8 +1,9 @@
+use crate::ffmpeg::{self, sys};
 use crate::media_info::MediaInfoCacheOfFile;
 use crate::{
-    ArcPathBuf, CacheState, Config, Extension, MediaInfo, Result,
-    ffmpeg::{self, sys},
+    ArcPathBuf, CacheState, Config, Extension, MediaInfo, Msg, Result, display, display_file_list,
 };
+use log::{debug, warn};
 use std::{
     ffi::CString,
     fs,
@@ -12,16 +13,24 @@ use std::{
 
 pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, MediaInfoCacheOfFile)> {
     let fonts = cfg.input.collect_fonts();
+
     if fonts.is_empty() {
         return None;
     }
 
     let fall = |e| {
-        log::warn!("Fail write external fonts: {}. Skipping", e);
+        warn!("{}: {}. {}", Msg::FailWriteExternalFonts, e, Msg::Skipping);
         None
     };
 
     let out = cfg.output.temp_dir().join("external-fonts.mkv");
+
+    debug!(
+        "{}:\n{}",
+        Msg::WritingExternalFontsToTempFile,
+        display_file_list(fonts.iter())
+    );
+
     if let Err(e) = write_temp_fonts(fonts, &out) {
         return fall(e);
     }
@@ -34,6 +43,12 @@ pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, MediaInfo
         streams: CacheState::Cached(streams),
         ..Default::default()
     };
+
+    debug!(
+        "{} '{}'",
+        Msg::ExternalFontsSuccessfullyWritten,
+        display(&out)
+    );
 
     Some((out.into(), cache))
 }

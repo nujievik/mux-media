@@ -130,11 +130,17 @@ impl MediaInfo<'_> {
                 .collect();
             let mut buf_packets = BufPackets::new(&mut iters);
 
-            let need_write_progress = match log::max_level() {
-                LevelFilter::Error => false,
-                _ => self.cfg.jobs <= 1,
-            };
+            let need_write_progress = self.cfg.log_level.is_need_info() && self.cfg.jobs <= 1;
+
             info!("{} '{}'...", Msg::MuxingTo, display(dest));
+
+            if self.cfg.log_level.is_need_debug() {
+                debug!(
+                    "{}:\n{}",
+                    Msg::MuxingFiles,
+                    crate::display_file_list(order.iter_first_entries().map(|x| x.src()))
+                );
+            }
 
             // packets/msg frequency
             let mut progress_frequency = 50usize;

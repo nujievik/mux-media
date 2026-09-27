@@ -10,7 +10,7 @@ use crate::{
 use cache::CacheMatroska;
 use external_segments::find_external_segment;
 use is_default::IsDefault;
-use log::warn;
+use log::{info, warn};
 use std::{collections::HashMap, path::Path};
 
 impl Retiming<'_, '_> {
@@ -20,6 +20,9 @@ impl Retiming<'_, '_> {
     ) -> Result<Retiming<'a, 'b>> {
         let mut cache = CacheMatroska::default();
         let (base, i_base_stream, i_matroska_chapters) = try_base(mi, order, &mut cache)?;
+
+        info!("Retiming streams for '{}'...", crate::display(&base));
+
         let base_dir = base.parent().unwrap_or(mi.cfg.input.dir());
 
         let cs = try_chapters(mi, &cache, &base, i_matroska_chapters, base_dir)?;

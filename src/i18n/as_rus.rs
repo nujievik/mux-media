@@ -60,7 +60,12 @@ impl_msg_as_str!(
     HelpVersion => "Показать версию",
     HelpHelp => "Показать справку",
 
+    WritingExternalFontsToTempFile => "запись внешних шрифтов во временный файл",
+    ExternalFontsSuccessfullyWritten => "внешние шрифты успешно записаны",
+    FailWriteExternalFonts => "ошибка записи внешних субтитров",
+
     MuxingTo => "Муксирование в",
+    MuxingFiles => "муксирование файлов",
     SuccessfullyMuxed => "Успешно смуксировано",
     RemovingInputFile => "удаление исходного файла",
     InputFileSuccessfullyRemoved => "исходный файл успешно удалён",
