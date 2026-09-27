@@ -234,12 +234,14 @@ fn new_first_file_size(order: &StreamsOrder, need_write_progress: bool) -> u64 {
     if size > 0 { size } else { 1 }
 }
 
-fn overwrite(cfg: &Config, src: &Path, order: &StreamsOrder) -> Result<()> {
+fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Result<()> {
     if !cfg.overwrite {
         return Ok(());
     }
 
-    let dest_file_name = src.file_name().ok_or_else(|| err!("fail get file name"))?;
+    let dest_file_name = temp_muxed_file
+        .file_name()
+        .ok_or_else(|| err!("fail get file name"))?;
     let dest = cfg.input.dir().join(dest_file_name);
 
     for x in order.iter_first_entries() {
@@ -255,13 +257,13 @@ fn overwrite(cfg: &Config, src: &Path, order: &StreamsOrder) -> Result<()> {
         debug!("{} '{}'", Msg::InputFileSuccessfullyRemoved, display(path));
     }
 
-    fs::rename(src, &dest)?;
+    fs::rename(temp_muxed_file, &dest)?;
     info!(
         "{} '{}' {} '{}'",
         Msg::MuxedFile,
+        display(temp_muxed_file),
         Msg::SuccessfullyMovedTo,
-        display(src),
-        display(&dest)
+        display(&dest),
     );
 
     Ok(())
