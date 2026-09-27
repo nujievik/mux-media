@@ -11,5 +11,6 @@ pub(crate) mod mux_logger;
 pub(crate) mod range;
 pub(crate) mod retiming;
 pub(crate) mod stream;
+pub(crate) mod streams_order;
 pub(crate) mod target;
 pub(crate) mod value;

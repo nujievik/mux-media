@@ -1,4 +1,3 @@
-pub(crate) mod order;
 pub(crate) mod ty;
 
 use crate::{CodecId, Lang, StreamType, Value};

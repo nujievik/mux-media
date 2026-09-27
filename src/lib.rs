@@ -113,11 +113,8 @@ pub use types::{
     mux_error::{MuxError, MuxErrorParse},
     mux_logger::MuxLogger,
     range::RangeUsize,
-    stream::{
-        Stream,
-        order::{StreamsOrder, StreamsOrderItem},
-        ty::StreamType,
-    },
+    stream::{Stream, ty::StreamType},
+    streams_order::{StreamsOrder, StreamsOrderItem},
     target::Target,
     value::Value,
 };
