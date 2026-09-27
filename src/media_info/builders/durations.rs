@@ -1,6 +1,6 @@
 use super::*;
 use crate::ffmpeg::{self, Rescale};
-use crate::{CacheState, Result, StreamType, Time, types::helpers};
+use crate::{CacheState, Result, StreamType, Time, helpers};
 use std::{iter, path::Path};
 
 impl MediaInfo<'_> {

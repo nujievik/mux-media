@@ -5,7 +5,7 @@ use super::*;
 use crate::media_info::*;
 use crate::{
     ArcPathBuf, Config, MediaInfo, MuxError, Result, StreamType, StreamsOrder, Time, ffmpeg,
-    types::helpers,
+    helpers,
 };
 use cache::CacheMatroska;
 use external_segments::find_external_segment;
@@ -137,7 +137,6 @@ fn try_times(
     fn try_i_frame(src: &Path, i_stream: usize, target: Time) -> Result<Time> {
         let mut ictx = ffmpeg::format::input(src)?;
         let stream = ictx.stream(i_stream).ok_or(ffmpeg::Error::StreamNotFound)?;
-        let (i, _) = helpers::ffmpeg_stream_i_tb(&stream);
         let ist_time_base = stream.time_base();
 
         let mut opened = helpers::try_ffmpeg_opened(StreamType::Video, &stream)?;
@@ -150,7 +149,7 @@ fn try_times(
         opened.flush();
 
         for (s, packet) in ictx.packets() {
-            if s.index() != i {
+            if s.index() != i_stream {
                 continue;
             }
 

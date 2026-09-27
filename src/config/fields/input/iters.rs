@@ -1,7 +1,7 @@
 use super::{ConfigInput, InputFileType, InputType};
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, Extension, MediaNumber, i18n::logs, types::helpers};
+use crate::{ArcPathBuf, Extension, MediaNumber, helpers, i18n::logs};
 use either::Either;
 use globset::GlobSet;
 use std::{

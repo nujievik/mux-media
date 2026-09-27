@@ -80,9 +80,10 @@ macro_rules! to_args {
 }
 
 pub mod config;
-mod functions;
-mod i18n;
 pub mod media_info;
+
+mod helpers;
+mod i18n;
 mod run;
 mod traits;
 mod types;
@@ -91,7 +92,7 @@ pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
 pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
-pub use functions::{ensure_long_path_prefix, mux};
+pub use helpers::{ensure_long_path_prefix, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
 pub use run::run;
@@ -127,9 +128,6 @@ use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;
 
 use config::MediaGroupedByStem;
-use functions::*;
+use helpers::*;
 use media_info::cache::CacheState;
-use types::{
-    helpers,
-    retiming::{RetimedStream, Retiming, RetimingChapter},
-};
+use types::retiming::{RetimedStream, Retiming, RetimingChapter};

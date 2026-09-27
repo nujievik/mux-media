@@ -2,7 +2,7 @@ mod durations;
 mod streams;
 
 use super::*;
-use crate::{CharEncoding, Extension, Msg, Result, StreamsOrder, Target, display, types::helpers};
+use crate::{CharEncoding, Extension, Msg, Result, StreamsOrder, Target, display, helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
