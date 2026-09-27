@@ -1,10 +1,10 @@
 [package]
 name = "mux-media"
-version = "0.18.1"
+version = "0.18.2"
 authors = ["Ivan Reutov <nujievik@gmail.com>"]
 edition = "2024"
 rust-version = "1.98"
-description = "A CLI utility to mux (merge) video, audio, and subtitles."
+description = "CLI utility to mux (merge) video, audio, and subtitles."
 repository = "https://github.com/nujievik/mux-media"
 license = "MIT OR Apache-2.0"
 keywords = ["cli", "utility"]

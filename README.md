@@ -1,8 +1,9 @@
 # mux-media
 
-A CLI utility to mux (merge) video, audio, and subtitles.
+CLI utility to mux (merge) video, audio, and subtitles.
 
-[![Tests](https://github.com/nujievik/mux-media/actions/workflows/tests.yml/badge.svg)](https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
+[![Tests](https://github.com/nujievik/mux-media/actions/workflows/tests.yml/badge.svg)](
+https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
 
 
 ## Quick Start
@@ -66,7 +67,7 @@ Run `mux-media -h` to display help.
 | `--no-auto` | Disable all auto below |
 | `--auto-defaults / --no-auto-defaults` | Auto set default flags |
 | `--auto-forceds / --no-auto-forceds` | Auto set forced flags |
-| `--auto-names / --no-auto-names` | Auto set stream names |
+| `--auto-titles / --no-auto-titles` | Auto set stream titles |
 | `--auto-langs / --no-auto-langs` | Auto set stream langs |
 | `--auto-encs / --no-auto-encs` | Auto set subs encodings |
 | | |
@@ -92,7 +93,7 @@ Run `mux-media -h` to display help.
 | `--max-defaults <n>` | Max auto-enabled default |
 | `--forceds <[n:]B[,m:B]...>` | Set forced flags |
 | `--max-forceds <n>` | Max auto-enabled forced |
-| `--names <[n:]N[,m:N]...>` | Set stream names |
+| `--titles <[n:]N[,m:N]...>` | Set stream titles |
 | `--langs <[n:]L[,m:L]...>` | Set stream languages |
 | | |
 | Retiming options: | |
