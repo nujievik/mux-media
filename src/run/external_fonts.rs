@@ -11,49 +11,61 @@ use std::{
     ptr,
 };
 
-pub(super) fn init_external_fonts(cfg: &Config) -> Option<(ArcPathBuf, MediaInfoCacheOfFile)> {
-    let fonts = cfg.input.collect_fonts();
-
-    if fonts.is_empty() {
-        return None;
-    }
-
-    let fall = |e| {
-        warn!("{}: {}. {}", Msg::FailWriteExternalFonts, e, Msg::Skipping);
-        None
-    };
-
-    let out = cfg.output.temp_dir().join("external-fonts.mkv");
-
-    debug!(
-        "{}:\n{}",
-        Msg::WritingExternalFontsToTempFile,
-        display_file_list(fonts.iter())
-    );
-
-    if let Err(e) = write_temp_fonts(fonts, &out) {
-        return fall(e);
-    }
-
-    let streams = match MediaInfo::help_build_streams(&out) {
-        Ok(xs) => xs,
-        Err(e) => return fall(e),
-    };
-    let cache = MediaInfoCacheOfFile {
-        streams: CacheState::Cached(streams),
-        ..Default::default()
-    };
-
-    debug!(
-        "{} '{}'",
-        Msg::ExternalFontsSuccessfullyWritten,
-        display(&out)
-    );
-
-    Some((out.into(), cache))
+pub struct ExternalFonts {
+    pub files: Vec<PathBuf>,
+    pub temp_file: ArcPathBuf,
+    pub cache_temp_file: MediaInfoCacheOfFile,
 }
 
-fn write_temp_fonts(fonts: Vec<PathBuf>, out: &Path) -> Result<()> {
+impl ExternalFonts {
+    pub fn get_new(cfg: &Config) -> Option<ExternalFonts> {
+        let fonts = cfg.input.collect_fonts();
+
+        if fonts.is_empty() {
+            return None;
+        }
+
+        let fall = |e| {
+            warn!("{}: {}. {}", Msg::FailWriteExternalFonts, e, Msg::Skipping);
+            None
+        };
+
+        let out = cfg.output.temp_dir().join("external-fonts.mkv");
+
+        debug!(
+            "{}:\n{}",
+            Msg::WritingExternalFontsToTempFile,
+            display_file_list(fonts.iter())
+        );
+
+        if let Err(e) = write_temp_fonts(&fonts, &out) {
+            return fall(e);
+        }
+
+        let streams = match MediaInfo::help_build_streams(&out) {
+            Ok(xs) => xs,
+            Err(e) => return fall(e),
+        };
+        let cache_temp_file = MediaInfoCacheOfFile {
+            streams: CacheState::Cached(streams),
+            ..Default::default()
+        };
+
+        debug!(
+            "{} '{}'",
+            Msg::ExternalFontsSuccessfullyWritten,
+            display(&out)
+        );
+
+        Some(ExternalFonts {
+            files: fonts,
+            temp_file: out.into(),
+            cache_temp_file,
+        })
+    }
+}
+
+fn write_temp_fonts(fonts: &Vec<PathBuf>, out: &Path) -> Result<()> {
     let mut octx = ffmpeg::format::output(out)?;
     add_dummy_subtitle_stream(&mut octx)?;
     add_attachments(&mut octx, fonts);
@@ -80,8 +92,8 @@ fn add_dummy_subtitle_stream(octx: &mut ffmpeg::format::context::Output) -> Resu
     Ok(())
 }
 
-fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: Vec<PathBuf>) {
-    for font in &fonts {
+fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: &Vec<PathBuf>) {
+    for font in fonts {
         let ext = some_or!(font.extension(), continue);
         let ext = some_or!(Extension::new(ext.as_encoded_bytes()), continue);
         let mime = match ext {

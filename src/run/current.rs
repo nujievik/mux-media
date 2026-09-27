@@ -1,5 +1,6 @@
-use crate::media_info::{MarkMediaInfoStem, MediaInfoCacheOfFile};
-use crate::{ArcPathBuf, Config, MediaGroupedByStem, MediaInfo, MuxError, Result, i18n::logs};
+use super::ExternalFonts;
+use crate::media_info::MarkMediaInfoStem;
+use crate::{Config, MediaGroupedByStem, MediaInfo, MuxError, Result, i18n::logs};
 use log::error;
 use std::{
     ffi::OsString,
@@ -9,7 +10,7 @@ use std::{
 
 pub fn mux_current_files(
     cfg: &Config,
-    fonts: Option<&(ArcPathBuf, MediaInfoCacheOfFile)>,
+    fonts: Option<&ExternalFonts>,
     cnt: &Mutex<usize>,
     mi: &mut MediaInfo<'_>,
     m: MediaGroupedByStem,
@@ -37,7 +38,7 @@ pub fn mux_current_files(
 }
 
 fn init_current_files(
-    fonts: Option<&(ArcPathBuf, MediaInfoCacheOfFile)>,
+    fonts: Option<&ExternalFonts>,
     mi: &mut MediaInfo,
     stem: OsString,
     files: Vec<PathBuf>,
@@ -57,8 +58,10 @@ fn init_current_files(
         return Err(e).into();
     }
 
-    if let Some((f, cache)) = fonts {
-        mi.cache.of_files.insert(f.clone(), cache.clone());
+    if let Some(v) = fonts {
+        mi.cache
+            .of_files
+            .insert(v.temp_file.clone(), v.cache_temp_file.clone());
     }
 
     if mi.cache.of_files.is_empty() {

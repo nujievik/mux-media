@@ -1,8 +1,8 @@
 mod buf_packets;
 mod current;
 mod encoder;
+mod external_fonts;
 mod header;
-mod init_external_fonts;
 
 use crate::config::MarkConfigChapters;
 use crate::media_info::{MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths};
@@ -12,6 +12,7 @@ use crate::{
 };
 use buf_packets::BufPackets;
 use encoder::{Encode, Encoder};
+use external_fonts::ExternalFonts;
 use log::{LevelFilter, debug, error, info, warn};
 use rayon::prelude::*;
 use std::{
@@ -89,7 +90,7 @@ impl Config {
     /// - Returns an error if one occurs during processing.
     #[inline]
     pub fn mux(&self) -> Result<usize> {
-        let fonts = init_external_fonts::init_external_fonts(self);
+        let fonts = ExternalFonts::get_new(self);
         let cnt = Mutex::new(0usize);
         let it = Mutex::new(self.input.iter_media_grouped_by_stem());
 
@@ -105,7 +106,7 @@ impl Config {
             }
         })?;
 
-        if let Err(e) = remove_input_fonts(self) {
+        if let Err(e) = remove_input_fonts(self, fonts) {
             warn!("{}: {}", Msg::FailOverwriteInputFiles, e);
         }
 
@@ -275,14 +276,17 @@ fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Resu
     Ok(())
 }
 
-fn remove_input_fonts(cfg: &Config) -> Result<()> {
-    use crate::config::fields::input::InputFileType;
-
+fn remove_input_fonts(cfg: &Config, fonts: Option<ExternalFonts>) -> Result<()> {
     if !cfg.overwrite {
         return Ok(());
     }
 
-    for f in cfg.input.file_dirs[InputFileType::Font].iter() {
+    let fonts = match fonts {
+        Some(xs) => xs,
+        None => return Ok(()),
+    };
+
+    for f in &fonts.files {
         debug!("{} '{}'...", Msg::RemovingInputFile, display(f));
         fs::remove_file(f)?;
         debug!("{} '{}'", Msg::InputFileSuccessfullyRemoved, display(f));
