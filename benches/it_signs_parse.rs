@@ -1,16 +1,18 @@
-use super::*;
-use crate::Stream;
+#![feature(test)]
+extern crate test;
 
-impl MediaInfo<'_> {
-    pub(crate) fn it_signs(&mut self, src: &Path, stream: &Stream) -> bool {
-        if !stream.ty.is_sub() {
-            return false;
-        }
+use test::{Bencher, black_box};
 
-        parse(stream.title.as_ref().map(|v| &**v))
-            || parse(self.get(MarkMediaInfoPathTail, src))
-            || parse(self.get(MarkMediaInfoRelativeUpmost, src))
-    }
+fn str_to_words(s: &str) -> impl Iterator<Item = &str> {
+    s.split(|c: char| !c.is_alphabetic())
+        .filter(|w| !w.is_empty())
+}
+
+fn parse_old(s: &str) -> bool {
+    str_to_words(s).any(|s| {
+        let s = s.to_lowercase();
+        matches!(s.as_str(), "signs" | "надписи")
+    })
 }
 
 macro_rules! matches_bytes {
@@ -19,8 +21,7 @@ macro_rules! matches_bytes {
     }};
 }
 
-fn parse(opt_s: Option<&String>) -> bool {
-    let Some(s) = opt_s else { return false };
+fn parse_new(s: &str) -> bool {
     let bytes = s.as_bytes();
     let mut i = 0;
     let len = bytes.len();
@@ -37,10 +38,10 @@ fn parse(opt_s: Option<&String>) -> bool {
             if i + 5 == len || !is_alphabetic_byte(bytes[i + 5]) {
                 if matches_bytes!(
                     bytes;
-                    i + 1, b'i' | b'I',
-                    i + 2, b'g' | b'G',
-                    i + 3, b'n' | b'N',
-                    i + 4, b's' | b'S'
+                i + 1, b'i' | b'I',
+                i + 2, b'g' | b'G',
+                i + 3, b'n' | b'N',
+                i + 4, b's' | b'S'
                 ) {
                     return true;
                 }
@@ -68,9 +69,9 @@ fn parse(opt_s: Option<&String>) -> bool {
                 ) && (
                     // с
                     (matches!(bytes[i + 10], 0xD1) && matches!(bytes[i + 11], 0x81))
-                    ||
-                    // С
-                    (matches!(bytes[i + 10], 0xD0) && matches!(bytes[i + 11], 0xA1))
+                        ||
+                        // С
+                        (matches!(bytes[i + 10], 0xD0) && matches!(bytes[i + 11], 0xA1))
                 ) {
                     return true;
                 }
@@ -92,4 +93,38 @@ fn parse(opt_s: Option<&String>) -> bool {
 #[inline(always)]
 fn is_alphabetic_byte(b: u8) -> bool {
     b.is_ascii_alphabetic() || matches!(b, 0xD0 | 0xD1)
+}
+
+const TEXT_SIGNS: &str = "This text contains Signs inside";
+const TEXT_NADPISI: &str = "Здесь есть слово НаДпИсИ в тексте";
+const TEXT_NO_MATCH: &str = "Совершенно другой текст без нужных слов";
+
+#[bench]
+fn bench_old_signs_match(b: &mut Bencher) {
+    b.iter(|| parse_old(black_box(TEXT_SIGNS)));
+}
+
+#[bench]
+fn bench_old_nadpisi_match(b: &mut Bencher) {
+    b.iter(|| parse_old(black_box(TEXT_NADPISI)));
+}
+
+#[bench]
+fn bench_old_no_match(b: &mut Bencher) {
+    b.iter(|| parse_old(black_box(TEXT_NO_MATCH)));
+}
+
+#[bench]
+fn bench_new_signs_match(b: &mut Bencher) {
+    b.iter(|| parse_new(black_box(TEXT_SIGNS)));
+}
+
+#[bench]
+fn bench_new_nadpisi_match(b: &mut Bencher) {
+    b.iter(|| parse_new(black_box(TEXT_NADPISI)));
+}
+
+#[bench]
+fn bench_new_no_match(b: &mut Bencher) {
+    b.iter(|| parse_new(black_box(TEXT_NO_MATCH)));
 }

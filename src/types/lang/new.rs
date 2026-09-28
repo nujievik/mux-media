@@ -95,20 +95,19 @@ impl FromStr for LangCode {
 }
 
 fn get_code(s: &str) -> Option<LangCode> {
-    fn str_to_ascii_words(s: &str) -> impl Iterator<Item = &str> {
+    fn str_to_ascii_words(s: &str) -> impl Iterator<Item = &[u8]> {
         s.as_bytes()
             .split(|b| !b.is_ascii_alphabetic())
             .filter(|w| !w.is_empty())
-            .map(|w| unsafe { str::from_utf8_unchecked(w) })
     }
 
     let mut buf = [0u8; 3];
-    str_to_ascii_words(s).find_map(|s| {
-        let len = s.len();
+    str_to_ascii_words(s).find_map(|word| {
+        let len = word.len();
         if !matches!(len, 2 | 3) {
             return None;
         }
-        for (dst, src) in buf[..len].iter_mut().zip(s.bytes()) {
+        for (dst, src) in buf[..len].iter_mut().zip(word.iter()) {
             *dst = src.to_ascii_lowercase();
         }
 
