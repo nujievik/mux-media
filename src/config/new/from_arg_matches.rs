@@ -537,15 +537,23 @@ fn try_input_ty(m: &mut ArgMatches) -> Option<Result<InputType, Error>> {
 
 fn get_chapters(m: &mut ArgMatches) -> Option<ConfigChapters> {
     if flag!(m, NoChapters) {
-        Some(ConfigChapters { no_flag: true })
-    } else {
-        None
+        return Some(ConfigChapters {
+            no_flag: true,
+            ranges: None,
+        });
     }
+
+    rm!(m, Chapters, ConfigChapters)
 }
 
 fn upd_chapters(chp: &mut ConfigChapters, m: &mut ArgMatches) {
     if flag!(m, NoChapters) {
         chp.no_flag = true;
+        return;
+    }
+
+    if let Some(new) = rm!(m, Chapters, ConfigChapters) {
+        *chp = new;
     }
 }
 

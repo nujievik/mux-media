@@ -12,4 +12,5 @@ fn test_is_default() {
 build_test_to_args!(
     test_to_args, "chapters";
     vec!["--no-chapters"],
+    vec!["--chapters", "NAME:00:00:00.000-00:05:00.000,other:00:05:00.000-00:10:00.000"],
 );

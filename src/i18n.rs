@@ -65,6 +65,7 @@ pub enum Msg {
     HelpListTargets,
     HelpStreams,
     HelpNoStreams,
+    HelpChapters,
     HelpNoChapters,
     HelpDefaults,
     HelpMaxDefaults,

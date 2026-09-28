@@ -5,15 +5,16 @@ mod external_fonts;
 mod header;
 
 use crate::config::MarkConfigChapters;
+use crate::ffmpeg::{self, Rational, format};
 use crate::media_info::{MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths};
 use crate::{
-    Config, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder, TryFinalizeInit, display,
-    ffmpeg::{self, format},
+    Config, ConfigChaptersTimeRange, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder,
+    TryFinalizeInit, display,
 };
 use buf_packets::BufPackets;
 use encoder::{Encode, Encoder};
 use external_fonts::ExternalFonts;
-use log::{LevelFilter, debug, error, info, warn};
+use log::{LevelFilter, debug, info, warn};
 use rayon::prelude::*;
 use std::{
     fs,
@@ -184,7 +185,7 @@ impl MediaInfo<'_> {
                 enc.finalize(&mut octx)?;
             }
 
-            copy_chapters(self, &order, &icontexts, &mut octx);
+            add_chapters(self, &order, &icontexts, &mut octx);
 
             octx.write_trailer()?;
         }
@@ -200,36 +201,63 @@ impl MediaInfo<'_> {
     }
 }
 
-fn copy_chapters(
+fn add_chapters(
     mi: &mut MediaInfo,
     order: &StreamsOrder,
     icontexts: &Vec<format::context::Input>,
     octx: &mut format::context::Output,
 ) {
     let cfg = mi.cfg;
-    let it = order.iter_first_entries().filter_map(|ord| {
+
+    let cfg_chapters_it = order.iter_first_entries().filter_map(|ord| {
         let target_paths = mi.get(MarkMediaInfoTargetPaths, &ord.key)?;
-        let chapters = cfg
+        let cfg_chapters = cfg
             .get_targets(MarkConfigChapters, target_paths)
             .unwrap_or(&mi.cfg.chapters);
-
-        if chapters.no_flag {
-            None
-        } else {
-            Some(&icontexts[ord.src_num])
-        }
+        Some((ord, cfg_chapters))
     });
 
-    for (i, chp) in it.flat_map(|ictx| ictx.chapters().enumerate()) {
-        let title = match chp.metadata().get("title") {
-            Some(title) => String::from(title),
-            None => i.to_string(),
-        };
-
-        if let Err(e) = octx.add_chapter(chp.id(), chp.time_base(), chp.start(), chp.end(), &title)
-        {
-            error!("Fail copy chapter '{}': {}", title, e)
+    let mut i = 0i64;
+    for (ord, cfg_chapters) in cfg_chapters_it {
+        if cfg_chapters.no_flag {
+            continue;
         }
+
+        if let Some(ranges) = cfg_chapters.ranges.as_ref() {
+            for r in ranges {
+                add_cfg_chapter(octx, i, r);
+                i += 1;
+            }
+            break;
+        }
+
+        let ictx = &icontexts[ord.src_num];
+
+        for chp in ictx.chapters() {
+            let meta = chp.metadata();
+            let title = meta.get("title").map_or("", |v| v);
+
+            if let Err(e) = octx.add_chapter(i, chp.time_base(), chp.start(), chp.end(), title) {
+                warn!("fail copy chapter '{}': {}", title, e)
+            }
+            i += 1;
+        }
+    }
+}
+
+fn add_cfg_chapter(
+    octx: &mut format::context::Output,
+    i: i64,
+    cfg_chapter: &ConfigChaptersTimeRange,
+) {
+    const TIME_BASE: Rational = Rational(1, 1000);
+
+    let start = cfg_chapter.start.as_millis() as i64;
+    let end = cfg_chapter.end.as_millis() as i64;
+    let title = cfg_chapter.title.as_ref().map_or("", |v| v);
+
+    if let Err(e) = octx.add_chapter(i, TIME_BASE, start, end, title) {
+        warn!("fail add chapter '{}': {}", title, e);
     }
 }
 

@@ -43,6 +43,7 @@ impl_msg_as_str!(
     HelpListTargets => "Показать поддерживаемые цели",
     HelpStreams => "[!]Сохранить потоки",
     HelpNoStreams => "Не сохранять потоки",
+    HelpChapters => "Установить главы",
     HelpNoChapters => "Не сохранять главы",
     HelpDefaults => "Установить default флаги",
     HelpMaxDefaults => "Максимум включаемых в авто default",

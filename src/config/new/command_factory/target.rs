@@ -1,5 +1,7 @@
 use super::Blocks;
-use crate::config::{ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigTitleMetadata};
+use crate::config::{
+    ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigTitleMetadata,
+};
 use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
@@ -40,6 +42,14 @@ impl Blocks {
                     .conflicts_with(undashed!(Streams)),
             )
             .arg(
+                Arg::new(undashed!(Chapters))
+                    .short('c')
+                    .long(undashed!(Chapters))
+                    .value_name("[T:]n-m...")
+                    .help(Msg::HelpChapters.as_str_localized())
+                    .value_parser(ValueParser::new(ConfigChapters::from_str)),
+            )
+            .arg(
                 Arg::new(undashed!(NoChapters))
                     .short('C')
                     .long(undashed!(NoChapters))
@@ -77,7 +87,7 @@ impl Blocks {
             .arg(
                 Arg::new(undashed!(Titles))
                     .long(undashed!(Titles))
-                    .value_name("[n:]N[,m:N]...")
+                    .value_name("[n:]T[,m:T]...")
                     .help(Msg::HelpTitles.as_str_localized())
                     .value_parser(ValueParser::new(ConfigTitleMetadata::from_str)),
             )

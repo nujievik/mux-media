@@ -125,6 +125,7 @@ use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;
 
 use config::MediaGroupedByStem;
+use config::fields::chapters::ConfigChaptersTimeRange;
 use helpers::*;
 use media_info::cache::CacheState;
 use types::retiming::{RetimedStream, Retiming, RetimingChapter};

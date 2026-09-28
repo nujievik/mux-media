@@ -42,6 +42,7 @@ impl_msg_as_str!(
     HelpTarget => "Set next options for target",
     HelpListTargets => "Show supported targets",
     HelpStreams => "[!]Save streams",
+    HelpChapters => "Set chapters",
     HelpNoStreams => "Don't save any stream",
     HelpNoChapters => "Don't save chapters",
     HelpDefaults => "Set default flags",

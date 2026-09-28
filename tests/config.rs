@@ -284,6 +284,7 @@ fn test_aliases_of_args() {
         (vec!["-d", "--video"], "1"),
         (vec!["-f", "--fonts"], "1"),
         (vec!["-m", "--attachs"], "1"),
+        (vec!["-c", "--chapters"], "0:0:0.0-0:5:0.0"),
     ]
     .iter()
     .for_each(|(args, val)| {
