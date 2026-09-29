@@ -56,7 +56,7 @@ impl FromStr for ConfigChapters {
         for s_range in s.split(',') {
             let (s_start, s_end) = s_range
                 .split_once('-')
-                .ok_or_else(|| err!("must be start-end time range"))?;
+                .ok_or_else(|| err!("must be start-end time range ({})", s_range))?;
 
             let (title, s_start) = if s_start.split(':').count() == 4 {
                 s_start.split_once(':').unwrap()
@@ -66,6 +66,11 @@ impl FromStr for ConfigChapters {
 
             let start = parse_time(s_start)?;
             let end = parse_time(s_end)?;
+
+            if start >= end {
+                return Err(err!("start ({}) must be lesser end ({})", s_start, s_end));
+            }
+
             let title = if title.is_empty() {
                 None
             } else {
@@ -102,4 +107,92 @@ fn parse_time(s: &str) -> Result<Time> {
     let time = Time::new(hours, mins, secs, millis)?;
 
     Ok(time)
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn parse_time_str() {
+        const TEST_SET: [(&str, Time); 3] = [
+            ("00:00:00.000", Time::new_unchecked(0, 0, 0, 0)),
+            ("1:2:3.4", Time::new_unchecked(1, 2, 3, 4)),
+            ("12:23:45.678", Time::new_unchecked(12, 23, 45, 678)),
+        ];
+
+        for (s, t) in TEST_SET {
+            assert_eq!(parse_time(s).unwrap(), t);
+        }
+    }
+
+    #[test]
+    fn parse_time_str_invalid() {
+        const TEST_SET: &[&str] = &["00", "00:00", "00:00:00", "00:00:00,000"];
+
+        for s in TEST_SET {
+            assert!(parse_time(s).is_err());
+        }
+    }
+
+    #[test]
+    fn parse_range() {
+        let v = ConfigChapters::from_str("0:0:0.0-12:23:45.678")
+            .unwrap()
+            .ranges
+            .unwrap();
+        assert!(v.len() == 1);
+        let v = &v[0];
+
+        assert_eq!(v.title, None);
+        assert_eq!(v.start, Time::new_unchecked(0, 0, 0, 0));
+        assert_eq!(v.end, Time::new_unchecked(12, 23, 45, 678));
+    }
+
+    #[test]
+    fn parse_range_with_name() {
+        let v = ConfigChapters::from_str("NAME:0:0:0.0-12:23:45.678")
+            .unwrap()
+            .ranges
+            .unwrap();
+        assert!(v.len() == 1);
+        let v = &v[0];
+
+        assert_eq!(v.title, Some(String::from("NAME")));
+        assert_eq!(v.start, Time::new_unchecked(0, 0, 0, 0));
+        assert_eq!(v.end, Time::new_unchecked(12, 23, 45, 678));
+    }
+
+    #[test]
+    fn parse_ranges() {
+        let v = ConfigChapters::from_str("0:0:0.0-12:23:45.678,12:23:45.678-23:45:55.000")
+            .unwrap()
+            .ranges
+            .unwrap();
+        assert!(v.len() == 2);
+        let v0 = &v[0];
+        let v1 = &v[1];
+
+        assert_eq!(v0.title, None);
+        assert_eq!(v0.start, Time::new_unchecked(0, 0, 0, 0));
+        assert_eq!(v0.end, Time::new_unchecked(12, 23, 45, 678));
+
+        assert_eq!(v1.title, None);
+        assert_eq!(v1.start, Time::new_unchecked(12, 23, 45, 678));
+        assert_eq!(v1.end, Time::new_unchecked(23, 45, 55, 0));
+    }
+
+    #[test]
+    fn parse_invalid_range_start() {
+        assert!(ConfigChapters::from_str("12:23:45.678-0:0:0.0").is_err());
+    }
+
+    #[test]
+    fn parse_invalid_range_format() {
+        const SET: &[&str] = &["0:0:0.0", "12:23:45.678-0:0:0.0", "0:0:0.0-12:23:45.678-"];
+
+        for s in SET {
+            assert!(ConfigChapters::from_str(s).is_err());
+        }
+    }
 }
