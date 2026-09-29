@@ -7,7 +7,7 @@ PATH/TO/OUTPUT/DIRECTORY
 --range
 0-9999
 --skip
-*.ttf,*TTF,*otf,*OTF
+*.ttf,*.TTF,*.otf,*.OTF
 --depth
 16
 --verbose
@@ -28,7 +28,8 @@ global
 0
 --video
 0
---no-chapters
+--chapters
+FIRST:00:00:00.000-00:10:00.000,SECOND:00:10:00.000-00:15:00.000
 --fonts
 0-100
 --attachs

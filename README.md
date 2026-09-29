@@ -88,12 +88,13 @@ Run `mux-media -h` to display help.
 | `--list-targets` | Show supported targets |
 | `--streams <[!]n[,m]...>` | `[!]Save streams` |
 | `--no-streams` | Don't save any stream |
+| `-c, --chapters <[T:]n-m...>` | Set chapters |
 | `-C, --no-chapters` | Don't save chapters |
 | `--defaults <[n:]B[,m:B]...>` | Set default flags |
 | `--max-defaults <n>` | Max auto-enabled default |
 | `--forceds <[n:]B[,m:B]...>` | Set forced flags |
 | `--max-forceds <n>` | Max auto-enabled forced |
-| `--titles <[n:]N[,m:N]...>` | Set stream titles |
+| `--titles <[n:]T[,m:T]...>` | Set stream titles |
 | `--langs <[n:]L[,m:L]...>` | Set stream languages |
 | | |
 | Retiming options: | |

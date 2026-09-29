@@ -54,7 +54,8 @@ impl Blocks {
                     .short('C')
                     .long(undashed!(NoChapters))
                     .help(Msg::HelpNoChapters.as_str_localized())
-                    .action(ArgAction::SetTrue),
+                    .action(ArgAction::SetTrue)
+                    .conflicts_with(undashed!(Chapters)),
             )
             .arg(
                 Arg::new(undashed!(Defaults))

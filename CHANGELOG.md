@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.18.4] - 2026-09-30
+
+### Added
+- Configuration --chapters.
+
+
 ## [0.18.3] - 2026-09-27
 
 ### Added
@@ -161,7 +167,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.15.0] - 2025-09-27
 
 ### Added
-
 - Parallel muxing.
 - Limitation parallel muxing with the `--threads <n>` option.
 - Retiming (restored, was removed in 0.13.0).
@@ -169,7 +174,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove Matroska segments with the `--rm-segments <n[,m]...>` option.
 
 ### Changed
-
 - Auto-read `mux-media.json` config.
 - Save config with the `--save-config` flag.
 - Load config with the `--json <json>` option.
@@ -178,35 +182,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Short version of `--target <trg>...` option.
 
 ### Removed
-
 - Button tracks settings.
 
 
 ## [0.14.3] - 2025-08-18
 
 ### Added
-
 - Support for single-media groups with the `--solo` flag.
 
 
 ## [0.14.2] - 2025-08-15
 
 ### Fixed
-
 - Remove created directories on failure.
 
 
 ## [0.14.1] - 2025-08-10
 
 ### Fixed
-
 - Publication on crates.io.
 
 
 ## [0.14.0] - 2025-08-10
 
 ### Added
-
 - Reencoding.
 
 
@@ -225,12 +224,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.13.0] - 2025-07-15
 
 ### Changed
-
 - First Rust version.
 - Rename to mux-media.
 
 ### Removed
-
 - Retiming.
 
 
