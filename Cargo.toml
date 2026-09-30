@@ -22,6 +22,13 @@ default = []
 ffmpeg-static = ["ffmpeg-next/static"]
 ffmpeg-build = ["ffmpeg-static", "ffmpeg-next/build"]
 
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
+panic = 'abort'
+strip = true
+
 [dependencies.ffmpeg-next]
 version = "=8.1.0"
 default-features = false
