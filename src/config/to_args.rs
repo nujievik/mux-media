@@ -1,6 +1,6 @@
 use super::{Config, ConfigTarget};
 use crate::{Msg, Result, ToTxtConfig};
-use std::{ffi::OsString, fs};
+use std::fs;
 
 impl Config {
     /// Tries save config to .txt in the input directory.
@@ -58,7 +58,7 @@ macro_rules! append_dispositions_to_args {
 }
 
 impl ToTxtConfig for Config {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         args.push(to_args!(Locale));
         args.push(self.locale.to_string().into());
 
@@ -93,8 +93,12 @@ impl ToTxtConfig for Config {
 
         if let Some(targets) = &self.targets {
             for (t, t_cfg) in targets {
-                args.push(to_args!(Target));
-                args.push(t.as_path().into());
+                if let Some(s) = t.to_str() {
+                    args.push(to_args!(Target));
+                    args.push(s.into());
+                } else {
+                    continue;
+                }
 
                 let len = args.len();
                 t_cfg.append_args(args);
@@ -121,7 +125,7 @@ macro_rules! append_args_from_opt_fields {
 }
 
 impl ToTxtConfig for ConfigTarget {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         append_args_from_opt_fields!(
             self, args;
             streams,

@@ -2,7 +2,6 @@ pub(crate) mod lazy_fields;
 
 use crate::Result;
 use std::{
-    ffi::OsString,
     fs,
     io::{BufWriter, Write},
     path::Path,
@@ -17,10 +16,10 @@ pub trait TryFinalizeInit {
 /// Converts a value to txt config arguments.
 pub trait ToTxtConfig {
     /// Appends arguments to the given `args` vector.
-    fn append_args(&self, args: &mut Vec<OsString>);
+    fn append_args(&self, args: &mut Vec<String>);
 
     /// Returns vector of arguments.
-    fn to_args(&self) -> Vec<OsString> {
+    fn to_args(&self) -> Vec<String> {
         let mut args = Vec::new();
         self.append_args(&mut args);
         args
@@ -38,7 +37,7 @@ pub trait ToTxtConfig {
         let mut writer = BufWriter::new(file);
 
         for arg in args {
-            writer.write_all(arg.as_encoded_bytes())?;
+            writer.write_all(arg.as_bytes())?;
             writer.write_all(b"\n")?;
         }
 

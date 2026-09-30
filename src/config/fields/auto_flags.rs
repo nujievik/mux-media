@@ -1,6 +1,5 @@
 use crate::{DispositionType, IsDefault, ToTxtConfig, Value};
 use enum_map::{EnumMap, enum_map};
-use std::ffi::OsString;
 
 /// An auto-flags configuration.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -56,7 +55,7 @@ macro_rules! push_args {
 }
 
 impl ToTxtConfig for ConfigAutoFlags {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         if self.no_auto {
             args.push(to_args!(NoAuto));
         }

@@ -1,5 +1,5 @@
 use crate::{IsDefault, MuxError, Result, Time, ToTxtConfig, dashed};
-use std::{ffi::OsString, str::FromStr};
+use std::str::FromStr;
 use subtitle_lines::vtt::VttTimeBuf;
 
 /// A chapters configuration.
@@ -18,7 +18,7 @@ pub struct ConfigChaptersTimeRange {
 }
 
 impl ToTxtConfig for ConfigChapters {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         if self.no_flag {
             args.push(dashed!(NoChapters).into());
             return;
@@ -41,8 +41,8 @@ impl ToTxtConfig for ConfigChapters {
             let _ = arg.pop();
             let arg = unsafe { String::from_utf8_unchecked(arg) };
 
-            args.push(dashed!(Chapters).into());
-            args.push(arg.into());
+            args.push(to_args!(Chapters));
+            args.push(arg);
         }
     }
 }

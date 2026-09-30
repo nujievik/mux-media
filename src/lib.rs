@@ -39,7 +39,7 @@ macro_rules! deref_singleton_tuple_struct {
 
 macro_rules! to_args {
     ($arg:ident) => {
-        std::ffi::OsString::from($crate::dashed!($arg))
+        String::from($crate::dashed!($arg))
     };
 
     (@push_true, $self:ident, $args:ident; $( $field:ident, $arg:ident ),*) => {{

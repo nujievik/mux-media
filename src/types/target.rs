@@ -50,6 +50,14 @@ impl Target {
         }
     }
 
+    pub(crate) fn to_str(&self) -> Option<&str> {
+        match self {
+            Self::Global => Some("global"),
+            Self::Stream(ty) => Some(ty.as_ref()),
+            Self::Path(p) => p.to_str(),
+        }
+    }
+
     /// Prints the list of supported targets to stdout.
     pub(crate) fn print_list_targets() {
         println!("{}", Msg::ListTargets.as_str_localized());

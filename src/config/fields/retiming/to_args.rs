@@ -1,16 +1,15 @@
 use super::*;
 use crate::ToTxtConfig;
-use std::ffi::OsString;
 
 impl ToTxtConfig for ConfigRetiming {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         self.parts.append_args(args);
         to_args!(@push_true, self, args; no_linked, NoLinked);
     }
 }
 
 impl ToTxtConfig for ConfigRetimingParts {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         let mut arg = String::new();
         if self.inverse {
             arg.push('!');
@@ -21,7 +20,7 @@ impl ToTxtConfig for ConfigRetimingParts {
 
         if !arg.is_empty() {
             args.push(to_args!(Parts));
-            args.push(arg.into());
+            args.push(arg);
         }
     }
 }

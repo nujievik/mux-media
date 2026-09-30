@@ -1,9 +1,8 @@
 use super::ConfigStreams;
 use crate::{IsDefault, ToTxtConfig};
-use std::ffi::OsString;
 
 impl ToTxtConfig for ConfigStreams {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         if self.is_default() {
             return;
         }

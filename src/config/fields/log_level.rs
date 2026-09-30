@@ -1,6 +1,5 @@
 use crate::{IsDefault, ToTxtConfig};
 use log::LevelFilter;
-use std::ffi::OsString;
 
 /// A wrapper around [`log::LevelFilter`].
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -41,7 +40,7 @@ impl IsDefault for ConfigLogLevel {
 }
 
 impl ToTxtConfig for ConfigLogLevel {
-    fn append_args(&self, args: &mut Vec<OsString>) {
+    fn append_args(&self, args: &mut Vec<String>) {
         match self.0 {
             LevelFilter::Off | LevelFilter::Error => args.push(to_args!(Quiet)),
             LevelFilter::Warn | LevelFilter::Info => (),

@@ -57,17 +57,15 @@ where
     Config::try_parse_from(args).unwrap()
 }
 
-pub fn to_args<I, S>(args: I) -> Vec<OsString>
+pub fn to_args<I, S>(args: I) -> Vec<String>
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
 {
-    args.into_iter()
-        .map(|s| OsString::from(s_sep(s.as_ref())))
-        .collect()
+    args.into_iter().map(|s| s_sep(s.as_ref())).collect()
 }
 
-pub fn append_str_vecs<I, T, S>(vecs: I) -> Vec<OsString>
+pub fn append_str_vecs<I, T, S>(vecs: I) -> Vec<String>
 where
     I: IntoIterator<Item = T>,
     T: AsRef<[S]>,
@@ -77,19 +75,18 @@ where
 
     for vec in vecs {
         for s in vec.as_ref() {
-            out.push(OsString::from(s_sep(s.as_ref())));
+            out.push(s_sep(s.as_ref()));
         }
     }
 
     out
 }
 
-pub fn read_txt_args(path: &Path) -> Vec<OsString> {
+pub fn read_txt_args(path: &Path) -> Vec<String> {
     use std::io::BufRead;
     let file = std::fs::File::open(path).unwrap();
     let reader = std::io::BufReader::new(file);
-    let lines: Vec<String> = reader.lines().collect::<std::io::Result<Vec<_>>>().unwrap();
-    lines.into_iter().map(|l| OsString::from(l)).collect()
+    reader.lines().collect::<std::io::Result<Vec<_>>>().unwrap()
 }
 
 pub fn iter_i_lang() -> impl Iterator<Item = (&'static usize, &'static Lang)> {
