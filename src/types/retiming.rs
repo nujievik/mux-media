@@ -50,7 +50,7 @@ pub struct RetimingPart {
 
 #[derive(Debug, Default)]
 pub struct RetimedStream {
-    pub src: Option<PathBuf>,
+    pub src: PathBuf,
     pub i_stream: usize,
 }
 

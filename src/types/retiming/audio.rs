@@ -15,7 +15,7 @@ impl Retiming<'_, '_> {
         try_concat(src, &splits, &dest)?;
 
         Ok(RetimedStream {
-            src: Some(dest),
+            src: dest,
             i_stream: 0,
         })
     }

@@ -3,8 +3,7 @@ use crate::{
     Result, display,
     ffmpeg::{Packet, Rescale, format},
 };
-use rayon::prelude::*;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 impl Retiming<'_, '_> {
     pub(super) fn try_video(&self, src: &Path, i_stream: usize) -> Result<RetimedStream> {
@@ -20,34 +19,20 @@ impl Retiming<'_, '_> {
     }
 
     pub(super) fn init_base_splits(&mut self) -> Result<()> {
-        let raw_splits: Vec<(usize, Time, Time, PathBuf)> = self
-            .parts
-            .par_iter()
-            .enumerate()
-            .map(|(i, p)| {
-                let split = self
-                    .temp_dir
-                    .join(format!("{}-vid-base-{}.mkv", self.job, i));
+        for (i, p) in self.parts.iter_mut().enumerate() {
+            let split = self
+                .temp_dir
+                .join(format!("{}-vid-base-{}.mkv", self.job, i));
 
-                try_split(&p.src, self.i_base_stream, &split, p.start, p.end)
-                    .map(|(start, end)| (i, start, end, split))
-            })
-            .collect::<Result<_>>()?;
+            let (start, end) = try_split(&p.src, self.i_base_stream, &split, p.start, p.end)?;
 
-        let base_splits: Vec<_> = raw_splits
-            .into_iter()
-            .map(|(i, start, end, split)| {
-                let p = &mut self.parts[i];
-                p.start_offset += SignedTime::new(true, start) - p.start;
-                p.end_offset += SignedTime::new(true, end) - p.end;
+            p.start_offset += SignedTime::new(true, start) - p.start;
+            p.end_offset += SignedTime::new(true, end) - p.end;
+            p.start = start;
+            p.end = end;
 
-                p.start = start;
-                p.end = end;
-                split
-            })
-            .collect();
-
-        self.base_splits = base_splits;
+            self.base_splits.push(split);
+        }
         Ok(())
     }
 
@@ -56,7 +41,7 @@ impl Retiming<'_, '_> {
         try_concat(&self.base, &self.base_splits, &dest)?;
 
         Ok(RetimedStream {
-            src: Some(dest),
+            src: dest,
             i_stream: 0,
         })
     }

@@ -1,11 +1,8 @@
 use super::{StreamsOrder, StreamsOrderItem};
 use crate::config::{MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams};
 use crate::media_info::*;
-use crate::{
-    ArcPathBuf, Lang, LangCode, MediaInfo, Result, RetimedStream, Retiming, StreamType, display,
-};
+use crate::{ArcPathBuf, Lang, LangCode, MediaInfo, Result, Retiming, StreamType, display};
 use log::warn;
-use rayon::prelude::*;
 use std::{cmp::Ordering, collections::HashSet};
 
 impl StreamsOrder {
@@ -168,60 +165,37 @@ fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<Streams
         Err(e) => return Err(e),
     };
 
-    let mut i_retimed = order
-        .0
-        .par_iter()
-        .enumerate()
-        .filter_map(|(i, m)| {
-            if m.ty.is_track() {
-                match rtm.try_any(i, m) {
-                    Ok(retimed) => Some(Ok((i, retimed))),
-                    Err(e) if exit_on_err => Some(Err(e)),
-                    Err(e) => {
-                        warn!(
-                            "Fail retime '{}' stream {}: {}. Skipping",
-                            display(&m.key),
-                            m.i_stream,
-                            e
-                        );
-                        None
-                    }
-                }
-            } else {
-                let retimed = RetimedStream {
-                    i_stream: m.i_stream,
-                    ..Default::default()
-                };
-                Some(Ok((i, retimed)))
-            }
-        })
-        .collect::<Result<Vec<_>>>()?;
+    let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(order.0.len());
 
-    if i_retimed.is_empty() {
-        return Err(err!("Not save any track"));
-    }
-
-    i_retimed.sort_by(|a, b| a.0.cmp(&b.0));
     let mut src_numbers = vec![Option::<usize>::None; order.len()];
     let mut src_num = 0usize;
 
-    let items: Vec<_> = i_retimed
-        .into_iter()
-        .map(|(i, rtm)| {
-            let item = &order.0[i];
-            let (num, is_first) = num_is_first(i, &mut src_numbers, &mut src_num);
-
-            StreamsOrderItem {
-                ty: item.ty,
-                key: item.key.clone(),
-                key_i_stream: item.key_i_stream,
-                src: rtm.src,
-                i_stream: rtm.i_stream,
-                src_num: num,
-                is_first_entry: is_first,
+    for (i, mut item) in order.0.into_iter().enumerate() {
+        if item.ty.is_track() {
+            match rtm.try_any(i, &item) {
+                Ok(retimed) => {
+                    item.src = Some(retimed.src);
+                    item.i_stream = retimed.i_stream;
+                }
+                Err(e) if exit_on_err => return Err(e),
+                Err(e) => {
+                    warn!(
+                        "fail retime '{}' stream {}: {}. Skipping",
+                        display(&item.key),
+                        item.i_stream,
+                        e
+                    );
+                    continue;
+                }
             }
-        })
-        .collect();
+        }
+
+        let (num, is_first) = num_is_first(i, &mut src_numbers, &mut src_num);
+        item.src_num = num;
+        item.is_first_entry = is_first;
+
+        items.push(item)
+    }
 
     Ok(StreamsOrder(items))
 }

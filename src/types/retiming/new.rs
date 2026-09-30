@@ -61,6 +61,7 @@ impl Retiming<'_, '_> {
         }
 
         let mut rtm = Retiming {
+            base_splits: Vec::with_capacity(parts.len()),
             temp_dir: &mi.cfg.output.temp_dir(),
             media_info: mi,
             job: mi.job,
@@ -68,7 +69,6 @@ impl Retiming<'_, '_> {
             i_base_stream,
             chapters: cs,
             parts,
-            base_splits: Vec::new(),
         };
         rtm.init_base_splits()?;
 

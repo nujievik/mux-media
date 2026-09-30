@@ -128,4 +128,4 @@ use config::MediaGroupedByStem;
 use config::fields::chapters::ConfigChaptersTimeRange;
 use helpers::*;
 use media_info::cache::CacheState;
-use types::retiming::{RetimedStream, Retiming, RetimingChapter};
+use types::retiming::{Retiming, RetimingChapter};

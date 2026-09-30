@@ -53,7 +53,7 @@ impl Retiming<'_, '_> {
         }
 
         Ok(RetimedStream {
-            src: Some(dest.path),
+            src: dest.path,
             i_stream: 0,
         })
     }
