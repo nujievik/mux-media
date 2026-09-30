@@ -1,6 +1,9 @@
 #![feature(test)]
 extern crate test;
 
+use clap::Parser;
+use ffmpeg_next as ffmpeg;
+use mux_media::{Config, MediaInfo};
 use rayon::prelude::*;
 use std::path::PathBuf;
 use test::{Bencher, black_box};
@@ -48,5 +51,32 @@ fn par_open_matroska_files(b: &mut Bencher) {
             .map(|f| matroska::open(f).unwrap())
             .collect();
         black_box(xs)
+    })
+}
+
+#[bench]
+fn media_info_insert_files(b: &mut Bencher) {
+    let cfg = Config::try_parse_from(&["-leng"]).unwrap();
+    ffmpeg::log::set_level(ffmpeg::log::Level::Quiet);
+
+    b.iter(|| {
+        let mut mi = MediaInfo::new(&cfg, 0);
+        for f in file_iter() {
+            mi.try_insert(f).unwrap();
+        }
+        black_box(mi)
+    })
+}
+
+#[bench]
+fn par_media_info_insert_files(b: &mut Bencher) {
+    let cfg = Config::try_parse_from(&["-leng"]).unwrap();
+    let files: Vec<_> = file_iter().collect();
+    ffmpeg::log::set_level(ffmpeg::log::Level::Quiet);
+
+    b.iter(|| {
+        let mut mi = MediaInfo::new(&cfg, 0);
+        mi.try_insert_many(files.clone()).unwrap();
+        black_box(mi)
     })
 }
