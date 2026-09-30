@@ -52,7 +52,7 @@ impl Config {
     {
         if let Some(v) = self.get_targets(f, target_paths) {
             (stream.i, v)
-        } else if let Some(v) = self.get_target(f, Target::Stream(stream.ty)) {
+        } else if let Some(v) = self.get_target(f, Target::StreamType(stream.ty)) {
             (stream.i_ty, v)
         } else {
             (stream.i, <Self as Field<F>>::field(self))

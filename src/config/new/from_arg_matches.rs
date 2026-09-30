@@ -104,7 +104,7 @@ macro_rules! upd_streams {
 
 macro_rules! trg_upd_streams {
     ($targets:expr, $k:expr, $matches:ident, $arg:ident, $no_arg:ident) => {
-        let k = Target::Stream($k);
+        let k = Target::StreamType($k);
 
         if let Some(v) = $targets
             .as_mut()
@@ -241,7 +241,7 @@ impl FromArgMatches for Config {
                 if v.is_none() {
                     return;
                 }
-                let k = Target::Stream(k);
+                let k = Target::StreamType(k);
                 let v = ConfigTarget {
                     streams: v,
                     ..Default::default()

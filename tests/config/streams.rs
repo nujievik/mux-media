@@ -28,7 +28,7 @@ fn parse_no_flag_aliases() {
         ("-F", StreamType::Font),
         ("-M", StreamType::Attach),
     ] {
-        let t = Target::Stream(ty);
+        let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
@@ -86,7 +86,7 @@ fn parse_idxs_aliases() {
         ("-f0", StreamType::Font),
         ("-m0", StreamType::Attach),
     ] {
-        let t = Target::Stream(ty);
+        let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
@@ -156,7 +156,7 @@ fn parse_ranges_aliases() {
         ("-f0-1", StreamType::Font),
         ("-m0-1", StreamType::Attach),
     ] {
-        let t = Target::Stream(ty);
+        let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
@@ -212,7 +212,7 @@ fn parse_langs_aliases() {
         ("-feng", StreamType::Font),
         ("-meng", StreamType::Attach),
     ] {
-        let t = Target::Stream(ty);
+        let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
         let ts = HashMap::from([(t, val)]);
@@ -269,7 +269,7 @@ fn parse_target_switching() {
     ]
     .into_iter()
     .map(|ty| {
-        let t = Target::Stream(ty);
+        let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
         (t, val)

@@ -21,7 +21,7 @@ fn from_os_str_stream() {
     .into_iter()
     .for_each(|(ty, xs)| {
         for x in xs {
-            assert_eq!(Target::Stream(ty), Target::new(x).unwrap());
+            assert_eq!(Target::StreamType(ty), Target::new(x).unwrap());
         }
     })
 }

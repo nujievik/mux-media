@@ -11,7 +11,7 @@ use std::{
 #[derive(Clone, Debug)]
 pub enum Target {
     Global,
-    Stream(StreamType),
+    StreamType(StreamType),
     Path(ArcPathBuf),
 }
 
@@ -34,7 +34,7 @@ impl Target {
             if matches!(s.as_str(), "g" | "global") {
                 Some(Target::Global)
             } else if let Ok(ty) = s.parse::<StreamType>() {
-                Some(Target::Stream(ty))
+                Some(Target::StreamType(ty))
             } else {
                 None
             }
@@ -45,7 +45,7 @@ impl Target {
     pub(crate) fn as_path(&self) -> &Path {
         match self {
             Self::Global => Path::new("global"),
-            Self::Stream(ty) => ty.as_path(),
+            Self::StreamType(ty) => ty.as_path(),
             Self::Path(apb) => apb.as_path(),
         }
     }
@@ -53,7 +53,7 @@ impl Target {
     pub(crate) fn to_str(&self) -> Option<&str> {
         match self {
             Self::Global => Some("global"),
-            Self::Stream(ty) => Some(ty.as_ref()),
+            Self::StreamType(ty) => Some(ty.as_ref()),
             Self::Path(p) => p.to_str(),
         }
     }
