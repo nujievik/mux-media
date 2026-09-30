@@ -1,8 +1,10 @@
 use crate::ffmpeg::{self, codec, format};
-use crate::{Config, Result, StreamType};
+use crate::{Config, RangeUsize, Result, StreamType};
+use core::fmt::NumBuffer;
 use std::{
     ffi::{OsStr, OsString},
     fs::{File, canonicalize},
+    io::Write,
     path::{self, Path, PathBuf},
 };
 
@@ -181,4 +183,18 @@ pub(crate) fn try_ffmpeg_opened(
     };
 
     Ok(d)
+}
+
+pub(crate) fn write_range<W>(
+    writer: &mut W,
+    range: &RangeUsize,
+    buf: &mut NumBuffer<usize>,
+) -> Result<()>
+where
+    W: Write + ?Sized,
+{
+    writer.write(range.0.start.format_into(buf).as_bytes())?;
+    writer.write(b"-")?;
+    writer.write(range.0.end.format_into(buf).as_bytes())?;
+    Ok(())
 }

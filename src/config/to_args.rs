@@ -1,6 +1,7 @@
 use super::{Config, ConfigTarget};
-use crate::{Msg, Result, ToTxtConfig};
-use std::fs;
+use crate::{Msg, Result, ToArgs};
+use core::fmt::NumBuffer;
+use std::{fs, io::Write};
 
 impl Config {
     /// Tries save config to .txt in the input directory.
@@ -23,7 +24,7 @@ impl Config {
             }
         }
 
-        self.write(txt)?;
+        self.write_to_file(&txt)?;
         Ok(())
     }
 
@@ -34,115 +35,105 @@ impl Config {
     }
 }
 
-macro_rules! append_args_from_fields {
-    ($self:ident, $args:ident; $( $field:ident ),* $(,)?) => {{
+macro_rules! write_fields {
+    ($self:ident, $w:ident, $buf:ident; $( $field:ident ),* $(,)?) => {{
         $(
-            $self.$field.append_args($args);
+            $self.$field.write_with_num_buffer($w, $buf)?;
         )*
     }};
 }
 
-macro_rules! append_dispositions_to_args {
-    ($args:ident; $( $disps:expr, $arg:ident, $max_arg:ident );* $(;)?) => {{
-        $(
-        if let Some(values) = to_args!(@get_values, $disps) {
-            $args.push(to_args!($arg));
-            $args.push(values.into());
+macro_rules! write_dispositions {
+    ($w:ident, $buf:ident; $( $values:expr, $arg:ident, $max_arg:ident );* $(;)?) => {{
+    $(
+        if $values.single_val.is_some() || $values.idxs.is_some() || $values.ranges.is_some() || $values.langs.is_some() {
+            to_args!($w, $arg)?;
+            to_args!($w, $values, @write_map, $buf);
         }
-        if let Some(max) = $disps.max_in_auto {
-            $args.push(to_args!($max_arg));
-            $args.push(max.to_string().into());
+
+        if let Some(max) = $values.max_in_auto {
+            to_args!($w, $max_arg)?;
+            to_args!($w, max.format_into($buf).as_bytes(), @v)?;
         }
-        )*
+    )*
     }};
 }
 
-impl ToTxtConfig for Config {
-    fn append_args(&self, args: &mut Vec<String>) {
-        args.push(to_args!(Locale));
-        args.push(self.locale.to_string().into());
+impl ToArgs for Config {
+    fn write_with_num_buffer<W>(&self, w: &mut W, buf: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
+        to_args!(w, Locale)?;
+        to_args!(w, self.locale.as_ref().as_bytes(), @v)?;
 
-        append_args_from_fields!(self, args; input, output, log_level);
+        write_fields!(self, w, buf; input, output, log_level);
 
-        to_args!(@push_true, self, args; overwrite, Overwrite, exit_on_err, ExitOnErr);
+        if self.overwrite {
+            to_args!(w, Overwrite)?;
+        }
+        if self.exit_on_err {
+            to_args!(w, ExitOnErr)?;
+        }
 
         if self.jobs != Self::JOBS_DEFAULT {
-            args.push(to_args!(Jobs));
-            args.push(format!("{}", self.jobs).into());
+            to_args!(w, Jobs)?;
+            to_args!(w, (self.jobs as usize).format_into(buf).as_bytes(), @v)?;
         }
 
-        append_args_from_fields!(
-            self, args;
-            auto_flags,
-            streams,
-            chapters,
-        );
+        write_fields!(self, w, buf; auto_flags, streams, chapters);
 
-        append_dispositions_to_args!(
-            args;
+        write_dispositions!(
+            w, buf;
             self.defaults, Defaults, MaxDefaults;
             self.forceds, Forceds, MaxForceds;
         );
 
-        append_args_from_fields!(
-            self, args;
-            titles,
-            langs,
-            retiming,
-        );
+        write_fields!(self, w, buf; titles, langs, retiming);
 
         if let Some(targets) = &self.targets {
             for (t, t_cfg) in targets {
                 if let Some(s) = t.to_str() {
-                    args.push(to_args!(Target));
-                    args.push(s.into());
+                    to_args!(w, Target)?;
+                    to_args!(w, s.as_bytes(), @v)?;
                 } else {
-                    continue;
+                    return Err(err!("invalid utf-8"));
                 }
 
-                let len = args.len();
-                t_cfg.append_args(args);
-
-                // if nothing appended removes target.
-                if args.len() == len {
-                    for _ in 0..2 {
-                        let _ = args.pop();
-                    }
-                }
+                t_cfg.write_with_num_buffer(w, buf)?;
             }
         }
+
+        Ok(())
     }
 }
 
-macro_rules! append_args_from_opt_fields {
-    ($self:ident, $args:ident; $( $field:ident ),* $(,)?) => {{
+macro_rules! write_opt_fields {
+    ($self:ident, $w:ident, $buf:ident; $( $field:ident ),* $(,)?) => {{
         $(
             if let Some(val) = $self.$field.as_ref() {
-                val.append_args($args);
+                val.write_with_num_buffer($w, $buf)?;
             }
         )*
     }};
 }
 
-impl ToTxtConfig for ConfigTarget {
-    fn append_args(&self, args: &mut Vec<String>) {
-        append_args_from_opt_fields!(
-            self, args;
-            streams,
-            chapters,
-        );
+impl ToArgs for ConfigTarget {
+    fn write_with_num_buffer<W>(&self, w: &mut W, buf: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
+        write_opt_fields!(self, w, buf; streams, chapters);
 
         if let Some(v) = self.defaults.as_ref() {
-            append_dispositions_to_args!(args; v, Defaults, MaxDefaults);
+            write_dispositions!(w, buf; v, Defaults, MaxDefaults);
         }
         if let Some(v) = self.forceds.as_ref() {
-            append_dispositions_to_args!(args; v, Forceds, MaxForceds);
+            write_dispositions!(w, buf; v, Forceds, MaxForceds);
         }
 
-        append_args_from_opt_fields!(
-            self, args;
-            titles,
-            langs,
-        );
+        write_opt_fields!(self, w, buf; titles, langs);
+
+        Ok(())
     }
 }

@@ -8,6 +8,7 @@ pub(crate) mod lang;
 pub(crate) mod media_number;
 pub(crate) mod mux_error;
 pub(crate) mod mux_logger;
+pub(crate) mod my_bool;
 pub(crate) mod range;
 pub(crate) mod retiming;
 pub(crate) mod stream;

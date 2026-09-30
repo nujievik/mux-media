@@ -1,44 +1,55 @@
 use super::{ConfigInput, InputType};
-use crate::ToTxtConfig;
+use crate::{Result, ToArgs, helpers};
+use core::fmt::NumBuffer;
+use std::{io::Write, path::Path};
 
-impl ToTxtConfig for ConfigInput {
-    fn append_args(&self, args: &mut Vec<String>) {
+impl ToArgs for ConfigInput {
+    fn write_with_num_buffer<W>(&self, w: &mut W, buf: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
         match &self.ty {
-            InputType::Dir(dir) => {
-                if let Some(s) = dir.to_str() {
-                    args.push(to_args!(Input));
-                    args.push(s.into());
-                }
-            }
+            InputType::Dir(dir) => write_input_path(w, dir)?,
             InputType::Files(files) => {
                 for f in files {
-                    if let Some(s) = f.to_str() {
-                        args.push(to_args!(Input));
-                        args.push(s.into());
-                    }
+                    write_input_path(w, f)?;
                 }
             }
         }
 
         if let Some(range) = &self.range {
-            args.push(to_args!(Range));
-            args.push(range.to_string());
+            to_args!(w, Range)?;
+            helpers::write_range(w, range, buf)?;
+            w.write(b"\n")?;
         }
 
         if let Some(pat) = &self.skip {
             if !pat.raw.is_empty() {
-                args.push(to_args!(Skip));
-                args.push(String::from(&pat.raw));
+                to_args!(w, Skip)?;
+                to_args!(w, pat.raw.as_bytes(), @v)?;
             }
         }
 
         if self.depth != Self::DEPTH_DEFAULT {
-            args.push(to_args!(Depth));
-            args.push(self.depth.to_string());
+            to_args!(w, Depth)?;
+            let arg = (self.depth as usize).format_into(buf);
+            to_args!(w, arg.as_bytes(), @v)?;
         }
 
         if self.solo {
-            args.push(to_args!(Solo));
+            to_args!(w, Solo)?;
         }
+
+        Ok(())
     }
+}
+
+fn write_input_path<W>(w: &mut W, path: &Path) -> Result<()>
+where
+    W: Write + ?Sized,
+{
+    let s = path.to_str().ok_or_else(|| err!("invalid utf-8"))?;
+    to_args!(w, Input)?;
+    to_args!(w, s.as_bytes(), @v)?;
+    Ok(())
 }

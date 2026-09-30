@@ -1,57 +1,64 @@
 use super::ConfigStreams;
-use crate::{IsDefault, ToTxtConfig};
+use crate::{Result, ToArgs, helpers};
+use core::fmt::NumBuffer;
+use std::io::Write;
 
-impl ToTxtConfig for ConfigStreams {
-    fn append_args(&self, args: &mut Vec<String>) {
-        if self.is_default() {
-            return;
-        }
-
+impl ToArgs for ConfigStreams {
+    fn write_with_num_buffer<W>(&self, w: &mut W, buf: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
         if self.no_flag {
-            args.push(to_args!(NoStreams));
-            return;
+            to_args!(w, NoStreams)?;
+            return Ok(());
         }
 
-        let arg = match arg(self) {
-            s if s.is_empty() => return,
-            s => s,
-        };
+        if self.idxs.is_none() && self.ranges.is_none() && self.langs.is_none() {
+            return Ok(());
+        }
 
-        args.push(to_args!(Streams));
-        args.push(arg.into());
+        to_args!(w, Streams)?;
+
+        if self.inverse {
+            w.write(b"!")?;
+        }
+
+        let mut is_first = true;
+
+        if let Some(xs) = &self.idxs {
+            for x in xs {
+                if !is_first {
+                    w.write(b",")?;
+                }
+
+                w.write(x.format_into(buf).as_bytes())?;
+                is_first = false;
+            }
+        }
+
+        if let Some(xs) = &self.langs {
+            for x in xs {
+                if !is_first {
+                    w.write(b",")?;
+                }
+
+                w.write(x.as_str().as_bytes())?;
+                is_first = false;
+            }
+        }
+
+        if let Some(xs) = &self.ranges {
+            for x in xs {
+                if !is_first {
+                    w.write(b",")?;
+                }
+                helpers::write_range(w, x, buf)?;
+                is_first = false;
+            }
+        }
+
+        w.write(b"\n")?;
+
+        Ok(())
     }
-}
-
-fn arg(streams: &ConfigStreams) -> String {
-    let mut s = std::collections::BTreeSet::<String>::new();
-
-    if let Some(xs) = &streams.idxs {
-        xs.iter().for_each(|x| {
-            s.insert(x.to_string());
-        });
-    }
-
-    if let Some(xs) = &streams.langs {
-        xs.iter().for_each(|x| {
-            s.insert(x.to_string());
-        });
-    }
-
-    if let Some(xs) = &streams.ranges {
-        xs.iter().for_each(|x| {
-            s.insert(x.to_string());
-        });
-    }
-
-    if s.is_empty() {
-        return String::new();
-    }
-
-    let mut s = s.into_iter().collect::<Vec<String>>().join(",");
-
-    if streams.inverse {
-        s.insert(0, '!');
-    }
-
-    s
 }

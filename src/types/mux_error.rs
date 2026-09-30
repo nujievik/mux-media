@@ -16,6 +16,9 @@ pub enum MuxError {
     #[error("parse: {0}")]
     Parse(#[from] MuxErrorParse),
 
+    #[error("utf-8: {0}")]
+    Utf8Error(#[from] std::str::Utf8Error),
+
     #[error("{0}")]
     Other(#[from] MuxErrorOther),
 }

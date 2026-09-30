@@ -13,9 +13,9 @@ impl FromStr for ConfigDispositions {
             });
         }
 
-        let mut idxs: Option<HashMap<usize, bool>> = None;
-        let mut ranges: Option<Vec<(RangeUsize, bool)>> = None;
-        let mut langs: Option<HashMap<Lang, bool>> = None;
+        let mut idxs: Option<HashMap<usize, Bool>> = None;
+        let mut ranges: Option<Vec<(RangeUsize, Bool)>> = None;
+        let mut langs: Option<HashMap<Lang, Bool>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, b) = part.split_once(':').unwrap_or((part, "true"));
@@ -41,10 +41,10 @@ impl FromStr for ConfigDispositions {
             ..Default::default()
         });
 
-        fn parse_bool(s: &str) -> Result<bool> {
+        fn parse_bool(s: &str) -> Result<Bool> {
             match s.trim().to_ascii_lowercase().as_str() {
-                "1" | "true" | "on" => Ok(true),
-                "0" | "false" | "off" => Ok(false),
+                "1" | "true" | "on" => Ok(Bool(true)),
+                "0" | "false" | "off" => Ok(Bool(false)),
                 _ => Err(err!("Invalid bool key '{}'", s)),
             }
         }

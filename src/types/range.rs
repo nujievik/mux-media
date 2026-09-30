@@ -5,7 +5,7 @@ const MAX_MINUS_ONE: usize = !0 - 1;
 
 /// A wrapper around [`Range<usize>`](ops::Range<usize>).
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct RangeUsize(ops::Range<usize>);
+pub struct RangeUsize(pub(crate) ops::Range<usize>);
 
 deref_singleton_tuple_struct!(RangeUsize, ops::Range<usize>);
 

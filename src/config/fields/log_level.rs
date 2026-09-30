@@ -1,5 +1,7 @@
-use crate::{IsDefault, ToTxtConfig};
+use crate::{IsDefault, Result, ToArgs, dashed};
+use core::fmt::NumBuffer;
 use log::LevelFilter;
+use std::io::Write;
 
 /// A wrapper around [`log::LevelFilter`].
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -39,13 +41,19 @@ impl IsDefault for ConfigLogLevel {
     }
 }
 
-impl ToTxtConfig for ConfigLogLevel {
-    fn append_args(&self, args: &mut Vec<String>) {
-        match self.0 {
-            LevelFilter::Off | LevelFilter::Error => args.push(to_args!(Quiet)),
-            LevelFilter::Warn | LevelFilter::Info => (),
-            LevelFilter::Debug => args.push("-v".into()),
-            LevelFilter::Trace => args.push("-vv".into()),
-        }
+impl ToArgs for ConfigLogLevel {
+    fn write_with_num_buffer<W>(&self, w: &mut W, _: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
+        let s = match self.0 {
+            LevelFilter::Off | LevelFilter::Error => dashed!(Quiet),
+            LevelFilter::Warn | LevelFilter::Info => return Ok(()),
+            LevelFilter::Debug => "-v",
+            LevelFilter::Trace => "-vv",
+        };
+
+        to_args!(w, s.as_bytes(), @v)?;
+        Ok(())
     }
 }

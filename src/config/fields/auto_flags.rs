@@ -1,5 +1,7 @@
-use crate::{DispositionType, IsDefault, ToTxtConfig, Value};
+use crate::{DispositionType, IsDefault, Result, ToArgs, Value};
+use core::fmt::NumBuffer;
 use enum_map::{EnumMap, enum_map};
+use std::io::Write;
 
 /// An auto-flags configuration.
 #[derive(Copy, Clone, Debug, PartialEq)]
@@ -42,31 +44,36 @@ impl IsDefault for ConfigAutoFlags {
     }
 }
 
-macro_rules! push_args {
-    ($args:ident; $( $val:expr, $arg:ident, $no_arg:ident ),*) => {{
+macro_rules! write_args {
+    ($writer:ident; $( $val:expr, $arg:ident, $no_arg:ident ),*) => {{
         $(
-            match $val {
-                Value::User(true) => $args.push(to_args!($arg)),
-                Value::User(false) => $args.push(to_args!($no_arg)),
-                _ => (),
-            }
+            let _ = match $val {
+                Value::User(true) => to_args!($writer, $arg),
+                Value::User(false) => to_args!($writer, $no_arg),
+                _ => Ok(0),
+            }?;
         )*
-    }};
+    }}
 }
 
-impl ToTxtConfig for ConfigAutoFlags {
-    fn append_args(&self, args: &mut Vec<String>) {
+impl ToArgs for ConfigAutoFlags {
+    fn write_with_num_buffer<W>(&self, w: &mut W, _: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
         if self.no_auto {
-            args.push(to_args!(NoAuto));
+            to_args!(w, NoAuto)?;
         }
 
-        push_args!(
-            args;
+        write_args!(
+            w;
             self.defaults, AutoDefaults, NoAutoDefaults,
             self.forceds, AutoForceds, NoAutoForceds,
             self.titles, AutoTitles, NoAutoTitles,
             self.langs, AutoLangs, NoAutoLangs,
             self.encs, AutoEncs, NoAutoEncs
         );
+
+        Ok(())
     }
 }

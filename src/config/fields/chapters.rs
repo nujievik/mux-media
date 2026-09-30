@@ -1,5 +1,6 @@
-use crate::{IsDefault, MuxError, Result, Time, ToTxtConfig, dashed};
-use std::str::FromStr;
+use crate::{IsDefault, MuxError, Result, Time, ToArgs};
+use core::fmt::NumBuffer;
+use std::{io::Write, str::FromStr};
 use subtitle_lines::vtt::VttTimeBuf;
 
 /// A chapters configuration.
@@ -17,33 +18,42 @@ pub struct ConfigChaptersTimeRange {
     pub(crate) end: Time,
 }
 
-impl ToTxtConfig for ConfigChapters {
-    fn append_args(&self, args: &mut Vec<String>) {
+impl ToArgs for ConfigChapters {
+    fn write_with_num_buffer<W>(&self, w: &mut W, _: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
         if self.no_flag {
-            args.push(dashed!(NoChapters).into());
-            return;
+            to_args!(w, NoChapters)?;
+            return Ok(());
         }
 
         if let Some(ranges) = self.ranges.as_ref() {
+            to_args!(w, Chapters)?;
+
             let mut buf = VttTimeBuf::new();
+            let mut is_first = true;
 
-            let mut arg = Vec::with_capacity(ranges.len() * 14);
             for r in ranges {
-                if let Some(title) = r.title.as_ref() {
-                    arg.extend_from_slice(title.as_bytes());
-                    arg.push(b':')
+                if !is_first {
+                    w.write(b",")?;
                 }
-                arg.extend_from_slice(buf.format_time(r.start));
-                arg.push(b'-');
-                arg.extend_from_slice(buf.format_time(r.end));
-                arg.push(b',');
-            }
-            let _ = arg.pop();
-            let arg = unsafe { String::from_utf8_unchecked(arg) };
 
-            args.push(to_args!(Chapters));
-            args.push(arg);
+                if let Some(title) = r.title.as_ref() {
+                    w.write(title.as_bytes())?;
+                    w.write(b":")?;
+                }
+
+                w.write(buf.format_time(r.start))?;
+                w.write(b"-")?;
+                w.write(buf.format_time(r.end))?;
+
+                is_first = false;
+            }
+            w.write(b"\n")?;
         }
+
+        Ok(())
     }
 }
 

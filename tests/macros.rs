@@ -38,8 +38,7 @@ macro_rules! build_test_to_args {
             let dir = $crate::common::temp(&dir);
 
             let in_dir = dir.to_str().unwrap();
-            let mut out_dir = dir.join("muxed").to_str().unwrap().to_string();
-            out_dir.push_str(",.mkv");
+            let out_dir = dir.join("muxed").to_str().unwrap().to_string();
 
             let _ = std::fs::remove_dir_all(&dir);
             let _ = std::fs::create_dir_all(&dir);
@@ -52,7 +51,7 @@ macro_rules! build_test_to_args {
                 let cfg = $crate::common::cfg(cfg_args);
                 let left = $crate::common::append_str_vecs([&add_args[..add_args.len() - 1], $args.as_slice()]);
 
-                assert_eq!(&left, &cfg.to_args(), "from config struct err");
+                assert_eq!(&left, &cfg.to_args().unwrap(), "from config struct err");
 
                 cfg.try_save_config().unwrap();
                 assert_eq!(left, $crate::common::read_txt_args(&txt), "from txt err");

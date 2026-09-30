@@ -207,7 +207,7 @@ fn parse_chapters() {
 #[test]
 fn parse_dispositions() {
     let xs = ConfigDispositions {
-        single_val: Some(true),
+        single_val: Some(Bool(true)),
         ..Default::default()
     };
     test_parse!(["--defaults", "true"], defaults, xs.clone());
@@ -327,10 +327,20 @@ fn test_target_switching() {
     ]);
 
     assert!(cfg.exit_on_err);
-    assert!(cfg.target(MarkConfigDefaults, "video").single_val.unwrap());
-    assert!(cfg.target(MarkConfigDefaults, "audio").single_val.unwrap());
+    assert!(
+        cfg.target(MarkConfigDefaults, "video")
+            .single_val
+            .unwrap()
+            .0
+    );
+    assert!(
+        cfg.target(MarkConfigDefaults, "audio")
+            .single_val
+            .unwrap()
+            .0
+    );
     assert_eq!(cfg.jobs, 8);
-    assert!(cfg.target(MarkConfigDefaults, "sub").single_val.unwrap());
+    assert!(cfg.target(MarkConfigDefaults, "sub").single_val.unwrap().0);
 
     assert!(cfg.defaults.single_val.is_none());
 }

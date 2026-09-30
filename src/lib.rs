@@ -22,6 +22,12 @@ macro_rules! deref_singleton_tuple_struct {
                 &self.0
             }
         }
+
+        impl std::ops::DerefMut for $wrapper {
+            fn deref_mut(&mut self) -> &mut Self::Target {
+                &mut self.0
+            }
+        }
     };
 
     ($wrapper:ty, $inner:ty, @from_str) => {
@@ -38,44 +44,66 @@ macro_rules! deref_singleton_tuple_struct {
 }
 
 macro_rules! to_args {
-    ($arg:ident) => {
-        String::from($crate::dashed!($arg))
+    ($writer:ident, $arg:ident) => {
+        $writer
+            .write($crate::dashed!($arg).as_bytes())
+            .and_then(|_| $writer.write(b"\n"))
     };
 
-    (@push_true, $self:ident, $args:ident; $( $field:ident, $arg:ident ),*) => {{
-        $(
-            if $self.$field {
-                $args.push(to_args!($arg));
+    ($writer:ident, $arg:expr, @v) => {
+        $writer.write($arg).and_then(|_| $writer.write(b"\n"))
+    };
+
+    ($writer:ident, $values:expr, @write_map, $buf:ident) => {{
+        let mut is_first = true;
+
+        if let Some(v) = $values.single_val.as_ref() {
+            $writer.write(v.as_str().as_bytes())?;
+        }
+
+        if let Some(xs) = $values.idxs.as_ref() {
+            for (k, v) in xs {
+                if !is_first {
+                    $writer.write(b",")?;
+                }
+
+                $writer.write(k.format_into($buf).as_bytes())?;
+                $writer.write(b":")?;
+                $writer.write(v.as_str().as_bytes())?;
+
+                is_first = false;
             }
-        )*
-    }};
-
-    (@get_values, $self:expr) => {{
-        let mut map = std::collections::BTreeSet::<String>::new();
-
-        if let Some(xs) = $self.idxs.as_ref() {
-            xs.iter().for_each(|(k, v)| {
-                map.insert(format!("{}:{}", k, v));
-            });
         }
 
-        if let Some(xs) = $self.ranges.as_ref() {
-            xs.iter().for_each(|(k, v)| {
-                map.insert(format!("{}:{}", k, v));
-            });
+        if let Some(xs) = $values.ranges.as_ref() {
+            for (k, v) in xs {
+                if !is_first {
+                    $writer.write(b",")?;
+                }
+
+                crate::helpers::write_range($writer, k, $buf)?;
+                $writer.write(b":")?;
+                $writer.write(v.as_str().as_bytes())?;
+
+                is_first = false;
+            }
         }
 
-        if let Some(xs) = $self.langs.as_ref() {
-            xs.iter().for_each(|(k, v)| {
-                map.insert(format!("{}:{}", k, v));
-            });
+        if let Some(xs) = $values.langs.as_ref() {
+            for (k, v) in xs {
+                if !is_first {
+                    $writer.write(b",")?;
+                }
+
+                $writer.write(k.as_str().as_bytes())?;
+                $writer.write(b":")?;
+                $writer.write(v.as_str().as_bytes())?;
+
+                is_first = false;
+            }
         }
 
-        if map.is_empty() {
-            $self.single_val.as_ref().map(|v| v.to_string())
-        } else {
-            Some(map.into_iter().collect::<Vec<_>>().join(","))
-        }
+        $writer.write(b"\n")?;
     }};
 }
 
@@ -98,7 +126,7 @@ pub use media_info::MediaInfo;
 pub use run::run;
 pub use subtitle_lines::Time;
 pub use traits::{
-    Field, ToTxtConfig, TryFinalizeInit,
+    Field, ToArgs, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},
 };
 pub use types::{
@@ -112,6 +140,7 @@ pub use types::{
     media_number::MediaNumber,
     mux_error::{MuxError, MuxErrorParse},
     mux_logger::MuxLogger,
+    my_bool::Bool,
     range::RangeUsize,
     stream::{Stream, ty::StreamType},
     streams_order::{StreamsOrder, StreamsOrderItem},

@@ -70,6 +70,6 @@ fn to_args() {
         let o = ConfigOutput::new(format!("./{}", x)).unwrap();
 
         let args = crate::common::to_args(["--output", dir.to_str().unwrap()]);
-        assert_eq!(args, o.to_args());
+        assert_eq!(args, o.to_args().unwrap());
     }
 }

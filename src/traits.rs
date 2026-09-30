@@ -1,6 +1,7 @@
 pub(crate) mod lazy_fields;
 
 use crate::Result;
+use core::fmt::NumBuffer;
 use std::{
     fs,
     io::{BufWriter, Write},
@@ -13,36 +14,44 @@ pub trait TryFinalizeInit {
     fn try_finalize_init(&mut self) -> Result<()>;
 }
 
-/// Converts a value to txt config arguments.
-pub trait ToTxtConfig {
-    /// Appends arguments to the given `args` vector.
-    fn append_args(&self, args: &mut Vec<String>);
+pub trait ToArgs {
+    fn write_with_num_buffer<W>(&self, writer: &mut W, buf: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized;
 
-    /// Returns vector of arguments.
-    fn to_args(&self) -> Vec<String> {
-        let mut args = Vec::new();
-        self.append_args(&mut args);
-        args
+    fn write<W>(&self, writer: &mut W) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
+        let mut buf = NumBuffer::new();
+        self.write_with_num_buffer(writer, &mut buf)
     }
 
-    /// Writes args to the given file path.
-    fn write<P: AsRef<Path>>(&self, path: P) -> Result<()> {
-        let args = self.to_args();
+    fn write_to_file<P>(&self, path: &P) -> Result<()>
+    where
+        P: AsRef<Path> + ?Sized,
+    {
         let file = fs::File::create(path)?;
-
-        if args.is_empty() {
-            return Ok(());
-        }
-
         let mut writer = BufWriter::new(file);
 
-        for arg in args {
-            writer.write_all(arg.as_bytes())?;
-            writer.write_all(b"\n")?;
+        self.write(&mut writer)?;
+        writer.flush()?;
+
+        Ok(())
+    }
+
+    fn to_args(&self) -> Result<Vec<String>> {
+        let mut buf: Vec<u8> = Vec::new();
+        self.write(&mut buf)?;
+
+        let mut args: Vec<String> = Vec::new();
+
+        for arg in buf.split(|&b| b == b'\n').filter(|s| !s.is_empty()) {
+            let arg = str::from_utf8(arg)?;
+            args.push(arg.into());
         }
 
-        writer.flush()?;
-        Ok(())
+        Ok(args)
     }
 }
 
