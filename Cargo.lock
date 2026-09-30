@@ -460,6 +460,7 @@ dependencies = [
  "enum-map",
  "ffmpeg-next",
  "globset",
+ "indexmap",
  "is_default",
  "log",
  "matroska",

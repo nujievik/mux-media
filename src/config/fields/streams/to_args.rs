@@ -36,6 +36,16 @@ impl ToArgs for ConfigStreams {
             }
         }
 
+        if let Some(xs) = &self.ranges {
+            for x in xs {
+                if !is_first {
+                    w.write(b",")?;
+                }
+                helpers::write_range(w, x, buf)?;
+                is_first = false;
+            }
+        }
+
         if let Some(xs) = &self.langs {
             for x in xs {
                 if !is_first {
@@ -43,16 +53,6 @@ impl ToArgs for ConfigStreams {
                 }
 
                 w.write(x.as_str().as_bytes())?;
-                is_first = false;
-            }
-        }
-
-        if let Some(xs) = &self.ranges {
-            for x in xs {
-                if !is_first {
-                    w.write(b",")?;
-                }
-                helpers::write_range(w, x, buf)?;
                 is_first = false;
             }
         }

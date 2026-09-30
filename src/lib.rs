@@ -119,12 +119,14 @@ mod types;
 pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
+pub use indexmap::{IndexMap, IndexSet};
+pub use subtitle_lines::Time;
+
 pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
 pub use helpers::{ensure_long_path_prefix, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
 pub use run::run;
-pub use subtitle_lines::Time;
 pub use traits::{
     Field, ToArgs, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},

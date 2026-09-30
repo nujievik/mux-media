@@ -4,12 +4,12 @@ use super::super::{
     InputType,
 };
 use crate::{
-    CliArg, Extension, GlobSetPattern, LangCode, Msg, MuxError, RangeUsize, StreamType, Target,
-    VERSION, Value, undashed,
+    CliArg, Extension, GlobSetPattern, IndexMap, LangCode, Msg, MuxError, RangeUsize, StreamType,
+    Target, VERSION, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
-use std::{collections::HashMap, ffi::CStr, path::PathBuf};
+use std::{ffi::CStr, path::PathBuf};
 
 macro_rules! rm {
     ($matches:ident, $arg:ident, $ty:ty) => {
@@ -234,8 +234,8 @@ impl FromArgMatches for Config {
             opts
         }
 
-        fn targets(m: &mut ArgMatches) -> Option<HashMap<Target, ConfigTarget>> {
-            let mut map: Option<HashMap<Target, ConfigTarget>> = None;
+        fn targets(m: &mut ArgMatches) -> Option<IndexMap<Target, ConfigTarget>> {
+            let mut map: Option<IndexMap<Target, ConfigTarget>> = None;
 
             let mut insert_some = |k, v: Option<ConfigStreams>| {
                 if v.is_none() {

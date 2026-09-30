@@ -23,9 +23,9 @@ where
             });
         }
 
-        let mut idxs: Option<HashMap<usize, T>> = None;
+        let mut idxs: Option<IndexMap<usize, T>> = None;
         let mut ranges: Option<Vec<(RangeUsize, T)>> = None;
-        let mut langs: Option<HashMap<Lang, T>> = None;
+        let mut langs: Option<IndexMap<Lang, T>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, val) = part

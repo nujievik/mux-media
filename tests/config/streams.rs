@@ -1,5 +1,4 @@
 use super::*;
-use std::collections::{HashMap, HashSet};
 
 fn new(args: &[&str]) -> ConfigStreams {
     cfg(args).streams
@@ -31,7 +30,7 @@ fn parse_no_flag_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = HashMap::from([(t, val)]);
+        let ts = IndexMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -47,7 +46,7 @@ fn parse_idxs() {
     .into_iter()
     .for_each(|(arg, idxs)| {
         let xs = ConfigStreams {
-            idxs: Some(HashSet::from_iter(idxs)),
+            idxs: Some(IndexSet::from_iter(idxs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -65,7 +64,7 @@ fn parse_idxs_inverse() {
     .for_each(|(arg, idxs)| {
         let xs = ConfigStreams {
             inverse: true,
-            idxs: Some(HashSet::from_iter(idxs)),
+            idxs: Some(IndexSet::from_iter(idxs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -89,7 +88,7 @@ fn parse_idxs_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = HashMap::from([(t, val)]);
+        let ts = IndexMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -159,7 +158,7 @@ fn parse_ranges_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = HashMap::from([(t, val)]);
+        let ts = IndexMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -174,7 +173,7 @@ fn parse_langs() {
     .into_iter()
     .for_each(|(arg, langs)| {
         let xs = ConfigStreams {
-            langs: Some(HashSet::from_iter(langs)),
+            langs: Some(IndexSet::from_iter(langs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -191,7 +190,7 @@ fn parse_langs_inverse() {
     .for_each(|(arg, langs)| {
         let xs = ConfigStreams {
             inverse: true,
-            langs: Some(HashSet::from_iter(langs)),
+            langs: Some(IndexSet::from_iter(langs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -215,7 +214,7 @@ fn parse_langs_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = HashMap::from([(t, val)]);
+        let ts = IndexMap::from([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -274,7 +273,7 @@ fn parse_target_switching() {
         val.streams = Some(xs.clone());
         (t, val)
     })
-    .collect::<HashMap<_, _>>();
+    .collect::<IndexMap<_, _>>();
 
     let cfg = cfg(args);
     assert_eq!(xs, cfg.streams);

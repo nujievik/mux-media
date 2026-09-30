@@ -9,9 +9,9 @@ impl FromStr for ConfigStreams {
         let s = s.trim();
         let (inverse, s) = helpers::parse_inverse_str(s);
 
-        let mut idxs: Option<HashSet<usize>> = None;
+        let mut idxs: Option<IndexSet<usize>> = None;
         let mut ranges: Option<Vec<RangeUsize>> = None;
-        let mut langs: Option<HashSet<Lang>> = None;
+        let mut langs: Option<IndexSet<Lang>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             if let Ok(i) = part.parse::<usize>() {

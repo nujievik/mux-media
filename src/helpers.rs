@@ -195,6 +195,6 @@ where
 {
     writer.write(range.0.start.format_into(buf).as_bytes())?;
     writer.write(b"-")?;
-    writer.write(range.0.end.format_into(buf).as_bytes())?;
+    writer.write((range.0.end - 1).format_into(buf).as_bytes())?;
     Ok(())
 }

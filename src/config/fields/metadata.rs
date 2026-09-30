@@ -2,11 +2,8 @@ mod get;
 mod new;
 mod to_args;
 
-use crate::{IsDefault, Lang, RangeUsize};
-use std::{
-    collections::HashMap,
-    fmt::{Debug, Display},
-};
+use crate::{IndexMap, IsDefault, Lang, RangeUsize};
+use std::fmt::{Debug, Display};
 
 /// A `title` metadata configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
@@ -23,9 +20,9 @@ where
     T: Clone + Debug + Display + PartialEq + IsDefault,
 {
     pub single_val: Option<T>,
-    pub idxs: Option<HashMap<usize, T>>,
+    pub idxs: Option<IndexMap<usize, T>>,
     pub ranges: Option<Vec<(RangeUsize, T)>>,
-    pub langs: Option<HashMap<Lang, T>>,
+    pub langs: Option<IndexMap<Lang, T>>,
 }
 
 deref_singleton_tuple_struct!(ConfigTitleMetadata, ConfigMetadata<String>);

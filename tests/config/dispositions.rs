@@ -34,12 +34,11 @@ fn parse_single_val() {
     }
 }
 
-/*
 #[test]
 fn parse_idxs() {
     for (v, v2) in [(true, false), (false, true)] {
         let xs = ConfigDispositions {
-            idxs: Some([(0, v), (1, v), (8, v2)].into()),
+            idxs: Some([(0, Bool(v)), (1, Bool(v)), (8, Bool(v2))].into()),
             ..Default::default()
         };
         let vs = format!("0:{},1:{},8:{}", v, v, v2);
@@ -53,7 +52,10 @@ fn parse_idxs() {
 fn parse_ranges() {
     for (v, v2) in [(true, false), (false, true)] {
         let xs = ConfigDispositions {
-            ranges: Some(vec![(range::new("0-1"), v), (range::new("8-8"), v2)]),
+            ranges: Some(vec![
+                (range::new("0-1"), Bool(v)),
+                (range::new("8-8"), Bool(v2)),
+            ]),
             ..Default::default()
         };
         let vs = format!("0-1:{},8-8:{}", v, v2);
@@ -67,7 +69,7 @@ fn parse_ranges() {
 fn parse_langs() {
     for (v, v2) in [(true, false), (false, true)] {
         let xs = ConfigDispositions {
-            langs: Some([(lang!(Eng), v), (lang!(Und), v2)].into()),
+            langs: Some([(lang!(Eng), Bool(v)), (lang!(Und), Bool(v2))].into()),
             ..Default::default()
         };
         let vs = format!("eng:{},und:{}", v, v2);
@@ -94,7 +96,7 @@ fn get_single_val() {
     let mut xs = ConfigDispositions::default();
 
     for v in [true, false] {
-        xs.single_val = Some(v);
+        xs.single_val = Some(Bool(v));
 
         for (i, lang) in iter_i_lang() {
             assert_eq!(Some(v), xs.get(i, lang));
@@ -108,15 +110,16 @@ fn get_single_val() {
 #[test]
 fn get_idxs() {
     let idxs = [
-        (0, true),
-        (1, true),
-        (8, true),
-        (!0 - 1, true),
-        (5, false),
-        (10, false),
-        (11, false),
-        (!0 - 2, false),
+        (0, Bool(true)),
+        (1, Bool(true)),
+        (8, Bool(true)),
+        (!0 - 1, Bool(true)),
+        (5, Bool(false)),
+        (10, Bool(false)),
+        (11, Bool(false)),
+        (!0 - 2, Bool(false)),
     ];
+
     let xs = ConfigDispositions {
         idxs: Some(idxs.into()),
         ..Default::default()
@@ -133,14 +136,14 @@ fn get_idxs() {
 #[test]
 fn get_ranges() {
     let ranges = [
-        (range::new("0-1"), true),
-        (range::new("8-8"), true),
-        (range::new(&format!("{}-", usize::MAX - 1)), true),
-        (range::new("5-5"), false),
-        (range::new("10-11"), false),
+        (range::new("0-1"), Bool(true)),
+        (range::new("8-8"), Bool(true)),
+        (range::new(&format!("{}-", usize::MAX - 1)), Bool(true)),
+        (range::new("5-5"), Bool(false)),
+        (range::new("10-11"), Bool(false)),
         (
             range::new(&format!("{}-{}", usize::MAX - 2, usize::MAX - 2)),
-            false,
+            Bool(false),
         ),
     ];
     let xs = ConfigDispositions {
@@ -159,12 +162,12 @@ fn get_ranges() {
 #[test]
 fn get_langs() {
     let langs = [
-        (lang!(Eng), true),
-        (lang!(Rus), true),
-        (lang!(Und), true),
-        (lang!(Abk), false),
-        (lang!(Aar), false),
-        (lang!(Afr), false),
+        (lang!(Eng), Bool(true)),
+        (lang!(Rus), Bool(true)),
+        (lang!(Und), Bool(true)),
+        (lang!(Abk), Bool(false)),
+        (lang!(Aar), Bool(false)),
+        (lang!(Afr), Bool(false)),
     ];
     let xs = ConfigDispositions {
         langs: Some(langs.into()),
@@ -214,4 +217,3 @@ build_test_to_args!(
     vec!["--forceds", "1:true,2:false,8:true"],
     vec!["--forceds", "false", "--max-forceds", "1"],
 );
-*/

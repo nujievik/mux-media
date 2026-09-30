@@ -13,9 +13,9 @@ impl FromStr for ConfigDispositions {
             });
         }
 
-        let mut idxs: Option<HashMap<usize, Bool>> = None;
+        let mut idxs: Option<IndexMap<usize, Bool>> = None;
         let mut ranges: Option<Vec<(RangeUsize, Bool)>> = None;
-        let mut langs: Option<HashMap<Lang, Bool>> = None;
+        let mut langs: Option<IndexMap<Lang, Bool>> = None;
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, b) = part.split_once(':').unwrap_or((part, "true"));
