@@ -3,7 +3,7 @@ mod streams;
 
 use super::*;
 use crate::{CharEncoding, Extension, Msg, Result, StreamsOrder, Target, display, helpers};
-use std::{ffi::OsString, path::Path};
+use std::{ffi::OsString, mem, path::Path};
 
 impl MediaInfo<'_> {
     pub(super) fn build_stem(&self) -> Result<OsString> {
@@ -40,11 +40,10 @@ impl MediaInfo<'_> {
             })
     }
 
-    pub(super) fn build_sub_char_encoding(&self, src: &Path) -> Result<CharEncoding> {
-        if src.extension().map_or(false, |ext| {
-            Extension::new_and_is_subs(ext.as_encoded_bytes())
-        }) {
-            Ok(CharEncoding::new(src))
+    pub(super) fn build_sub_char_encoding(&mut self, src: &Path) -> Result<CharEncoding> {
+        if Extension::new_from_path(src).map_or(false, |ext| ext.is_subs()) {
+            let buf: &mut [u8; MediaInfo::BUF_SIZE] = unsafe { mem::transmute(&mut self.buf) };
+            Ok(CharEncoding::detect(src, buf))
         } else {
             Err(err!("{}", Msg::NotASubtitleFile))
         }

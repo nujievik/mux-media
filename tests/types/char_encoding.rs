@@ -20,7 +20,9 @@ static FILE_ENC_PAIRS: LazyLock<[(PathBuf, CharEncoding); 3]> = LazyLock::new(||
 
 #[test]
 fn test_new() {
+    let mut buf = [0u8; 1024 * 128];
+
     FILE_ENC_PAIRS.iter().for_each(|(f, enc)| {
-        assert_eq!(enc, &CharEncoding::new(f));
+        assert_eq!(enc, &CharEncoding::detect(f, &mut buf));
     })
 }

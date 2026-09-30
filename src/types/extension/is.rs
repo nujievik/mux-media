@@ -42,8 +42,4 @@ impl Extension {
     pub(crate) fn new_and_is_media(bytes: &[u8]) -> bool {
         Self::new(bytes).is_some_and(|ext| ext.is_media())
     }
-
-    pub(crate) fn new_and_is_subs(bytes: &[u8]) -> bool {
-        Self::new(bytes).is_some_and(|ext| ext.is_subs())
-    }
 }
