@@ -29,7 +29,9 @@ fn parse_langs_single_val() {
 #[test]
 fn parse_titles_idxs() {
     let mut xs = ConfigTitleMetadata::default();
-    xs.0.idxs = Some([(0, "a".into()), (8, "b".into())].into());
+    let idxs = [(0, "a".into()), (8, "b".into())];
+
+    xs.0.idxs = Some(idxs.into_iter().collect());
 
     assert_eq!(xs, cfg(["--titles", "0:a,8:b"]).titles);
 }
@@ -37,7 +39,9 @@ fn parse_titles_idxs() {
 #[test]
 fn parse_langs_idxs() {
     let mut xs = ConfigLangMetadata::default();
-    xs.0.idxs = Some([(0, lang!(Eng)), (8, lang!(Rus))].into());
+    let idxs = [(0, lang!(Eng)), (8, lang!(Rus))];
+
+    xs.0.idxs = Some(idxs.into_iter().collect());
 
     assert_eq!(xs, cfg(["--langs", "0:eng,8:rus"]).langs);
 }
@@ -73,7 +77,9 @@ fn parse_langs_ranges() {
 #[test]
 fn parse_titles_langs() {
     let mut xs = ConfigTitleMetadata::default();
-    xs.0.langs = Some([(lang!(Eng), "a".into()), (lang!(Rus), "b".into())].into());
+    let langs = [(lang!(Eng), "a".into()), (lang!(Rus), "b".into())];
+
+    xs.0.langs = Some(langs.into_iter().collect());
 
     assert_eq!(xs, cfg(["--titles", "eng:a,rus:b"]).titles);
 }
@@ -81,7 +87,9 @@ fn parse_titles_langs() {
 #[test]
 fn parse_langs_langs() {
     let mut xs = ConfigLangMetadata::default();
-    xs.0.langs = Some([(lang!(Eng), lang!(Rus)), (lang!(Rus), lang!(Eng))].into());
+    let langs = [(lang!(Eng), lang!(Rus)), (lang!(Rus), lang!(Eng))];
+
+    xs.0.langs = Some(langs.into_iter().collect());
 
     assert_eq!(xs, cfg(["--langs", "eng:rus,rus:eng"]).langs);
 }
@@ -126,7 +134,8 @@ fn get_idxs() {
             (8, x.clone()),
             (!0 - 1, x.clone()),
         ]
-        .into(),
+        .into_iter()
+        .collect(),
     );
 
     for (i, lang) in iter_i_lang() {
@@ -165,7 +174,8 @@ fn get_langs() {
             (lang!(Rus), x.clone()),
             (lang!(Und), x.clone()),
         ]
-        .into(),
+        .into_iter()
+        .collect(),
     );
 
     for (i, lang) in iter_i_lang() {

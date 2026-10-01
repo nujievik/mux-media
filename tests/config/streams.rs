@@ -30,7 +30,7 @@ fn parse_no_flag_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = IndexMap::from([(t, val)]);
+        let ts = FxIndexMap::from_iter([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -46,7 +46,7 @@ fn parse_idxs() {
     .into_iter()
     .for_each(|(arg, idxs)| {
         let xs = ConfigStreams {
-            idxs: Some(IndexSet::from_iter(idxs)),
+            idxs: Some(FxIndexSet::from_iter(idxs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -64,7 +64,7 @@ fn parse_idxs_inverse() {
     .for_each(|(arg, idxs)| {
         let xs = ConfigStreams {
             inverse: true,
-            idxs: Some(IndexSet::from_iter(idxs)),
+            idxs: Some(FxIndexSet::from_iter(idxs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -74,7 +74,7 @@ fn parse_idxs_inverse() {
 #[test]
 fn parse_idxs_aliases() {
     let xs = ConfigStreams {
-        idxs: Some([0].into()),
+        idxs: Some([0].into_iter().collect()),
         ..Default::default()
     };
 
@@ -88,7 +88,7 @@ fn parse_idxs_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = IndexMap::from([(t, val)]);
+        let ts = FxIndexMap::from_iter([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -158,7 +158,7 @@ fn parse_ranges_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = IndexMap::from([(t, val)]);
+        let ts = FxIndexMap::from_iter([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -173,7 +173,7 @@ fn parse_langs() {
     .into_iter()
     .for_each(|(arg, langs)| {
         let xs = ConfigStreams {
-            langs: Some(IndexSet::from_iter(langs)),
+            langs: Some(FxIndexSet::from_iter(langs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -190,7 +190,7 @@ fn parse_langs_inverse() {
     .for_each(|(arg, langs)| {
         let xs = ConfigStreams {
             inverse: true,
-            langs: Some(IndexSet::from_iter(langs)),
+            langs: Some(FxIndexSet::from_iter(langs)),
             ..Default::default()
         };
         assert_eq!(xs, new(&["--streams", arg]));
@@ -200,7 +200,7 @@ fn parse_langs_inverse() {
 #[test]
 fn parse_langs_aliases() {
     let xs = ConfigStreams {
-        langs: Some([lang!(Eng)].into()),
+        langs: Some([lang!(Eng)].into_iter().collect()),
         ..Default::default()
     };
 
@@ -214,7 +214,7 @@ fn parse_langs_aliases() {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
-        let ts = IndexMap::from([(t, val)]);
+        let ts = FxIndexMap::from_iter([(t, val)]);
 
         assert_eq!(ts, cfg([cli]).targets.unwrap());
     }
@@ -225,9 +225,9 @@ fn parse_all() {
     let xs = ConfigStreams {
         no_flag: false,
         inverse: true,
-        idxs: Some([1, 8].into()),
+        idxs: Some([1, 8].into_iter().collect()),
         ranges: Some(vec![range::new("2-4")]),
-        langs: Some([lang!(Eng), lang!(Und)].into()),
+        langs: Some([lang!(Eng), lang!(Und)].into_iter().collect()),
     };
     assert_eq!(xs, new(&["--streams", "!1,eng,8,und,2-4"]));
 }
@@ -273,7 +273,7 @@ fn parse_target_switching() {
         val.streams = Some(xs.clone());
         (t, val)
     })
-    .collect::<IndexMap<_, _>>();
+    .collect::<FxIndexMap<_, _>>();
 
     let cfg = cfg(args);
     assert_eq!(xs, cfg.streams);
@@ -302,7 +302,7 @@ fn is_save_no_flag() {
 #[test]
 fn is_save_idxs() {
     let mut xs = ConfigStreams {
-        idxs: Some([0, 1, 8, usize::MAX - 1].into()),
+        idxs: Some([0, 1, 8, usize::MAX - 1].into_iter().collect()),
         ..Default::default()
     };
 
@@ -357,7 +357,7 @@ fn is_save_ranges() {
 #[test]
 fn is_save_langs() {
     let mut xs = ConfigStreams {
-        langs: Some([lang!(Eng), lang!(Rus), lang!(Und)].into()),
+        langs: Some([lang!(Eng), lang!(Rus), lang!(Und)].into_iter().collect()),
         ..Default::default()
     };
 

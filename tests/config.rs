@@ -175,7 +175,7 @@ fn parse_no_streams() {
 #[test]
 fn parse_streams() {
     let xs = ConfigStreams {
-        idxs: Some([0].into()),
+        idxs: Some([0].into_iter().collect()),
         ..Default::default()
     };
     test_parse!(["--streams", "0"], streams, xs.clone());

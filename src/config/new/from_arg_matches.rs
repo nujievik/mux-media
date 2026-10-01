@@ -4,7 +4,7 @@ use super::super::{
     InputType,
 };
 use crate::{
-    CliArg, Extension, GlobSetPattern, IndexMap, LangCode, Msg, MuxError, RangeUsize, StreamType,
+    CliArg, Extension, FxIndexMap, GlobSetPattern, LangCode, Msg, MuxError, RangeUsize, StreamType,
     Target, VERSION, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
@@ -234,8 +234,8 @@ impl FromArgMatches for Config {
             opts
         }
 
-        fn targets(m: &mut ArgMatches) -> Option<IndexMap<Target, ConfigTarget>> {
-            let mut map: Option<IndexMap<Target, ConfigTarget>> = None;
+        fn targets(m: &mut ArgMatches) -> Option<FxIndexMap<Target, ConfigTarget>> {
+            let mut map: Option<FxIndexMap<Target, ConfigTarget>> = None;
 
             let mut insert_some = |k, v: Option<ConfigStreams>| {
                 if v.is_none() {
@@ -320,14 +320,7 @@ impl FromArgMatches for Config {
 
             let val = ConfigTarget::from_arg_matches_mut(m)?;
 
-            match self.targets.as_mut() {
-                Some(map) => {
-                    map.insert(t, val);
-                }
-                None => {
-                    let _ = self.targets.insert([(t, val)].into());
-                }
-            }
+            self.targets.get_or_insert_default().insert(t, val);
         }
 
         return Ok(());

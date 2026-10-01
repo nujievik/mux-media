@@ -6,47 +6,44 @@ impl FromStr for ConfigDispositions {
     type Err = MuxError;
 
     fn from_str(s: &str) -> Result<Self> {
-        if let Ok(b) = parse_bool(s) {
+        if let Some(b) = get_bool(s) {
             return Ok(Self {
                 single_val: Some(b),
                 ..Default::default()
             });
         }
 
-        let mut idxs: Option<IndexMap<usize, Bool>> = None;
-        let mut ranges: Option<Vec<(RangeUsize, Bool)>> = None;
-        let mut langs: Option<IndexMap<Lang, Bool>> = None;
+        let mut idxs: FxIndexMap<usize, Bool> = Default::default();
+        let mut ranges: Vec<(RangeUsize, Bool)> = Vec::new();
+        let mut langs: FxIndexMap<Lang, Bool> = Default::default();
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, b) = part.split_once(':').unwrap_or((part, "true"));
-            let b = parse_bool(b)?;
+
+            let b = get_bool(b).ok_or_else(|| err!("invalid bool key ({})", b))?;
 
             if let Ok(i) = id.parse::<usize>() {
-                idxs.get_or_insert_default().insert(i, b);
+                idxs.insert(i, b);
             } else if let Ok(rng) = id.parse::<RangeUsize>() {
-                ranges.get_or_insert_default().push((rng, b));
+                ranges.push((rng, b));
             } else {
-                langs.get_or_insert_default().insert(Lang::new(id), b);
+                langs.insert(Lang::new(id), b);
             }
-        }
-
-        if idxs.is_none() && langs.is_none() && ranges.is_none() {
-            return Err(err!("No stream IDs found"));
         }
 
         return Ok(Self {
-            idxs,
-            langs,
-            ranges,
+            idxs: some_if_unempty!(idxs),
+            langs: some_if_unempty!(langs),
+            ranges: some_if_unempty!(ranges),
             ..Default::default()
         });
+    }
+}
 
-        fn parse_bool(s: &str) -> Result<Bool> {
-            match s.trim().to_ascii_lowercase().as_str() {
-                "1" | "true" | "on" => Ok(Bool(true)),
-                "0" | "false" | "off" => Ok(Bool(false)),
-                _ => Err(err!("Invalid bool key '{}'", s)),
-            }
-        }
+fn get_bool(s: &str) -> Option<Bool> {
+    match s {
+        "1" | "true" | "on" => Some(Bool(true)),
+        "0" | "false" | "off" => Some(Bool(false)),
+        _ => None,
     }
 }

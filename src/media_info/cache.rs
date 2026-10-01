@@ -1,5 +1,7 @@
-use crate::{ArcPathBuf, CharEncoding, IsDefault, Result, Stream, StreamsOrder, Target, Time};
-use std::{collections::HashMap, ffi::OsString, mem};
+use crate::{
+    ArcPathBuf, CharEncoding, FxHashMap, IsDefault, Result, Stream, StreamsOrder, Target, Time,
+};
+use std::{ffi::OsString, mem};
 
 /// A state of cache field.
 #[derive(Clone, Debug, Default, IsDefault)]
@@ -11,10 +13,10 @@ pub enum CacheState<T> {
 }
 
 /// A cache of [`MediaInfo`](crate::MediaInfo).
-#[derive(Clone, Debug, Default, IsDefault)]
+#[derive(Clone, Debug, Default)]
 pub struct MediaInfoCache {
     pub of_group: MediaInfoCacheOfGroup,
-    pub of_files: HashMap<ArcPathBuf, MediaInfoCacheOfFile>,
+    pub of_files: FxHashMap<ArcPathBuf, MediaInfoCacheOfFile>,
 }
 
 /// A cache of [`MediaInfo`](crate::MediaInfo) common for stem-grouped files.
@@ -41,6 +43,12 @@ pub struct MediaInfoCacheOfFile {
     pub audio_duration: CacheState<Time>,
     pub video_duration: CacheState<Time>,
     pub playable_duration: CacheState<Time>,
+}
+
+impl IsDefault for MediaInfoCache {
+    fn is_default(&self) -> bool {
+        self.of_group.is_default() && self.of_files.is_empty()
+    }
 }
 
 impl<T> CacheState<T> {

@@ -119,7 +119,10 @@ mod types;
 pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
-pub use indexmap::{IndexMap, IndexSet};
+pub type FxIndexMap<K, V> = indexmap::IndexMap<K, V, rustc_hash::FxBuildHasher>;
+pub type FxIndexSet<T> = indexmap::IndexSet<T, rustc_hash::FxBuildHasher>;
+
+pub use rustc_hash::{FxHashMap, FxHashSet};
 pub use subtitle_lines::Time;
 
 pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};

@@ -12,10 +12,10 @@ pub use lazy_fields::{
     MarkMediaInfoTargetPaths, MarkMediaInfoVideoDuration,
 };
 
-use crate::{ArcPathBuf, Config, Result, i18n::logs};
+use crate::{ArcPathBuf, Config, FxHashMap, Result, i18n::logs};
 use cache::CacheState;
 use rayon::prelude::*;
-use std::{collections::HashMap, mem::MaybeUninit, path::Path};
+use std::{mem::MaybeUninit, path::Path};
 
 /// Extracts and caches a media information.
 ///
@@ -99,7 +99,7 @@ impl MediaInfo<'_> {
                     Err(e) => Some(Err(e)),
                 }
             })
-            .collect::<Result<HashMap<_, _>>>()?;
+            .collect::<Result<FxHashMap<_, _>>>()?;
 
         if cache_is_empty {
             self.cache.of_files = map;

@@ -1,3 +1,9 @@
+macro_rules! some_if_unempty {
+    ($v:expr) => {
+        if $v.is_empty() { None } else { Some($v) }
+    };
+}
+
 pub(crate) mod auto_flags;
 pub(crate) mod chapters;
 pub(crate) mod dispositions;

@@ -1,8 +1,7 @@
 use super::CacheMatroska;
-use crate::{ArcPathBuf, MediaInfo, MuxError, Result, display};
+use crate::{ArcPathBuf, FxHashMap, FxHashSet, MediaInfo, MuxError, Result, display};
 use rayon::prelude::*;
 use std::{
-    collections::{HashMap, HashSet},
     path::{Path, PathBuf},
     sync::{LazyLock, RwLock},
 };
@@ -12,8 +11,8 @@ static EXTERNAL_SEGMENTS: LazyLock<RwLock<ExternalSegments>> =
 
 #[derive(Clone, Debug, Default)]
 struct ExternalSegments {
-    pub map: HashMap<Box<[u8]>, ArcPathBuf>,
-    pub dir_set: HashSet<PathBuf>,
+    pub map: FxHashMap<Box<[u8]>, ArcPathBuf>,
+    pub dir_set: FxHashSet<PathBuf>,
 }
 
 pub(super) fn find_external_segment(

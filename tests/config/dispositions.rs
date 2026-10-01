@@ -38,7 +38,11 @@ fn parse_single_val() {
 fn parse_idxs() {
     for (v, v2) in [(true, false), (false, true)] {
         let xs = ConfigDispositions {
-            idxs: Some([(0, Bool(v)), (1, Bool(v)), (8, Bool(v2))].into()),
+            idxs: Some(
+                [(0, Bool(v)), (1, Bool(v)), (8, Bool(v2))]
+                    .into_iter()
+                    .collect(),
+            ),
             ..Default::default()
         };
         let vs = format!("0:{},1:{},8:{}", v, v, v2);
@@ -68,8 +72,10 @@ fn parse_ranges() {
 #[test]
 fn parse_langs() {
     for (v, v2) in [(true, false), (false, true)] {
+        let langs = [(lang!(Eng), Bool(v)), (lang!(Und), Bool(v2))];
+
         let xs = ConfigDispositions {
-            langs: Some([(lang!(Eng), Bool(v)), (lang!(Und), Bool(v2))].into()),
+            langs: Some(langs.into_iter().collect()),
             ..Default::default()
         };
         let vs = format!("eng:{},und:{}", v, v2);
@@ -121,7 +127,7 @@ fn get_idxs() {
     ];
 
     let xs = ConfigDispositions {
-        idxs: Some(idxs.into()),
+        idxs: Some(idxs.into_iter().collect()),
         ..Default::default()
     };
 
@@ -170,7 +176,7 @@ fn get_langs() {
         (lang!(Afr), Bool(false)),
     ];
     let xs = ConfigDispositions {
-        langs: Some(langs.into()),
+        langs: Some(langs.into_iter().collect()),
         ..Default::default()
     };
 

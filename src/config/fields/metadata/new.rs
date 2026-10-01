@@ -23,34 +23,31 @@ where
             });
         }
 
-        let mut idxs: Option<IndexMap<usize, T>> = None;
-        let mut ranges: Option<Vec<(RangeUsize, T)>> = None;
-        let mut langs: Option<IndexMap<Lang, T>> = None;
+        let mut idxs: FxIndexMap<usize, T> = Default::default();
+        let mut ranges: Vec<(RangeUsize, T)> = Vec::new();
+        let mut langs: FxIndexMap<Lang, T> = Default::default();
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, val) = part
                 .split_once(':')
                 .ok_or_else(|| err!("Invalid format: Must be [n:]T[,m:T]..."))?;
+
             let val = val.parse::<T>().map_err(|e| err!("{}", e))?;
 
             if let Ok(i) = id.parse::<usize>() {
-                idxs.get_or_insert_default().insert(i, val);
+                idxs.insert(i, val);
             } else if let Ok(rng) = id.parse::<RangeUsize>() {
-                ranges.get_or_insert_default().push((rng, val));
+                ranges.push((rng, val));
             } else {
-                langs.get_or_insert_default().insert(Lang::new(id), val);
+                langs.insert(Lang::new(id), val);
             }
-        }
-
-        if idxs.is_none() && langs.is_none() && ranges.is_none() {
-            return Err(err!("No values found"));
         }
 
         Ok(ConfigMetadata {
             single_val: None,
-            idxs,
-            langs,
-            ranges,
+            idxs: some_if_unempty!(idxs),
+            langs: some_if_unempty!(langs),
+            ranges: some_if_unempty!(ranges),
         })
     }
 }

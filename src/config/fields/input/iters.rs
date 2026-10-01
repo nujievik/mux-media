@@ -1,11 +1,10 @@
 use super::{ConfigInput, InputFileType, InputType};
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, Extension, MediaNumber, helpers, i18n::logs};
+use crate::{ArcPathBuf, Extension, FxHashSet, MediaNumber, helpers, i18n::logs};
 use either::Either;
 use globset::GlobSet;
 use std::{
-    collections::HashSet,
     ffi::OsString,
     path::{Path, PathBuf},
 };
@@ -97,7 +96,7 @@ impl ConfigInput {
         match &self.ty {
             InputType::Dir(dir) => {
                 let mut media_number = self.init_media_number();
-                let mut processed = HashSet::<OsString>::new();
+                let mut processed = FxHashSet::<OsString>::default();
 
                 let it = self.iter_media_in_dir(dir).filter_map(move |path| {
                     let up_stem = path.file_stem()?;

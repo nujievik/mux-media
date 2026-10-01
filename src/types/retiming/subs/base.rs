@@ -1,11 +1,11 @@
 use super::*;
-use std::collections::HashMap;
+use crate::FxHashMap;
 use subtitle_lines::{SubtitleLines, WriteOptions};
 
 impl Retiming<'_, '_> {
     pub(super) fn try_base_sub(&self, i_stream: usize, dest: &Destination) -> Result<()> {
         let mut opts = WriteOptions::new();
-        let mut sources: HashMap<&Path, PathBuf> = HashMap::with_capacity(self.parts.len());
+        let mut sources: FxHashMap<&Path, PathBuf> = FxHashMap::default();
         let mut splits: Vec<PathBuf> = Vec::with_capacity(self.parts.len());
 
         for (i_part, p) in self.parts.iter().enumerate() {

@@ -4,14 +4,14 @@ mod external_segments;
 use super::*;
 use crate::media_info::*;
 use crate::{
-    ArcPathBuf, Config, MediaInfo, MuxError, Result, StreamType, StreamsOrder, Time, ffmpeg,
-    helpers,
+    ArcPathBuf, Config, FxHashMap, MediaInfo, MuxError, Result, StreamType, StreamsOrder, Time,
+    ffmpeg, helpers,
 };
 use cache::CacheMatroska;
 use external_segments::find_external_segment;
 use is_default::IsDefault;
 use log::{info, warn};
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 
 impl Retiming<'_, '_> {
     pub(crate) fn try_new<'a, 'b>(

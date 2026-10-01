@@ -2,7 +2,7 @@ mod get;
 mod new;
 mod to_args;
 
-use crate::{IndexMap, IsDefault, Lang, RangeUsize};
+use crate::{FxIndexMap, IsDefault, Lang, RangeUsize};
 use std::fmt::{Debug, Display};
 
 /// A `title` metadata configuration.
@@ -20,9 +20,9 @@ where
     T: Clone + Debug + Display + PartialEq + IsDefault,
 {
     pub single_val: Option<T>,
-    pub idxs: Option<IndexMap<usize, T>>,
+    pub idxs: Option<FxIndexMap<usize, T>>,
     pub ranges: Option<Vec<(RangeUsize, T)>>,
-    pub langs: Option<IndexMap<Lang, T>>,
+    pub langs: Option<FxIndexMap<Lang, T>>,
 }
 
 deref_singleton_tuple_struct!(ConfigTitleMetadata, ConfigMetadata<String>);

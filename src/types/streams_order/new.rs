@@ -1,9 +1,11 @@
 use super::{StreamsOrder, StreamsOrderItem};
 use crate::config::{MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams};
 use crate::media_info::*;
-use crate::{ArcPathBuf, Lang, LangCode, MediaInfo, Result, Retiming, StreamType, display};
+use crate::{
+    ArcPathBuf, FxHashSet, Lang, LangCode, MediaInfo, Result, Retiming, StreamType, display,
+};
 use log::warn;
-use std::{cmp::Ordering, collections::HashSet};
+use std::cmp::Ordering;
 
 impl StreamsOrder {
     /// Tries construct [`StreamsOrder`].
@@ -61,7 +63,7 @@ fn try_sorted_src_stream_ty(
 
     let mut track_streams: Vec<(usize, usize, StreamType, OrderSortKey)> = Vec::new();
     let mut attach_streams: Vec<(usize, usize, StreamType, Option<String>)> = Vec::new();
-    let mut attach_names: HashSet<String> = HashSet::new();
+    let mut attach_names: FxHashSet<String> = FxHashSet::default();
 
     for (i_src, src) in sources.iter().enumerate() {
         let streams = mi.try_take(MarkMediaInfoStreams, src)?;

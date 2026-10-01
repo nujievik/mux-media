@@ -20,7 +20,7 @@ pub(crate) use fields::input::{InputType, iters::MediaGroupedByStem};
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{IndexMap, IsDefault, LangCode, Target};
+use crate::{FxIndexMap, IsDefault, LangCode, Target};
 use std::path::PathBuf;
 
 /// A configuration.
@@ -48,7 +48,7 @@ pub struct Config {
     pub titles: ConfigTitleMetadata,
     pub langs: ConfigLangMetadata,
     pub retiming: ConfigRetiming,
-    pub targets: Option<IndexMap<Target, ConfigTarget>>,
+    pub targets: Option<FxIndexMap<Target, ConfigTarget>>,
     pub is_output_constructed_from_input: bool,
 }
 

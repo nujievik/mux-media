@@ -2,7 +2,7 @@ use super::*;
 use matroska::Matroska;
 
 #[derive(Default)]
-pub struct CacheMatroska(HashMap<ArcPathBuf, Option<Matroska>>);
+pub struct CacheMatroska(FxHashMap<ArcPathBuf, Option<Matroska>>);
 
 impl CacheMatroska {
     pub fn get(&mut self, src: &ArcPathBuf) -> Option<&Matroska> {
