@@ -1,3 +1,67 @@
+macro_rules! to_args {
+    ($writer:ident, $arg:ident) => {
+        $writer
+            .write($crate::dashed!($arg).as_bytes())
+            .and_then(|_| $writer.write(b"\n"))
+    };
+
+    ($writer:ident, $arg:expr, @v) => {
+        $writer.write($arg).and_then(|_| $writer.write(b"\n"))
+    };
+
+    ($writer:ident, $values:expr, @write_map, $buf:ident) => {{
+        let mut is_first = true;
+
+        if let Some(v) = $values.single_val.as_ref() {
+            $writer.write(v.as_str().as_bytes())?;
+        }
+
+        if let Some(xs) = $values.idxs.as_ref() {
+            for (k, v) in xs {
+                if !is_first {
+                    $writer.write(b",")?;
+                }
+
+                $writer.write(k.format_into($buf).as_bytes())?;
+                $writer.write(b":")?;
+                $writer.write(v.as_str().as_bytes())?;
+
+                is_first = false;
+            }
+        }
+
+        if let Some(xs) = $values.ranges.as_ref() {
+            for (k, v) in xs {
+                if !is_first {
+                    $writer.write(b",")?;
+                }
+
+                crate::helpers::write_range($writer, k, $buf)?;
+                $writer.write(b":")?;
+                $writer.write(v.as_str().as_bytes())?;
+
+                is_first = false;
+            }
+        }
+
+        if let Some(xs) = $values.langs.as_ref() {
+            for (k, v) in xs {
+                if !is_first {
+                    $writer.write(b",")?;
+                }
+
+                $writer.write(k.as_str().as_bytes())?;
+                $writer.write(b":")?;
+                $writer.write(v.as_str().as_bytes())?;
+
+                is_first = false;
+            }
+        }
+
+        $writer.write(b"\n")?;
+    }};
+}
+
 pub(crate) mod fields;
 pub(crate) mod new;
 mod to_args;
