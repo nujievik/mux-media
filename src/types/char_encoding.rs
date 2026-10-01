@@ -17,7 +17,7 @@ impl CharEncoding {
     {
         let f = file.as_ref();
 
-        if Extension::new_from_path(f).is_some_and(|ext| ext.is_matroska()) {
+        if Extension::from_path(f).is_some_and(|ext| ext.is_matroska()) {
             // All text in a Matroska(tm) file is encoded in UTF-8
             return Self::Utf8Compatible;
         }
@@ -26,30 +26,6 @@ impl CharEncoding {
             Some(s) if is_utf8_compatible(&s) => Self::Utf8Compatible,
             Some(s) => Self::NotUtf8Compatible(s),
             None => Self::NotRecognized,
-        }
-    }
-
-    #[deprecated]
-    pub fn new(file: impl AsRef<Path>) -> CharEncoding {
-        let f = file.as_ref();
-
-        if f.extension().map_or(false, |ext| {
-            Extension::new_and_is_matroska(ext.as_encoded_bytes())
-        }) {
-            // All text in a Matroska(tm) file is encoded in UTF-8
-            return Self::Utf8Compatible;
-        }
-
-        return match detect_chardet(f) {
-            Some(s) if is_utf8_compatible(&s) => Self::Utf8Compatible,
-            Some(s) => Self::NotUtf8Compatible(s),
-            None => Self::NotRecognized,
-        };
-
-        fn detect_chardet(f: &Path) -> Option<String> {
-            const READ_LIMIT: usize = 128 * 1024; // 128 KiB
-            let mut bytes = [0u8; READ_LIMIT];
-            detect_file_charenc(f, &mut bytes)
         }
     }
 

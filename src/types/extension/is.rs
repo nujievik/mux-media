@@ -28,18 +28,18 @@ impl Extension {
     }
 
     pub(crate) fn new_and_is_attach(bytes: &[u8]) -> bool {
-        Self::new(bytes).is_some_and(|ext| ext.is_attach())
+        Self::from_bytes(bytes).is_some_and(|ext| ext.is_attach())
     }
 
     pub(crate) fn new_and_is_font(bytes: &[u8]) -> bool {
-        Self::new(bytes).is_some_and(|ext| ext.is_font())
+        Self::from_bytes(bytes).is_some_and(|ext| ext.is_font())
     }
 
     pub(crate) fn new_and_is_matroska(bytes: &[u8]) -> bool {
-        Self::new(bytes).is_some_and(|ext| ext.is_matroska())
+        Self::from_bytes(bytes).is_some_and(|ext| ext.is_matroska())
     }
 
     pub(crate) fn new_and_is_media(bytes: &[u8]) -> bool {
-        Self::new(bytes).is_some_and(|ext| ext.is_media())
+        Self::from_bytes(bytes).is_some_and(|ext| ext.is_media())
     }
 }

@@ -94,8 +94,8 @@ fn add_dummy_subtitle_stream(octx: &mut ffmpeg::format::context::Output) -> Resu
 
 fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: &Vec<PathBuf>) {
     for font in fonts {
-        let ext = some_or!(continue; font.extension());
-        let ext = some_or!(continue; Extension::new(ext.as_encoded_bytes()));
+        let ext = some_or!(continue; Extension::from_path(font));
+
         let mime = match ext {
             Extension::Otf => c"application/vnd.ms-opentype",
             Extension::Ttf => c"application/x-truetype-font",

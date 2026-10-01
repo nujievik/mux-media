@@ -11,7 +11,7 @@ pub enum SubType {
 
 impl SubType {
     pub fn new_from_path(file: &Path) -> Option<SubType> {
-        let ext = Extension::new_from_path(file)?;
+        let ext = Extension::from_path(file)?;
         Self::new_from_extension(ext)
     }
 

@@ -62,7 +62,7 @@ impl ConfigInput {
         if path.is_dir() {
             let _ = fs::read_dir(&path)?;
         } else {
-            if let None = Extension::new_from_path(&path) {
+            if let None = Extension::from_path(&path) {
                 return Err(err!("{}", Msg::UnsupportedFileExtension));
             }
             let _ = fs::File::open(&path)?;

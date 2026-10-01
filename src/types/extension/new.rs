@@ -2,18 +2,62 @@ use super::Extension;
 use std::path::Path;
 
 impl Extension {
-    pub fn new(bytes: &[u8]) -> Option<Extension> {
-        new_from_bytes(bytes)
+    /// Interpretates all bytes as extension.
+    ///
+    /// # Examples
+    /// ```
+    /// use mux_media::Extension;
+    ///
+    /// assert_eq!(Some(Extension::Mkv), Extension::from_bytes(b"mkv"));
+    /// assert_eq!(Some(Extension::Mkv), Extension::from_bytes(b"MKV"));
+    /// assert_eq!(Some(Extension::Aac), Extension::from_bytes(b"aac"));
+    ///
+    /// // unsupport dot
+    /// assert_eq!(None, Extension::from_bytes(b".mkv"));
+    ///
+    /// // do not extract from end
+    /// assert_eq!(None, Extension::from_bytes(b"video.mkv"));
+    ///
+    /// // unsupported extension
+    /// assert_eq!(None, Extension::from_bytes(b"txt"));
+    /// ```
+    #[inline]
+    pub fn from_bytes<B>(bytes: &B) -> Option<Extension>
+    where
+        B: AsRef<[u8]> + ?Sized,
+    {
+        from_bytes(bytes.as_ref())
     }
 
-    pub(crate) fn new_from_path(path: impl AsRef<Path>) -> Option<Extension> {
+    /// Gets a path extension.
+    ///
+    /// # Examples
+    /// ```
+    /// use mux_media::Extension;
+    ///
+    /// assert_eq!(Some(Extension::Mkv), Extension::from_path("video.mkv"));
+    /// assert_eq!(Some(Extension::Mkv), Extension::from_path("video.MKV"));
+    /// assert_eq!(Some(Extension::Aac), Extension::from_path("audio.aac"));
+    ///
+    /// // path without extension
+    /// assert_eq!(None, Extension::from_path("video"));
+    ///
+    /// // unsupported extension
+    /// assert_eq!(None, Extension::from_path("file.txt"));
+    /// ```
+    #[inline]
+    pub fn from_path<P>(path: &P) -> Option<Extension>
+    where
+        P: AsRef<Path> + ?Sized,
+    {
         let ext = path.as_ref().extension()?;
-        new_from_bytes(ext.as_encoded_bytes())
+        from_bytes(ext.as_encoded_bytes())
     }
 }
 
-fn new_from_bytes(bytes: &[u8]) -> Option<Extension> {
+fn from_bytes(bytes: &[u8]) -> Option<Extension> {
     let len = bytes.len();
+
     if !matches!(len, 2 | 3 | 4 | 5 | 6) {
         return None;
     }

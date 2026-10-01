@@ -528,7 +528,7 @@ fn try_input_ty(m: &mut ArgMatches) -> Option<Result<InputType, Error>> {
         Some(Ok(InputType::Dir(paths.pop().unwrap())))
     } else if !paths
         .iter()
-        .any(|p| Extension::new_from_path(p).is_some_and(|ext| ext.is_media()))
+        .any(|p| Extension::from_path(p).is_some_and(|ext| ext.is_media()))
     {
         Some(Err(err!("must be at least 1 media file").into()))
     } else {

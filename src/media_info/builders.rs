@@ -41,7 +41,7 @@ impl MediaInfo<'_> {
     }
 
     pub(super) fn build_sub_char_encoding(&mut self, src: &Path) -> Result<CharEncoding> {
-        if Extension::new_from_path(src).map_or(false, |ext| ext.is_subs()) {
+        if Extension::from_path(src).map_or(false, |ext| ext.is_subs()) {
             let buf: &mut [u8; MediaInfo::BUF_SIZE] = unsafe { mem::transmute(&mut self.buf) };
             Ok(CharEncoding::detect(src, buf))
         } else {

@@ -25,7 +25,7 @@ fn new() {
     for ext in <Extension as strum::IntoEnumIterator>::iter() {
         let s: &str = ext.as_ref();
         for permut in case_permutations(s) {
-            assert_eq!(ext, Extension::new(permut.as_bytes()).unwrap());
+            assert_eq!(ext, Extension::from_bytes(permut.as_bytes()).unwrap());
         }
     }
 }
@@ -49,7 +49,7 @@ fn new_unsupported() {
                 .map(|_| *charset.iter().choose(&mut rng).unwrap() as char)
                 .collect();
 
-            if Extension::new(candidate.as_bytes()).is_none() {
+            if Extension::from_bytes(candidate.as_bytes()).is_none() {
                 fake_exts.insert(candidate);
             }
         }

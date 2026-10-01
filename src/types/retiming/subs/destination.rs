@@ -17,7 +17,7 @@ impl Retiming<'_, '_> {
         i_stream: usize,
         is_base: bool,
     ) -> Destination {
-        let src_ext = Extension::new_from_path(src).unwrap_or(Extension::Mkv);
+        let src_ext = Extension::from_path(src).unwrap_or(Extension::Mkv);
 
         let (ty, path) = if is_base {
             let ty = SubType::from_codec_id(self.media_info, src, i_stream);
