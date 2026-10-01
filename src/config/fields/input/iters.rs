@@ -24,7 +24,7 @@ macro_rules! iter_any_files_in_dir {
                         return false;
                     }
 
-                    let ext = some_or!(path.extension(), return false);
+                    let ext = some_or!(return false; path.extension());
                     if !Extension::$new_and_is_ty(ext.as_encoded_bytes()) {
                         return false;
                     }

@@ -79,7 +79,7 @@ fn try_split(
         if ist.index() != i_stream {
             continue;
         }
-        let pts = some_or!(packet.pts(), continue);
+        let pts = some_or!(continue; packet.pts());
         let pts = rescale(pts);
 
         let is_key = packet.is_key();

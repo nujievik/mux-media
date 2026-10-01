@@ -5,7 +5,7 @@ macro_rules! err {
 }
 
 macro_rules! some_or {
-    ($x:expr, $or:expr) => {
+    ($or:expr; $x:expr) => {
         match $x {
             Some(x) => x,
             None => $or,
@@ -119,7 +119,10 @@ mod types;
 pub type Error = MuxError;
 pub type Result<T> = std::result::Result<T, MuxError>;
 
+/// Type alias for a index map that uses the Fx hashing algorithm.
 pub type FxIndexMap<K, V> = indexmap::IndexMap<K, V, rustc_hash::FxBuildHasher>;
+
+/// Type alias for a index set that uses the Fx hashing algorithm.
 pub type FxIndexSet<T> = indexmap::IndexSet<T, rustc_hash::FxBuildHasher>;
 
 pub use rustc_hash::{FxHashMap, FxHashSet};

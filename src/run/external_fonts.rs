@@ -94,18 +94,18 @@ fn add_dummy_subtitle_stream(octx: &mut ffmpeg::format::context::Output) -> Resu
 
 fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: &Vec<PathBuf>) {
     for font in fonts {
-        let ext = some_or!(font.extension(), continue);
-        let ext = some_or!(Extension::new(ext.as_encoded_bytes()), continue);
+        let ext = some_or!(continue; font.extension());
+        let ext = some_or!(continue; Extension::new(ext.as_encoded_bytes()));
         let mime = match ext {
             Extension::Otf => c"application/vnd.ms-opentype",
             Extension::Ttf => c"application/x-truetype-font",
             _ => continue,
         };
 
-        let name = some_or!(font.file_name(), continue);
-        let name = some_or!(CString::new(name.as_encoded_bytes()).ok(), continue);
+        let name = some_or!(continue; font.file_name());
+        let name = some_or!(continue; CString::new(name.as_encoded_bytes()).ok());
 
-        let data = some_or!(fs::read(font).ok(), continue);
+        let data = some_or!(continue; fs::read(font).ok());
 
         unsafe {
             let size = data.len();

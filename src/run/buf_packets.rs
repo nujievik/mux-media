@@ -32,7 +32,7 @@ impl<'a> BufPackets<'a> {
         let mut time_base = None::<Rational>;
 
         for (i, buf_pkt) in self.0.iter().enumerate() {
-            let (ist, pkt) = some_or!(buf_pkt.buf.as_ref(), continue);
+            let (ist, pkt) = some_or!(continue; buf_pkt.buf.as_ref());
             let dts = match pkt.dts().or(pkt.pts()) {
                 Some(ts) => ts,
                 None => return Some((i, self.0[i].buf.take().unwrap())),

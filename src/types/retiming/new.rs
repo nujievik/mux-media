@@ -282,7 +282,7 @@ fn try_base(
         if !m.ty.is_video() {
             break;
         }
-        let mat = some_or!(cache.get(&m.key), continue);
+        let mat = some_or!(continue; cache.get(&m.key));
 
         if let Some(i) = mat.chapters.iter().enumerate().find_map(|(i, chp)| {
             chp.chapters

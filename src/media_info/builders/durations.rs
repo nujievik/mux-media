@@ -88,7 +88,7 @@ fn audio_video_duration(mi: &MediaInfo<'_>, src: &Path) -> Result<(Result<Time>,
 
     if is_has_audio || is_has_video {
         for seek in seek_targets {
-            some_or!(ictx.seek(seek, ..).ok(), break);
+            some_or!(break; ictx.seek(seek, ..).ok());
 
             for (st, packet) in ictx.packets() {
                 let i = st.index();
@@ -102,7 +102,7 @@ fn audio_video_duration(mi: &MediaInfo<'_>, src: &Path) -> Result<(Result<Time>,
                     Some(ts) => ts,
                     None => continue,
                 };
-                let tb = some_or!(time_bases[i], continue);
+                let tb = some_or!(continue; time_bases[i]);
 
                 let rescaled_pts = pts.rescale(tb, NANOSECOND_TIME_BASE);
 

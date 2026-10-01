@@ -41,7 +41,7 @@ pub(super) fn write_header(
     octx.write_header()?;
 
     for (i, ord) in order.0.iter().enumerate() {
-        let ost_index = some_or!(idx_map[ord.src_num][ord.i_stream], continue);
+        let ost_index = some_or!(continue; idx_map[ord.src_num][ord.i_stream]);
         let ist_tb = icontexts[ord.src_num]
             .stream(ord.i_stream)
             .unwrap()
@@ -76,7 +76,7 @@ fn set_ost_dispositions(
     stream: &Stream,
     ost: &mut ffmpeg::StreamMut,
 ) {
-    let target_paths = some_or!(mi.immut(MarkMediaInfoTargetPaths, &ord.key), return);
+    let target_paths = some_or!(return; mi.immut(MarkMediaInfoTargetPaths, &ord.key));
 
     let st = unsafe { &mut *ost.as_mut_ptr() };
 
