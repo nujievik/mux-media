@@ -1,4 +1,4 @@
-use crate::{IsDefault, MuxError, Result, Time, ToArgs};
+use crate::{IsDefault, MuxError, Result, Time, ToArgs, helpers};
 use core::fmt::NumBuffer;
 use std::{io::Write, str::FromStr};
 use subtitle_lines::vtt::VttTimeBuf;
@@ -35,20 +35,16 @@ impl ToArgs for ConfigChapters {
             let mut is_first = true;
 
             for r in ranges {
-                if !is_first {
-                    w.write(b",")?;
-                }
+                helpers::write_part_of_arg(w, &mut is_first, |w| {
+                    if let Some(title) = r.title.as_ref() {
+                        w.write(title.as_bytes())?;
+                        w.write(b":")?;
+                    }
 
-                if let Some(title) = r.title.as_ref() {
-                    w.write(title.as_bytes())?;
-                    w.write(b":")?;
-                }
-
-                w.write(buf.format_time(r.start))?;
-                w.write(b"-")?;
-                w.write(buf.format_time(r.end))?;
-
-                is_first = false;
+                    w.write(buf.format_time(r.start))?;
+                    w.write(b"-")?;
+                    w.write(buf.format_time(r.end))
+                })?;
             }
             w.write(b"\n")?;
         }

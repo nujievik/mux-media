@@ -27,33 +27,21 @@ impl ToArgs for ConfigStreams {
 
         if let Some(xs) = &self.idxs {
             for x in xs {
-                if !is_first {
-                    w.write(b",")?;
-                }
-
-                w.write(x.format_into(buf).as_bytes())?;
-                is_first = false;
+                helpers::write_part_of_arg(w, &mut is_first, |w| {
+                    w.write(x.format_into(buf).as_bytes())
+                })?;
             }
         }
 
         if let Some(xs) = &self.ranges {
             for x in xs {
-                if !is_first {
-                    w.write(b",")?;
-                }
-                helpers::write_range(w, x, buf)?;
-                is_first = false;
+                helpers::write_part_of_arg(w, &mut is_first, |w| helpers::write_range(w, x, buf))?;
             }
         }
 
         if let Some(xs) = &self.langs {
             for x in xs {
-                if !is_first {
-                    w.write(b",")?;
-                }
-
-                w.write(x.as_str().as_bytes())?;
-                is_first = false;
+                helpers::write_part_of_arg(w, &mut is_first, |w| w.write(x.as_str().as_bytes()))?;
             }
         }
 

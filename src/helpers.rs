@@ -4,7 +4,7 @@ use core::fmt::NumBuffer;
 use std::{
     ffi::{OsStr, OsString},
     fs::{File, canonicalize},
-    io::Write,
+    io::{self, Write},
     path::{self, Path, PathBuf},
 };
 
@@ -189,12 +189,29 @@ pub(crate) fn write_range<W>(
     writer: &mut W,
     range: &RangeUsize,
     buf: &mut NumBuffer<usize>,
-) -> Result<()>
+) -> io::Result<usize>
 where
     W: Write + ?Sized,
 {
     writer.write(range.0.start.format_into(buf).as_bytes())?;
     writer.write(b"-")?;
-    writer.write((range.0.end - 1).format_into(buf).as_bytes())?;
-    Ok(())
+    writer.write((range.0.end - 1).format_into(buf).as_bytes())
+}
+
+pub(crate) fn write_part_of_arg<W, F>(
+    writer: &mut W,
+    is_first: &mut bool,
+    f: F,
+) -> io::Result<usize>
+where
+    W: Write + ?Sized,
+    F: FnOnce(&mut W) -> io::Result<usize>,
+{
+    if *is_first {
+        *is_first = false
+    } else {
+        writer.write(b",")?;
+    }
+
+    f(writer)
 }

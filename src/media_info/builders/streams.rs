@@ -59,17 +59,13 @@ impl MediaInfo<'_> {
 }
 
 fn is_attach_filename(opt_s: &Option<String>) -> bool {
-    opt_s.as_ref().is_some_and(|s| {
-        Path::new(s)
-            .extension()
-            .is_some_and(|ext| Extension::new_and_is_attach(ext.as_encoded_bytes()))
-    })
+    opt_s
+        .as_ref()
+        .is_some_and(|s| Extension::from_path(s).is_some_and(|ext| ext.is_attach()))
 }
 
 fn is_font_filename(opt_s: &Option<String>) -> bool {
-    opt_s.as_ref().is_some_and(|s| {
-        Path::new(s)
-            .extension()
-            .is_some_and(|ext| Extension::new_and_is_font(ext.as_encoded_bytes()))
-    })
+    opt_s
+        .as_ref()
+        .is_some_and(|s| Extension::from_path(s).is_some_and(|ext| ext.is_font()))
 }

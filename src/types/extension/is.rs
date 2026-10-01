@@ -26,20 +26,4 @@ impl Extension {
     pub(crate) fn is_subs(&self) -> bool {
         is_any!(self, Ass Mks Srt Ssa Sub Sup Vtt)
     }
-
-    pub(crate) fn new_and_is_attach(bytes: &[u8]) -> bool {
-        Self::from_bytes(bytes).is_some_and(|ext| ext.is_attach())
-    }
-
-    pub(crate) fn new_and_is_font(bytes: &[u8]) -> bool {
-        Self::from_bytes(bytes).is_some_and(|ext| ext.is_font())
-    }
-
-    pub(crate) fn new_and_is_matroska(bytes: &[u8]) -> bool {
-        Self::from_bytes(bytes).is_some_and(|ext| ext.is_matroska())
-    }
-
-    pub(crate) fn new_and_is_media(bytes: &[u8]) -> bool {
-        Self::from_bytes(bytes).is_some_and(|ext| ext.is_media())
-    }
 }

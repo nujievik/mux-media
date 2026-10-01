@@ -11,7 +11,7 @@ use std::{
 use walkdir::{IntoIter, WalkDir};
 
 macro_rules! iter_any_files_in_dir {
-    ($fn:ident, $new_and_is_ty:ident) => {
+    ($fn:ident, $is_ty:ident) => {
         #[doc = concat!("Returns an iterator over `", stringify!($exts), "` files in a directory.")]
         pub(crate) fn $fn(&self, dir: impl AsRef<Path>) -> impl Iterator<Item = PathBuf> {
             std::fs::read_dir(dir)
@@ -24,8 +24,7 @@ macro_rules! iter_any_files_in_dir {
                         return false;
                     }
 
-                    let ext = some_or!(return false; path.extension());
-                    if !Extension::$new_and_is_ty(ext.as_encoded_bytes()) {
+                    if !Extension::from_path(path).is_some_and(|ext| ext.$is_ty()) {
                         return false;
                     }
 
@@ -42,9 +41,9 @@ macro_rules! iter_any_files_in_dir {
 }
 
 impl ConfigInput {
-    iter_any_files_in_dir!(iter_media_in_dir, new_and_is_media);
-    iter_any_files_in_dir!(iter_fonts_in_dir, new_and_is_font);
-    iter_any_files_in_dir!(iter_matroska_in_dir, new_and_is_matroska);
+    iter_any_files_in_dir!(iter_media_in_dir, is_media);
+    iter_any_files_in_dir!(iter_fonts_in_dir, is_font);
+    iter_any_files_in_dir!(iter_matroska_in_dir, is_matroska);
 
     /// Collects all font files from the discovered directories.
     ///
@@ -68,11 +67,7 @@ impl ConfigInput {
                 .collect(),
             InputType::Files(files) => files
                 .iter()
-                .filter(|f| {
-                    f.is_file()
-                        && f.extension()
-                            .is_some_and(|ext| Extension::new_and_is_font(ext.as_encoded_bytes()))
-                })
+                .filter(|f| f.is_file() && Extension::from_path(f).is_some_and(|ext| ext.is_font()))
                 .cloned()
                 .collect(),
         }
@@ -148,10 +143,7 @@ impl ConfigInput {
                 let files: Vec<PathBuf> = xs
                     .iter()
                     .filter(|f| {
-                        f.is_file()
-                            && f.extension().is_some_and(|ext| {
-                                Extension::new_and_is_media(ext.as_encoded_bytes())
-                            })
+                        f.is_file() && Extension::from_path(f).is_some_and(|ext| ext.is_media())
                     })
                     .cloned()
                     .collect();
