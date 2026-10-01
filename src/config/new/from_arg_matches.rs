@@ -318,9 +318,17 @@ impl FromArgMatches for Config {
                 continue;
             }
 
-            let val = ConfigTarget::from_arg_matches_mut(m)?;
+            let targets = self.targets.get_or_insert_default();
 
-            self.targets.get_or_insert_default().insert(t, val);
+            match targets.entry(t) {
+                indexmap::map::Entry::Occupied(mut entry) => {
+                    entry.get_mut().update_from_arg_matches_mut(m)?;
+                }
+                indexmap::map::Entry::Vacant(entry) => {
+                    let val = ConfigTarget::from_arg_matches_mut(m)?;
+                    entry.insert(val);
+                }
+            }
         }
 
         return Ok(());
