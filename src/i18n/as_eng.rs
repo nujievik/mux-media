@@ -51,6 +51,7 @@ impl_msg_as_str!(
     HelpMaxForceds => "Max auto-enabled forced",
     HelpTitles => "Set stream titles",
     HelpLangs => "Set stream languages",
+    HelpSubsEncoding => "Decode subs as n-encoding",
 
     HelpRetimingOptions => "Retiming options",
     HelpParts => "[!]Save parts for chapter names",

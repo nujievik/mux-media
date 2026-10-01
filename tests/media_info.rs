@@ -4,6 +4,7 @@ mod common;
 mod durations;
 
 use common::*;
+use encoding_rs::Encoding;
 use mux_media::{media_info::*, *};
 use std::sync::LazyLock;
 
@@ -108,7 +109,9 @@ fn test_cmn_streams_order() {
 fn test_sub_charset() {
     let mut mi = new();
     let empty = || CharEncoding::Utf8Compatible;
-    let new = |s: &str| CharEncoding::NotUtf8Compatible(s.into());
+    let new = |s: &str| {
+        CharEncoding::NotUtf8Compatible(Encoding::for_label_no_replacement(s.as_bytes()).unwrap())
+    };
 
     [
         ("srt.srt", empty()),

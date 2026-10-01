@@ -1,11 +1,12 @@
 use crate::Extension;
+use encoding_rs::Encoding;
 use std::{fs::File, io::Read, path::Path};
 
 /// A charaster encoding of file.
 #[derive(Clone, Debug, PartialEq)]
 pub enum CharEncoding {
     Utf8Compatible,
-    NotUtf8Compatible(String),
+    NotUtf8Compatible(&'static Encoding),
     NotRecognized,
 }
 
@@ -22,19 +23,16 @@ impl CharEncoding {
             return Self::Utf8Compatible;
         }
 
-        match detect_file_charenc(f, buf) {
-            Some(s) if is_utf8_compatible(&s) => Self::Utf8Compatible,
-            Some(s) => Self::NotUtf8Compatible(s),
-            None => Self::NotRecognized,
-        }
-    }
+        detect_file_charenc(f, buf).map_or(Self::NotRecognized, |s| {
+            if is_utf8_compatible(&s) {
+                return Self::Utf8Compatible;
+            }
 
-    pub(crate) fn get_ffmpeg_sub_charenc(&self) -> Option<&str> {
-        match self {
-            Self::Utf8Compatible => None,
-            Self::NotUtf8Compatible(s) => Some(&s),
-            Self::NotRecognized => None,
-        }
+            match Encoding::for_label_no_replacement(s.as_bytes()) {
+                Some(enc) => Self::NotUtf8Compatible(enc),
+                None => Self::NotRecognized,
+            }
+        })
     }
 }
 

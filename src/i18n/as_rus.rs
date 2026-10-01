@@ -51,6 +51,7 @@ impl_msg_as_str!(
     HelpMaxForceds => "Максимум включаемых в авто forced",
     HelpTitles => "Установить имена потоков",
     HelpLangs => "Установить языки потоков",
+    HelpSubsEncoding => "Декодировать субтитры в кодировке n",
 
     HelpRetimingOptions => "Ретайминг опции",
     HelpParts => "[!]Сохранить части для имен глав",

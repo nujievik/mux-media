@@ -2,10 +2,8 @@ use crate::ffmpeg::{
     self,
     format::{self, context},
 };
-use crate::{
-    Config, MediaInfo, Msg, Result, StreamsOrderItem, display,
-    media_info::MarkMediaInfoSubCharEncoding,
-};
+use crate::media_info::MarkMediaInfoSubCharEncoding;
+use crate::{CharEncoding, Config, MediaInfo, Msg, Result, StreamsOrderItem, display};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use log::{debug, warn};
@@ -30,30 +28,21 @@ fn new_ictx(mi: &mut MediaInfo, ord: &StreamsOrderItem) -> Result<context::Input
     let job = mi.job;
     let src = ord.src();
 
-    let ictx = match get_sub_charenc(mi, src).map(|s| new_ictx_reencode_subs(cfg, job, ord, src, s))
-    {
-        Some(Ok(ctx)) => Ok(ctx),
-        Some(Err(err)) => {
-            warn!(
-                "Fail reencode charset to UTF-8: {}. Copying src subtitles '{}'",
-                err,
-                display(src)
-            );
-            format::input(src)
+    if let Some(CharEncoding::NotUtf8Compatible(enc)) = mi.get(MarkMediaInfoSubCharEncoding, src) {
+        match new_ictx_reencode_subs(cfg, job, ord, src, enc) {
+            Ok(ictx) => return Ok(ictx),
+            Err(err) => {
+                warn!(
+                    "fail reencode subtutle to UTF-8: {}. Copying without reencode '{}'",
+                    err,
+                    display(src)
+                );
+            }
         }
-        None => format::input(src),
-    }?;
-
-    Ok(ictx)
-}
-
-fn get_sub_charenc<'a>(mi: &'a mut MediaInfo, src: &Path) -> Option<&'a str> {
-    if *mi.cfg.auto_flags.encs {
-        mi.get(MarkMediaInfoSubCharEncoding, src)
-            .and_then(|enc| enc.get_ffmpeg_sub_charenc())
-    } else {
-        None
     }
+
+    let ictx = format::input(src)?;
+    Ok(ictx)
 }
 
 fn new_ictx_reencode_subs(
@@ -61,12 +50,10 @@ fn new_ictx_reencode_subs(
     job: u8,
     ord: &StreamsOrderItem,
     src: &Path,
-    charenc: &str,
+    enc: &'static Encoding,
 ) -> Result<context::Input> {
     debug!("{} '{}'...", Msg::ConvertingSubtitleEncoding, display(src));
 
-    let enc = Encoding::for_label_no_replacement(charenc.as_bytes())
-        .ok_or_else(|| err!("Unrecognized charenc key '{}'", charenc))?;
     let src_file = fs::File::open(src)?;
     let mut reader = DecodeReaderBytesBuilder::new()
         .encoding(Some(enc))

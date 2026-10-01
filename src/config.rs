@@ -56,7 +56,7 @@ mod to_args;
 
 pub use fields::{
     MarkConfigChapters, MarkConfigDefaults, MarkConfigForceds, MarkConfigLangMetadata,
-    MarkConfigStreams, MarkConfigTitleMetadata,
+    MarkConfigStreams, MarkConfigSubsEncoding, MarkConfigTitleMetadata,
     auto_flags::ConfigAutoFlags,
     chapters::ConfigChapters,
     dispositions::ConfigDispositions,
@@ -66,6 +66,7 @@ pub use fields::{
     output::ConfigOutput,
     retiming::{ConfigRetiming, ConfigRetimingParts},
     streams::ConfigStreams,
+    subs_encoding::ConfigSubsEncoding,
 };
 
 pub(crate) use fields::input::{InputType, iters::MediaGroupedByStem};
@@ -86,19 +87,24 @@ use std::path::PathBuf;
 pub struct Config {
     pub input: ConfigInput,
     pub output: ConfigOutput,
+
     pub locale: LangCode,
     pub overwrite: bool,
     pub jobs: u8,
     pub log_level: ConfigLogLevel,
     pub exit_on_err: bool,
     pub save_config: bool,
+
     pub auto_flags: ConfigAutoFlags,
+
     pub streams: ConfigStreams,
     pub chapters: ConfigChapters,
     pub defaults: ConfigDispositions,
     pub forceds: ConfigDispositions,
     pub titles: ConfigTitleMetadata,
     pub langs: ConfigLangMetadata,
+    pub subs_encoding: ConfigSubsEncoding,
+
     pub retiming: ConfigRetiming,
     pub targets: Option<FxIndexMap<Target, ConfigTarget>>,
     pub is_output_constructed_from_input: bool,
@@ -114,6 +120,7 @@ pub struct ConfigTarget {
     pub forceds: Option<ConfigDispositions>,
     pub titles: Option<ConfigTitleMetadata>,
     pub langs: Option<ConfigLangMetadata>,
+    pub subs_encoding: Option<ConfigSubsEncoding>,
 }
 
 impl Config {

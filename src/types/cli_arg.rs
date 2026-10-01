@@ -82,6 +82,7 @@ enum_cli_arg! {
     MaxForceds => "max-forceds",
     Titles => "titles",
     Langs => "langs",
+    SubsEncoding => "subs-encoding",
 
     Parts => "parts",
     NoLinked => "no-linked",

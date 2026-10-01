@@ -73,6 +73,7 @@ pub enum Msg {
     HelpMaxForceds,
     HelpTitles,
     HelpLangs,
+    HelpSubsEncoding,
 
     HelpRetimingOptions,
     HelpParts,

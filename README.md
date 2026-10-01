@@ -96,6 +96,7 @@ Run `mux-media -h` to display help.
 | `--max-forceds <n>` | Max auto-enabled forced |
 | `--titles <[n:]T[,m:T]...>` | Set stream titles |
 | `--langs <[n:]L[,m:L]...>` | Set stream languages |
+| `--subs-encoding <n>` | Decode subs as n-encoding |
 | | |
 | Retiming options: | |
 | `--parts <[!]n[,m]...>` | `[!]Save parts for chapter names` |

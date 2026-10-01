@@ -13,10 +13,11 @@ pub(crate) mod metadata;
 pub(crate) mod output;
 pub(crate) mod retiming;
 pub(crate) mod streams;
+pub(crate) mod subs_encoding;
 
 use super::{
-    Config, ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigTarget,
-    ConfigTitleMetadata,
+    Config, ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams,
+    ConfigSubsEncoding, ConfigTarget, ConfigTitleMetadata,
 };
 use crate::{DispositionType, Field, Stream, Target};
 use std::path::Path;
@@ -156,4 +157,5 @@ fields! {
     forceds, ConfigDispositions => MarkConfigForceds,
     titles, ConfigTitleMetadata => MarkConfigTitleMetadata,
     langs, ConfigLangMetadata => MarkConfigLangMetadata,
+    subs_encoding, ConfigSubsEncoding => MarkConfigSubsEncoding,
 }

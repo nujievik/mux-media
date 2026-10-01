@@ -1,4 +1,5 @@
 use crate::common::*;
+use encoding_rs::Encoding;
 use mux_media::*;
 use std::{path::PathBuf, sync::LazyLock};
 
@@ -7,7 +8,7 @@ pub fn empty() -> CharEncoding {
 }
 
 pub fn new(s: &str) -> CharEncoding {
-    CharEncoding::NotUtf8Compatible(s.into())
+    CharEncoding::NotUtf8Compatible(Encoding::for_label_no_replacement(s.as_bytes()).unwrap())
 }
 
 static FILE_ENC_PAIRS: LazyLock<[(PathBuf, CharEncoding); 3]> = LazyLock::new(|| {

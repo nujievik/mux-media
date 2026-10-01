@@ -1,6 +1,7 @@
 use super::Blocks;
 use crate::config::{
-    ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigTitleMetadata,
+    ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigSubsEncoding,
+    ConfigTitleMetadata,
 };
 use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
@@ -98,6 +99,13 @@ impl Blocks {
                     .value_name("[n:]L[,m:L]...")
                     .help(Msg::HelpLangs.as_str_localized())
                     .value_parser(ValueParser::new(ConfigLangMetadata::from_str)),
+            )
+            .arg(
+                Arg::new(undashed!(SubsEncoding))
+                    .long(undashed!(SubsEncoding))
+                    .value_name("n")
+                    .help(Msg::HelpSubsEncoding.as_str_localized())
+                    .value_parser(ValueParser::new(ConfigSubsEncoding::from_str)),
             );
 
         self

@@ -1,7 +1,7 @@
 use super::super::{
     Config, ConfigAutoFlags, ConfigChapters, ConfigDispositions, ConfigInput, ConfigLangMetadata,
-    ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigTarget, ConfigTitleMetadata,
-    InputType,
+    ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigSubsEncoding, ConfigTarget,
+    ConfigTitleMetadata, InputType,
 };
 use crate::{
     CliArg, Extension, FxIndexMap, GlobSetPattern, LangCode, Msg, MuxError, RangeUsize, StreamType,
@@ -172,19 +172,29 @@ impl FromArgMatches for Config {
             Ok(Config {
                 input,
                 output,
+
                 locale,
                 overwrite: flag!(m, Overwrite),
                 log_level: log_level(m),
                 exit_on_err: flag!(m, ExitOnErr),
                 save_config: flag!(m, SaveConfig),
                 jobs: rm_or!(m, Jobs, u8, || Config::JOBS_DEFAULT),
+
                 auto_flags: auto_flags(m),
+
                 streams: streams!(m, Streams, NoStreams),
                 chapters: get_chapters(m).unwrap_or_else(|| ConfigChapters::default()),
                 defaults: dispositions!(m, Defaults, MaxDefaults),
                 forceds: dispositions!(m, Forceds, MaxForceds),
                 titles: rm_or!(m, Titles, ConfigTitleMetadata, ConfigTitleMetadata::default),
                 langs: rm_or!(m, Langs, ConfigLangMetadata, ConfigLangMetadata::default),
+                subs_encoding: rm_or!(
+                    m,
+                    SubsEncoding,
+                    ConfigSubsEncoding,
+                    ConfigSubsEncoding::default
+                ),
+
                 retiming: retiming(m),
                 targets: targets(m),
                 is_output_constructed_from_input,
@@ -274,13 +284,16 @@ impl FromArgMatches for Config {
         upd!(self.jobs, m, Jobs, u8);
 
         auto_flags(self, m);
+
         if !m.contains_id(undashed!(Target)) {
             upd_streams!(self.streams, m, Streams, NoStreams);
         }
         upd_chapters(&mut self.chapters, m);
-
         upd_dispositions!(self.defaults, m, Defaults, MaxDefaults);
         upd_dispositions!(self.forceds, m, Forceds, MaxForceds);
+        upd!(self.titles, m, Titles, ConfigTitleMetadata);
+        upd!(self.langs, m, Langs, ConfigLangMetadata);
+        upd!(self.subs_encoding, m, SubsEncoding, ConfigSubsEncoding);
 
         retiming_options(self, m);
         targets(self, m);
@@ -584,6 +597,7 @@ impl FromArgMatches for ConfigTarget {
             forceds: get_dispositions!(m, Forceds, MaxForceds),
             titles: rm!(m, Titles, ConfigTitleMetadata),
             langs: rm!(m, Langs, ConfigLangMetadata),
+            subs_encoding: rm!(m, SubsEncoding, ConfigSubsEncoding),
         })
     }
 
@@ -596,6 +610,7 @@ impl FromArgMatches for ConfigTarget {
 
         upd!(self.titles, m, Titles, ConfigTitleMetadata, @opt);
         upd!(self.langs, m, Langs, ConfigLangMetadata, @opt);
+        upd!(self.subs_encoding, m, SubsEncoding, ConfigSubsEncoding, @opt);
 
         return Ok(());
 
