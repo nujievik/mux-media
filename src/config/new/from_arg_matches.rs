@@ -285,9 +285,7 @@ impl FromArgMatches for Config {
 
         auto_flags(self, m);
 
-        if !m.contains_id(undashed!(Target)) {
-            upd_streams!(self.streams, m, Streams, NoStreams);
-        }
+        upd_streams!(self.streams, m, Streams, NoStreams);
         upd_chapters(&mut self.chapters, m);
         upd_dispositions!(self.defaults, m, Defaults, MaxDefaults);
         upd_dispositions!(self.forceds, m, Forceds, MaxForceds);
@@ -311,11 +309,6 @@ impl FromArgMatches for Config {
             };
 
             if let Target::Global = t {
-                if flag!(m, NoStreams) {
-                    self.streams.no_flag = true;
-                } else if let Some(val) = m.get_one::<ConfigStreams>(undashed!(Streams)) {
-                    self.streams = val.clone();
-                }
                 return self.try_update_from(t_args);
             }
 
@@ -325,11 +318,6 @@ impl FromArgMatches for Config {
                 .try_get_matches_from(t_args)?;
             _owned_m = Some(matches);
             m = _owned_m.as_mut().unwrap();
-
-            if let Some(trg) = self.targets.as_mut().and_then(|map| map.get_mut(&t)) {
-                trg.update_from_arg_matches_mut(m)?;
-                continue;
-            }
 
             let targets = self.targets.get_or_insert_default();
 
