@@ -39,6 +39,10 @@ project.
   License: Unlicense OR MIT
   Source: https://crates.io/crates/globset
   
+- **indexmap**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/indexmap
+  
 - **is_default**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/is_default
@@ -54,6 +58,10 @@ project.
 - **rayon**
   License: MIT OR Apache-2.0
   Source: https://crates.io/crates/rayon
+  
+- **rustc-hash**
+  License: MIT OR Apache-2.0
+  Source: https://crates.io/crates/rustc-hash
   
 - **strum**
   License: MIT
