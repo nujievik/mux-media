@@ -1,5 +1,4 @@
 mod common;
-mod macros;
 
 #[path = "types/char_encoding.rs"]
 mod char_encoding;

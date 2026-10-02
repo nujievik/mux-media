@@ -15,11 +15,10 @@ fn test_empty_str() {
 }
 
 crate::test_from_str!(
-    RangeUsize,
-    test_from_str,
+    from_str, RangeUsize;
     [
         "", "5", "0", " 10 ", "5,10", "5,", ",10", "5-10", "5-", "-10", "5..=10"
-    ],
+    ];
     ["a,10", "5,b", "5,10,15", "5-10-15", "5.10", "10,5"]
 );
 

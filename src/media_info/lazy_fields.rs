@@ -434,7 +434,7 @@ lazy_path_fields!(
     path_tail, String, build_path_tail => MarkMediaInfoPathTail;
     relative_upmost, String, build_relative_upmost => MarkMediaInfoRelativeUpmost;
 
-    sub_char_encoding, CharEncoding, build_sub_char_encoding => MarkMediaInfoSubCharEncoding;
+    sub_char_encoding, CharEncoding, build_sub_char_encoding => MarkMediaInfoSubsEncoding;
     target_paths, Vec<Target>, build_target_paths => MarkMediaInfoTargetPaths;
 
     audio_duration, Time, build_audio_duration => MarkMediaInfoAudioDuration;

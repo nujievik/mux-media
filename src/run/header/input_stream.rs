@@ -2,7 +2,7 @@ use crate::ffmpeg::{
     self,
     format::{self, context},
 };
-use crate::media_info::MarkMediaInfoSubCharEncoding;
+use crate::media_info::MarkMediaInfoSubsEncoding;
 use crate::{CharEncoding, Config, MediaInfo, Msg, Result, StreamsOrderItem, display};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
@@ -28,7 +28,7 @@ fn new_ictx(mi: &mut MediaInfo, ord: &StreamsOrderItem) -> Result<context::Input
     let job = mi.job;
     let src = ord.src();
 
-    if let Some(CharEncoding::NotUtf8Compatible(enc)) = mi.get(MarkMediaInfoSubCharEncoding, src) {
+    if let Some(CharEncoding::NotUtf8Compatible(enc)) = mi.get(MarkMediaInfoSubsEncoding, src) {
         match new_ictx_reencode_subs(cfg, job, ord, src, enc) {
             Ok(ictx) => return Ok(ictx),
             Err(err) => {

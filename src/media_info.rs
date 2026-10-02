@@ -8,7 +8,7 @@ pub use cache::{MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup};
 pub use lazy_fields::{
     MarkMediaInfoAudioDuration, MarkMediaInfoCacheOfFile, MarkMediaInfoPathTail,
     MarkMediaInfoPlayableDuration, MarkMediaInfoRelativeUpmost, MarkMediaInfoStem,
-    MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoSubCharEncoding,
+    MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoSubsEncoding,
     MarkMediaInfoTargetPaths, MarkMediaInfoVideoDuration,
 };
 

@@ -1,6 +1,7 @@
-use crate::{MuxError, Result};
+use crate::{MuxError, Result, ToArgs};
+use core::fmt::NumBuffer;
 use encoding_rs::Encoding;
-use std::str::FromStr;
+use std::{io::Write, str::FromStr};
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ConfigSubsEncoding(Option<&'static Encoding>);
@@ -20,5 +21,18 @@ impl FromStr for ConfigSubsEncoding {
             .ok_or_else(|| err!("unrecognized encoding"))?;
 
         Ok(Self(Some(enc)))
+    }
+}
+
+impl ToArgs for ConfigSubsEncoding {
+    fn write_with_num_buffer<W>(&self, w: &mut W, _: &mut NumBuffer<usize>) -> Result<()>
+    where
+        W: Write + ?Sized,
+    {
+        if let Some(enc) = self.0.as_ref() {
+            to_args!(w, SubsEncoding)?;
+            to_args!(w, enc.name().as_bytes(), @v)?;
+        }
+        Ok(())
     }
 }

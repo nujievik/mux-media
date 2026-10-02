@@ -1,5 +1,4 @@
 mod common;
-mod macros;
 
 #[path = "config/auto_flags.rs"]
 mod auto_flags;
@@ -19,6 +18,8 @@ mod output;
 mod retiming;
 #[path = "config/streams.rs"]
 mod streams;
+#[path = "config/subs_encoding.rs"]
+mod subs_encoding;
 
 mod range {
     use mux_media::RangeUsize;

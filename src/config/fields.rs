@@ -83,7 +83,7 @@ impl Config {
         }
     }
 
-    pub(crate) fn get_target<F, T>(&self, _: F, t: T) -> Option<&<Self as Field<F>>::FieldType>
+    pub fn get_target<F, T>(&self, _: F, t: T) -> Option<&<Self as Field<F>>::FieldType>
     where
         Self: Field<F>,
         ConfigTarget: Field<F, FieldType = Option<<Self as Field<F>>::FieldType>>,
@@ -95,7 +95,7 @@ impl Config {
         })
     }
 
-    pub(crate) fn get_targets<F, I, T>(&self, f: F, ts: I) -> Option<&<Self as Field<F>>::FieldType>
+    pub fn get_targets<F, I, T>(&self, f: F, ts: I) -> Option<&<Self as Field<F>>::FieldType>
     where
         F: Copy,
         Self: Field<F>,

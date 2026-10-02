@@ -8,7 +8,7 @@ fn test_is_default() {
 }
 
 crate::test_from_str!(
-    LangCode, test_from_str,
+    from_str, LangCode;
     [
         (LangCode::Eng, "eng"),
         (LangCode::Eng, "en"),
@@ -18,7 +18,7 @@ crate::test_from_str!(
         (LangCode::Jpn, "ja"),
         (LangCode::Eng, "ENG"),
         (LangCode::Eng, "Complex eng"),
-    ],
+    ];
     ["missing", "trash", "9325124"],
     @ok_compare
 );

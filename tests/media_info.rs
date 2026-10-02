@@ -122,11 +122,11 @@ fn test_sub_charset() {
     .for_each(|(f, enc)| {
         assert_eq!(
             enc,
-            mi.try_get(MarkMediaInfoSubCharEncoding, &data(f)).unwrap()
+            mi.try_get(MarkMediaInfoSubsEncoding, &data(f)).unwrap()
         );
     });
 
-    mi.try_get(MarkMediaInfoSubCharEncoding, &data("audio_x1.mka"))
+    mi.try_get(MarkMediaInfoSubsEncoding, &data("audio_x1.mka"))
         .unwrap_err();
 }
 
