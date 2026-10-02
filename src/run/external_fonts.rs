@@ -135,7 +135,7 @@ fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: &Vec<PathB
 }
 
 fn write_dummy_subtitle_packet(octx: &mut ffmpeg::format::context::Output) -> Result<()> {
-    let err = || Err(err!("Fail write dummy subtitle stream"));
+    let err = || Err(err!("fail write dummy subtitle stream"));
     let text = b"1\n00:00:00,000 --> 00:00:01,000\n.\n";
 
     unsafe {

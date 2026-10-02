@@ -1,17 +1,13 @@
 use super::*;
-use crate::{
-    Result, display,
-    ffmpeg::{Packet, Rescale, format},
-};
+use crate::Result;
+use crate::ffmpeg::{Packet, Rescale, format};
 use std::path::Path;
 
 impl Retiming<'_, '_> {
     pub(super) fn try_video(&self, src: &Path, i_stream: usize) -> Result<RetimedStream> {
         if i_stream != self.i_base_stream && src != self.base.as_path() {
             return Err(err!(
-                "Unsupported retiming more than 1 video track at a time. Skipping {} stream {}",
-                display(src),
-                i_stream
+                "unsupported retiming more than 1 video track at a time"
             ));
         }
 
@@ -126,7 +122,7 @@ fn try_split(
         pkt.write_interleaved(&mut octx)?;
     }
 
-    let min_pts = min_pts.ok_or_else(|| err!("Not written a packet"))?;
+    let min_pts = min_pts.ok_or_else(|| err!("not written a packet"))?;
     octx.write_trailer()?;
 
     Ok((

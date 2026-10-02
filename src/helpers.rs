@@ -152,7 +152,7 @@ pub(crate) fn os_str_tail(prefix: &OsStr, longer: &OsStr) -> Result<OsString> {
     let longer_b = longer.as_encoded_bytes();
 
     if !longer_b.starts_with(prefix_b) {
-        return Err(err!("Longer {:?} is not starts with {:?}", longer, prefix));
+        return Err(err!("longer is not starts with prefix"));
     }
 
     let prefix_len = prefix_b.len();

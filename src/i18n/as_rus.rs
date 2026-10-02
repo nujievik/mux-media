@@ -62,6 +62,9 @@ impl_msg_as_str!(
     HelpVersion => "Показать версию",
     HelpHelp => "Показать справку",
 
+    NoMediaFilesFoundInInputDirectory => "не найдены медиафайлы в стартовой директории",
+    ForMoreInformationTry => "Для дополнительной информации попробуйте",
+
     WritingExternalFontsToTempFile => "запись внешних шрифтов во временный файл",
     ExternalFontsSuccessfullyWritten => "внешние шрифты успешно записаны",
     FailWriteExternalFonts => "ошибка записи внешних субтитров",
@@ -98,7 +101,6 @@ impl_msg_as_str!(
     Media => "медиа",
     MediaNumberIsOutOfRange => "номер медиа вне диапазона",
     NoExternalMediaFound => "не найдено внешних медиа",
-    NoInputDirMedia => "не найдены медиа в стартовой директории",
     NotASubtitleFile => "не файл субтитров",
     NotMuxedAny => "медиа не смуксированы",
     NotOutSaveAny => "не найдено сохраняемого потока для выходного файла",

@@ -38,7 +38,7 @@ impl StreamsOrder {
     /// - Warning: fails retiming any media.
     pub fn new(mi: &mut MediaInfo) -> Result<StreamsOrder> {
         if mi.cache.of_files.is_empty() {
-            Err(err!("Not found any cached media file"))
+            Err(err!("not found any cached media file"))
         } else {
             let sources = sources(mi);
             let sorted_src_stream_ty = try_sorted_src_stream_ty(mi, &sources)?;

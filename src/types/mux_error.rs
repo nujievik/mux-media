@@ -1,7 +1,7 @@
 mod into;
 mod new;
 
-use crate::{MuxLogger, ffmpeg};
+use crate::{Msg, MuxLogger, ffmpeg};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -9,6 +9,9 @@ use thiserror::Error;
 pub enum MuxError {
     #[error("ffmpeg: {0}")]
     Ffmpeg(#[from] ffmpeg::Error),
+
+    #[error("globset: {0}")]
+    GlobSet(#[from] globset::Error),
 
     #[error("I/O: {0}")]
     Io(#[from] std::io::Error),
@@ -42,8 +45,15 @@ pub enum MuxErrorParse {
 #[derive(Debug, Error)]
 #[error("{message}")]
 pub struct MuxErrorOther {
-    code: i32,
-    message: String,
+    pub(crate) code: i32,
+    pub(crate) message: MuxErrorOtherMessage,
+}
+#[derive(Debug, Error)]
+pub enum MuxErrorOtherMessage {
+    #[error("{0}")]
+    Localized(Msg),
+    #[error("{0}")]
+    StaticStr(&'static str),
 }
 
 impl MuxError {
@@ -71,12 +81,11 @@ impl MuxError {
         if self.use_stderr() {
             use log::Level::Error as E;
             eprintln!(
-                "{}{}{}{}\n{}",
+                "{}{}{}{}",
                 MuxLogger::prefix_prefix(E),
                 MuxLogger::prefix_root(E),
                 MuxLogger::prefix_suffix(E),
                 self,
-                MuxLogger::try_help()
             );
         } else {
             println!("{}", self);

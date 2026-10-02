@@ -20,7 +20,7 @@ pub fn new<'a>(
 
     let ictx = &icontexts[ord.src_num];
     ictx.stream(ord.i_stream)
-        .ok_or_else(|| err!("Not found stream"))
+        .ok_or_else(|| err!("not found stream"))
 }
 
 fn new_ictx(mi: &mut MediaInfo, ord: &StreamsOrderItem) -> Result<context::Input> {

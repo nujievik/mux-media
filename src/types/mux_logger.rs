@@ -36,6 +36,19 @@ impl MuxLogger {
         });
     }
 
+    /// Prints a colored or plain clap-style try help string to stderr.
+    pub fn print_try_help() {
+        eprint!("\n{}", Msg::ForMoreInformationTry);
+
+        let arg = if *STDERR_ON_COLOR {
+            "\x1b[34m--help\x1b[0m"
+        } else {
+            "--help"
+        };
+
+        eprintln!(" '{}'", arg);
+    }
+
     pub(crate) fn prefix_prefix(level: Level) -> &'static str {
         match level {
             Level::Error if *STDERR_ON_COLOR => "\x1b[31m",
@@ -68,15 +81,6 @@ impl MuxLogger {
             Level::Debug | Level::Trace if *STDOUT_ON_COLOR => "\x1b[0m: ",
             Level::Debug | Level::Trace => ": ",
             _ => "",
-        }
-    }
-
-    /// Returns a colored or plain clap-style try help string.
-    pub(crate) fn try_help() -> &'static str {
-        if *STDERR_ON_COLOR {
-            "For more information, try '\x1b[34m--help\x1b[0m'."
-        } else {
-            "For more information, try '--help'."
         }
     }
 }

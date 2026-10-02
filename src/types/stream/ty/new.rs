@@ -13,7 +13,7 @@ impl FromStr for StreamType {
             "f" | "font" | "fonts" => Self::Font,
             "m" | "attach" | "attachs" => Self::Attach,
             "other" | "others" => Self::Other,
-            _ => return Err(err!("Unrecognized stream type: {}", s)),
+            _ => return Err(err!("nnrecognized stream type")),
         };
         Ok(ty)
     }

@@ -90,7 +90,7 @@ impl FromStr for LangCode {
     type Err = MuxError;
 
     fn from_str(s: &str) -> Result<LangCode> {
-        get_code(s).ok_or_else(|| err!("Not found a valid language code"))
+        get_code(s).ok_or_else(|| err!("not found a valid language code"))
     }
 }
 

@@ -30,19 +30,11 @@ impl TryFrom<(usize, usize)> for RangeUsize {
         let (start, mut end) = start_end;
 
         if end < start {
-            return Err(err!(
-                "End of range ({}) must be greater than or equal to start ({})",
-                end,
-                start
-            ));
+            return Err(err!("end of range must be >= start"));
         }
 
         if end == usize::MAX {
-            return Err(err!(
-                "End of range ({}) must be lesser than MAX ({})",
-                end,
-                usize::MAX
-            ));
+            return Err(err!("end of range must be lesser than MAX"));
         } else {
             end += 1;
         }
@@ -58,12 +50,8 @@ impl FromStr for RangeUsize {
         let s = s.trim();
 
         let (start, end) = match detect_delimiter(s) {
-            Some((delimiter, count)) if count > 1 => {
-                return Err(err!(
-                    "Too many '{}' delimiters in input: '{}'",
-                    delimiter,
-                    s
-                ));
+            Some((_, count)) if count > 1 => {
+                return Err(err!("too many delimiters in input"));
             }
             Some((delimiter, _)) => parse_with_delimiter(s, delimiter)?,
             None => parse_single_or_empty(s)?,
@@ -96,8 +84,8 @@ impl FromStr for RangeUsize {
             if part.is_empty() {
                 Ok(val_on_empty)
             } else {
-                part.parse::<usize>()
-                    .map_err(|e| err!("invalid value '{}': {}", part, e))
+                let v = part.parse::<usize>()?;
+                Ok(v)
             }
         }
     }

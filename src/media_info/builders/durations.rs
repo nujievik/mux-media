@@ -29,9 +29,9 @@ impl MediaInfo<'_> {
 
         let (a_dur, v_dur) = match audio_video_duration(self, src) {
             Ok(av) => av,
-            Err(e) => (
-                Err(err!("fail get an audio time: {}", &e)),
-                Err(err!("fail get a video time: {}", &e)),
+            Err(_) => (
+                Err(err!("fail get an audio time")),
+                Err(err!("fail get a video time")),
             ),
         };
 
@@ -45,9 +45,9 @@ impl MediaInfo<'_> {
         };
 
         let cache = self.cache.of_files.get_mut(src).unwrap();
-        cache.audio_duration = CacheState::from_res(a_dur);
-        cache.video_duration = CacheState::from_res(v_dur);
-        cache.playable_duration = CacheState::from_res(playable_dur);
+        cache.audio_duration = CacheState::convert_result(a_dur).0;
+        cache.video_duration = CacheState::convert_result(v_dur).0;
+        cache.playable_duration = CacheState::convert_result(playable_dur).0;
 
         Ok(())
     }
@@ -130,9 +130,9 @@ fn audio_video_duration(mi: &MediaInfo<'_>, src: &Path) -> Result<(Result<Time>,
         }
     }
 
-    let res = |dur: (i64, i64, ffmpeg::Rational), ty| {
+    let res = |dur: (i64, i64, ffmpeg::Rational)| {
         if dur.0 <= 0 {
-            return Err(err!("fail get {} duration", ty));
+            return Err(err!("fail get duration"));
         }
 
         let duration = dur.1.rescale(dur.2, NANOSECOND_TIME_BASE);
@@ -141,5 +141,5 @@ fn audio_video_duration(mi: &MediaInfo<'_>, src: &Path) -> Result<(Result<Time>,
         Ok(Time::from_millis(millis))
     };
 
-    Ok((res(a_dur, "audio"), res(v_dur, "video")))
+    Ok((res(a_dur), res(v_dur)))
 }

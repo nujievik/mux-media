@@ -20,7 +20,7 @@ impl FromStr for ConfigDispositions {
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, b) = part.split_once(':').unwrap_or((part, "true"));
 
-            let b = get_bool(b).ok_or_else(|| err!("invalid bool key ({})", b))?;
+            let b = get_bool(b).ok_or_else(|| err!("invalid bool value"))?;
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.insert(i, b);

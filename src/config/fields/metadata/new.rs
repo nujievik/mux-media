@@ -13,7 +13,7 @@ where
         let s = s.trim();
 
         if !s.contains(':') {
-            let single_val = s.parse::<T>().map_err(|e| err!("{}", e))?;
+            let single_val = s.parse::<T>().map_err(|_| err!("fail parse"))?;
 
             return Ok(ConfigMetadata {
                 single_val: Some(single_val),
@@ -30,9 +30,9 @@ where
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             let (id, val) = part
                 .split_once(':')
-                .ok_or_else(|| err!("Invalid format: Must be [n:]T[,m:T]..."))?;
+                .ok_or_else(|| err!("invalid format. Must be [n:]T[,m:T]..."))?;
 
-            let val = val.parse::<T>().map_err(|e| err!("{}", e))?;
+            let val = val.parse::<T>().map_err(|_| err!("fail parse"))?;
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.insert(i, val);

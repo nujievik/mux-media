@@ -1,7 +1,22 @@
 macro_rules! err {
-    ( $($arg:tt)* ) => {
-        crate::MuxError::new_with(format!($($arg)*))
-    };
+    ($msg:ident) => {{
+        use $crate::Msg;
+        use $crate::types::mux_error::{MuxError, MuxErrorOther, MuxErrorOtherMessage};
+
+        MuxError::Other(MuxErrorOther {
+            code: 1,
+            message: MuxErrorOtherMessage::Localized(Msg::$msg),
+        })
+    }};
+
+    ($msg:expr) => {{
+        use $crate::types::mux_error::{MuxError, MuxErrorOther, MuxErrorOtherMessage};
+
+        MuxError::Other(MuxErrorOther {
+            code: 1,
+            message: MuxErrorOtherMessage::StaticStr($msg),
+        })
+    }};
 }
 
 macro_rules! some_or {

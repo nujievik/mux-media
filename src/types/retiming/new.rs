@@ -57,7 +57,7 @@ impl Retiming<'_, '_> {
         }
 
         if parts.is_empty() {
-            return Err(err!("Not saved any part"));
+            return Err(err!("not saved any part"));
         }
 
         let mut rtm = Retiming {
@@ -161,12 +161,12 @@ fn try_times(
                     Ok(_) => return Ok(ts_to_time(frame.pts().unwrap_or(0), ist_time_base)),
                     Err(ffmpeg::Error::Other { errno: 11 }) => break,
                     Err(ffmpeg::Error::Eof) => break,
-                    Err(e) => return Err(err!("Ffmpeg decoder error: {}", e)),
+                    Err(e) => return Err(e.into()),
                 }
             }
         }
 
-        Err(err!("Not found I frame"))
+        Err(err!("not found I-frame"))
     }
 }
 

@@ -83,11 +83,7 @@ impl Msg {
         }
 
         if !Self::is_supported_lang(lang) {
-            return Err(err!(
-                "{}: '{}'",
-                Msg::LanguageIsNotSupportedForLogging,
-                lang
-            ));
+            return Err(err!(LanguageIsNotSupportedForLogging));
         }
 
         let mut l = LANG.write().map_err(|_| err!("Fail LANG_CODE.write()"))?;

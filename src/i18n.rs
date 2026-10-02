@@ -84,6 +84,9 @@ pub enum Msg {
     HelpVersion,
     HelpHelp,
 
+    NoMediaFilesFoundInInputDirectory,
+    ForMoreInformationTry,
+
     WritingExternalFontsToTempFile,
     ExternalFontsSuccessfullyWritten,
     FailWriteExternalFonts,
@@ -120,7 +123,6 @@ pub enum Msg {
     Media,
     MediaNumberIsOutOfRange,
     NoExternalMediaFound,
-    NoInputDirMedia,
     NotASubtitleFile,
     NotMuxedAny,
     NotOutSaveAny,

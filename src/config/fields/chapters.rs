@@ -62,7 +62,7 @@ impl FromStr for ConfigChapters {
         for s_range in s.split(',') {
             let (s_start, s_end) = s_range
                 .split_once('-')
-                .ok_or_else(|| err!("must be start-end time range ({})", s_range))?;
+                .ok_or_else(|| err!("must be start-end time range"))?;
 
             let (title, s_start) = if s_start.split(':').count() == 4 {
                 s_start.split_once(':').unwrap()
@@ -74,7 +74,7 @@ impl FromStr for ConfigChapters {
             let end = parse_time(s_end)?;
 
             if start >= end {
-                return Err(err!("start ({}) must be lesser end ({})", s_start, s_end));
+                return Err(err!("start must be lesser end"));
             }
 
             let title = if title.is_empty() {

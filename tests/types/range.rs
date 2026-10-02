@@ -136,27 +136,3 @@ fn test_not_contains() {
         })
     })
 }
-
-#[test]
-fn test_expected_err_messages() {
-    [
-        ("x", "invalid digit"),
-        ("1-x", "invalid digit"),
-        ("1,,8", "Too many ',' delimiters in input"),
-        (
-            "8-1",
-            "End of range (1) must be greater than or equal to start (8)",
-        ),
-    ]
-    .iter()
-    .for_each(|(s, expected_msg)| match s.parse::<RangeUsize>() {
-        Err(e) => assert!(
-            e.to_string().contains(expected_msg),
-            "Expected error contains '{}' for '{}', but got '{}'",
-            expected_msg,
-            s,
-            e.to_string(),
-        ),
-        Ok(_) => panic!("Expected error for '{}', but got Ok", s),
-    })
-}

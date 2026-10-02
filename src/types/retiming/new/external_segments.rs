@@ -1,5 +1,5 @@
 use super::CacheMatroska;
-use crate::{ArcPathBuf, FxHashMap, FxHashSet, MediaInfo, MuxError, Result, display};
+use crate::{ArcPathBuf, FxHashMap, FxHashSet, MediaInfo, Result};
 use rayon::prelude::*;
 use std::{
     path::{Path, PathBuf},
@@ -34,7 +34,9 @@ pub(super) fn find_external_segment(
         if let Some(p) = es.map.get(uid) {
             Some(Ok(p.clone()))
         } else if es.dir_set.contains(dir) {
-            Some(Err(error(dir, uid)))
+            Some(Err(err!(
+                "not found external matroska segment in video directory"
+            )))
         } else {
             None
         }
@@ -64,13 +66,5 @@ pub(super) fn find_external_segment(
             es.map.insert(k, v);
         }
         es.dir_set.insert(dir.to_owned());
-    }
-
-    fn error(dir: &Path, uid: &[u8]) -> MuxError {
-        err!(
-            "Not found external matroska segment '{:?}' in the directory '{}'",
-            uid,
-            display(dir)
-        )
     }
 }

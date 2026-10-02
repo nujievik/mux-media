@@ -2,7 +2,7 @@ use super::{MediaInfo, MediaInfoCacheOfFile};
 use crate::{
     ArcPathBuf,
     CacheState::{self, Cached, Failed, NotCached},
-    CharEncoding, LazyField, LazyPathField, Msg, Result, Stream, StreamsOrder, Target, Time,
+    CharEncoding, LazyField, LazyPathField, Result, Stream, StreamsOrder, Target, Time,
 };
 use std::{ffi::OsString, mem, path::Path};
 
@@ -196,16 +196,6 @@ impl MediaInfo<'_> {
     );
 }
 
-#[inline]
-fn new_state_and_result<T>(res: Result<T>) -> (CacheState<T>, Result<()>) {
-    let r = match res {
-        Ok(_) => Ok(()),
-        Err(ref e) => Err(err!("{}", e)),
-    };
-    let state = CacheState::from_res(res);
-    (state, r)
-}
-
 macro_rules! lazy_fields {
     ($( $field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
         #[doc = concat!("Marker of [`MediaInfo`] field, that stores [`", stringify!($ty), "`].")]
@@ -217,7 +207,7 @@ macro_rules! lazy_fields {
             #[inline]
             fn try_init(&mut self) -> Result<()> {
                 if let NotCached = self.cache.of_group.$field {
-                    let (state, result) = new_state_and_result(self.$builder());
+                    let (state, result) = CacheState::convert_result(self.$builder());
                     self.cache.of_group.$field = state;
                     return result;
                 }
@@ -228,7 +218,7 @@ macro_rules! lazy_fields {
             #[inline]
             fn init(&mut self) -> Option<()> {
                 if let NotCached = self.cache.of_group.$field {
-                    let (state, result) = new_state_and_result(self.$builder());
+                    let (state, result) = CacheState::convert_result(self.$builder());
                     self.cache.of_group.$field = state;
                     return result.ok();
                 }
@@ -303,7 +293,7 @@ impl LazyPathField<MarkMediaInfoCacheOfFile> for MediaInfo<'_> {
         self.cache
             .of_files
             .get(src)
-            .ok_or_else(|| err!("{}", Msg::FileNotCached))
+            .ok_or_else(|| err!(FileNotCached))
     }
 
     fn try_take(&mut self, src: &Path) -> Result<Self::FieldType> {
@@ -328,11 +318,11 @@ macro_rules! lazy_path_fields {
             fn try_init(&mut self, src: &Path) -> Result<()> {
                 match self.cache.of_files.get(src).map(|e| &e.$map_field) {
                     Some(Cached(_)) => return Ok(()),
-                    Some(Failed(e)) => return Err(err!("{}", e)),
+                    Some(Failed) => return Err(err!("previously failed")),
                     _ => {}
                 }
 
-                let (state, result) = new_state_and_result(self.$builder(src));
+                let (state, result) = CacheState::convert_result(self.$builder(src));
 
                 match self.cache.of_files.get_mut(src) {
                     Some(fields) => fields.$map_field = state,
@@ -350,11 +340,11 @@ macro_rules! lazy_path_fields {
             fn init(&mut self, src: &Path) -> Option<()> {
                 match self.cache.of_files.get(src).map(|e| &e.$map_field) {
                     Some(Cached(_)) => return Some(()),
-                    Some(Failed(_)) => return None,
+                    Some(Failed) => return None,
                     _ => {}
                 }
 
-                let (state, result) = new_state_and_result(self.$builder(src));
+                let (state, result) = CacheState::convert_result(self.$builder(src));
 
                 match self.cache.of_files.get_mut(src) {
                     Some(fields) => fields.$map_field = state,
@@ -388,7 +378,7 @@ macro_rules! lazy_path_fields {
             fn try_immut(&self, src: &Path) -> Result<&Self::FieldType> {
                 self.cache
                     .of_files.get(src)
-                    .ok_or_else(|| err!("{}", Msg::FileNotCached))
+                    .ok_or_else(|| err!(FileNotCached))
                     .and_then(|cache| cache.$map_field.try_get())
             }
 
@@ -404,7 +394,7 @@ macro_rules! lazy_path_fields {
                 self.cache
                     .of_files
                     .get_mut(src)
-                    .ok_or_else(|| err!("{}", Msg::FileNotCached))
+                    .ok_or_else(|| err!(FileNotCached))
                     .and_then(|cache| cache.$map_field.try_take())
             }
 

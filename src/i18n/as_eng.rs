@@ -62,6 +62,9 @@ impl_msg_as_str!(
     HelpVersion => "Show version",
     HelpHelp => "Show help",
 
+    NoMediaFilesFoundInInputDirectory => "no media files found in input directory",
+    ForMoreInformationTry => "For more information, try",
+
     WritingExternalFontsToTempFile => "writing external fonts to temp file",
     ExternalFontsSuccessfullyWritten => "external fonts successfully written",
     FailWriteExternalFonts => "fail write external fonts",
@@ -98,7 +101,6 @@ impl_msg_as_str!(
     Media => "media",
     MediaNumberIsOutOfRange => "media number is out of range",
     NoExternalMediaFound => "no external media found",
-    NoInputDirMedia => "no media found in the input directory",
     NotASubtitleFile => "not a subtitle file",
     NotMuxedAny => "not muxed any media",
     NotOutSaveAny => "not found any save stream for output",

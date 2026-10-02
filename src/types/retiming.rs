@@ -64,7 +64,7 @@ impl Retiming<'_, '_> {
             StreamType::Video => self.try_video(src, i_stream),
             StreamType::Audio => self.try_audio(i, src, i_stream),
             StreamType::Sub => self.try_sub(i, src, i_stream),
-            _ => Err(err!("Unsupported stream {} {:?}", i_stream, ty)),
+            _ => Err(err!("unsupported stream")),
         }
     }
 
@@ -95,7 +95,7 @@ fn write_stream_copy_header(
 ) -> Result<(Rational, Rational, usize)> {
     let ist = ictx
         .stream(ist_index)
-        .ok_or_else(|| err!("Not found stream"))?;
+        .ok_or_else(|| err!("not found stream"))?;
     let ost = add_copy_stream(&ist, octx)?;
     let ost_index = ost.index();
     octx.write_header()?;
