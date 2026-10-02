@@ -106,7 +106,7 @@ pub struct Config {
     pub subs_encoding: ConfigSubsEncoding,
 
     pub retiming: ConfigRetiming,
-    pub targets: Option<FxIndexMap<Target, ConfigTarget>>,
+    pub target_configs: FxIndexMap<Target, ConfigTarget>,
     pub is_output_constructed_from_input: bool,
 }
 

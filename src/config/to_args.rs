@@ -91,17 +91,15 @@ impl ToArgs for Config {
 
         write_fields!(self, w, buf; titles, langs, subs_encoding, retiming);
 
-        if let Some(targets) = &self.targets {
-            for (t, t_cfg) in targets {
-                if let Some(s) = t.to_str() {
-                    to_args!(w, Target)?;
-                    to_args!(w, s.as_bytes(), @v)?;
-                } else {
-                    return Err(err!("invalid utf-8"));
-                }
-
-                t_cfg.write_with_num_buffer(w, buf)?;
+        for (t, t_cfg) in &self.target_configs {
+            if let Some(s) = t.to_str() {
+                to_args!(w, Target)?;
+                to_args!(w, s.as_bytes(), @v)?;
+            } else {
+                return Err(err!("invalid utf-8"));
             }
+
+            t_cfg.write_with_num_buffer(w, buf)?;
         }
 
         Ok(())

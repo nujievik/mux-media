@@ -103,29 +103,28 @@ macro_rules! upd_streams {
 }
 
 macro_rules! trg_upd_streams {
-    ($targets:expr, $k:expr, $matches:ident, $arg:ident, $no_arg:ident) => {
-        let k = Target::StreamType($k);
+    ($target_configs:expr, $k:expr, $matches:ident, $arg:ident, $no_arg:ident) => {{
+        match $target_configs.entry(Target::StreamType($k)) {
+            indexmap::map::Entry::Occupied(mut entry) => {
+                let trg_cfg = entry.get_mut();
 
-        if let Some(v) = $targets
-            .as_mut()
-            .and_then(|xs| xs.get_mut(&k))
-            .and_then(|x| x.streams.as_mut())
-        {
-            upd_streams!(*v, $matches, $arg, $no_arg);
-        }
-
-        if let Some(v) = get_streams!($matches, $arg, $no_arg) {
-            if let Some(trg) = $targets.as_mut().and_then(|xs| xs.get_mut(&k)) {
-                trg.streams = Some(v);
-            } else {
-                let v = ConfigTarget {
-                    streams: Some(v),
-                    ..Default::default()
-                };
-                $targets.get_or_insert_default().insert(k, v);
+                if let Some(v) = trg_cfg.streams.as_mut() {
+                    upd_streams!(*v, $matches, $arg, $no_arg);
+                } else if let Some(v) = get_streams!($matches, $arg, $no_arg) {
+                    trg_cfg.streams = Some(v);
+                }
+            }
+            indexmap::map::Entry::Vacant(entry) => {
+                if let Some(v) = get_streams!($matches, $arg, $no_arg) {
+                    let v = ConfigTarget {
+                        streams: Some(v),
+                        ..Default::default()
+                    };
+                    entry.insert(v);
+                }
             }
         }
-    };
+    }};
 }
 
 macro_rules! upd_dispositions {
@@ -196,7 +195,7 @@ impl FromArgMatches for Config {
                 ),
 
                 retiming: retiming(m),
-                targets: targets(m),
+                target_configs: target_configs(m),
                 is_output_constructed_from_input,
             })
         }
@@ -244,19 +243,21 @@ impl FromArgMatches for Config {
             opts
         }
 
-        fn targets(m: &mut ArgMatches) -> Option<FxIndexMap<Target, ConfigTarget>> {
-            let mut map: Option<FxIndexMap<Target, ConfigTarget>> = None;
+        fn target_configs(m: &mut ArgMatches) -> FxIndexMap<Target, ConfigTarget> {
+            let mut map: FxIndexMap<Target, ConfigTarget> = Default::default();
 
             let mut insert_some = |k, v: Option<ConfigStreams>| {
                 if v.is_none() {
                     return;
                 }
+
                 let k = Target::StreamType(k);
                 let v = ConfigTarget {
                     streams: v,
                     ..Default::default()
                 };
-                map.get_or_insert_default().insert(k, v);
+
+                map.insert(k, v);
             };
 
             insert_some(StreamType::Audio, get_streams!(m, Audio, NoAudio));
@@ -284,6 +285,7 @@ impl FromArgMatches for Config {
         upd!(self.jobs, m, Jobs, u8);
 
         auto_flags(self, m);
+        target_streams(self, m);
 
         upd_streams!(self.streams, m, Streams, NoStreams);
         upd_chapters(&mut self.chapters, m);
@@ -294,7 +296,6 @@ impl FromArgMatches for Config {
         upd!(self.subs_encoding, m, SubsEncoding, ConfigSubsEncoding);
 
         retiming_options(self, m);
-        targets(self, m);
 
         let mut m: &mut ArgMatches = m;
         let mut _owned_m: Option<ArgMatches> = None;
@@ -319,9 +320,7 @@ impl FromArgMatches for Config {
             _owned_m = Some(matches);
             m = _owned_m.as_mut().unwrap();
 
-            let targets = self.targets.get_or_insert_default();
-
-            match targets.entry(t) {
+            match self.target_configs.entry(t) {
                 indexmap::map::Entry::Occupied(mut entry) => {
                     entry.get_mut().update_from_arg_matches_mut(m)?;
                 }
@@ -423,13 +422,18 @@ impl FromArgMatches for Config {
             upd_flag!(cfg.retiming.no_linked, m, NoLinked);
         }
 
-        fn targets(cfg: &mut Config, m: &mut ArgMatches) {
-            let xs = &mut cfg.targets;
-            trg_upd_streams!(xs, StreamType::Audio, m, Audio, NoAudio);
-            trg_upd_streams!(xs, StreamType::Sub, m, Subs, NoSubs);
-            trg_upd_streams!(xs, StreamType::Video, m, Video, NoVideo);
-            trg_upd_streams!(xs, StreamType::Font, m, Fonts, NoFonts);
-            trg_upd_streams!(xs, StreamType::Attach, m, Attachs, NoAttachs);
+        fn target_streams(cfg: &mut Config, m: &mut ArgMatches) {
+            trg_upd_streams!(cfg.target_configs, StreamType::Audio, m, Audio, NoAudio);
+            trg_upd_streams!(cfg.target_configs, StreamType::Sub, m, Subs, NoSubs);
+            trg_upd_streams!(cfg.target_configs, StreamType::Video, m, Video, NoVideo);
+            trg_upd_streams!(cfg.target_configs, StreamType::Font, m, Fonts, NoFonts);
+            trg_upd_streams!(
+                cfg.target_configs,
+                StreamType::Attach,
+                m,
+                Attachs,
+                NoAttachs
+            );
         }
     }
 }

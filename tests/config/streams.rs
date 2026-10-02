@@ -32,7 +32,7 @@ fn parse_no_flag_aliases() {
         val.streams = Some(xs.clone());
         let ts = FxIndexMap::from_iter([(t, val)]);
 
-        assert_eq!(ts, cfg([cli]).targets.unwrap());
+        assert_eq!(ts, cfg([cli]).target_configs);
     }
 }
 
@@ -90,7 +90,7 @@ fn parse_idxs_aliases() {
         val.streams = Some(xs.clone());
         let ts = FxIndexMap::from_iter([(t, val)]);
 
-        assert_eq!(ts, cfg([cli]).targets.unwrap());
+        assert_eq!(ts, cfg([cli]).target_configs);
     }
 }
 
@@ -160,7 +160,7 @@ fn parse_ranges_aliases() {
         val.streams = Some(xs.clone());
         let ts = FxIndexMap::from_iter([(t, val)]);
 
-        assert_eq!(ts, cfg([cli]).targets.unwrap());
+        assert_eq!(ts, cfg([cli]).target_configs);
     }
 }
 
@@ -216,7 +216,7 @@ fn parse_langs_aliases() {
         val.streams = Some(xs.clone());
         let ts = FxIndexMap::from_iter([(t, val)]);
 
-        assert_eq!(ts, cfg([cli]).targets.unwrap());
+        assert_eq!(ts, cfg([cli]).target_configs);
     }
 }
 
@@ -277,7 +277,7 @@ fn parse_target_switching() {
 
     let cfg = cfg(args);
     assert_eq!(xs, cfg.streams);
-    assert_eq!(ts, cfg.targets.unwrap());
+    assert_eq!(ts, cfg.target_configs);
 }
 
 #[test]

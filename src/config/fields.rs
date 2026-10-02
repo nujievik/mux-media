@@ -25,22 +25,16 @@ use std::path::Path;
 impl Config {
     /// Returns a field value for marker `F`:
     ///
-    /// - From the first given target contains in [`Config::targets`], that has a Some value.
-    ///
+    /// - From the first given target contains in [`Config::target_configs`], that has a Some value.
     /// - Otherwise, from the common (global) configuration.
-    pub fn target<F, T>(&self, _: F, t: T) -> &<Self as Field<F>>::FieldType
+    pub fn target<F, K>(&self, field_mark: F, key: K) -> &<Self as Field<F>>::FieldType
     where
         Self: Field<F>,
         ConfigTarget: Field<F, FieldType = Option<<Self as Field<F>>::FieldType>>,
-        T: AsRef<Path>,
+        K: AsRef<Path>,
     {
-        self.targets
-            .as_ref()
-            .and_then(|map| {
-                map.get(t.as_ref())
-                    .and_then(|v| <ConfigTarget as Field<F>>::field(v).as_ref())
-            })
-            .unwrap_or_else(|| <Self as Field<F>>::field(self))
+        self.get_target(field_mark, key)
+            .unwrap_or(<Self as Field<F>>::field(self))
     }
 
     // Returns (index, val)
@@ -83,16 +77,16 @@ impl Config {
         }
     }
 
-    pub fn get_target<F, T>(&self, _: F, t: T) -> Option<&<Self as Field<F>>::FieldType>
+    #[inline]
+    pub fn get_target<F, K>(&self, _: F, key: K) -> Option<&<Self as Field<F>>::FieldType>
     where
         Self: Field<F>,
         ConfigTarget: Field<F, FieldType = Option<<Self as Field<F>>::FieldType>>,
-        T: AsRef<Path>,
+        K: AsRef<Path>,
     {
-        self.targets.as_ref().and_then(|map| {
-            map.get(t.as_ref())
-                .and_then(|v| <ConfigTarget as Field<F>>::field(v).as_ref())
-        })
+        self.target_configs
+            .get(key.as_ref())
+            .and_then(|v| <ConfigTarget as Field<F>>::field(v).as_ref())
     }
 
     pub fn get_targets<F, I, T>(&self, f: F, ts: I) -> Option<&<Self as Field<F>>::FieldType>
@@ -110,11 +104,10 @@ impl Config {
     ///
     /// This operation avoids heap allocation: internally it either copies an enum variant
     /// or increments the [`Arc`](std::sync::Arc) reference count.
-    pub(crate) fn get_key(&self, target: impl AsRef<Path>) -> Option<Target> {
-        self.targets.as_ref().and_then(|map| {
-            map.get_key_value(target.as_ref())
-                .map(|(key, _)| key.clone())
-        })
+    pub(crate) fn get_key(&self, key: impl AsRef<Path>) -> Option<Target> {
+        self.target_configs
+            .get_key_value(key.as_ref())
+            .map(|(k, _)| k.clone())
     }
 }
 

@@ -71,7 +71,7 @@ fn parse_empty_args() {
     assert_eq!(&e.titles, &Default::default());
     assert_eq!(&e.langs, &Default::default());
     assert_eq!(&e.retiming, &Default::default());
-    assert_eq!(&e.targets, &Default::default());
+    assert!(e.target_configs.is_empty());
     assert!(e.is_output_constructed_from_input);
 }
 
@@ -168,7 +168,7 @@ fn parse_no_streams() {
         val.streams = Some(xs.clone());
 
         let mut exp = (*EMPTY_ARGS).clone();
-        exp.targets.get_or_insert_default().insert(trg, val);
+        exp.target_configs.insert(trg, val);
         assert_eq_wo_locale(cfg([arg]), &exp);
     })
 }
@@ -195,7 +195,7 @@ fn parse_streams() {
         val.streams = Some(xs.clone());
 
         let mut exp = (*EMPTY_ARGS).clone();
-        exp.targets.get_or_insert_default().insert(trg, val);
+        exp.target_configs.insert(trg, val);
         assert_eq_wo_locale(cfg([arg]), &exp);
     })
 }
