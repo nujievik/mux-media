@@ -1,0 +1,127 @@
+FROM debian:13 AS builder
+
+ARG RUST_VERSION=1.98.1
+
+
+RUN apt-get update && apt-get install -y \
+    file \
+    build-essential \
+    curl \
+    git \
+    clang-22 \
+    lld-22 \
+    libclang-22-dev \
+    nasm \
+    pkg-config \
+    musl-tools \
+    musl-dev
+
+
+RUN cat > /usr/local/bin/clang-22-musl <<'EOF'
+#!/bin/sh
+
+exec clang-22 \
+    --target=x86_64-linux-musl \
+    -isystem /usr/include/x86_64-linux-musl \
+    -B/usr/lib/x86_64-linux-musl \
+    -L/usr/lib/x86_64-linux-musl \
+    -fuse-ld=lld-22 \
+    "$@"
+EOF
+
+RUN chmod +x /usr/local/bin/clang-22-musl
+
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs \
+    | sh -s -- \
+        -y \
+        --default-toolchain ${RUST_VERSION} \
+        --profile minimal
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN rustup target add x86_64-unknown-linux-musl
+
+
+# FFmpeg
+WORKDIR /tmp
+
+RUN git clone \
+    --depth 1 \
+    --branch n8.1.2 \
+    https://github.com/ffmpeg/ffmpeg
+
+WORKDIR /tmp/ffmpeg
+
+RUN ./configure \
+    --prefix=/ffmpeg_build \
+    --cc=clang-22-musl \
+    --pkg-config-flags="--static" \
+    --extra-cflags="-O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -static -flto -pipe" \
+    --extra-ldflags="-static -flto -fuse-ld=lld-22 -pipe" \
+    --disable-runtime-cpudetect \
+    --disable-autodetect \
+    --disable-programs \
+    --disable-doc \
+    --disable-avdevice \
+    --disable-swresample \
+    --disable-swscale \
+    --disable-avfilter \
+    --disable-network \
+    --disable-encoders \
+    --disable-hwaccels \
+    --disable-muxers \
+    --disable-protocols \
+    --disable-devices \
+    --disable-filters \
+    --disable-sse3 \
+    --disable-ssse3 \
+    --disable-sse4 \
+    --disable-sse42 \
+    --disable-avx \
+    --disable-xop \
+    --disable-fma3 \
+    --disable-fma4 \
+    --disable-avx2 \
+    --disable-avx512 \
+    --disable-avx512icl \
+    --disable-aesni \
+    --disable-clmul \
+    --disable-shared \
+    --enable-static \
+    --enable-protocol=file \
+    --enable-avcodec \
+    --enable-avformat \
+    --cpu=generic \
+    --enable-muxer=matroska \
+    --enable-muxer=matroska_audio \
+    --enable-muxer=ass \
+    --enable-muxer=srt \
+    --enable-muxer=webvtt \
+    --enable-lto=thin
+
+RUN make -j$(nproc) && \
+    make install
+
+
+# mux-media
+WORKDIR /mux-media
+
+COPY . .
+
+ENV CC=clang-22
+ENV CXX=clang++-22
+ENV AR=llvm-ar-22
+ENV NM=llvm-nm-22
+ENV RANLIB=llvm-ranlib-22
+
+ENV FFMPEG_DIR=/ffmpeg_build
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER="clang-22"
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C target-feature=+crt-static -C target-cpu=generic -C linker-plugin-lto -C link-arg=-fuse-ld=lld-22"
+ENV LIBCLANG_PATH=/usr/lib/llvm-22/lib
+
+RUN cargo test \
+    --tests \
+    --target x86_64-unknown-linux-musl \
+    --release \
+    --features ffmpeg-static
