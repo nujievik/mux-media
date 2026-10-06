@@ -61,6 +61,14 @@ pub fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
     prf_path.into()
 }
 
+macro_rules! copy_fields {
+    ($ist:ident, $ost:ident; $( $field:ident ),* $(,)?) => {
+        $(
+            (*$ost).$field = (*$ist).$field;
+        )*
+    };
+}
+
 pub(crate) fn add_copy_stream<'a>(
     ist: &format::stream::Stream,
     octx: &'a mut format::context::Output,
@@ -69,8 +77,68 @@ pub(crate) fn add_copy_stream<'a>(
     ost.set_parameters(ist.parameters());
 
     unsafe {
-        (*ost.as_mut_ptr()).sample_aspect_ratio = (*ist.as_ptr()).sample_aspect_ratio;
-        (*ost.parameters().as_mut_ptr()).codec_tag = 0;
+        let ist_params = ist.parameters().as_ptr();
+        let ost_params = ost.parameters().as_mut_ptr();
+
+        // We need to set codec_tag to 0 lest we run into incompatible codec tag
+        // issues when muxing into a different container format.
+        (*ost_params).codec_tag = 0;
+
+        copy_fields!(
+            ist_params, ost_params;
+
+            codec_type,
+            codec_id,
+            format,
+            bit_rate,
+            bits_per_coded_sample,
+            bits_per_raw_sample,
+            profile,
+            level,
+
+            width,
+            height,
+            sample_aspect_ratio,
+            framerate,
+            field_order,
+            color_range,
+            color_primaries,
+            color_trc,
+            color_space,
+            chroma_location,
+            video_delay,
+
+            sample_rate,
+            block_align,
+            frame_size,
+            initial_padding,
+            trailing_padding,
+            seek_preroll,
+
+            alpha_mode
+        );
+    }
+
+    const DROP_DISPOSITION_MASK: std::os::raw::c_int = ffmpeg::ffi::AV_DISPOSITION_DEPENDENT
+        | ffmpeg::ffi::AV_DISPOSITION_MULTILAYER
+        | ffmpeg::ffi::AV_DISPOSITION_METADATA;
+
+    unsafe {
+        let ist = ist.as_ptr();
+        let ost = ost.as_mut_ptr();
+
+        copy_fields!(
+            ist, ost;
+
+            time_base,
+            duration,
+            nb_frames,
+            disposition,
+            sample_aspect_ratio,
+            avg_frame_rate,
+        );
+
+        (*ost).disposition &= !DROP_DISPOSITION_MASK;
     }
 
     Ok(ost)

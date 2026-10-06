@@ -76,9 +76,16 @@ fn set_ost_dispositions(
     stream: &Stream,
     ost: &mut ffmpeg::StreamMut,
 ) {
-    let target_paths = some_or!(return; mi.immut(MarkMediaInfoTargetPaths, &ord.key));
+    const DROP_DISPOSITION_MASK: std::os::raw::c_int = ffmpeg::ffi::AV_DISPOSITION_DEFAULT
+        | ffmpeg::ffi::AV_DISPOSITION_DUB
+        | ffmpeg::ffi::AV_DISPOSITION_ORIGINAL
+        | ffmpeg::ffi::AV_DISPOSITION_FORCED;
 
     let st = unsafe { &mut *ost.as_mut_ptr() };
+
+    (*st).disposition &= !DROP_DISPOSITION_MASK;
+
+    let target_paths = some_or!(return; mi.immut(MarkMediaInfoTargetPaths, &ord.key));
 
     for ty in DispositionType::iter() {
         let (i_key, values) = mi.cfg.stream_val_dispositions(ty, target_paths, stream);
