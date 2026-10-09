@@ -172,55 +172,32 @@ jobs:
   linux-builds:
     runs-on: ubuntu-latest
 
-    env:
-      FFMPEG_DIR: ${{ github.workspace }}/target/mux-media-ffmpeg
-
-      CFLAGS_x86_64_unknown_linux_musl: "-march=x86-64 -mtune=generic"
-      CXXFLAGS_x86_64_unknown_linux_musl: "-march=x86-64 -mtune=generic"
-      CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-C target-cpu=generic"
-
-      CFLAGS_i686_unknown_linux_musl: "-march=pentium4 -mtune=generic -m32"
-      CXXFLAGS_i686_unknown_linux_musl: "-march=pentium4 -mtune=generic -m32"
-      CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_LINKER: "gcc"
-      CARGO_TARGET_I686_UNKNOWN_LINUX_MUSL_RUSTFLAGS: "-C target-cpu=pentium4 -C link-args=-m32"
-
     strategy:
       matrix:
         include:
           - target: x86_64-unknown-linux-musl
-            dependencies: musl-tools
             release_suffix: Linux-x64
 
           - target: i686-unknown-linux-musl
-            dependencies: musl-tools gcc-multilib
             release_suffix: Linux-x32
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ${{ matrix.dependencies }}
+      - name: Build & Test in Docker
+        run: docker build -f dockerfiles/Dockerfile.${{ matrix.target }} -t builder .
 
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Build & Install static FFmpeg
+      - name: Extract binary from Docker
         run: |
-          mkdir -p ${{ env.FFMPEG_DIR }}
-          docker build -f Dockerfile.ffmpeg.${{ matrix.target }} -t ffmpeg-musl-builder .
-          docker create --name extractor ffmpeg-musl-builder
-          docker cp extractor:/ffmpeg_build/. ${{ env.FFMPEG_DIR }}
+          docker create --name extractor builder
+          docker cp extractor:/mux-media/target/${{ matrix.target }}/release/mux-media ./mux-media
           docker rm extractor
 
-      - name: Build
-        run: cargo build --release --features ffmpeg-static --target ${{ matrix.target }}
-
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: mux-media-${{ matrix.release_suffix }}
-          path: target/${{ matrix.target }}/release/mux-media
+          path: mux-media
 
 
   github-release:

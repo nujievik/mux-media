@@ -39,7 +39,7 @@ jobs:
       - name: Build & Install static FFmpeg
         run: |
           mkdir -p ${{ env.FFMPEG_DIR }}
-          docker build -f Dockerfile.ffmpeg.${{ env.TARGET }} -t ffmpeg-musl-builder .
+          docker build -f dockerfiles/Dockerfile.ffmpeg.${{ env.TARGET }} -t ffmpeg-musl-builder .
           docker create --name extractor ffmpeg-musl-builder
           docker cp extractor:/ffmpeg_build/. ${{ env.FFMPEG_DIR }}
           docker rm extractor
