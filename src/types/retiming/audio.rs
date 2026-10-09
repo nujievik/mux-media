@@ -101,20 +101,23 @@ fn try_split(
     let (ist_time_base, ost_time_base, ost_index) =
         write_stream_copy_header(&ictx, i_stream, &mut octx)?;
 
-    let start_ts = time_to_ts(trg_start, ost_time_base);
-    let end_ts = time_to_ts(trg_end, ost_time_base);
+    let start_ts = time_to_ts(trg_start, ist_time_base);
+    let end_ts = time_to_ts(trg_end, ist_time_base);
 
     let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
 
-    let mut last_pts = 0i64;
-    let mut offset = None::<i64>;
+    let mut max_pts: (i64, i64) = (i64::MIN, 0);
+    let mut min_pts = None::<i64>;
 
     for (ist, mut packet) in ictx.packets() {
         if ist.index() != i_stream {
             continue;
         }
-        let pts = some_or!(continue; packet.pts());
-        let pts = rescale(pts);
+
+        let pts = match packet.pts().or(packet.dts()) {
+            Some(ts) => ts,
+            None => return Err(err!("fail get packet pts")),
+        };
 
         if pts < start_ts {
             continue;
@@ -123,22 +126,31 @@ fn try_split(
             break;
         }
 
-        last_pts = pts - *offset.get_or_insert_with(|| start_ts + pts - start_ts);
+        if pts >= max_pts.0 {
+            max_pts.0 = pts;
+            max_pts.1 = packet.duration();
+        }
 
-        packet.set_duration(0);
-        packet.set_pts(Some(last_pts));
-        packet.set_dts(Some(last_pts));
+        let offset = *min_pts.get_or_insert(pts);
+        let new_pts = packet.pts().map(|pts| rescale(pts - offset));
+        let new_dts = packet.dts().map(|dts| rescale(dts - offset));
+
+        packet.set_pts(new_pts);
+        packet.set_dts(new_dts);
+        packet.set_duration(rescale(packet.duration()));
         packet.set_stream(ost_index);
-        packet.write_interleaved(&mut octx)?;
+
+        packet.write(&mut octx)?;
     }
 
+    let min_pts = min_pts.ok_or_else(|| err!("not written a packet"))?;
     octx.write_trailer()?;
 
     let expected_duration_ts = end_ts - start_ts;
-    let offset_ts = last_pts - expected_duration_ts;
-    let is_positive = offset_ts.is_positive();
+    let offset_ts = (max_pts.0 + max_pts.1 - min_pts) - expected_duration_ts;
 
-    let offset = offset_ts.rescale(ost_time_base, MILLISECOND_TIME_BASE);
+    let is_positive = offset_ts.is_positive();
+    let offset = offset_ts.rescale(ist_time_base, MILLISECOND_TIME_BASE);
     let offset = Time::from_millis(offset.abs() as u64);
 
     Ok(SignedTime::new(is_positive, offset))
