@@ -810,9 +810,9 @@ dependencies = [
 
 [[package]]
 name = "subtitle-lines"
-version = "0.3.3"
+version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ebc531a612c8b2552414aa37bf52ae06c032bd4b03e84e23afb8eda8c2961345"
+checksum = "9e90e09dd699cf87e63b13818153261265a37678c2d49ba31cc75c6fee050f63"
 
 [[package]]
 name = "syn"

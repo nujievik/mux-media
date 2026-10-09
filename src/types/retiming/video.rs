@@ -1,6 +1,6 @@
 use super::*;
 use crate::Result;
-use crate::ffmpeg::{Packet, Rescale, format};
+use crate::ffmpeg::{Rescale, format};
 use std::path::Path;
 
 impl Retiming<'_, '_> {
@@ -59,74 +59,66 @@ fn try_split(
     let (ist_time_base, ost_time_base, ost_index) =
         write_stream_copy_header(&ictx, i_stream, &mut octx)?;
 
-    let start_ts = time_to_ts(trg_start, ost_time_base);
-    let end_ts = time_to_ts(trg_end, ost_time_base);
-    let accept = time_to_ts(ACCEPT_VIDEO_OFFSET, ost_time_base);
+    let accept = |time: Time| time_to_ts(time.saturating_sub(ACCEPT_VIDEO_OFFSET), ist_time_base);
+    let accept_start = accept(trg_start);
+    let accept_end = accept(trg_end);
 
     let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
 
     let mut min_pts = None::<i64>;
-    let mut max_pts: i64 = 0;
-    let mut ts_offset = None::<i64>;
-    let mut was_out_of_end = false;
-    let mut last_packet = None::<Packet>;
+    let mut max_pts: (i64, i64) = (i64::MIN, 0);
 
     for (ist, mut packet) in ictx.packets() {
         if ist.index() != i_stream {
             continue;
         }
-        let pts = some_or!(continue; packet.pts());
-        let pts = rescale(pts);
 
         let is_key = packet.is_key();
 
+        if min_pts.is_none() && !is_key {
+            continue;
+        }
+
+        let pts = match packet.pts().or(packet.dts()) {
+            Some(ts) => ts,
+            None => return Err(err!("fail get packet pts")),
+        };
+
         if min_pts.is_none() {
-            if !is_key || start_ts - pts > accept {
+            if pts < accept_start {
                 continue;
+            } else {
+                // start i-frame has lowest dts & pts
+                min_pts = Some(pts);
             }
         }
 
-        if let Some(pkt) = last_packet {
-            pkt.write_interleaved(&mut octx)?;
+        if pts >= max_pts.0 {
+            max_pts.0 = pts;
+            max_pts.1 = packet.duration();
         }
 
-        if pts > end_ts {
-            was_out_of_end = true;
-        }
-        let is_end = was_out_of_end && is_key;
+        let offset = min_pts.unwrap();
+        let new_pts = packet.pts().map(|pts| rescale(pts - offset));
+        let new_dts = packet.dts().map(|dts| rescale(dts - offset));
 
-        let min = *min_pts.get_or_insert_with(|| pts);
-        min_pts = Some(min.min(pts));
-        max_pts = max_pts.max(pts);
-
-        let offset = *ts_offset.get_or_insert_with(|| start_ts + pts - start_ts);
-        let new_pts = pts - offset;
-        let new_dts = packet.dts().map(|ts| rescale(ts) - offset);
-
-        if is_end {
-            packet.set_duration(0);
-        }
-
-        packet.set_pts(Some(new_pts));
+        packet.set_pts(new_pts);
         packet.set_dts(new_dts);
+        packet.set_duration(rescale(packet.duration()));
         packet.set_stream(ost_index);
-        last_packet = Some(packet);
 
-        if is_end {
+        packet.write(&mut octx)?;
+
+        if is_key && pts >= accept_end {
             break;
         }
-    }
-
-    if let Some(mut pkt) = last_packet {
-        pkt.set_duration(0);
-        pkt.write_interleaved(&mut octx)?;
     }
 
     let min_pts = min_pts.ok_or_else(|| err!("not written a packet"))?;
     octx.write_trailer()?;
 
     Ok((
-        ts_to_time(min_pts, ost_time_base),
-        ts_to_time(max_pts, ost_time_base),
+        ts_to_time(min_pts, ist_time_base),
+        ts_to_time(max_pts.0 + max_pts.1, ist_time_base),
     ))
 }
