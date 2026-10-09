@@ -112,39 +112,31 @@ fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
     let mut octx = format::output(dest)?;
 
     let (_, ost_time_base, ost_index) = write_stream_copy_header(&icontexts[0], 0, &mut octx)?;
-    let mut pts_offset: i64 = 0;
-    let mut dts_offset: i64 = 0;
+    let mut ts_offset: i64 = 0;
     let mut was_error = false;
 
     for ictx in icontexts.iter_mut() {
         let ist = ictx.streams().next().unwrap();
-        let ist_index = ist.index();
         let ist_time_base = ist.time_base();
         let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
 
-        let mut last_dts = 0;
-        let mut max_pts = 0;
+        let mut last_dts: Option<i64> = None;
 
-        for (ist, mut packet) in ictx.packets() {
-            if ist_index != ist.index() {
-                continue;
-            }
-
+        for (_, mut packet) in ictx.packets() {
             if let Some(dts) = packet.dts() {
-                let dts = rescale(dts) + dts_offset;
+                let dts = rescale(dts) + ts_offset;
+                last_dts = Some(dts);
                 packet.set_dts(Some(dts));
-                last_dts = dts;
             }
 
             if let Some(pts) = packet.pts() {
-                let pts = rescale(pts) + pts_offset;
-                let pts = pts.max(last_dts);
-                packet.set_pts(Some(pts));
-                max_pts = max_pts.max(pts);
+                packet.set_pts(Some(rescale(pts) + ts_offset));
             }
 
+            packet.set_duration(rescale(packet.duration()));
             packet.set_stream(ost_index);
-            if packet.write_interleaved(&mut octx).is_err() && !was_error {
+
+            if packet.write(&mut octx).is_err() && !was_error {
                 log::warn!(
                     "Fail concat retimed parts of '{}'. Output file may be corrupted
 Try --no-linked or --parts [!]n[,m] to fix",
@@ -154,8 +146,9 @@ Try --no-linked or --parts [!]n[,m] to fix",
             }
         }
 
-        dts_offset = last_dts;
-        pts_offset = max_pts.max(last_dts);
+        if let Some(dts) = last_dts {
+            ts_offset = dts;
+        }
     }
 
     octx.write_trailer()?;
