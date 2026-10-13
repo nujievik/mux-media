@@ -9,7 +9,7 @@ on:
       version:
         description: 'Release version (e.g., v1.2.3)'
         required: true
-        default: 'v1.0.0'
+        default: 'v1.2.3'
 
 env:
   CARGO_TERM_COLOR: always
@@ -204,6 +204,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: [cargo-publish-dry-run, windows-builds, macos-builds, linux-builds]
 
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -240,3 +243,80 @@ jobs:
     needs: github-release
     uses: ./.github/workflows/cargo-publish.yml
     secrets: inherit
+
+
+  archlinux-aur-publish-bin:
+    needs: github-release
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set VERSION env
+        id: get_version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            INPUT_VERSION="${{ github.event.inputs.version }}"
+            echo "VERSION=${INPUT_VERSION#v}" >> $GITHUB_ENV
+          else
+            REF_VERSION="${{ github.ref_name }}"
+            echo "VERSION=${REF_VERSION#v}" >> $GITHUB_ENV
+          fi
+
+      - name: Setup SSH Key for AUR
+        env:
+          AUR_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf "%s\n" "$AUR_KEY" > ~/.ssh/aur_key
+          chmod 600 ~/.ssh/aur_key
+
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/aur_key
+
+          cat <<EOF > ~/.ssh/config
+          Host aur.archlinux.org
+            IdentityFile ~/.ssh/aur_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking no
+          EOF
+          chmod 600 ~/.ssh/config
+
+          echo "=== AUR CONNECT CHECK ==="
+          ssh -vT aur@aur.archlinux.org || true
+          echo "====================================="
+
+      - name: Clone AUR repo
+        run: git clone "ssh://aur@aur.archlinux.org/mux-media-bin.git" aur_repo
+
+      - name: Update PKGBUILD & .SRCINFO in Docker
+        run: |
+          docker build \
+            -f dockerfiles/Dockerfile.archlinux-aur.mux-media-bin \
+            -t mux-media-aur-builder .
+
+          docker run --rm \
+            -e VERSION="${{ env.VERSION }}" \
+            -v "$PWD/aur_repo:/workspace" \
+            -w /workspace \
+            mux-media-aur-builder
+
+      - name: Fix AUR repo permissions
+        run: sudo chown -R "$(id -u):$(id -g)" aur_repo
+
+      - name: Commit and Push to AUR
+        run: |
+          cd aur_repo
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add PKGBUILD .SRCINFO
+
+          if ! git diff-index --quiet HEAD; then
+            git diff --cached
+            git commit -m "Release v${{ env.VERSION }}"
+            git push origin master
+          else
+            echo "No changes to commit."
+          fi
