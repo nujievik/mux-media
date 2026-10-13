@@ -34,8 +34,8 @@ pub(super) fn write_header(
         encoders.push(enc);
     }
 
-    let mut meta = octx.metadata().to_owned();
-    meta.set("application", VERSION);
+    let mut meta = Dictionary::new();
+    meta.set("encoding_tool", VERSION);
     octx.set_metadata(meta);
 
     octx.write_header()?;
