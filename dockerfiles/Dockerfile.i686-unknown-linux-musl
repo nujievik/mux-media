@@ -59,6 +59,9 @@ WORKDIR /tmp/ffmpeg
 
 RUN ./configure \
     --prefix=/ffmpeg_build \
+    --arch=x86 \
+    --cpu=pentium4 \
+    --target-os=linux \
     --cc=clang-22-musl-i686 \
     --pkg-config-flags="--static" \
     --extra-cflags="-O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -static -flto -pipe" \
@@ -92,7 +95,6 @@ RUN ./configure \
     --disable-avx512icl \
     --disable-aesni \
     --disable-clmul \
-    --cpu=pentium4 \
     --disable-shared \
     --enable-static \
     --enable-protocol=file \

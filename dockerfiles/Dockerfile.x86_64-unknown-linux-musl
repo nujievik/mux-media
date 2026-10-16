@@ -55,6 +55,9 @@ WORKDIR /tmp/ffmpeg
 
 RUN ./configure \
     --prefix=/ffmpeg_build \
+    --arch=x86_64 \
+    --cpu=x86-64 \
+    --target-os=linux \
     --cc=clang-22-musl \
     --pkg-config-flags="--static" \
     --extra-cflags="-O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=0 -static -flto -pipe" \
@@ -88,7 +91,6 @@ RUN ./configure \
     --disable-avx512icl \
     --disable-aesni \
     --disable-clmul \
-    --cpu=generic \
     --disable-shared \
     --enable-static \
     --enable-protocol=file \
@@ -119,7 +121,7 @@ ENV FFMPEG_DIR=/ffmpeg_build
 ENV LIBCLANG_PATH=/usr/lib/llvm-22/lib
 
 ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER=clang-22-musl
-ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C opt-level=2 -C target-cpu=generic -C linker-plugin-lto"
+ENV CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_RUSTFLAGS="-C opt-level=2 -C target-cpu=x86-64 -C linker-plugin-lto"
 
 RUN cargo test \
     --tests \
