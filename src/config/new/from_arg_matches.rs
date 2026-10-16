@@ -4,8 +4,8 @@ use super::super::{
     ConfigTitleMetadata, InputType,
 };
 use crate::{
-    CliArg, Extension, FxIndexMap, GlobSetPattern, LangCode, Msg, MuxError, RangeUsize, StreamType,
-    Target, VERSION, Value, undashed,
+    CliArg, Extension, FxIndexMap, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize,
+    StreamType, Target, VERSION, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
@@ -203,10 +203,8 @@ impl FromArgMatches for Config {
         fn log_level(m: &mut ArgMatches) -> ConfigLogLevel {
             if flag!(m, Quiet) {
                 ConfigLogLevel(LevelFilter::Error)
-            } else if let Some(cnt) = rm!(m, Verbose, u8) {
-                ConfigLogLevel::from_count(cnt)
             } else {
-                ConfigLogLevel::default()
+                ConfigLogLevel::from_count(m.get_count(undashed!(Verbose)))
             }
         }
 
@@ -361,8 +359,11 @@ impl FromArgMatches for Config {
         fn log_level(cfg: &mut Config, m: &mut ArgMatches) {
             if flag!(m, Quiet) {
                 cfg.log_level = ConfigLogLevel(LevelFilter::Error);
-            } else if let Some(cnt) = rm!(m, Verbose, u8) {
-                cfg.log_level = ConfigLogLevel::from_count(cnt);
+            } else {
+                match m.get_count(undashed!(Verbose)) {
+                    0 => (),
+                    cnt => cfg.log_level = ConfigLogLevel::from_count(cnt),
+                }
             }
         }
 
@@ -453,15 +454,31 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
     arg(m, CliArg::ListLangs, LangCode::print_list_langs)?;
 
     arg(m, CliArg::Version, || {
-        println!("{}\n", VERSION);
+        println!("{}", VERSION);
+
+        // do not print ffmpeg version if not verbose
+        if m.get_count(undashed!(Verbose)).is_default() {
+            return;
+        }
 
         unsafe {
             use ffmpeg_next::sys;
 
             let ver = CStr::from_ptr(sys::av_version_info()).to_string_lossy();
-            let config = CStr::from_ptr(sys::avcodec_configuration()).to_string_lossy();
 
-            println!("ffmpeg version {}", ver);
+            #[allow(unused_mut)]
+            let mut config = CStr::from_ptr(sys::avcodec_configuration()).to_string_lossy();
+            #[cfg(feature = "ffmpeg-static")]
+            {
+                config = config
+                    .split_whitespace()
+                    .filter(|arg| !arg.starts_with("--prefix"))
+                    .collect::<Vec<&str>>()
+                    .join(" ")
+                    .into();
+            }
+
+            println!("\nffmpeg version {}", ver);
             println!("  configuration: {}", config);
             println!(
                 "  libavutil    {}. {}.{}",
