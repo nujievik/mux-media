@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.19.3] - 2026-10-17
+
+### Changed
+- Prebuilds: update ffmpeg build configs.
+- Print ffmpeg version: on verbose only & exclude --prefix on static
+feature.
+- Save ORIGINAL & DUB disposition.
+
+
 ## [0.19.2] - 2026-10-14
 
 ### Fixed
@@ -100,7 +109,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - API.
-- Disable write --save-config flag to config: its disable rewrite config without explicit --save-config.
+- Disable write --save-config flag to config: its disable rewrite
+config without explicit --save-config.
 - Log messages.
 - Move config file to .mux-media/config.txt.
 - Output config to directory only.
@@ -115,7 +125,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.16.7] - 2026-08-30
 
 ### Fixed
-- Decrease priority attach stream (eg. cover.jpg) marked as 'Video' type in source.
+- Decrease priority attach stream (eg. cover.jpg) marked as 'Video'
+type in source.
 
 
 ## [0.16.6] - 2026-08-23
@@ -131,7 +142,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Prebuilt Windows-x32, Windows-arm64, and Linux-x32 binaries.
 
 ### Fixed
-- Illegal instruction: prebuilt Windows-x64, Linux-x64 binaries requires basic x86_64 CPU instructions only now.
+- Illegal instruction: prebuilt Windows-x64, Linux-x64 binaries
+requires basic x86_64 CPU instructions only now.
 
 
 ## [0.16.4] - 2026-07-15
