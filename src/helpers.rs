@@ -119,7 +119,9 @@ pub(crate) fn add_copy_stream<'a>(
         );
     }
 
-    const DROP_DISPOSITION_MASK: std::os::raw::c_int = ffmpeg::ffi::AV_DISPOSITION_DEPENDENT
+    const DROP_DISPOSITION_MASK: std::os::raw::c_int = ffmpeg::ffi::AV_DISPOSITION_DEFAULT
+        | ffmpeg::ffi::AV_DISPOSITION_FORCED
+        | ffmpeg::ffi::AV_DISPOSITION_DEPENDENT
         | ffmpeg::ffi::AV_DISPOSITION_MULTILAYER
         | ffmpeg::ffi::AV_DISPOSITION_METADATA;
 
