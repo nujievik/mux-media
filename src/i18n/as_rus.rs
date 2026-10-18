@@ -45,6 +45,7 @@ impl_msg_as_str!(
     HelpNoStreams => "Не сохранять потоки",
     HelpChapters => "Установить главы",
     HelpNoChapters => "Не сохранять главы",
+    HelpOrder => "Установить порядок потоков",
     HelpDefaults => "Установить default флаги",
     HelpMaxDefaults => "Максимум включаемых в авто default",
     HelpForceds => "Установить forced флаги",

@@ -9,6 +9,50 @@ use std::path::{Path, PathBuf};
 ///
 /// Sorts by the following rules (from highest to lowest priority):
 ///
+/// 0. [`ConfigStreamsOrder`](crate::config::StreamsOrder) value:
+///    - 0..=254.
+///    - 255 (auto).
+///
+///    ```
+///     # use mux_media::*;
+///     # use clap::Parser;
+///     # use std::path::Path;
+///     #
+///     # let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+///     #     .join("tests")
+///     #     .join("data")
+///     #     .join("streams_order")
+///     #     .join("ty");
+///     # let dir = ensure_long_path_prefix(dir);
+///     #
+///     let args = [
+///         "-i", dir.to_str().unwrap(),
+///         "-t", "attach", "--order", "0",
+///         "-t", "font", "--order", "1",
+///         "-t", "sub", "--order", "2",
+///         "-t", "audio", "--order", "3",
+///         "-t", "video", "--order", "4",
+///     ];
+///
+///     let cfg = Config::parse_from(args);
+///
+///     let vid_attach = dir.join("vid_x1_attach_x1.mkv");
+///     let audio = dir.join("ogg.ogg");
+///     let sub_font = dir.join("sub_x1_font_x1.mks");
+///
+///     let mut mi = MediaInfo::new(&cfg, 0);
+///     mi.try_insert(&vid_attach).unwrap();
+///     mi.try_insert(&audio).unwrap();
+///     mi.try_insert(&sub_font).unwrap();
+///     let o = StreamsOrder::new(&mut mi).unwrap();
+///
+///     assert_eq!(o[0].ty, StreamType::Attach);
+///     //assert_eq!(o[1].ty, StreamType::Font);
+///     //assert_eq!(o[2].ty, StreamType::Sub);
+///     //assert_eq!(o[3].ty, StreamType::Audio);
+///     //assert_eq!(o[4].ty, StreamType::Video);
+///     ```
+///
 /// 1. [`StreamType`]:
 ///     - `Video`
 ///     - `Audio`

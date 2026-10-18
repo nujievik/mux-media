@@ -81,7 +81,7 @@ impl ToArgs for Config {
             to_args!(w, (self.jobs as usize).format_into(buf).as_bytes(), @v)?;
         }
 
-        write_fields!(self, w, buf; auto_flags, streams, chapters);
+        write_fields!(self, w, buf; auto_flags, streams, chapters, order);
 
         write_dispositions!(
             w, buf;
@@ -121,7 +121,7 @@ impl ToArgs for ConfigTarget {
     where
         W: Write + ?Sized,
     {
-        write_opt_fields!(self, w, buf; streams, chapters);
+        write_opt_fields!(self, w, buf; streams, chapters, order);
 
         if let Some(v) = self.defaults.as_ref() {
             write_dispositions!(w, buf; v, Defaults, MaxDefaults);

@@ -88,6 +88,7 @@ Run `mux-media -h` to display help.
 | `--list-targets` | Show supported targets |
 | `--streams <[!]n[,m]...>` | `[!]Save streams` |
 | `--no-streams` | Don't save any stream |
+| `--order <[n:]V[,m:V]...>` | Set streams order |
 | `-c, --chapters <[T:]n-m...>` | Set chapters |
 | `-C, --no-chapters` | Don't save chapters |
 | `--defaults <[n:]B[,m:B]...>` | Set default flags |

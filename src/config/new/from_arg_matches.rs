@@ -1,7 +1,7 @@
 use super::super::{
     Config, ConfigAutoFlags, ConfigChapters, ConfigDispositions, ConfigInput, ConfigLangMetadata,
-    ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigSubsEncoding, ConfigTarget,
-    ConfigTitleMetadata, InputType,
+    ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigStreamsOrder,
+    ConfigSubsEncoding, ConfigTarget, ConfigTitleMetadata, InputType,
 };
 use crate::{
     CliArg, Extension, FxIndexMap, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize,
@@ -183,6 +183,7 @@ impl FromArgMatches for Config {
 
                 streams: streams!(m, Streams, NoStreams),
                 chapters: get_chapters(m).unwrap_or_else(|| ConfigChapters::default()),
+                order: rm_or!(m, Order, ConfigStreamsOrder, ConfigStreamsOrder::default),
                 defaults: dispositions!(m, Defaults, MaxDefaults),
                 forceds: dispositions!(m, Forceds, MaxForceds),
                 titles: rm_or!(m, Titles, ConfigTitleMetadata, ConfigTitleMetadata::default),
@@ -287,6 +288,7 @@ impl FromArgMatches for Config {
 
         upd_streams!(self.streams, m, Streams, NoStreams);
         upd_chapters(&mut self.chapters, m);
+        upd!(self.order, m, Order, ConfigStreamsOrder);
         upd_dispositions!(self.defaults, m, Defaults, MaxDefaults);
         upd_dispositions!(self.forceds, m, Forceds, MaxForceds);
         upd!(self.titles, m, Titles, ConfigTitleMetadata);
@@ -602,6 +604,7 @@ impl FromArgMatches for ConfigTarget {
         Ok(Self {
             streams: get_streams!(m, Streams, NoStreams),
             chapters: get_chapters(m),
+            order: rm!(m, Order, ConfigStreamsOrder),
             defaults: get_dispositions!(m, Defaults, MaxDefaults),
             forceds: get_dispositions!(m, Forceds, MaxForceds),
             titles: rm!(m, Titles, ConfigTitleMetadata),
@@ -613,6 +616,8 @@ impl FromArgMatches for ConfigTarget {
     fn update_from_arg_matches_mut(&mut self, m: &mut ArgMatches) -> Result<(), Error> {
         trg_upd_streams(&mut self.streams, m);
         trg_upd_chapters(&mut self.chapters, m);
+
+        upd!(self.order, m, Order, ConfigStreamsOrder, @opt);
 
         trg_upd_dispositions!(self.defaults, m, Defaults, MaxDefaults);
         trg_upd_dispositions!(self.forceds, m, Forceds, MaxForceds);

@@ -1,5 +1,7 @@
 use super::{StreamsOrder, StreamsOrderItem};
-use crate::config::{MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams};
+use crate::config::{
+    MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams, MarkConfigStreamsOrder,
+};
 use crate::media_info::*;
 use crate::{
     ArcPathBuf, FxHashSet, Lang, LangCode, MediaInfo, Result, Retiming, StreamType, display,
@@ -41,8 +43,8 @@ impl StreamsOrder {
             Err(err!("not found any cached media file"))
         } else {
             let sources = sources(mi);
-            let sorted_src_stream_ty = try_sorted_src_stream_ty(mi, &sources)?;
-            let items = items(sources, sorted_src_stream_ty);
+            let sorted_src_stream_key = try_sorted_src_stream_key(mi, &sources)?;
+            let items = items(sources, sorted_src_stream_key);
             try_order(mi, items)
         }
     }
@@ -54,16 +56,15 @@ fn sources(mi: &mut MediaInfo) -> Vec<ArcPathBuf> {
     sources
 }
 
-fn try_sorted_src_stream_ty(
+fn try_sorted_src_stream_key(
     mi: &mut MediaInfo,
     sources: &Vec<ArcPathBuf>,
-) -> Result<Vec<(usize, usize, StreamType)>> {
+) -> Result<Vec<(usize, usize, OrderSortKey)>> {
     let cfg = mi.cfg;
     let locale = cfg.locale;
 
-    let mut track_streams: Vec<(usize, usize, StreamType, OrderSortKey)> = Vec::new();
-    let mut attach_streams: Vec<(usize, usize, StreamType, Option<String>)> = Vec::new();
-    let mut attach_names: FxHashSet<String> = FxHashSet::default();
+    let mut streams_to_sort: Vec<(usize, usize, OrderSortKey)> = Vec::new();
+    let mut attach_filenames: FxHashSet<String> = FxHashSet::default();
 
     for (i_src, src) in sources.iter().enumerate() {
         let streams = mi.try_take(MarkMediaInfoStreams, src)?;
@@ -84,22 +85,6 @@ fn try_sorted_src_stream_ty(
                 return;
             }
 
-            if ty.is_an_attach() {
-                if match &stream.filename {
-                    Some(s) if attach_names.contains(s) => false,
-                    Some(_) => true,
-                    None => true,
-                } {
-                    let fname = stream.filename.as_ref().map(|s| s.to_lowercase());
-                    attach_streams.push((i_src, stream.i, ty, fname));
-
-                    if let Some(s) = &stream.filename {
-                        let _ = attach_names.insert(s.clone());
-                    }
-                }
-                return;
-            }
-
             let lang = &stream.lang;
             let it_signs = mi.it_signs(src, stream);
 
@@ -108,43 +93,49 @@ fn try_sorted_src_stream_ty(
             let (i, forceds) = cfg.stream_val(MarkConfigForceds, &target_paths, stream);
             let forced = forceds.get(&i, &lang);
 
-            let key = OrderSortKey::new(ty, default, forced, it_signs, lang, locale);
-            track_streams.push((i_src, stream.i, ty, key));
+            let (i, cfg_order) = cfg.stream_val(MarkConfigStreamsOrder, &target_paths, stream);
+            let cfg_value = cfg_order.get(&i, &lang);
+
+            let fname = if ty.is_an_attach() {
+                match &stream.filename {
+                    Some(fname) if !attach_filenames.contains(fname) => {
+                        let _ = attach_filenames.insert(fname.clone());
+                        Some(fname.to_lowercase())
+                    }
+                    Some(_) | None => None,
+                }
+            } else {
+                None
+            };
+
+            let key = OrderSortKey::new(
+                cfg_value, ty, default, forced, it_signs, lang, locale, fname,
+            );
+
+            streams_to_sort.push((i_src, stream.i, key))
         });
 
         mi.set(MarkMediaInfoStreams, src, streams);
         mi.set(MarkMediaInfoTargetPaths, src, target_paths);
     }
 
-    track_streams.sort_by(|a, b| a.3.cmp(&b.3));
-    attach_streams.sort_by(|a, b| a.2.cmp(&b.2).then(a.3.cmp(&b.3)));
-
-    let mut streams: Vec<(usize, usize, StreamType)> =
-        Vec::with_capacity(track_streams.len() + attach_streams.len());
-
-    for (i_src, i_stream, ty, _) in track_streams {
-        streams.push((i_src, i_stream, ty));
-    }
-    for (i_src, i_stream, ty, _) in attach_streams {
-        streams.push((i_src, i_stream, ty));
-    }
-
-    Ok(streams)
+    streams_to_sort.sort_by(|a, b| a.2.cmp(&b.2));
+    Ok(streams_to_sort)
 }
 
 fn items(
     sources: Vec<ArcPathBuf>,
-    sorted_src_stream_ty: Vec<(usize, usize, StreamType)>,
+    sorted_src_stream_key: Vec<(usize, usize, OrderSortKey)>,
 ) -> Vec<StreamsOrderItem> {
-    let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(sorted_src_stream_ty.len());
+    let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(sorted_src_stream_key.len());
     let mut src_numbers = vec![Option::<usize>::None; sources.len()];
     let mut src_num = 0usize;
 
-    for (i_src, i_stream, ty) in sorted_src_stream_ty {
+    for (i_src, i_stream, sort_key) in sorted_src_stream_key {
         let (num, is_first) = num_is_first(i_src, &mut src_numbers, &mut src_num);
 
         items.push(StreamsOrderItem {
-            ty,
+            ty: sort_key.ty,
             key: sources[i_src].clone(),
             key_i_stream: i_stream,
             src: None,
@@ -219,22 +210,28 @@ fn num_is_first(
 }
 
 struct OrderSortKey {
+    cfg_value: u8,
     ty: StreamType,
     default: u8,
     forced: u8,
     it_signs: u8,
     lang: u8,
+    fname: Option<String>,
 }
 
 impl OrderSortKey {
     fn new(
+        cfg_value: Option<u8>,
         ty: StreamType,
         default: Option<bool>,
         forced: Option<bool>,
         it_signs: bool,
         lang: &Lang,
         locale: LangCode,
+        fname: Option<String>,
     ) -> Self {
+        let cfg_value = cfg_value.unwrap_or(255);
+
         let flag_order = |flag: Option<bool>| match flag {
             Some(true) => 0,
             None => 1,
@@ -254,22 +251,26 @@ impl OrderSortKey {
         };
 
         Self {
+            cfg_value,
             ty,
             default,
             forced,
             it_signs,
             lang,
+            fname,
         }
     }
 }
 
 impl PartialEq for OrderSortKey {
     fn eq(&self, other: &Self) -> bool {
-        self.ty == other.ty
+        self.cfg_value == other.cfg_value
+            && self.ty == other.ty
             && self.default == other.default
             && self.forced == other.forced
             && self.it_signs == other.it_signs
             && self.lang == other.lang
+            && &self.fname == &other.fname
     }
 }
 impl Eq for OrderSortKey {}
@@ -281,12 +282,23 @@ impl PartialOrd for OrderSortKey {
 }
 impl Ord for OrderSortKey {
     fn cmp(&self, other: &Self) -> Ordering {
-        (self.ty, self.default, self.forced, self.it_signs, self.lang).cmp(&(
-            other.ty,
-            other.default,
-            other.forced,
-            other.it_signs,
-            other.lang,
-        ))
+        (
+            self.cfg_value,
+            self.ty,
+            self.default,
+            self.forced,
+            self.it_signs,
+            self.lang,
+            &self.fname,
+        )
+            .cmp(&(
+                other.cfg_value,
+                other.ty,
+                other.default,
+                other.forced,
+                other.it_signs,
+                other.lang,
+                &other.fname,
+            ))
     }
 }

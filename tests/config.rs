@@ -18,6 +18,8 @@ mod output;
 mod retiming;
 #[path = "config/streams.rs"]
 mod streams;
+#[path = "config/streams_order.rs"]
+mod streams_order;
 #[path = "config/subs_encoding.rs"]
 mod subs_encoding;
 

@@ -76,6 +76,7 @@ enum_cli_arg! {
     NoStreams => "no-streams",
     Chapters => "chapters",
     NoChapters => "no-chapters",
+    Order => "order",
     Defaults => "defaults",
     MaxDefaults => "max-defaults",
     Forceds => "forceds",

@@ -1,7 +1,7 @@
 use super::Blocks;
 use crate::config::{
-    ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigSubsEncoding,
-    ConfigTitleMetadata,
+    ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigStreamsOrder,
+    ConfigSubsEncoding, ConfigTitleMetadata,
 };
 use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
@@ -57,6 +57,13 @@ impl Blocks {
                     .help(Msg::HelpNoChapters.as_str_localized())
                     .action(ArgAction::SetTrue)
                     .conflicts_with(undashed!(Chapters)),
+            )
+            .arg(
+                Arg::new(undashed!(Order))
+                    .long(undashed!(Order))
+                    .value_name("[n:]V[,m:V]...")
+                    .help(Msg::HelpOrder.as_str_localized())
+                    .value_parser(ValueParser::new(ConfigStreamsOrder::from_str)),
             )
             .arg(
                 Arg::new(undashed!(Defaults))
