@@ -53,7 +53,7 @@ fn test_forceds_order() {
 }
 
 #[test]
-fn test_it_signs_order() {
+fn test_is_signs_order() {
     body_test_order(&["--titles", "0:signs", "--locale", "eng"], [0, 1, 2]);
     body_test_order(&["--titles", "1:signs", "--locale", "eng"], [1, 2, 0]);
     body_test_order(&["--titles", "2:signs", "--locale", "eng"], [2, 1, 0]);

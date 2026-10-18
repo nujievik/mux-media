@@ -1,7 +1,7 @@
 pub(crate) mod builders;
 pub(crate) mod cache;
 mod finalize;
-mod it_signs;
+mod is_signs;
 mod lazy_fields;
 
 pub use cache::{MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup};

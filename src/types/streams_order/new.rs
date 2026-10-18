@@ -86,7 +86,7 @@ fn try_sorted_src_stream_key(
             }
 
             let lang = &stream.lang;
-            let it_signs = mi.it_signs(src, stream);
+            let is_signs = mi.is_signs(src, stream);
 
             let (i, defaults) = cfg.stream_val(MarkConfigDefaults, &target_paths, stream);
             let default = defaults.get(&i, &lang);
@@ -109,7 +109,7 @@ fn try_sorted_src_stream_key(
             };
 
             let key = OrderSortKey::new(
-                cfg_value, ty, default, forced, it_signs, lang, locale, fname,
+                cfg_value, ty, default, forced, is_signs, lang, locale, fname,
             );
 
             streams_to_sort.push((i_src, stream.i, key))
@@ -136,6 +136,7 @@ fn items(
 
         items.push(StreamsOrderItem {
             ty: sort_key.ty,
+            is_signs: sort_key.is_signs,
             key: sources[i_src].clone(),
             key_i_stream: i_stream,
             src: None,
@@ -214,7 +215,7 @@ struct OrderSortKey {
     ty: StreamType,
     default: u8,
     forced: u8,
-    it_signs: u8,
+    is_signs: bool,
     lang: u8,
     fname: Option<String>,
 }
@@ -225,7 +226,7 @@ impl OrderSortKey {
         ty: StreamType,
         default: Option<bool>,
         forced: Option<bool>,
-        it_signs: bool,
+        is_signs: bool,
         lang: &Lang,
         locale: LangCode,
         fname: Option<String>,
@@ -241,8 +242,6 @@ impl OrderSortKey {
         let default = flag_order(default);
         let forced = flag_order(forced);
 
-        let it_signs = if it_signs { 0 } else { 1 };
-
         let lang = match lang {
             Lang::Code(c) if c == &locale => 0,
             Lang::Code(LangCode::Und) => 1,
@@ -255,7 +254,7 @@ impl OrderSortKey {
             ty,
             default,
             forced,
-            it_signs,
+            is_signs,
             lang,
             fname,
         }
@@ -268,7 +267,7 @@ impl PartialEq for OrderSortKey {
             && self.ty == other.ty
             && self.default == other.default
             && self.forced == other.forced
-            && self.it_signs == other.it_signs
+            && self.is_signs == other.is_signs
             && self.lang == other.lang
             && &self.fname == &other.fname
     }
@@ -287,7 +286,7 @@ impl Ord for OrderSortKey {
             self.ty,
             self.default,
             self.forced,
-            self.it_signs,
+            other.is_signs,
             self.lang,
             &self.fname,
         )
@@ -296,7 +295,7 @@ impl Ord for OrderSortKey {
                 other.ty,
                 other.default,
                 other.forced,
-                other.it_signs,
+                self.is_signs,
                 other.lang,
                 &other.fname,
             ))

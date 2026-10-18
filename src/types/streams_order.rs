@@ -283,6 +283,11 @@ pub struct StreamsOrderItem {
     /// A type of stream.
     pub ty: StreamType,
 
+    /// Whether stream ty is [`StreamType::Sub`] AND
+    /// (stream title OR `key` MarkMediaInfoPathTail OR `key` MarkMediaInfoRelativeUpmost) contains
+    /// a signs-substring (example, "signs").
+    pub is_signs: bool,
+
     /// A file path cached in [`MediaInfo`](crate::MediaInfo).
     pub key: ArcPathBuf,
 
