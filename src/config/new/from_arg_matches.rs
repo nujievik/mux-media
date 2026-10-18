@@ -415,7 +415,7 @@ impl FromArgMatches for Config {
                 } else if no_arg {
                     *val = Value::User(false)
                 } else if val.is_auto() {
-                    *val = Value::User(!no_auto)
+                    *val = Value::Auto(!no_auto)
                 }
             }
         }
