@@ -406,8 +406,13 @@ macro_rules! lazy_path_fields {
 
             #[inline]
             fn set(&mut self, src: &Path, value: Self::FieldType) {
-                if let Some(fields) = self.cache.of_files.get_mut(src) {
-                    fields.$map_field = Cached(value);
+                let value = Cached(value);
+                match self.cache.of_files.get_mut(src) {
+                    Some(cache) => cache.$map_field = value,
+                    None => {
+                        let cache = MediaInfoCacheOfFile { $map_field: value, ..Default::default() };
+                        self.cache.of_files.insert(src.into(), cache);
+                    },
                 }
             }
         }
