@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.19.4] - 2026-10-19
+
+### Added
+- --order configuration.
+
+### Changed
+- Auto-on default disposition:
+    - for signs: only if signs language == language default audio
+    - for other subtitles: only if audio language not locale
+AND subtitles language != language default audio
+
+### Fixed
+- Update auto flags configuration.
+- Manual set MediaInfo::LazyPathField.
+
+
 ## [0.19.3] - 2026-10-17
 
 ### Changed
