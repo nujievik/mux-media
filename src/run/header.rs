@@ -4,7 +4,7 @@ use super::{Encode, Encoder};
 use crate::ffmpeg::{self, Dictionary, format::context};
 use crate::media_info::{MarkMediaInfoStreams, MarkMediaInfoTargetPaths};
 use crate::{
-    DispositionType, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
+    DispositionType, Lang, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
     VERSION, immut,
 };
 use enum_map::EnumMap;
@@ -22,13 +22,24 @@ pub(super) fn write_header(
     let auto = mi.cfg.auto_flags.map_dispositions();
     let mut counts: EnumMap<StreamType, EnumMap<DispositionType, usize>> = EnumMap::default();
 
+    // (is_locale, value)
+    let mut lang_default_audio: Option<(bool, Lang)> = None;
+
     for ord in &order.0 {
         let ist = input_stream::new(mi, &mut icontexts, ord)?;
         let st = &immut!(@try, mi, MarkMediaInfoStreams, &ord.key)?[ord.key_i_stream];
 
         let (mut ost, enc) = Encoder::new(&ist, octx)?;
         ost.set_metadata(new_ost_metadata(st, &ist));
-        set_ost_dispositions(mi, &auto, &mut counts, ord, st, &mut ost);
+        set_ost_dispositions(
+            mi,
+            &auto,
+            &mut counts,
+            &mut lang_default_audio,
+            ord,
+            st,
+            &mut ost,
+        );
 
         push_idx(&mut idx_map[ord.src_num], ord.i_stream, ost.index());
         encoders.push(enc);
@@ -72,6 +83,7 @@ fn set_ost_dispositions(
     mi: &MediaInfo,
     auto: &EnumMap<DispositionType, bool>,
     counts: &mut EnumMap<StreamType, EnumMap<DispositionType, usize>>,
+    lang_default_audio: &mut Option<(bool, Lang)>,
     ord: &StreamsOrderItem,
     stream: &Stream,
     ost: &mut ffmpeg::StreamMut,
@@ -82,16 +94,40 @@ fn set_ost_dispositions(
     for ty in DispositionType::iter() {
         let (i_key, values) = mi.cfg.stream_val_dispositions(ty, target_paths, stream);
 
-        let v = values.get(&i_key, &stream.lang).unwrap_or_else(|| {
-            if auto[ty] {
-                let cnt = counts[stream.ty][ty];
-                cnt < values.max_for_stream_type(ty, stream.ty)
-            } else {
-                false
+        let v = match values.get(&i_key, &stream.lang) {
+            Some(v) => v,
+            None if !auto[ty] => false,
+            None if counts[stream.ty][ty] >= values.max_for_stream_type(ty, stream.ty) => false,
+
+            None if !matches!(ty, DispositionType::Default) => true,
+
+            None if stream.ty.is_sub() => {
+                match lang_default_audio.as_ref() {
+                    // set default signs only if signs lang == lang_default_audio
+                    Some((_, lang)) if ord.is_signs => lang == &*stream.lang,
+
+                    // set default subtitles only if audio language not locale
+                    Some((is_locale, _)) if *is_locale => false,
+
+                    // set default subtitles only if stream language != audio language
+                    Some((_, lang)) => lang != &*stream.lang,
+
+                    None => true,
+                }
             }
-        });
+
+            None => true,
+        };
 
         if v {
+            if matches!(ty, DispositionType::Default)
+                && lang_default_audio.is_none()
+                && stream.ty.is_audio()
+            {
+                let is_locale = &*stream.lang == &Lang::Code(mi.cfg.locale);
+                *lang_default_audio = Some((is_locale, (*stream.lang).clone()));
+            }
+
             counts[stream.ty][ty] += 1;
             st.disposition |= ty.bits();
         }
