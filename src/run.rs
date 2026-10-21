@@ -5,11 +5,11 @@ mod external_fonts;
 mod header;
 
 use crate::config::MarkConfigChapters;
-use crate::ffmpeg::{self, Rational, format};
+use crate::ffmpeg::{self, format};
 use crate::media_info::{MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths};
 use crate::{
-    Config, ConfigChaptersTimeRange, MediaInfo, Msg, MuxError, MuxLogger, Result, StreamsOrder,
-    TryFinalizeInit, display,
+    Config, ConfigChaptersTimeRange, MILLISECOND_TIME_BASE, MediaInfo, Msg, MuxError, MuxLogger,
+    Result, StreamsOrder, TryFinalizeInit, display,
 };
 use buf_packets::BufPackets;
 use encoder::{Encode, Encoder};
@@ -208,29 +208,23 @@ fn add_chapters(
     octx: &mut format::context::Output,
 ) {
     let cfg = mi.cfg;
+    let mut i = 0i64;
 
-    let cfg_chapters_it = order.iter_first_entries().filter_map(|ord| {
+    let cfg_chapters = order.iter_first_entries().find_map(|ord| {
         let target_paths = mi.get(MarkMediaInfoTargetPaths, &ord.key)?;
-        let cfg_chapters = cfg
-            .get_targets(MarkConfigChapters, target_paths)
-            .unwrap_or(&mi.cfg.chapters);
-        Some((ord, cfg_chapters))
+        let c = cfg.get_targets(MarkConfigChapters, target_paths)?;
+        c.ranges.as_ref()
     });
 
-    let mut i = 0i64;
-    for (ord, cfg_chapters) in cfg_chapters_it {
-        if cfg_chapters.no_flag {
-            continue;
+    if let Some(ranges) = cfg_chapters {
+        for r in ranges {
+            add_cfg_chapter(octx, i, r);
+            i += 1;
         }
+        return;
+    }
 
-        if let Some(ranges) = cfg_chapters.ranges.as_ref() {
-            for r in ranges {
-                add_cfg_chapter(octx, i, r);
-                i += 1;
-            }
-            break;
-        }
-
+    for ord in order.iter_first_entries() {
         let ictx = &icontexts[ord.src_num];
 
         for chp in ictx.chapters() {
@@ -242,6 +236,10 @@ fn add_chapters(
             }
             i += 1;
         }
+
+        if i > 0 {
+            break;
+        }
     }
 }
 
@@ -250,13 +248,11 @@ fn add_cfg_chapter(
     i: i64,
     cfg_chapter: &ConfigChaptersTimeRange,
 ) {
-    const TIME_BASE: Rational = Rational(1, 1000);
-
     let start = cfg_chapter.start.as_millis() as i64;
     let end = cfg_chapter.end.as_millis() as i64;
     let title = cfg_chapter.title.as_ref().map_or("", |v| v);
 
-    if let Err(e) = octx.add_chapter(i, TIME_BASE, start, end, title) {
+    if let Err(e) = octx.add_chapter(i, MILLISECOND_TIME_BASE, start, end, title) {
         warn!("fail add chapter '{}': {}", title, e);
     }
 }
