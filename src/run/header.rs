@@ -136,7 +136,7 @@ fn set_ost_dispositions(
                 && lang_default_audio.is_none()
                 && stream.ty.is_audio()
             {
-                let is_locale = &*stream.lang == &Lang::Code(mi.cfg.locale);
+                let is_locale = &*stream.lang == &Lang::Code(mi.cfg.locales.locale_streams());
                 *lang_default_audio = Some((is_locale, (*stream.lang).clone()));
             }
 

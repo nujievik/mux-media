@@ -54,11 +54,13 @@ Run `mux-media -h` to display help.
 | `--solo` | Mux orphan files too |
 | | |
 | Global options: | |
-| `-l, --locale <lng>` | Set log language |
-| `-w, --overwrite` | Overwrite input files |
-| `-j, --jobs <n>` | Set max parallel muxing |
+| `-l, --locale <lng>` | Set priority streams language & log language |
+| `    --locale-streams <lng>` | Set priority streams language only |
+| `    --locale-log <lng>` | Set log language only (eng or rus) |
 | `-v, --verbose...` | Increase logging |
 | `-q, --quiet` | Suppress logging |
+| `-w, --overwrite` | Overwrite input files |
+| `-j, --jobs <n>` | Set max parallel muxing |
 | `-e, --exit-on-err` | Skip muxing next files if error occurs |
 | `--load <txt>` | Load .txt config |
 | `--save-config` | Save config to .txt in the input directory |

@@ -1,4 +1,4 @@
-use super::{Blocks, val_parsers::ConfigParser};
+use super::{super::LogLang, Blocks, val_parsers::ConfigParser};
 use crate::{LangCode, Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
@@ -17,19 +17,18 @@ impl Blocks {
                     .value_parser(ValueParser::new(LangCode::from_str)),
             )
             .arg(
-                Arg::new(undashed!(Overwrite))
-                    .short('w')
-                    .long(undashed!(Overwrite))
-                    .help(Msg::HelpOverwrite.as_str_localized())
-                    .action(ArgAction::SetTrue),
+                Arg::new(undashed!(LocaleStreams))
+                    .long(undashed!(LocaleStreams))
+                    .value_name("lng")
+                    .help(Msg::HelpLocaleStreams.as_str_localized())
+                    .value_parser(ValueParser::new(LangCode::from_str)),
             )
             .arg(
-                Arg::new(undashed!(Jobs))
-                    .short('j')
-                    .long(undashed!(Jobs))
-                    .value_name("n")
-                    .help(Msg::HelpJobs.as_str_localized())
-                    .value_parser(clap::value_parser!(u8).range(1..)),
+                Arg::new(undashed!(LocaleLog))
+                    .long(undashed!(LocaleLog))
+                    .value_name("lng")
+                    .help(Msg::HelpLocaleLog.as_str_localized())
+                    .value_parser(ValueParser::new(LogLang::from_str)),
             )
             .arg(
                 Arg::new(undashed!(Verbose))
@@ -45,6 +44,21 @@ impl Blocks {
                     .help(Msg::HelpQuiet.as_str_localized())
                     .action(ArgAction::SetTrue)
                     .conflicts_with(undashed!(Verbose)),
+            )
+            .arg(
+                Arg::new(undashed!(Overwrite))
+                    .short('w')
+                    .long(undashed!(Overwrite))
+                    .help(Msg::HelpOverwrite.as_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(undashed!(Jobs))
+                    .short('j')
+                    .long(undashed!(Jobs))
+                    .value_name("n")
+                    .help(Msg::HelpJobs.as_str_localized())
+                    .value_parser(clap::value_parser!(u8).range(1..)),
             )
             .arg(
                 Arg::new(undashed!(ExitOnErr))

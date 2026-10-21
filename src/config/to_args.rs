@@ -64,10 +64,7 @@ impl ToArgs for Config {
     where
         W: Write + ?Sized,
     {
-        to_args!(w, Locale)?;
-        to_args!(w, self.locale.as_ref().as_bytes(), @v)?;
-
-        write_fields!(self, w, buf; input, output, log_level);
+        write_fields!(self, w, buf; locales, input, output, log_level);
 
         if self.overwrite {
             to_args!(w, Overwrite)?;

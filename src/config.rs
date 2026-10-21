@@ -62,6 +62,7 @@ pub use fields::{
     chapters::ConfigChapters,
     dispositions::ConfigDispositions,
     input::ConfigInput,
+    locales::ConfigLocales,
     log_level::ConfigLogLevel,
     metadata::{ConfigLangMetadata, ConfigMetadata, ConfigTitleMetadata},
     output::ConfigOutput,
@@ -91,10 +92,12 @@ pub struct Config {
     pub input: ConfigInput,
     pub output: ConfigOutput,
 
+    #[deprecated = "use [`Config::locales`] instead"]
     pub locale: LangCode,
+    pub locales: ConfigLocales,
+    pub log_level: ConfigLogLevel,
     pub overwrite: bool,
     pub jobs: u8,
-    pub log_level: ConfigLogLevel,
     pub exit_on_err: bool,
     pub save_config: bool,
 

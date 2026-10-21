@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 ///
 /// Sorts by the following rules (from highest to lowest priority):
 ///
-/// 0. [`ConfigStreamsOrder`](crate::config::StreamsOrder) value:
+/// 0. [`ConfigStreamsOrder`](crate::config::ConfigStreamsOrder) value:
 ///    - 0..=254.
 ///    - 255 (auto).
 ///
@@ -205,7 +205,7 @@ use std::path::{Path, PathBuf};
 ///     ```
 ///
 /// 5. Stream language:
-///     - Same as `locale` language
+///     - Same as [`ConfigLocales::locale_streams`](crate::config::ConfigLocales::locale_streams) language
 ///     - `Und` (undefined language)
 ///     - Other languages (excluding `Jpn`)
 ///     - `Jpn` (Japanese)

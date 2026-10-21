@@ -8,6 +8,7 @@ pub(crate) mod auto_flags;
 pub(crate) mod chapters;
 pub(crate) mod dispositions;
 pub(crate) mod input;
+pub(crate) mod locales;
 pub(crate) mod log_level;
 pub(crate) mod metadata;
 pub(crate) mod output;

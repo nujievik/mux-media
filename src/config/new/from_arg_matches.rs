@@ -1,8 +1,9 @@
 use super::super::{
     Config, ConfigAutoFlags, ConfigChapters, ConfigDispositions, ConfigInput, ConfigLangMetadata,
-    ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigStreamsOrder,
+    ConfigLocales, ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigStreamsOrder,
     ConfigSubsEncoding, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets, InputType,
 };
+use super::LogLang;
 use crate::{
     CliArg, Extension, FxIndexMap, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize,
     StreamType, Target, VERSION, Value, undashed,
@@ -150,7 +151,8 @@ impl FromArgMatches for Config {
     }
 
     fn from_arg_matches_mut(m: &mut ArgMatches) -> Result<Self, Error> {
-        let locale = get_locale(&m).unwrap_or_else(|| Msg::lang());
+        let locale = locale(m);
+
         printable_args(&m)?;
         let mut cfg = cfg(m, locale)?;
 
@@ -160,7 +162,7 @@ impl FromArgMatches for Config {
 
         return Ok(cfg);
 
-        fn cfg(m: &mut ArgMatches, locale: LangCode) -> Result<Config, Error> {
+        fn cfg(m: &mut ArgMatches, locales: ConfigLocales) -> Result<Config, Error> {
             let input = try_input(m)?;
 
             let (output, is_output_constructed_from_input) = match rm!(m, Output, ConfigOutput) {
@@ -172,9 +174,11 @@ impl FromArgMatches for Config {
                 input,
                 output,
 
-                locale,
-                overwrite: flag!(m, Overwrite),
+                #[allow(deprecated)]
+                locale: locales.locale(),
+                locales,
                 log_level: log_level(m),
+                overwrite: flag!(m, Overwrite),
                 exit_on_err: flag!(m, ExitOnErr),
                 save_config: flag!(m, SaveConfig),
                 jobs: rm_or!(m, Jobs, u8, || Config::JOBS_DEFAULT),
@@ -200,6 +204,18 @@ impl FromArgMatches for Config {
                 target_configs: target_configs(m),
                 is_output_constructed_from_input,
             })
+        }
+
+        fn locale(m: &ArgMatches) -> ConfigLocales {
+            let (locale, locale_log) = update_log_language(m);
+            let locale = locale.unwrap_or_else(|| Msg::lang());
+            let locale_streams = m.get_one::<LangCode>(undashed!(LocaleStreams)).copied();
+
+            ConfigLocales {
+                locale,
+                locale_streams,
+                locale_log,
+            }
         }
 
         fn log_level(m: &mut ArgMatches) -> ConfigLogLevel {
@@ -271,10 +287,7 @@ impl FromArgMatches for Config {
     }
 
     fn update_from_arg_matches_mut(&mut self, m: &mut ArgMatches) -> Result<(), Error> {
-        if let Some(l) = get_locale(m) {
-            self.locale = l;
-        }
-
+        locale(self, m);
         input(self, m);
         output(self, m);
         log_level(self, m);
@@ -334,6 +347,26 @@ impl FromArgMatches for Config {
         }
 
         return Ok(());
+
+        fn locale(cfg: &mut Config, m: &mut ArgMatches) {
+            let (locale, locale_log) = update_log_language(m);
+
+            if let Some(l) = locale {
+                #[allow(deprecated)]
+                {
+                    cfg.locale = l;
+                }
+                cfg.locales.locale = l;
+            }
+
+            if let Some(l) = locale_log {
+                cfg.locales.locale_log = Some(l);
+            }
+
+            if let Some(l) = m.get_one::<LangCode>(undashed!(LocaleStreams)) {
+                cfg.locales.locale_streams = Some(*l);
+            }
+        }
 
         fn input(cfg: &mut Config, m: &mut ArgMatches) {
             let input = &mut cfg.input;
@@ -443,14 +476,22 @@ impl FromArgMatches for Config {
     }
 }
 
-pub(super) fn get_locale(m: &ArgMatches) -> Option<LangCode> {
-    match m.get_one::<LangCode>(undashed!(Locale)) {
-        Some(&l) => {
-            Msg::upd_lang_or_warn(l);
-            Some(l)
-        }
-        None => None,
+// Returns (locale, locale_log)
+pub(super) fn update_log_language(m: &ArgMatches) -> (Option<LangCode>, Option<LangCode>) {
+    let locale = m.get_one::<LangCode>(undashed!(Locale)).copied();
+    let log = m.get_one::<LogLang>(undashed!(LocaleLog)).copied();
+
+    let msg_lang = match (locale, log) {
+        (_, Some(l)) => Some(l.0),
+        (Some(l), None) => Some(l),
+        (None, None) => None,
+    };
+
+    if let Some(l) = msg_lang {
+        Msg::upd_lang_or_warn(l);
     }
+
+    (locale, log.map(|l| l.0))
 }
 
 pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {

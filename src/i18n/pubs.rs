@@ -112,7 +112,7 @@ impl Msg {
     }
 
     #[inline(always)]
-    fn is_supported_lang(lang: LangCode) -> bool {
+    pub(crate) fn is_supported_lang(lang: LangCode) -> bool {
         match lang {
             LangCode::Eng => true,
             LangCode::Rus => true,

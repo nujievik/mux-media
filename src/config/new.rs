@@ -3,14 +3,15 @@ mod finalize;
 mod from_arg_matches;
 
 use super::ConfigInput;
-use crate::{Config, Msg, Result, display, undashed};
+use crate::{Config, LangCode, Msg, MuxError, Result, display, undashed};
 use clap::{ArgMatches, Command, CommandFactory, FromArgMatches, Parser};
-use from_arg_matches::{get_locale, printable_args};
+use from_arg_matches::{printable_args, update_log_language};
 use std::{
     env::args_os,
     fs::File,
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
+    str::FromStr,
 };
 
 impl Config {
@@ -31,7 +32,7 @@ impl Config {
 
         fn cli_matches(cmd: &Command) -> Result<ArgMatches> {
             let m = cmd.clone().try_get_matches_from(args_os().skip(1))?;
-            let _ = get_locale(&m);
+            let _ = update_log_language(&m);
             printable_args(&m)?;
             Ok(m)
         }
@@ -92,6 +93,22 @@ impl Config {
 
             println!("{} '{}'...", Msg::LoadingTxtConfig, display(txt));
             Ok(lines)
+        }
+    }
+}
+
+#[derive(Copy, Clone)]
+struct LogLang(LangCode);
+
+impl FromStr for LogLang {
+    type Err = MuxError;
+
+    fn from_str(s: &str) -> Result<LogLang> {
+        let code = s.parse::<LangCode>()?;
+        if Msg::is_supported_lang(code) {
+            Ok(Self(code))
+        } else {
+            Err(err!("unsupported log language"))
         }
     }
 }

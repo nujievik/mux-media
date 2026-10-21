@@ -61,7 +61,7 @@ fn try_sorted_src_stream_key(
     sources: &Vec<ArcPathBuf>,
 ) -> Result<Vec<(usize, usize, OrderSortKey)>> {
     let cfg = mi.cfg;
-    let locale = cfg.locale;
+    let locale = cfg.locales.locale_streams();
 
     let mut streams_to_sort: Vec<(usize, usize, OrderSortKey)> = Vec::new();
     let mut attach_filenames: FxHashSet<String> = FxHashSet::default();

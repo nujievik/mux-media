@@ -36,8 +36,8 @@ pub struct MediaInfoCacheOfFile {
     pub relative_upmost: CacheState<String>,
     pub sub_char_encoding: CacheState<CharEncoding>,
 
-    /// Targets from file path and parent path, existed in [`Config::targets`](
-    /// crate::Config::config_targets).
+    /// Targets from file path and parent path, existed in [`Config::target_configs`](
+    /// crate::Config::target_configs).
     pub target_paths: CacheState<Vec<Target>>,
 
     pub audio_duration: CacheState<Time>,
