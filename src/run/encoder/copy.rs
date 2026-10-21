@@ -1,9 +1,9 @@
 use super::{Encode, Encoder};
 use crate::ffmpeg::{
-    self, Packet, Rational,
+    self, Packet, Rational, Rescale,
     format::{self, context},
 };
-use crate::{Msg, Result, add_copy_stream};
+use crate::{MILLISECOND_TIME_BASE, Msg, Result, add_copy_stream};
 use log::warn;
 
 pub struct EncoderCopy {
@@ -18,7 +18,10 @@ pub struct EncoderCopy {
 
 impl Encode for EncoderCopy {
     fn set_ist_time_base(&mut self, tb: Rational) {
-        self.ist_time_base = tb;
+        if self.ist_time_base != tb {
+            self.ts_offset = self.ts_offset.map(|ts| ts.rescale(self.ist_time_base, tb));
+            self.ist_time_base = tb;
+        }
     }
 
     fn set_ost_time_base(&mut self, tb: Rational) {
@@ -26,7 +29,9 @@ impl Encode for EncoderCopy {
     }
 
     fn set_ts_offset(&mut self, offset: Option<i64>) {
-        self.ts_offset = offset;
+        if let Some(offset) = offset {
+            self.ts_offset = Some(offset.rescale(MILLISECOND_TIME_BASE, self.ist_time_base))
+        }
     }
 
     fn processing_packet(&mut self, octx: &mut context::Output, packet: &mut Packet) -> Result<()> {
@@ -88,8 +93,8 @@ impl EncoderCopy {
     ) -> Result<(ffmpeg::StreamMut<'a>, Encoder)> {
         let ost = add_copy_stream(ist, octx)?;
         let enc = Self {
-            ist_time_base: Rational(1, 1),
-            ost_time_base: Rational(1, 1),
+            ist_time_base: MILLISECOND_TIME_BASE,
+            ost_time_base: MILLISECOND_TIME_BASE,
             ts_offset: None,
             ost_index: ost.index(),
             max_dts: i64::MIN,

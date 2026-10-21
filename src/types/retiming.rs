@@ -9,12 +9,11 @@ use crate::ffmpeg::{
     format::{self, context},
 };
 use crate::{
-    ArcPathBuf, MediaInfo, Result, StreamType, StreamsOrderItem, Time, add_copy_stream, display,
+    ArcPathBuf, MILLISECOND_TIME_BASE, MediaInfo, Result, StreamType, StreamsOrderItem, Time,
+    add_copy_stream, display,
 };
 use signed_time::SignedTime;
 use std::path::{Path, PathBuf};
-
-const MILLISECOND_TIME_BASE: Rational = Rational(1, 1000);
 
 #[derive(Debug)]
 pub struct Retiming<'a, 'b> {
