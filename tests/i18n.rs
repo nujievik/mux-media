@@ -6,12 +6,17 @@ use mux_media::*;
 
 #[test]
 fn test_config_parse() {
-    [("rus", LangCode::Rus), ("eng", LangCode::Eng)]
-        .into_iter()
-        .for_each(|(arg, lang)| {
-            assert_eq!(cfg(["--locale", arg]).locale, lang);
-            assert_eq!(Msg::lang(), lang);
-        });
+    let arg_lang_pairs = [("rus", LangCode::Rus), ("eng", LangCode::Eng)];
+
+    for (arg, lang) in &arg_lang_pairs {
+        assert_eq!(cfg(["--locale", arg]).locale, *lang);
+        assert_eq!(Msg::lang(), *lang);
+    }
+
+    for (arg, lang) in &arg_lang_pairs {
+        assert_eq!(cfg(["--locale-log", arg]).locale, *lang);
+        assert_eq!(Msg::lang(), *lang);
+    }
 
     [("jpn", LangCode::Jpn), ("und", LangCode::Und)]
         .into_iter()

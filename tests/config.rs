@@ -8,6 +8,8 @@ mod chapters;
 mod dispositions;
 #[path = "config/input.rs"]
 mod input;
+#[path = "config/locales.rs"]
+mod locales;
 #[path = "config/log_level.rs"]
 mod log_level;
 #[path = "config/metadata.rs"]
