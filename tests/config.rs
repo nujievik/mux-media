@@ -22,6 +22,8 @@ mod streams;
 mod streams_order;
 #[path = "config/subs_encoding.rs"]
 mod subs_encoding;
+#[path = "config/ts_offsets.rs"]
+mod ts_offsets;
 
 mod range {
     use mux_media::RangeUsize;

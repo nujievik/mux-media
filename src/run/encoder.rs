@@ -18,6 +18,8 @@ pub trait Encode {
 
     fn set_ost_time_base(&mut self, tb: Rational);
 
+    fn set_ts_offset(&mut self, offset: Option<i64>);
+
     fn processing_packet(&mut self, octx: &mut context::Output, packet: &mut Packet) -> Result<()>;
 
     fn finalize(&mut self, octx: &mut context::Output) -> Result<()>;
@@ -42,6 +44,12 @@ impl Encode for Encoder {
     fn set_ost_time_base(&mut self, tb: Rational) {
         match self {
             Self::Copy(enc) => enc.set_ost_time_base(tb),
+        }
+    }
+
+    fn set_ts_offset(&mut self, offset: Option<i64>) {
+        match self {
+            Self::Copy(enc) => enc.set_ts_offset(offset),
         }
     }
 

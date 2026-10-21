@@ -84,6 +84,7 @@ enum_cli_arg! {
     Titles => "titles",
     Langs => "langs",
     SubsEncoding => "subs-encoding",
+    TsOffsets => "ts-offsets",
 
     Parts => "parts",
     NoLinked => "no-linked",

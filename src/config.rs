@@ -57,6 +57,7 @@ mod to_args;
 pub use fields::{
     MarkConfigChapters, MarkConfigDefaults, MarkConfigForceds, MarkConfigLangMetadata,
     MarkConfigStreams, MarkConfigStreamsOrder, MarkConfigSubsEncoding, MarkConfigTitleMetadata,
+    MarkConfigTsOffsets,
     auto_flags::ConfigAutoFlags,
     chapters::ConfigChapters,
     dispositions::ConfigDispositions,
@@ -68,6 +69,7 @@ pub use fields::{
     streams::ConfigStreams,
     streams_order::ConfigStreamsOrder,
     subs_encoding::ConfigSubsEncoding,
+    ts_offsets::ConfigTsOffsets,
 };
 
 pub(crate) use fields::input::{InputType, iters::MediaGroupedByStem};
@@ -106,6 +108,7 @@ pub struct Config {
     pub titles: ConfigTitleMetadata,
     pub langs: ConfigLangMetadata,
     pub subs_encoding: ConfigSubsEncoding,
+    pub ts_offsets: ConfigTsOffsets,
 
     pub retiming: ConfigRetiming,
     pub target_configs: FxIndexMap<Target, ConfigTarget>,
@@ -124,6 +127,7 @@ pub struct ConfigTarget {
     pub titles: Option<ConfigTitleMetadata>,
     pub langs: Option<ConfigLangMetadata>,
     pub subs_encoding: Option<ConfigSubsEncoding>,
+    pub ts_offsets: Option<ConfigTsOffsets>,
 }
 
 impl Config {

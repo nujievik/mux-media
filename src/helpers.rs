@@ -84,6 +84,10 @@ pub(crate) fn add_copy_stream<'a>(
         // issues when muxing into a different container format.
         (*ost_params).codec_tag = 0;
 
+        // remove start delay
+        (*ost_params).initial_padding = 0;
+        (*ost_params).trailing_padding = 0;
+
         copy_fields!(
             ist_params, ost_params;
 
@@ -111,8 +115,6 @@ pub(crate) fn add_copy_stream<'a>(
             sample_rate,
             block_align,
             frame_size,
-            initial_padding,
-            trailing_padding,
             seek_preroll,
 
             alpha_mode

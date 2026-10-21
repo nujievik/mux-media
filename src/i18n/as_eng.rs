@@ -53,6 +53,7 @@ impl_msg_as_str!(
     HelpTitles => "Set stream titles",
     HelpLangs => "Set stream languages",
     HelpSubsEncoding => "Decode subs as n-encoding",
+    HelpTsOffsets => "Set streams timestamps offsets (ms)",
 
     HelpRetimingOptions => "Retiming options",
     HelpParts => "[!]Save parts for chapter names",

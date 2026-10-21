@@ -1,11 +1,12 @@
 mod input_stream;
 
 use super::{Encode, Encoder};
+use crate::config::MarkConfigTsOffsets;
 use crate::ffmpeg::{self, Dictionary, format::context};
 use crate::media_info::{MarkMediaInfoStreams, MarkMediaInfoTargetPaths};
 use crate::{
     DispositionType, Lang, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
-    VERSION, immut,
+    Target, VERSION, immut,
 };
 use enum_map::EnumMap;
 
@@ -27,19 +28,30 @@ pub(super) fn write_header(
 
     for ord in &order.0 {
         let ist = input_stream::new(mi, &mut icontexts, ord)?;
-        let st = &immut!(@try, mi, MarkMediaInfoStreams, &ord.key)?[ord.key_i_stream];
+        let (mut ost, mut enc) = Encoder::new(&ist, octx)?;
 
-        let (mut ost, enc) = Encoder::new(&ist, octx)?;
-        ost.set_metadata(new_ost_metadata(st, &ist));
-        set_ost_dispositions(
-            mi,
-            &auto,
-            &mut counts,
-            &mut lang_default_audio,
-            ord,
-            st,
-            &mut ost,
-        );
+        if let Some(xs) = immut!(mi, MarkMediaInfoStreams, &ord.key) {
+            let stream = &xs[ord.key_i_stream];
+            ost.set_metadata(new_ost_metadata(stream, &ist));
+
+            if let Some(target_paths) = mi.immut(MarkMediaInfoTargetPaths, &ord.key) {
+                set_ost_dispositions(
+                    mi,
+                    target_paths,
+                    &auto,
+                    &mut counts,
+                    &mut lang_default_audio,
+                    ord,
+                    stream,
+                    &mut ost,
+                );
+
+                let (i, offsets) = mi.cfg.stream_val(MarkConfigTsOffsets, target_paths, stream);
+                if let Some(offset) = offsets.get(&i, &stream.lang) {
+                    enc.set_ts_offset(Some(offset as i64));
+                }
+            }
+        }
 
         push_idx(&mut idx_map[ord.src_num], ord.i_stream, ost.index());
         encoders.push(enc);
@@ -81,6 +93,7 @@ fn new_ost_metadata<'a>(stream: &Stream, ist: &'a ffmpeg::Stream<'a>) -> Diction
 
 fn set_ost_dispositions(
     mi: &MediaInfo,
+    target_paths: &Vec<Target>,
     auto: &EnumMap<DispositionType, bool>,
     counts: &mut EnumMap<StreamType, EnumMap<DispositionType, usize>>,
     lang_default_audio: &mut Option<(bool, Lang)>,
@@ -88,7 +101,6 @@ fn set_ost_dispositions(
     stream: &Stream,
     ost: &mut ffmpeg::StreamMut,
 ) {
-    let target_paths = some_or!(return; mi.immut(MarkMediaInfoTargetPaths, &ord.key));
     let st = unsafe { &mut *ost.as_mut_ptr() };
 
     for ty in DispositionType::iter() {

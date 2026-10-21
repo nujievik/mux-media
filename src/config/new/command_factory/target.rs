@@ -1,7 +1,7 @@
 use super::Blocks;
 use crate::config::{
     ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigStreamsOrder,
-    ConfigSubsEncoding, ConfigTitleMetadata,
+    ConfigSubsEncoding, ConfigTitleMetadata, ConfigTsOffsets,
 };
 use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
@@ -113,6 +113,14 @@ impl Blocks {
                     .value_name("n")
                     .help(Msg::HelpSubsEncoding.as_str_localized())
                     .value_parser(ValueParser::new(ConfigSubsEncoding::from_str)),
+            )
+            .arg(
+                Arg::new(undashed!(TsOffsets))
+                    .long(undashed!(TsOffsets))
+                    .value_name("[n:]T[,m:T]...")
+                    .help(Msg::HelpTsOffsets.as_str_localized())
+                    .allow_negative_numbers(true)
+                    .value_parser(ValueParser::new(ConfigTsOffsets::from_str)),
             );
 
         self

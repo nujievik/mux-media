@@ -89,7 +89,7 @@ impl ToArgs for Config {
             self.forceds, Forceds, MaxForceds;
         );
 
-        write_fields!(self, w, buf; titles, langs, subs_encoding, retiming);
+        write_fields!(self, w, buf; titles, langs, subs_encoding, ts_offsets, retiming);
 
         for (t, t_cfg) in &self.target_configs {
             if let Some(s) = t.to_str() {
@@ -130,7 +130,7 @@ impl ToArgs for ConfigTarget {
             write_dispositions!(w, buf; v, Forceds, MaxForceds);
         }
 
-        write_opt_fields!(self, w, buf; titles, langs, subs_encoding);
+        write_opt_fields!(self, w, buf; titles, langs, subs_encoding, ts_offsets);
 
         Ok(())
     }

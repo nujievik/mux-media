@@ -53,6 +53,7 @@ impl_msg_as_str!(
     HelpTitles => "Установить имена потоков",
     HelpLangs => "Установить языки потоков",
     HelpSubsEncoding => "Декодировать субтитры в кодировке n",
+    HelpTsOffsets => "Задать смещения временных меток потоков (мс)",
 
     HelpRetimingOptions => "Ретайминг опции",
     HelpParts => "[!]Сохранить части для имен глав",

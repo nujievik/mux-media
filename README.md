@@ -98,6 +98,7 @@ Run `mux-media -h` to display help.
 | `--titles <[n:]T[,m:T]...>` | Set stream titles |
 | `--langs <[n:]L[,m:L]...>` | Set stream languages |
 | `--subs-encoding <n>` | Decode subs as n-encoding |
+| `--ts-offsets <[n:]T[,m:T]...>` | Set streams timestamps offsets (ms) |
 | | |
 | Retiming options: | |
 | `--parts <[!]n[,m]...>` | `[!]Save parts for chapter names` |

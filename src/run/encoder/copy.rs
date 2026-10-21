@@ -9,6 +9,8 @@ use log::warn;
 pub struct EncoderCopy {
     ist_time_base: Rational,
     ost_time_base: Rational,
+    // in ist_time_base
+    ts_offset: Option<i64>,
     ost_index: usize,
     // in ist_time_base
     max_dts: i64,
@@ -23,7 +25,16 @@ impl Encode for EncoderCopy {
         self.ost_time_base = tb;
     }
 
+    fn set_ts_offset(&mut self, offset: Option<i64>) {
+        self.ts_offset = offset;
+    }
+
     fn processing_packet(&mut self, octx: &mut context::Output, packet: &mut Packet) -> Result<()> {
+        if let Some(offset) = self.ts_offset {
+            packet.set_dts(packet.dts().map(|ts| ts + offset));
+            packet.set_pts(packet.pts().map(|ts| ts + offset));
+        }
+
         if let Some(dts) = packet.dts() {
             if dts >= self.max_dts {
                 self.max_dts = dts;
@@ -57,6 +68,7 @@ impl Encode for EncoderCopy {
                 packet.set_pts(packet.pts().map(|pts| pts.max(self.max_dts)));
             }
         }
+
         packet.rescale_ts(self.ist_time_base, self.ost_time_base);
         packet.set_position(-1);
         packet.set_stream(self.ost_index);
@@ -78,6 +90,7 @@ impl EncoderCopy {
         let enc = Self {
             ist_time_base: Rational(1, 1),
             ost_time_base: Rational(1, 1),
+            ts_offset: None,
             ost_index: ost.index(),
             max_dts: i64::MIN,
         };

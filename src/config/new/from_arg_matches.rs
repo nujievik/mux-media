@@ -1,7 +1,7 @@
 use super::super::{
     Config, ConfigAutoFlags, ConfigChapters, ConfigDispositions, ConfigInput, ConfigLangMetadata,
     ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigStreamsOrder,
-    ConfigSubsEncoding, ConfigTarget, ConfigTitleMetadata, InputType,
+    ConfigSubsEncoding, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets, InputType,
 };
 use crate::{
     CliArg, Extension, FxIndexMap, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize,
@@ -194,6 +194,7 @@ impl FromArgMatches for Config {
                     ConfigSubsEncoding,
                     ConfigSubsEncoding::default
                 ),
+                ts_offsets: rm_or!(m, TsOffsets, ConfigTsOffsets, ConfigTsOffsets::default),
 
                 retiming: retiming(m),
                 target_configs: target_configs(m),
@@ -294,6 +295,7 @@ impl FromArgMatches for Config {
         upd!(self.titles, m, Titles, ConfigTitleMetadata);
         upd!(self.langs, m, Langs, ConfigLangMetadata);
         upd!(self.subs_encoding, m, SubsEncoding, ConfigSubsEncoding);
+        upd!(self.ts_offsets, m, TsOffsets, ConfigTsOffsets);
 
         retiming_options(self, m);
 
@@ -610,6 +612,7 @@ impl FromArgMatches for ConfigTarget {
             titles: rm!(m, Titles, ConfigTitleMetadata),
             langs: rm!(m, Langs, ConfigLangMetadata),
             subs_encoding: rm!(m, SubsEncoding, ConfigSubsEncoding),
+            ts_offsets: rm!(m, TsOffsets, ConfigTsOffsets),
         })
     }
 
@@ -625,6 +628,7 @@ impl FromArgMatches for ConfigTarget {
         upd!(self.titles, m, Titles, ConfigTitleMetadata, @opt);
         upd!(self.langs, m, Langs, ConfigLangMetadata, @opt);
         upd!(self.subs_encoding, m, SubsEncoding, ConfigSubsEncoding, @opt);
+        upd!(self.ts_offsets, m, TsOffsets, ConfigTsOffsets, @opt);
 
         return Ok(());
 

@@ -75,6 +75,7 @@ pub enum Msg {
     HelpTitles,
     HelpLangs,
     HelpSubsEncoding,
+    HelpTsOffsets,
 
     HelpRetimingOptions,
     HelpParts,
