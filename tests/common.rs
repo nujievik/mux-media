@@ -207,6 +207,18 @@ macro_rules! build_test_to_args {
 
                 cfg.try_save_config().unwrap();
                 assert_eq!(left, $crate::common::read_txt_args(&txt), "from txt err");
+
+                // test that config with --target global is eq config without target
+                let trg_args = $crate::common::append_str_vecs([add_args.clone(), vec!["-t", "global"], $args]);
+                assert_eq!(&$crate::common::cfg(trg_args), &cfg);
+
+                let double_trg_args = $crate::common::append_str_vecs([
+                    add_args.clone(),
+                    vec!["-t", "global"],
+                    vec!["-t", "global"],
+                    $args
+                ]);
+                assert_eq!($crate::common::cfg(double_trg_args), cfg);
             )*
         }
     };
