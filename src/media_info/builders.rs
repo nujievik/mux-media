@@ -4,7 +4,7 @@ mod streams;
 use super::*;
 use crate::config::MarkConfigSubsEncoding;
 use crate::{CharEncoding, Extension, Result, StreamType, StreamsOrder, Target, helpers};
-use std::{ffi::OsString, mem, path::Path};
+use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
     pub(super) fn build_stem(&self) -> Result<OsString> {
@@ -62,7 +62,7 @@ impl MediaInfo<'_> {
         }
 
         if *self.cfg.auto_flags.encs {
-            let buf: &mut [u8; MediaInfo::BUF_SIZE] = unsafe { mem::transmute(&mut self.buf) };
+            let buf = self.buf.get_or_insert_with(|| [0u8; Self::BUF_SIZE]);
             Ok(CharEncoding::detect(src, buf))
         } else {
             Ok(CharEncoding::NotRecognized)

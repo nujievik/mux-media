@@ -15,7 +15,7 @@ pub use lazy_fields::{
 use crate::{ArcPathBuf, Config, FxHashMap, Result, i18n::logs};
 use cache::CacheState;
 use rayon::prelude::*;
-use std::{mem::MaybeUninit, path::Path};
+use std::path::Path;
 
 /// Extracts and caches a media information.
 ///
@@ -27,7 +27,7 @@ pub struct MediaInfo<'a> {
     pub cache: MediaInfoCache,
     /// Job number. Separates access to temp files.
     pub job: u8,
-    buf: MaybeUninit<[u8; MediaInfo::BUF_SIZE]>,
+    buf: Option<[u8; MediaInfo::BUF_SIZE]>,
 }
 
 impl MediaInfo<'_> {
@@ -38,7 +38,7 @@ impl MediaInfo<'_> {
             cfg,
             cache: Default::default(),
             job,
-            buf: MaybeUninit::uninit(),
+            buf: None,
         }
     }
 
