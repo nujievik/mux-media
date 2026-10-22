@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.19.6] - 2026-10-22
+
+### Added
+- Configuration --locale-streams & --locale-log.
+
+### Changed
+- Set output chapters from first found chapters only.
+
+### Fixed
+- Internal fixes.
+- Rescale tb_offsets to stream time base.
+
+
 ## [0.19.5] - 2026-10-21
 
 ### Added
