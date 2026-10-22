@@ -1,70 +1,131 @@
-use std::{ffi::OsStr, mem::take};
+use std::ffi::OsStr;
 
-/// Stores a numbers extracted from [`OsStr`].
+/// Extracts a number from byte slices.
 ///
-/// Internally tracks byte length and parsed numeric substrings to support
-/// accurate and efficient updates and reuse when possible.
+/// Defined number:
+/// - if previous known: diff ascii-digit subsequence in previous and current byte slice.
+/// - if previous unknown: first ascii-digit subsequence in current byte slice.
 #[derive(Clone)]
 pub struct MediaNumber {
-    len_raw_bytes: usize,
-    s_nums_borders: Vec<(String, usize, usize)>,
-    idx: Option<usize>,
-    s: String,
+    // ranges stores input (start, end) values, not digits_buf
+    ranges: [(u8, u8); Self::MAX_NUMBER_NUMBERS],
+    ranges_idx: u8,
+
+    // ascii digit bytes only
+    digits_buf: [u8; Self::MAX_ASCII_FILENAME_LEN],
 }
 
 impl MediaNumber {
+    /// Max file name in most filesystems is 255 ascii bytes.
+    const MAX_ASCII_FILENAME_LEN: usize = u8::MAX as usize;
+
+    /// Max file name in most filesystems is 255 ascii bytes. Minimum digit range is 2 bytes
+    /// (digit + sep). Therefore MAX_NUMBER_NUMBERS is 128.
+    const MAX_NUMBER_NUMBERS: usize = 128;
+
     /// Returns the number string if present; otherwise, returns an empty string.
     pub fn as_str(&self) -> &str {
-        &self.s
+        // SAFETY: ascii digit bytes only
+        unsafe { str::from_utf8_unchecked(self.as_bytes()) }
     }
 
-    /// Returns the number as `u64` if parsable; otherwise, returns `0`.
+    /// Returns the number as `usize` if parsable; otherwise, returns `0`.
     pub fn to_usize(&self) -> usize {
-        self.s.parse::<usize>().unwrap_or(0)
+        self.as_str().parse::<usize>().unwrap_or(0)
     }
 
-    /// Updates the internal value based on the new [`OsStr`].
+    /// Updates the number from `new` bytes.
     ///
-    /// - If the new value has a different byte length, recreates [`Self`] from scratch.
-    /// - If lengths match and the stored index is valid, only updates the number string.
-    /// - Otherwise, updates all fields, sets number string and index based on mismatched content.
-    pub fn upd(&mut self, value: &OsStr) {
-        let bytes = value.as_encoded_bytes();
-        let len_raw_bytes = bytes.len();
+    /// # Cases
+    /// - New bytes contain correct and different number at the old address:
+    /// copies only this number bytes.
+    ///
+    /// - New bytes contain correct and different number at the any other old address:
+    /// copies this number bytes and updates index number.
+    ///
+    /// - Otherwise, its eq constructs new [`MediaNumber`].
+    pub fn upd(&mut self, new: &OsStr) {
+        let new_bytes = new.as_encoded_bytes();
 
-        if self.len_raw_bytes != len_raw_bytes {
-            *self = Self::from(bytes);
+        let is_updated_only_number_and_idx = |current: &mut MediaNumber, ranges_idx| -> bool {
+            let (start, end) = current.ranges[ranges_idx];
+            let end = end as usize;
+
+            if end <= new_bytes.len() {
+                let maybe_new_number = &new_bytes[start as usize..end];
+                let mut i = 0;
+
+                for (old, n) in current
+                    .as_bytes_idx(ranges_idx)
+                    .iter()
+                    .zip(maybe_new_number.iter())
+                {
+                    if n != old {
+                        let remainder = &maybe_new_number[i..];
+
+                        return if remainder.iter().all(|b| b.is_ascii_digit()) {
+                            current.ranges_idx = ranges_idx as u8;
+                            current.as_mut_bytes_idx(ranges_idx)[i..].copy_from_slice(remainder);
+                            true
+                        } else {
+                            false
+                        };
+                    }
+                    i += 1;
+                }
+            }
+
+            false
+        };
+
+        let ranges_idx = self.ranges_idx as usize;
+
+        if is_updated_only_number_and_idx(self, ranges_idx) {
             return;
         }
 
-        if let Some(s) = self
-            .idx
-            .and_then(|idx| self.s_nums_borders.get(idx))
-            .and_then(|&(_, start, end)| get_s_num(&bytes[start..end]))
-        {
-            self.s = s;
-            return;
+        for idx in 0..self.ranges.len() {
+            if idx == ranges_idx {
+                continue;
+            }
+            if self.ranges[idx].1 == 0 {
+                break;
+            }
+
+            if is_updated_only_number_and_idx(self, idx) {
+                return;
+            }
         }
 
-        let s_nums_borders = s_nums_borders_from_bytes(bytes);
-        let (s, idx) = self.get_s_idx_from_mismatch_num(&s_nums_borders);
-
-        self.s_nums_borders = s_nums_borders;
-        self.idx = idx;
-        self.s = s;
+        *self = MediaNumber::from(new_bytes);
     }
 
-    #[inline(always)]
-    fn get_s_idx_from_mismatch_num(
-        &self,
-        s_nums_borsers: &[(String, usize, usize)],
-    ) -> (String, Option<usize>) {
-        s_nums_borsers
-            .into_iter()
-            .enumerate()
-            .find(|(i, vals)| Some(*vals) != self.s_nums_borders.get(*i))
-            .map(|(i, vals)| (vals.0.to_string(), Some(i)))
-            .unwrap_or(("".to_string(), None))
+    fn as_bytes(&self) -> &[u8] {
+        self.as_bytes_idx(self.ranges_idx as usize)
+    }
+
+    fn as_bytes_idx(&self, idx: usize) -> &[u8] {
+        let mut start = 0;
+        let mut end = 0;
+
+        for (r_start, r_end) in self.ranges.iter().take(idx + 1) {
+            start = end;
+            end += r_end - r_start;
+        }
+
+        &self.digits_buf[start as usize..end as usize]
+    }
+
+    fn as_mut_bytes_idx(&mut self, idx: usize) -> &mut [u8] {
+        let mut start = 0;
+        let mut end = 0;
+
+        for (r_start, r_end) in self.ranges.iter().take(idx + 1) {
+            start = end;
+            end += r_end - r_start;
+        }
+
+        &mut self.digits_buf[start as usize..end as usize]
     }
 }
 
@@ -82,53 +143,50 @@ impl From<&[u8]> for MediaNumber {
     ///
     /// Sets to number string the first number found (if any); otherwise, an empty string.
     fn from(bytes: &[u8]) -> Self {
-        let s_nums_borders = s_nums_borders_from_bytes(bytes);
+        let mut ranges = [(0u8, 0u8); Self::MAX_NUMBER_NUMBERS];
+        let mut ranges_init_len = 0;
 
-        let s = s_nums_borders
-            .get(0)
-            .map(|(s, _, _)| s.to_string())
-            .unwrap_or_default();
+        let mut start = None;
 
-        Self {
-            len_raw_bytes: bytes.len(),
-            s_nums_borders,
-            idx: None,
-            s,
+        for (i, byte) in bytes.into_iter().enumerate() {
+            match (byte.is_ascii_digit(), start) {
+                (true, None) => start = Some(i as u8),
+                (false, Some(st)) => {
+                    if i > Self::MAX_ASCII_FILENAME_LEN {
+                        break;
+                    }
+
+                    ranges[ranges_init_len] = (st, i as u8);
+                    ranges_init_len += 1;
+
+                    if ranges_init_len == Self::MAX_NUMBER_NUMBERS {
+                        break;
+                    }
+                    start = None;
+                }
+                _ => continue,
+            }
+        }
+
+        let mut digits_buf = [0u8; Self::MAX_ASCII_FILENAME_LEN];
+        let mut i = 0;
+
+        for &(start, end) in &ranges {
+            let len = (end - start) as usize;
+            let next_i = i + len;
+
+            if next_i > Self::MAX_ASCII_FILENAME_LEN {
+                break;
+            }
+
+            digits_buf[i..next_i].copy_from_slice(&bytes[start as usize..end as usize]);
+            i = next_i;
+        }
+
+        MediaNumber {
+            digits_buf,
+            ranges,
+            ranges_idx: 0,
         }
     }
-}
-
-#[inline(always)]
-fn s_nums_borders_from_bytes(bytes: &[u8]) -> Vec<(String, usize, usize)> {
-    let mut s_nums_borders = Vec::<(String, usize, usize)>::new();
-
-    let mut current = Vec::<u8>::new();
-    let mut start = 0;
-
-    bytes.into_iter().enumerate().for_each(|(i, byte)| {
-        if byte.is_ascii_digit() {
-            current.push(*byte);
-            if start == 0 {
-                start = i;
-            }
-        } else if !current.is_empty() {
-            // SAFETY: only `is_ascii_digit()` bytes
-            let s = unsafe { String::from_utf8_unchecked(take(&mut current)) };
-            s_nums_borders.push((s, start, i));
-            start = 0;
-        }
-    });
-
-    s_nums_borders
-}
-
-#[inline(always)]
-fn get_s_num(bytes: &[u8]) -> Option<String> {
-    bytes
-        .into_iter()
-        .all(|byte| byte.is_ascii_digit())
-        .then(|| {
-            // SAFETY: only `is_ascii_digit()` bytes
-            unsafe { String::from_utf8_unchecked(bytes.to_vec()) }
-        })
 }
