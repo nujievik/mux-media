@@ -207,6 +207,16 @@ fn parse_streams() {
 }
 
 #[test]
+fn parse_clean_flags() {
+    test_parse!(["--clean-flags"], clean_flags, true);
+}
+
+#[test]
+fn parse_clean_meta() {
+    test_parse!(["--clean-meta"], clean_meta, true);
+}
+
+#[test]
 fn parse_chapters() {
     test_parse!(["-C"], chapters.no_flag, true);
 }
@@ -273,6 +283,7 @@ fn test_aliases_of_args() {
         vec!["-C", "--no-chapters"],
         vec!["-F", "--no-fonts"],
         vec!["-M", "--no-attachs"],
+        vec!["--clean-meta", "--clean-metadata"],
     ]
     .iter()
     .for_each(|args| {
@@ -354,3 +365,6 @@ fn test_target_switching() {
 }
 
 build_test_to_args!(overwrite_to_args, "config_overwrite"; vec!["--overwrite"]);
+build_test_to_args!(to_args_exit_on_err, "config_exit_on_err"; vec!["--exit-on-err"]);
+build_test_to_args!(to_args_clean_flags, "config_clean_flags"; vec!["--clean-flags"]);
+build_test_to_args!(to_args_clean_meta, "config_clean_meta"; vec!["--clean-meta"]);

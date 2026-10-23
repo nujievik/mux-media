@@ -39,6 +39,8 @@ impl_msg_as_str!(
     HelpNoFonts => "Don't save any font attachment",
     HelpAttachs => "[!]Save other attachments",
     HelpNoAttachs => "Don't save any other attachment",
+    HelpCleanFlags => "Save known flags of streams only",
+    HelpCleanMeta => "Save known metadata of streams only",
 
     HelpTargetOptions => "Target options",
     HelpTarget => "Set next options for target",

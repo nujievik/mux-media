@@ -96,12 +96,15 @@ pub struct Config {
     pub locale: LangCode,
     pub locales: ConfigLocales,
     pub log_level: ConfigLogLevel,
+    // TODO: move to ConfigOutput
     pub overwrite: bool,
     pub jobs: u8,
     pub exit_on_err: bool,
     pub save_config: bool,
 
     pub auto_flags: ConfigAutoFlags,
+    pub clean_flags: bool,
+    pub clean_meta: bool,
 
     pub streams: ConfigStreams,
     pub chapters: ConfigChapters,

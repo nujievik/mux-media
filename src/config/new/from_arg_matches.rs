@@ -184,6 +184,8 @@ impl FromArgMatches for Config {
                 jobs: rm_or!(m, Jobs, u8, || Config::JOBS_DEFAULT),
 
                 auto_flags: auto_flags(m),
+                clean_flags: flag!(m, CleanFlags),
+                clean_meta: flag!(m, CleanMeta),
 
                 streams: streams!(m, Streams, NoStreams),
                 chapters: get_chapters(m).unwrap_or_else(|| ConfigChapters::default()),
@@ -298,6 +300,8 @@ impl FromArgMatches for Config {
         upd!(self.jobs, m, Jobs, u8);
 
         auto_flags(self, m);
+        upd_flag!(self.clean_flags, m, CleanFlags);
+        upd_flag!(self.clean_meta, m, CleanMeta);
         target_streams(self, m);
 
         upd_streams!(self.streams, m, Streams, NoStreams);

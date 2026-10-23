@@ -34,7 +34,7 @@ pub(super) fn write_header(
 
         if let Some(xs) = immut!(mi, MarkMediaInfoStreams, &ord.key) {
             let stream = &xs[ord.key_i_stream];
-            ost.set_metadata(new_ost_metadata(stream, &ist));
+            ost.set_metadata(new_ost_metadata(mi.cfg.clean_meta, stream, &ist));
 
             if let Some(target_paths) = mi.immut(MarkMediaInfoTargetPaths, &ord.key) {
                 set_ost_dispositions(
@@ -89,8 +89,16 @@ fn set_octx_metadata(octx: &mut context::Output) {
     octx.set_metadata(meta);
 }
 
-fn new_ost_metadata<'a>(stream: &Stream, ist: &'a ffmpeg::Stream<'a>) -> Dictionary<'a> {
-    let mut meta = ist.metadata().to_owned();
+fn new_ost_metadata<'a>(
+    clean_meta: bool,
+    stream: &Stream,
+    ist: &'a ffmpeg::Stream<'a>,
+) -> Dictionary<'a> {
+    let mut meta = if clean_meta {
+        Dictionary::new()
+    } else {
+        ist.metadata().to_owned()
+    };
 
     if stream.lang.is_user() || !stream.ty.is_an_attach() {
         meta.set("language", stream.lang.as_str());
@@ -120,6 +128,10 @@ fn set_ost_dispositions(
     ost: &mut ffmpeg::StreamMut,
 ) {
     let st = unsafe { &mut *ost.as_mut_ptr() };
+
+    if mi.cfg.clean_flags {
+        st.disposition = 0;
+    }
 
     for ty in DispositionType::iter() {
         let (i_key, values) = mi.cfg.stream_val_dispositions(ty, target_paths, stream);

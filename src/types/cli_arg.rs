@@ -72,6 +72,8 @@ enum_cli_arg! {
     NoFonts => "no-fonts",
     Attachs => "attachs",
     NoAttachs => "no-attachs",
+    CleanFlags => "clean-flags",
+    CleanMeta => "clean-meta",
 
     Target => "target",
     ListTargets => "list-targets",

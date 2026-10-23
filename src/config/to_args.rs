@@ -78,7 +78,16 @@ impl ToArgs for Config {
             to_args!(w, (self.jobs as usize).format_into(buf).as_bytes(), @v)?;
         }
 
-        write_fields!(self, w, buf; auto_flags, streams, chapters, order);
+        write_fields!(self, w, buf; auto_flags);
+
+        if self.clean_flags {
+            to_args!(w, CleanFlags)?;
+        }
+        if self.clean_meta {
+            to_args!(w, CleanMeta)?;
+        }
+
+        write_fields!(self, w, buf; streams, chapters, order);
 
         write_dispositions!(
             w, buf;

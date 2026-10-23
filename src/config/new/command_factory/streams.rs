@@ -88,6 +88,19 @@ impl Blocks {
                     .help(Msg::HelpNoAttachs.as_str_localized())
                     .action(ArgAction::SetTrue)
                     .conflicts_with(undashed!(Attachs)),
+            )
+            .arg(
+                Arg::new(undashed!(CleanFlags))
+                    .long(undashed!(CleanFlags))
+                    .help(Msg::HelpCleanFlags.as_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(undashed!(CleanMeta))
+                    .long(undashed!(CleanMeta))
+                    .alias("clean-metadata")
+                    .help(Msg::HelpCleanMeta.as_str_localized())
+                    .action(ArgAction::SetTrue),
             );
 
         self

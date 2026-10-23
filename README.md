@@ -84,6 +84,8 @@ Run `mux-media -h` to display help.
 | `-F, --no-fonts` | Don't save any font attachment |
 | `-m, --attachs <[!]n[,m]...>` | `[!]Save other attachments` |
 | `-M, --no-attachs` | Don't save any other attachment |
+| `    --clean-flags` | Save known flags of streams only |
+| `    --clean-meta` | Save known metadata of streams only |
 | | |
 | Target options:
 | `-t, --target <trg>...` | Set next options for target |
