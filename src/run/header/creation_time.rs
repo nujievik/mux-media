@@ -132,13 +132,49 @@ mod tests {
     use super::*;
 
     #[test]
-    fn now() {
-        CreationTime::now().unwrap();
+    fn format_to_iso_8601() {
+        let mut time = CreationTime::now().unwrap();
+        let pairs = [
+            ("1970-01-01T00:00:00Z", (1970, 1, 1, 0, 0, 0)),
+            ("1992-04-08T11:22:33Z", (1992, 4, 8, 11, 22, 33)),
+            ("2000-11-12T02:04:08Z", (2000, 11, 12, 2, 4, 8)),
+            ("2026-10-23T10:38:00Z", (2026, 10, 23, 10, 38, 0)),
+            ("2032-02-04T08:16:32Z", (2032, 2, 4, 8, 16, 32)),
+            ("0001-01-01T00:00:00Z", (1, 1, 1, 0, 0, 0)),
+        ];
+
+        for (s, (year, month, day, hour, minute, second)) in pairs {
+            time.year = year;
+            time.month = month;
+            time.day = day;
+            time.hour = hour;
+            time.minute = minute;
+            time.second = second;
+
+            assert_eq!(s, time.format_to_iso_8601());
+        }
     }
 
     #[test]
-    fn format_to_iso_8601() {
+    fn now() {
+        let now = CreationTime::now().unwrap();
+        assert!(now.year >= 2026);
+        assert!(now.month <= 12);
+        assert!(now.day <= 31);
+        assert!(now.hour <= 24);
+        assert!(now.minute <= 59);
+        assert!(now.second <= 59);
+    }
+
+    #[test]
+    fn now_format_to_iso_8601() {
         let mut now = CreationTime::now().unwrap();
+        let now_year = now.year;
+        let now_month = now.month;
+        let now_day = now.day;
+        let now_hour = now.hour;
+        let now_minute = now.minute;
+        let now_second = now.second;
         let bytes = now.format_to_iso_8601().as_bytes();
 
         assert_eq!(20, bytes.len());
@@ -146,7 +182,7 @@ mod tests {
         {
             let year = unsafe { str::from_utf8_unchecked(&bytes[..4]) };
             let year = year.parse::<u16>().unwrap();
-            assert!(year >= 2026);
+            assert_eq!(now_year, year);
         }
 
         assert_eq!(b'-', bytes[4]);
@@ -154,7 +190,7 @@ mod tests {
         {
             let month = unsafe { str::from_utf8_unchecked(&bytes[5..7]) };
             let month = month.parse::<u8>().unwrap();
-            assert!(month <= 12);
+            assert_eq!(now_month, month);
         }
 
         assert_eq!(b'-', bytes[7]);
@@ -162,7 +198,7 @@ mod tests {
         {
             let day = unsafe { str::from_utf8_unchecked(&bytes[8..10]) };
             let day = day.parse::<u8>().unwrap();
-            assert!(day <= 31);
+            assert_eq!(now_day, day);
         }
 
         assert_eq!(b'T', bytes[10]);
@@ -170,7 +206,7 @@ mod tests {
         {
             let hour = unsafe { str::from_utf8_unchecked(&bytes[11..13]) };
             let hour = hour.parse::<u8>().unwrap();
-            assert!(hour <= 24);
+            assert_eq!(now_hour, hour);
         }
 
         assert_eq!(b':', bytes[13]);
@@ -178,7 +214,7 @@ mod tests {
         {
             let minute = unsafe { str::from_utf8_unchecked(&bytes[14..16]) };
             let minute = minute.parse::<u8>().unwrap();
-            assert!(minute <= 59);
+            assert_eq!(now_minute, minute);
         }
 
         assert_eq!(b':', bytes[16]);
@@ -186,7 +222,7 @@ mod tests {
         {
             let second = unsafe { str::from_utf8_unchecked(&bytes[17..19]) };
             let second = second.parse::<u8>().unwrap();
-            assert!(second <= 59);
+            assert_eq!(now_second, second);
         }
 
         assert_eq!(b'Z', bytes[19]);
