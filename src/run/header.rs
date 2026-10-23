@@ -81,13 +81,21 @@ pub(super) fn write_header(
 
 fn new_ost_metadata<'a>(stream: &Stream, ist: &'a ffmpeg::Stream<'a>) -> Dictionary<'a> {
     let mut meta = ist.metadata().to_owned();
-    meta.set("language", stream.lang.as_str());
-    if let Some(s) = stream.title.as_ref() {
-        meta.set("title", &*s);
+
+    if stream.lang.is_user() || !stream.ty.is_an_attach() {
+        meta.set("language", stream.lang.as_str());
     }
+
+    if let Some(title) = stream.title.as_ref() {
+        if title.is_user() || !stream.ty.is_an_attach() {
+            meta.set("title", &*title);
+        }
+    }
+
     if let Some(s) = stream.filename.as_ref() {
         meta.set("filename", s);
     }
+
     meta
 }
 
