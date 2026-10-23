@@ -1,3 +1,4 @@
+mod creation_time;
 mod input_stream;
 
 use super::{Encode, Encoder};
@@ -8,6 +9,7 @@ use crate::{
     DispositionType, Lang, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
     Target, VERSION, immut,
 };
+use creation_time::CreationTime;
 use enum_map::EnumMap;
 
 pub(super) fn write_header(
@@ -57,10 +59,7 @@ pub(super) fn write_header(
         encoders.push(enc);
     }
 
-    let mut meta = Dictionary::new();
-    meta.set("encoding_tool", VERSION);
-    octx.set_metadata(meta);
-
+    set_octx_metadata(octx);
     octx.write_header()?;
 
     for (i, ord) in order.0.iter().enumerate() {
@@ -77,6 +76,17 @@ pub(super) fn write_header(
     }
 
     Ok((icontexts, encoders, idx_map))
+}
+
+fn set_octx_metadata(octx: &mut context::Output) {
+    let mut meta = Dictionary::new();
+
+    if let Some(mut now) = CreationTime::now() {
+        meta.set("creation_time", now.format_to_iso_8601());
+    }
+    meta.set("encoding_tool", VERSION);
+
+    octx.set_metadata(meta);
 }
 
 fn new_ost_metadata<'a>(stream: &Stream, ist: &'a ffmpeg::Stream<'a>) -> Dictionary<'a> {
