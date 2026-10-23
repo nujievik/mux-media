@@ -12,23 +12,23 @@ fn test_as_str() {
 }
 
 #[test]
-fn test_to_usize() {
-    assert_eq!(123, new("x123y").to_usize());
-    assert_eq!(54, new("54abc").to_usize());
+fn test_get_usize() {
+    assert_eq!(123, new("x123y").get_usize().unwrap());
+    assert_eq!(54, new("54abc").get_usize().unwrap());
 }
 
 #[test]
 fn test_non_digit() {
     let num = new("abcdef");
     assert_eq!("", num.as_str());
-    assert_eq!(0, num.to_usize());
+    assert!(num.get_usize().is_none());
 }
 
 #[test]
 fn test_zero_digit() {
     let num = new("x023y");
     assert_eq!("023", num.as_str());
-    assert_eq!(23, num.to_usize());
+    assert_eq!(23, num.get_usize().unwrap());
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn update() {
     let mut num = new("x023y");
     num.upd(OsStr::new("a111b"));
     assert_eq!("111", num.as_str());
-    assert_eq!(111, num.to_usize());
+    assert_eq!(111, num.get_usize().unwrap());
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn update_multi_digit() {
     num.upd(OsStr::new(file_2));
 
     assert_eq!("2", num.as_str());
-    assert_eq!(2, num.to_usize());
+    assert_eq!(2, num.get_usize().unwrap());
 }
 
 #[test]
@@ -64,5 +64,5 @@ fn update_multi_digit_with_diff_len() {
     num.upd(OsStr::new(file_2));
 
     assert_eq!("2", num.as_str());
-    assert_eq!(2, num.to_usize());
+    assert_eq!(2, num.get_usize().unwrap());
 }

@@ -30,8 +30,14 @@ impl MediaNumber {
     }
 
     /// Returns the number as `usize` if parsable; otherwise, returns `0`.
+    #[deprecated = "use [`MediaNumber::get_usize`] instead"]
     pub fn to_usize(&self) -> usize {
         self.as_str().parse::<usize>().unwrap_or(0)
+    }
+
+    /// Gets `usize` number if parsable.
+    pub fn get_usize(&self) -> Option<usize> {
+        self.as_str().parse::<usize>().ok()
     }
 
     /// Updates the number from `new` bytes.
