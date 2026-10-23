@@ -32,6 +32,7 @@ enum_cli_arg! {
     Skip => "skip",
     Depth => "depth",
     Solo => "solo",
+    OrphansToo => "orphans-too",
 
     Locale => "locale",
     LocaleStreams => "locale-streams",

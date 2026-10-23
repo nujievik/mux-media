@@ -37,7 +37,7 @@ impl ToArgs for ConfigInput {
         }
 
         if self.solo {
-            to_args!(w, Solo)?;
+            to_args!(w, OrphansToo)?;
         }
 
         Ok(())

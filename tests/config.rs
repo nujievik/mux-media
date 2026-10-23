@@ -261,6 +261,7 @@ fn parse_retiming() {
 #[test]
 fn test_aliases_of_args() {
     [
+        vec!["--solo", "--orphans-too"],
         vec!["-w", "--overwrite"],
         vec!["-v", "--verbose"],
         vec!["-vv", "-vvv", "-vvvvvvv"],

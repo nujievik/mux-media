@@ -50,7 +50,8 @@ impl Blocks {
             )
             .arg(
                 Arg::new(undashed!(Solo))
-                    .long(undashed!(Solo))
+                    .long(undashed!(OrphansToo))
+                    .alias(undashed!(Solo))
                     .help(Msg::HelpSolo.as_str_localized())
                     .action(ArgAction::SetTrue),
             );
