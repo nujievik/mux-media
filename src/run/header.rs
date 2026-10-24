@@ -81,9 +81,6 @@ pub(super) fn write_header(
 fn set_octx_metadata(octx: &mut context::Output) {
     let mut meta = Dictionary::new();
 
-    if let Some(mut now) = CreationTime::now() {
-        meta.set("creation_time", now.format_to_iso_8601());
-    }
     meta.set("encoding_tool", VERSION);
 
     octx.set_metadata(meta);

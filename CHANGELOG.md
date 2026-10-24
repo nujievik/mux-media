@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.19.9] - 2026-10-24
+
+### Removed
+- Set creation_time metadata because it causes issues with the bitrate display.
+
+### Fixed
+- Display bitrate in output files.
+
+
 ## [0.19.8] - 2026-10-24
 
 ### Added
