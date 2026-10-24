@@ -27,6 +27,8 @@ impl_msg_as_str!(
     HelpAutoTitles => "Автонастройка имен потоков",
     HelpAutoLangs => "Автонастройка языков потоков",
     HelpAutoEncs => "Автонастройка кодировки субтитров",
+    HelpAutoTsOffsets => "Автонастройка ts-offsets",
+    HelpNoAutoTsOffsets => "Без автонастройки ts-offsets",
 
     HelpSaveStreams => "Сохранить потоки",
     HelpAudio => "[!]Сохранить аудио потоки",

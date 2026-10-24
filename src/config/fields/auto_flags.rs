@@ -13,6 +13,7 @@ pub struct ConfigAutoFlags {
     pub titles: Value<bool>,
     pub langs: Value<bool>,
     pub encs: Value<bool>,
+    pub ts_offsets: Value<bool>,
 }
 
 impl ConfigAutoFlags {
@@ -30,6 +31,7 @@ impl Default for ConfigAutoFlags {
             titles: Value::Auto(true),
             langs: Value::Auto(true),
             encs: Value::Auto(true),
+            ts_offsets: Value::Auto(true),
         }
     }
 }
@@ -41,11 +43,12 @@ impl IsDefault for ConfigAutoFlags {
             && matches!(self.titles, Value::Auto(true))
             && matches!(self.langs, Value::Auto(true))
             && matches!(self.encs, Value::Auto(true))
+            && matches!(self.ts_offsets, Value::Auto(true))
     }
 }
 
 macro_rules! write_args {
-    ($writer:ident; $( $val:expr, $arg:ident, $no_arg:ident ),*) => {{
+    ($writer:ident; $( $val:expr, $arg:ident, $no_arg:ident ),* $(,)?) => {{
         $(
             let _ = match $val {
                 Value::User(true) => to_args!($writer, $arg),
@@ -71,7 +74,8 @@ impl ToArgs for ConfigAutoFlags {
             self.forceds, AutoForceds, NoAutoForceds,
             self.titles, AutoTitles, NoAutoTitles,
             self.langs, AutoLangs, NoAutoLangs,
-            self.encs, AutoEncs, NoAutoEncs
+            self.encs, AutoEncs, NoAutoEncs,
+            self.ts_offsets, AutoTsOffsets, NoAutoTsOffsets,
         );
 
         Ok(())

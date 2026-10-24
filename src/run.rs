@@ -130,7 +130,7 @@ impl MediaInfo<'_> {
                 .iter_mut()
                 .map(|ictx| Box::new(ictx.packets()))
                 .collect();
-            let mut buf_packets = BufPackets::new(&mut iters);
+            let mut buf_packets = BufPackets::new(*self.cfg.auto_flags.ts_offsets, &mut iters);
 
             let need_write_progress = self.cfg.log_level.is_need_info() && self.cfg.jobs <= 1;
 

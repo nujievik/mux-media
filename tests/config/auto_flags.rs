@@ -13,6 +13,7 @@ fn parse_empty() {
     assert_eq!(Value::Auto(true), f.titles);
     assert_eq!(Value::Auto(true), f.langs);
     assert_eq!(Value::Auto(true), f.encs);
+    assert_eq!(Value::Auto(true), f.ts_offsets);
 }
 
 #[test]
@@ -24,6 +25,7 @@ fn parse_no_auto() {
     assert_eq!(Value::Auto(false), f.titles);
     assert_eq!(Value::Auto(false), f.langs);
     assert_eq!(Value::Auto(false), f.encs);
+    assert_eq!(Value::Auto(false), f.ts_offsets);
 }
 
 macro_rules! parse_manual_test {
@@ -44,6 +46,7 @@ macro_rules! parse_manual_test {
                 assert_eq!(auto_v, flags.titles);
                 assert_eq!(auto_v, flags.langs);
                 assert_eq!(auto_v, flags.encs);
+                assert_eq!(auto_v, flags.ts_offsets);
             )*
         }
     }
@@ -56,6 +59,7 @@ parse_manual_test!(
     &["--auto-titles"], titles;
     &["--auto-langs"], langs;
     &["--auto-encs"], encs;
+    &["--auto-ts-offsets"], ts_offsets;
 );
 
 parse_manual_test!(
@@ -65,6 +69,7 @@ parse_manual_test!(
     &["--no-auto-titles"], titles;
     &["--no-auto-langs"], langs;
     &["--no-auto-encs"], encs;
+    &["--no-auto-ts-offsets"], ts_offsets;
 );
 
 parse_manual_test!(
@@ -74,6 +79,7 @@ parse_manual_test!(
     &["--no-auto", "--auto-titles"], titles;
     &["--no-auto", "--auto-langs"], langs;
     &["--no-auto", "--auto-encs"], encs;
+    &["--no-auto", "--auto-ts-offsets"], ts_offsets;
 );
 
 parse_manual_test!(
@@ -83,6 +89,7 @@ parse_manual_test!(
     &["--no-auto", "--no-auto-titles"], titles;
     &["--no-auto", "--no-auto-langs"], langs;
     &["--no-auto", "--no-auto-encs"], encs;
+    &["--no-auto", "--no-auto-ts-offsets"], ts_offsets;
 );
 
 macro_rules! update_test {
@@ -107,19 +114,37 @@ update_test!(
     "--auto-titles", "--no-auto-titles";
     "--auto-langs", "--no-auto-langs";
     "--auto-encs", "--no-auto-encs";
+    "--auto-ts-offsets", "--no-auto-ts-offsets";
 );
 
 crate::build_test_to_args!(
     to_args, "auto_flags";
     vec![],
+    vec!["--auto-defaults"],
+    vec!["--auto-forceds"],
+    vec!["--auto-titles"],
+    vec!["--auto-langs"],
+    vec!["--auto-encs"],
+    vec!["--auto-ts-offsets"],
+
     vec!["--no-auto-defaults"],
     vec!["--no-auto-forceds"],
     vec!["--no-auto-titles"],
     vec!["--no-auto-langs"],
     vec!["--no-auto-encs"],
+    vec!["--no-auto-ts-offsets"],
+
     vec!["--no-auto", "--auto-defaults"],
     vec!["--no-auto", "--auto-forceds"],
     vec!["--no-auto", "--auto-titles"],
     vec!["--no-auto", "--auto-langs"],
     vec!["--no-auto", "--auto-encs"],
+    vec!["--no-auto", "--auto-ts-offsets"],
+
+    vec!["--no-auto", "--no-auto-defaults"],
+    vec!["--no-auto", "--no-auto-forceds"],
+    vec!["--no-auto", "--no-auto-titles"],
+    vec!["--no-auto", "--no-auto-langs"],
+    vec!["--no-auto", "--no-auto-encs"],
+    vec!["--no-auto", "--no-auto-ts-offsets"],
 );

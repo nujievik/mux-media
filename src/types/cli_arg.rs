@@ -61,6 +61,9 @@ enum_cli_arg! {
     HelpAutoEncs => "auto-encs / --no-auto-encs",
     AutoEncs => "auto-encs",
     NoAutoEncs => "no-auto-encs",
+    HelpAutoTsOffsets => "auto-ts-offsets / --no-auto-ts-offsets",
+    AutoTsOffsets => "auto-ts-offsets",
+    NoAutoTsOffsets => "no-auto-ts-offsets",
 
     Audio => "audio",
     NoAudio => "no-audio",

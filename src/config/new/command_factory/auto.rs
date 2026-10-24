@@ -43,6 +43,21 @@ impl Blocks {
                 );
         }
 
+        cmd = cmd
+            .arg(
+                Arg::new(undashed!(AutoTsOffsets))
+                    .long(undashed!(AutoTsOffsets))
+                    .help(Msg::HelpAutoTsOffsets.as_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(undashed!(NoAutoTsOffsets))
+                    .long(undashed!(NoAutoTsOffsets))
+                    .help(Msg::HelpNoAutoTsOffsets.as_str_localized())
+                    .action(ArgAction::SetTrue)
+                    .conflicts_with(undashed!(AutoTsOffsets)),
+            );
+
         self.0 = cmd;
         self
     }

@@ -49,6 +49,8 @@ pub enum Msg {
     HelpAutoTitles,
     HelpAutoLangs,
     HelpAutoEncs,
+    HelpAutoTsOffsets,
+    HelpNoAutoTsOffsets,
 
     HelpSaveStreams,
     HelpAudio,

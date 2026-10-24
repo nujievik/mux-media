@@ -27,6 +27,8 @@ impl_msg_as_str!(
     HelpAutoTitles => "Auto set stream titles",
     HelpAutoLangs => "Auto set stream langs",
     HelpAutoEncs => "Auto set subs encodings",
+    HelpAutoTsOffsets => "Auto set audio ts-offsets",
+    HelpNoAutoTsOffsets => "No auto set audio ts-offsets",
 
     HelpSaveStreams => "Save streams",
     HelpAudio => "[!]Save audio streams",

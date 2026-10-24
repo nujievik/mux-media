@@ -66,12 +66,14 @@ Run `mux-media -h` to display help.
 | `    --save-config` | Save config to .txt in the input directory |
 | | |
 | Auto flags: | |
-| `--no-auto` | Disable all auto below |
-| `--auto-defaults / --no-auto-defaults` | Auto set default flags |
-| `--auto-forceds / --no-auto-forceds` | Auto set forced flags |
-| `--auto-titles / --no-auto-titles` | Auto set stream titles |
-| `--auto-langs / --no-auto-langs` | Auto set stream langs |
-| `--auto-encs / --no-auto-encs` | Auto set subs encodings |
+| `    --no-auto` | Disable all auto below |
+| `    --auto-defaults / --no-auto-defaults` | Auto set default flags |
+| `    --auto-forceds / --no-auto-forceds` | Auto set forced flags |
+| `    --auto-titles / --no-auto-titles` | Auto set stream titles |
+| `    --auto-langs / --no-auto-langs` | Auto set stream langs |
+| `    --auto-encs / --no-auto-encs` | Auto set subs encodings |
+| `    --auto-ts-offsets` | Auto set audio ts-offsets |
+| `    --no-auto-ts-offsets` | No auto set audio ts-offsets |
 | | |
 | Save streams: | |
 | `-a, --audio <[!]n[,m]...>` | `[!]Save audio streams` |
@@ -89,27 +91,27 @@ Run `mux-media -h` to display help.
 | | |
 | Target options:
 | `-t, --target <trg>...` | Set next options for target |
-| `--list-targets` | Show supported targets |
-| `--streams <[!]n[,m]...>` | `[!]Save streams` |
-| `--no-streams` | Don't save any stream |
+| `    --list-targets` | Show supported targets |
+| `    --streams <[!]n[,m]...>` | `[!]Save streams` |
+| `    --no-streams` | Don't save any stream |
 | `-c, --chapters <[T:]n-m...>` | Set chapters |
 | `-C, --no-chapters` | Don't save chapters |
-| `--order <[n:]V[,m:V]...>` | Set streams order |
-| `--defaults <[n:]B[,m:B]...>` | Set default flags |
-| `--max-defaults <n>` | Max auto-enabled default |
-| `--forceds <[n:]B[,m:B]...>` | Set forced flags |
-| `--max-forceds <n>` | Max auto-enabled forced |
-| `--titles <[n:]T[,m:T]...>` | Set stream titles |
-| `--langs <[n:]L[,m:L]...>` | Set stream languages |
-| `--subs-encoding <n>` | Decode subs as n-encoding |
-| `--ts-offsets <[n:]T[,m:T]...>` | Set streams timestamps offsets (ms) |
+| `    --order <[n:]V[,m:V]...>` | Set streams order |
+| `    --defaults <[n:]B[,m:B]...>` | Set default flags |
+| `    --max-defaults <n>` | Max auto-enabled default |
+| `    --forceds <[n:]B[,m:B]...>` | Set forced flags |
+| `    --max-forceds <n>` | Max auto-enabled forced |
+| `    --titles <[n:]T[,m:T]...>` | Set stream titles |
+| `    --langs <[n:]L[,m:L]...>` | Set stream languages |
+| `    --subs-encoding <n>` | Decode subs as n-encoding |
+| `    --ts-offsets <[n:]T[,m:T]...>` | Set streams timestamps offsets (ms) |
 | | |
 | Retiming options: | |
-| `--parts <[!]n[,m]...>` | `[!]Save parts for chapter names` |
-| `--no-linked` | Remove matroska linked parts |
+| `    --parts <[!]n[,m]...>` | `[!]Save parts for chapter names` |
+| `    --no-linked` | Remove matroska linked parts |
 | | |
 | Other options: | |
-| `--list-langs` | Show supported language codes |
+| `    --list-langs` | Show supported language codes |
 | `-V, --version` | Show version |
 | `-h, --help` | Show help |
 

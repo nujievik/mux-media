@@ -24,17 +24,21 @@ impl<'a> BufPkt<'a> {
 }
 
 impl<'a> BufPackets<'a> {
-    pub fn new(packets: &'a mut Vec<Box<PacketIter<'a>>>) -> Self {
+    pub fn new(auto_ts_offsets: bool, packets: &'a mut Vec<Box<PacketIter<'a>>>) -> Self {
         let mut bufs: Vec<_> = packets.iter_mut().map(|iter| BufPkt::new(iter)).collect();
 
-        let base_pts = bufs[0]
-            .buf
-            .as_ref()
-            .filter(|(ist, _)| matches!(ist.parameters().medium(), Type::Video | Type::Audio))
-            .and_then(|(ist, pkt)| {
-                let pts = pkt.pts()?;
-                Some(pts.rescale(ist.time_base(), NANOSECOND_TIME_BASE))
-            });
+        let base_pts = if auto_ts_offsets {
+            bufs[0]
+                .buf
+                .as_ref()
+                .filter(|(ist, _)| matches!(ist.parameters().medium(), Type::Video | Type::Audio))
+                .and_then(|(ist, pkt)| {
+                    let pts = pkt.pts()?;
+                    Some(pts.rescale(ist.time_base(), NANOSECOND_TIME_BASE))
+                })
+        } else {
+            None
+        };
 
         if let Some(base_pts) = base_pts {
             for buf_pkt in bufs.iter_mut().skip(1) {
