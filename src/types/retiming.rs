@@ -150,15 +150,21 @@ fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
         let ist = ictx.streams().next().unwrap();
         let ist_time_base = ist.time_base();
         let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
+        let mut is_start_none_dts = true;
 
         for (_, mut packet) in ictx.packets() {
             packet.set_stream(ost_index);
             packet.set_duration(rescale(packet.duration()));
 
-            if let Some(dts) = packet.dts() {
-                last_dts = rescale(dts) + ts_offset;
+            match packet.dts() {
+                Some(dts) => {
+                    is_start_none_dts = false;
+                    last_dts = rescale(dts) + ts_offset;
+                    packet.set_dts(Some(last_dts));
+                }
+                None if is_start_none_dts => packet.set_dts(Some(last_dts)),
+                None => (),
             }
-            packet.set_dts(Some(last_dts));
 
             if let Some(pts) = packet.pts() {
                 packet.set_pts(Some(rescale(pts) + ts_offset));
