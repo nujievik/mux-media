@@ -110,30 +110,38 @@ fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
     }
     let mut octx = format::output(dest)?;
 
-    let (_, ost_time_base, ost_index) = write_stream_copy_header(&icontexts[0], 0, &mut octx)?;
+    let (ist_time_base, ost_time_base, ost_index) = write_stream_copy_header(&icontexts[0], 0, &mut octx)?;
     let mut ts_offset: i64 = 0;
+
+    for (_, mut packet) in icontexts[0].packets() {
+        packet.set_stream(ost_index);
+        packet.rescale_ts(ist_time_base, ost_time_base);
+        if let Some(dts) = packet.dts() {
+            ts_offset = dts;
+        }
+        packet.write(&mut octx)?;
+    }
+
+    let mut last_dts = ts_offset;
     let mut was_error = false;
 
-    for ictx in icontexts.iter_mut() {
+    for ictx in icontexts.iter_mut().skip(1) {
         let ist = ictx.streams().next().unwrap();
         let ist_time_base = ist.time_base();
         let rescale = |ts: i64| ts.rescale(ist_time_base, ost_time_base);
 
-        let mut last_dts: Option<i64> = None;
-
         for (_, mut packet) in ictx.packets() {
+            packet.set_stream(ost_index);
+            packet.set_duration(rescale(packet.duration()));
+
             if let Some(dts) = packet.dts() {
-                let dts = rescale(dts) + ts_offset;
-                last_dts = Some(dts);
-                packet.set_dts(Some(dts));
+                last_dts = rescale(dts) + ts_offset;
             }
+            packet.set_dts(Some(last_dts));
 
             if let Some(pts) = packet.pts() {
                 packet.set_pts(Some(rescale(pts) + ts_offset));
             }
-
-            packet.set_duration(rescale(packet.duration()));
-            packet.set_stream(ost_index);
 
             if packet.write(&mut octx).is_err() && !was_error {
                 log::warn!(
@@ -145,9 +153,7 @@ Try --no-linked or --parts [!]n[,m] to fix",
             }
         }
 
-        if let Some(dts) = last_dts {
-            ts_offset = dts;
-        }
+        ts_offset = last_dts;
     }
 
     octx.write_trailer()?;
