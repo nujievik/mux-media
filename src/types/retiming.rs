@@ -9,8 +9,8 @@ use crate::ffmpeg::{
     format::{self, context},
 };
 use crate::{
-    ArcPathBuf, MILLISECOND_TIME_BASE, MediaInfo, Result, StreamType, StreamsOrderItem, Time,
-    add_copy_stream, display,
+    ArcPathBuf, ConfigChaptersTimeRange, MILLISECOND_TIME_BASE, MediaInfo, Result, StreamType,
+    StreamsOrderItem, Time, add_copy_stream, display,
 };
 use signed_time::SignedTime;
 use std::path::{Path, PathBuf};
@@ -67,6 +67,26 @@ impl Retiming<'_, '_> {
         }
     }
 
+    pub(crate) fn into_chapters_time_ranges(mut self) -> Vec<ConfigChaptersTimeRange> {
+        let mut chapters = Vec::with_capacity(self.chapters.len());
+
+        for p in &self.parts {
+            for i_chp in p.i_start_chp..=p.i_end_chp {
+                let chapters_nonuid = self.chapters_nonuid(i_chp);
+                let start = SignedTime::new(true, p.start + chapters_nonuid) + p.start_offset;
+                let end = SignedTime::new(true, p.end + chapters_nonuid) + p.end_offset;
+
+                let chapter = ConfigChaptersTimeRange {
+                    title: self.chapters[i_chp].title.take(),
+                    start: start.as_unsigned_time(),
+                    end: end.as_unsigned_time(),
+                };
+                chapters.push(chapter);
+            }
+        }
+        chapters
+    }
+
     fn chapters_nonuid(&self, i_chp: usize) -> Time {
         let uid = &self.chapters[i_chp].uid;
         self.chapters[..i_chp]
@@ -110,7 +130,8 @@ fn try_concat(src: &Path, splits: &Vec<PathBuf>, dest: &Path) -> Result<()> {
     }
     let mut octx = format::output(dest)?;
 
-    let (ist_time_base, ost_time_base, ost_index) = write_stream_copy_header(&icontexts[0], 0, &mut octx)?;
+    let (ist_time_base, ost_time_base, ost_index) =
+        write_stream_copy_header(&icontexts[0], 0, &mut octx)?;
     let mut ts_offset: i64 = 0;
 
     for (_, mut packet) in icontexts[0].packets() {

@@ -12,7 +12,7 @@ pub use lazy_fields::{
     MarkMediaInfoTargetPaths, MarkMediaInfoVideoDuration,
 };
 
-use crate::{ArcPathBuf, Config, FxHashMap, Result, i18n::logs};
+use crate::{ArcPathBuf, Config, ConfigChaptersTimeRange, FxHashMap, Result, i18n::logs};
 use cache::CacheState;
 use rayon::prelude::*;
 use std::path::Path;
@@ -28,6 +28,8 @@ pub struct MediaInfo<'a> {
     /// Job number. Separates access to temp files.
     pub job: u8,
     buf: Option<[u8; MediaInfo::BUF_SIZE]>,
+    // TODO: move to StremsOrder::chapters
+    pub(crate) chapters: Option<Vec<ConfigChaptersTimeRange>>,
 }
 
 impl MediaInfo<'_> {
@@ -39,6 +41,7 @@ impl MediaInfo<'_> {
             cache: Default::default(),
             job,
             buf: None,
+            chapters: None,
         }
     }
 

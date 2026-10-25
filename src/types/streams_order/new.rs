@@ -191,6 +191,8 @@ fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<Streams
         items.push(item)
     }
 
+    mi.chapters = Some(rtm.into_chapters_time_ranges());
+
     Ok(StreamsOrder(items))
 }
 

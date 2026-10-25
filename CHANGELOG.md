@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.19.10] - 2026-10-25
+
+### Fixed
+- Auto-chapters while retiming.
+- Don't copy chapters on --no-chapters flag.
+- Retiming: fix concat retimed parts.
+
+
 ## [0.19.9] - 2026-10-24
 
 ### Removed
@@ -15,14 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Display bitrate in output files.
 
 
-## [0.19.8] - 2026-10-24
+## [0.19.8] - 2026-10-24 [YANKED]
 
 ### Added
 - Auto-fix "delay relative to video" for external audio.
 - Configuration --auto-ts-offsets / --no-auto-ts-offsets.
 
 
-## [0.19.7] - 2026-10-23
+## [0.19.7] - 2026-10-23 [YANKED]
 
 ### Added
 - Configuration --clean-flags & --clean-meta.

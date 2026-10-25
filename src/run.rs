@@ -223,7 +223,16 @@ fn add_chapters(
 
     let mut i = 0i64;
 
+    // user-defined chapters has priority
     if let Some(ranges) = cfg_chapters.ranges.as_ref() {
+        for r in ranges {
+            add_cfg_chapter(octx, i, r);
+            i += 1;
+        }
+        return;
+    }
+
+    if let Some(ranges) = mi.chapters.as_ref() {
         for r in ranges {
             add_cfg_chapter(octx, i, r);
             i += 1;
