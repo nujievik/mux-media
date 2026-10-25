@@ -208,15 +208,22 @@ fn add_chapters(
     octx: &mut format::context::Output,
 ) {
     let cfg = mi.cfg;
+
+    let cfg_chapters = order
+        .iter_first_entries()
+        .find_map(|ord| {
+            let target_paths = mi.get(MarkMediaInfoTargetPaths, &ord.key)?;
+            cfg.get_targets(MarkConfigChapters, target_paths)
+        })
+        .unwrap_or(&cfg.chapters);
+
+    if cfg_chapters.no_flag {
+        return;
+    }
+
     let mut i = 0i64;
 
-    let cfg_chapters = order.iter_first_entries().find_map(|ord| {
-        let target_paths = mi.get(MarkMediaInfoTargetPaths, &ord.key)?;
-        let c = cfg.get_targets(MarkConfigChapters, target_paths)?;
-        c.ranges.as_ref()
-    });
-
-    if let Some(ranges) = cfg_chapters {
+    if let Some(ranges) = cfg_chapters.ranges.as_ref() {
         for r in ranges {
             add_cfg_chapter(octx, i, r);
             i += 1;

@@ -1,4 +1,3 @@
-mod creation_time;
 mod input_stream;
 
 use super::{Encode, Encoder};
@@ -9,7 +8,6 @@ use crate::{
     DispositionType, Lang, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
     Target, VERSION, immut,
 };
-use creation_time::CreationTime;
 use enum_map::EnumMap;
 
 pub(super) fn write_header(
