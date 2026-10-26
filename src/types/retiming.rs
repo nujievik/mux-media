@@ -69,19 +69,29 @@ impl Retiming<'_, '_> {
 
     pub(crate) fn into_chapters_time_ranges(mut self) -> Vec<ConfigChaptersTimeRange> {
         let mut chapters = Vec::with_capacity(self.chapters.len());
+        let mut len = Time::ZERO;
 
         for p in &self.parts {
             for i_chp in p.i_start_chp..=p.i_end_chp {
-                let chapters_nonuid = self.chapters_nonuid(i_chp);
-                let start = SignedTime::new(true, p.start + chapters_nonuid) + p.start_offset;
-                let end = SignedTime::new(true, p.end + chapters_nonuid) + p.end_offset;
+                let chp = &self.chapters[i_chp];
+
+                if &self.chapters[p.i_start_chp].uid != &chp.uid {
+                    continue;
+                }
+
+                let start = len;
+                let mut end = len + chp.end - chp.start;
+                if i_chp == p.i_end_chp {
+                    end = (p.end_offset + end).as_unsigned_time();
+                }
 
                 let chapter = ConfigChaptersTimeRange {
                     title: self.chapters[i_chp].title.take(),
-                    start: start.as_unsigned_time(),
-                    end: end.as_unsigned_time(),
+                    start,
+                    end,
                 };
                 chapters.push(chapter);
+                len += end - start;
             }
         }
         chapters
