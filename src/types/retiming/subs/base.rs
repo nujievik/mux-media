@@ -28,10 +28,7 @@ impl Retiming<'_, '_> {
             opts.start = Some(p.start);
             opts.end = Some(p.end);
 
-            let offset = SignedTime::new(
-                true,
-                self.len_prev_nonuid_parts(i_part) + self.len_prev_uid_parts(i_part),
-            ) - p.start;
+            let offset = p.start_offset + self.len_prev_parts(i_part) - p.start;
 
             if offset.is_positive() {
                 opts.add_time = Some(offset.as_unsigned_time());

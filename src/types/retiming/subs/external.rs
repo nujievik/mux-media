@@ -69,7 +69,7 @@ fn get_start_end_offset(
     };
     let trg_end = end_offset + chp.end + chp_nonuid;
 
-    let offset = SignedTime::new(true, rtm.len_prev_parts(i_part)) - p.start - chp_nonuid;
+    let offset = p.start_offset + rtm.len_prev_parts(i_part) - p.start - chp_nonuid;
 
     Some((
         trg_start.as_unsigned_time(),

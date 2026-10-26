@@ -60,26 +60,8 @@ impl Retiming<'_, '_> {
 }
 
 impl Retiming<'_, '_> {
-    fn len_prev_uid_parts(&self, i_part: usize) -> Time {
-        let src = &self.parts[i_part].src;
-        self.parts[..i_part]
-            .iter()
-            .filter(|p| &p.src == src)
-            .map(|p| p.end - p.start)
-            .sum()
-    }
-
     fn len_prev_parts(&self, i_part: usize) -> Time {
         self.parts[..i_part].iter().map(|p| p.end - p.start).sum()
-    }
-
-    fn len_prev_nonuid_parts(&self, i_part: usize) -> Time {
-        let src = &self.parts[i_part].src;
-        self.parts[..i_part]
-            .iter()
-            .filter(|p| &p.src != src)
-            .map(|p| p.end - p.start)
-            .sum()
     }
 }
 
