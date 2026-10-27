@@ -378,7 +378,7 @@ impl FromArgMatches for Config {
             upd!(input.skip, m, Skip, GlobSetPattern, @opt);
             upd!(input.depth, m, Depth, u8);
 
-            upd_flag!(input.solo, m, Solo);
+            upd_flag!(input.orphans_too, m, OrphansToo);
 
             if input.file_dirs.values().any(|v| !v.is_empty()) {
                 input.file_dirs = Default::default();
@@ -584,7 +584,7 @@ fn try_input(m: &mut ArgMatches) -> Result<ConfigInput, Error> {
         range: rm!(m, Range, RangeUsize),
         skip: rm!(m, Skip, GlobSetPattern),
         depth: rm_or!(m, Depth, u8, || ConfigInput::DEPTH_DEFAULT),
-        solo: flag!(m, Solo),
+        orphans_too: flag!(m, OrphansToo),
         file_dirs: Default::default(),
     })
 }

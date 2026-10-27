@@ -31,7 +31,6 @@ enum_cli_arg! {
     Range => "range",
     Skip => "skip",
     Depth => "depth",
-    Solo => "solo",
     OrphansToo => "orphans-too",
 
     Locale => "locale",

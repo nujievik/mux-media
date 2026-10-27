@@ -51,7 +51,7 @@ fn parse_empty_args_input() {
     assert!(i.range.is_none());
     assert!(i.skip.is_none());
     assert_eq!(i.depth, 16);
-    assert!(!i.solo);
+    assert!(!i.orphans_too);
 }
 
 #[test]
@@ -144,7 +144,7 @@ fn parse_input_output() {
     test_parse!(["--skip", "x"], input.skip, x_globset);
 
     test_parse!(["--depth", "1"], input.depth, 1);
-    test_parse!(["--solo"], input.solo, true);
+    test_parse!(["--orphans-too"], input.orphans_too, true);
 }
 
 #[test]
@@ -278,7 +278,6 @@ fn parse_retiming() {
 #[test]
 fn test_aliases_of_args() {
     [
-        vec!["--solo", "--orphans-too"],
         vec!["-w", "--overwrite"],
         vec!["-v", "--verbose"],
         vec!["-vv", "-vvv", "-vvvvvvv"],

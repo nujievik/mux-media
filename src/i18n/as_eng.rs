@@ -6,7 +6,7 @@ impl_msg_as_str!(
     HelpRange => "Mux files with filename in-range only",
     HelpSkip => "Set patterns of filepaths to skip",
     HelpDepth => "Scan subdirectories up to this depth",
-    HelpSolo => "Mux orphan files too",
+    HelpOrphansToo => "Mux orphan files too",
 
     HelpGlobalOptions => "Global options",
     HelpLocale => "Set priority streams language & log language",

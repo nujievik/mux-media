@@ -28,7 +28,7 @@ pub enum Msg {
     HelpRange,
     HelpSkip,
     HelpDepth,
-    HelpSolo,
+    HelpOrphansToo,
 
     HelpGlobalOptions,
     HelpLocale,

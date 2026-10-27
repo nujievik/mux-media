@@ -49,10 +49,9 @@ impl Blocks {
                     .value_parser(clap::value_parser!(u8)),
             )
             .arg(
-                Arg::new(undashed!(Solo))
+                Arg::new(undashed!(OrphansToo))
                     .long(undashed!(OrphansToo))
-                    .alias(undashed!(Solo))
-                    .help(Msg::HelpSolo.as_str_localized())
+                    .help(Msg::HelpOrphansToo.as_str_localized())
                     .action(ArgAction::SetTrue),
             );
 

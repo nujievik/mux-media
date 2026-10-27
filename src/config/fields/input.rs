@@ -15,8 +15,7 @@ pub struct ConfigInput {
     pub range: Option<RangeUsize>,
     pub skip: Option<GlobSetPattern>,
     pub depth: u8,
-    // TODO: rename to orphans_too
-    pub solo: bool,
+    pub orphans_too: bool,
     pub(crate) file_dirs: EnumMap<InputFileType, Vec<ArcPathBuf>>,
 }
 

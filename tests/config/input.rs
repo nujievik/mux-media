@@ -174,12 +174,12 @@ fn test_depth() {
 }
 
 #[test]
-fn test_solo() {
-    let dir = data_media("solo/");
+fn test_orphans_too() {
+    let dir = data_media("orphans_too/");
     let input = new(&[p("-i"), &dir]);
     assert_eq!(None, input.iter_media_grouped_by_stem().next());
 
-    let input = new(&[p("-i"), &dir, p("--solo")]);
+    let input = new(&[p("-i"), &dir, p("--orphans-too")]);
     let exp = vec![dir.join("srt.srt")];
     assert_eq!(
         exp,

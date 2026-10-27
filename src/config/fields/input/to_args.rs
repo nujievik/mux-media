@@ -36,7 +36,7 @@ impl ToArgs for ConfigInput {
             to_args!(w, arg.as_bytes(), @v)?;
         }
 
-        if self.solo {
+        if self.orphans_too {
             to_args!(w, OrphansToo)?;
         }
 
