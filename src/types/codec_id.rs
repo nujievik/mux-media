@@ -13,14 +13,6 @@ impl Default for CodecId {
 }
 
 impl CodecId {
-    pub(crate) fn is_attach(self) -> bool {
-        match self.0 {
-            Id::PNG => true,
-            Id::LJPEG | Id::JPEGLS | Id::JPEG2000 => true,
-            _ => false,
-        }
-    }
-
     pub(crate) fn is_font(self) -> bool {
         match self.0 {
             Id::TTF => true,

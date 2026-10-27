@@ -28,7 +28,7 @@ pub(super) fn write_header(
 
     for ord in &order.0 {
         let ist = input_stream::new(mi, &mut icontexts, ord)?;
-        let (mut ost, mut enc) = Encoder::new(&ist, octx)?;
+        let (mut ost, mut enc) = Encoder::new(&ist, octx, ord.ty.is_attach())?;
 
         if let Some(xs) = immut!(mi, MarkMediaInfoStreams, &ord.key) {
             let stream = &xs[ord.key_i_stream];

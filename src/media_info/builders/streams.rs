@@ -8,7 +8,7 @@ impl MediaInfo<'_> {
     }
 
     pub(crate) fn help_build_streams(src: &Path) -> Result<Vec<Stream>> {
-        use crate::ffmpeg::{format::input, util::media::Type};
+        use crate::ffmpeg::{ffi, format::input, util::media::Type};
 
         let ictx = input(src)?;
         let mut idxs = StreamType::map::<usize>();
@@ -27,7 +27,9 @@ impl MediaInfo<'_> {
                 let params = stream.parameters();
                 let codec = CodecId(params.id());
 
-                let is_attach = || codec.is_attach() || is_attach_filename(&filename);
+                let is_attach = || unsafe {
+                    ((*stream.as_ptr()).disposition & ffi::AV_DISPOSITION_ATTACHED_PIC) != 0
+                };
                 let is_font = || codec.is_font() || is_font_filename(&filename);
 
                 let ty = match params.medium() {
@@ -36,7 +38,7 @@ impl MediaInfo<'_> {
                     Type::Video if is_attach() => StreamType::Attach,
                     Type::Video => StreamType::Video,
                     Type::Attachment if is_font() => StreamType::Font,
-                    Type::Attachment => StreamType::Attach,
+                    Type::Attachment if is_attach() => StreamType::Attach,
                     _ => StreamType::Other,
                 };
 
@@ -56,12 +58,6 @@ impl MediaInfo<'_> {
             })
             .collect())
     }
-}
-
-fn is_attach_filename(opt_s: &Option<String>) -> bool {
-    opt_s
-        .as_ref()
-        .is_some_and(|s| Extension::from_path(s).is_some_and(|ext| ext.is_attach()))
 }
 
 fn is_font_filename(opt_s: &Option<String>) -> bool {

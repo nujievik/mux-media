@@ -1,4 +1,4 @@
-use crate::ffmpeg::{self, codec, format};
+use crate::ffmpeg::{self, codec, ffi, format};
 use crate::{Config, RangeUsize, Result, StreamType};
 use core::fmt::NumBuffer;
 use std::{
@@ -144,6 +144,53 @@ pub(crate) fn add_copy_stream<'a>(
 
         (*ost).disposition &= !DROP_DISPOSITION_MASK;
     }
+
+    Ok(ost)
+}
+
+pub(crate) fn add_attached_pic<'a>(
+    ist: &format::stream::Stream,
+    octx: &'a mut format::context::Output,
+) -> Result<ffmpeg::StreamMut<'a>> {
+    let meta = ist.metadata();
+    let mimetype = meta
+        .get("mimetype")
+        .ok_or(err!("attachment stream has not mimetype metatada"))?;
+    let filename = meta
+        .get("filename")
+        .ok_or(err!("attachment stream has not filename metatada"))?;
+
+    let av_pkt = unsafe { &(*ist.as_ptr()).attached_pic };
+
+    if av_pkt.data.is_null() || av_pkt.size <= 0 {
+        return Err(err!("attachment stream has not attached_pic packet"));
+    }
+
+    let mut ost = octx.add_stream(codec::Id::None)?;
+    ost.set_parameters(ist.parameters());
+    unsafe {
+        (*ost.as_mut_ptr()).disposition = ffi::AV_DISPOSITION_ATTACHED_PIC;
+    }
+
+    let ost_params = unsafe { &mut *ost.parameters().as_mut_ptr() };
+    ost_params.codec_tag = 0;
+    ost_params.codec_type = ffi::AVMediaType::AVMEDIA_TYPE_ATTACHMENT;
+    ost_params.codec_id = ffi::AVCodecID::AV_CODEC_ID_NONE;
+
+    unsafe {
+        let raw_data = std::slice::from_raw_parts(av_pkt.data, av_pkt.size as usize);
+        let size = raw_data.len();
+        let buf = ffi::av_malloc(size + ffi::AV_INPUT_BUFFER_PADDING_SIZE as usize) as *mut u8;
+
+        std::ptr::copy_nonoverlapping(raw_data.as_ptr(), buf, size);
+        ost_params.extradata = buf;
+        ost_params.extradata_size = size as i32;
+    }
+
+    let mut meta = ffmpeg::Dictionary::new();
+    meta.set("mimetype", mimetype);
+    meta.set("filename", filename);
+    ost.set_metadata(meta);
 
     Ok(ost)
 }

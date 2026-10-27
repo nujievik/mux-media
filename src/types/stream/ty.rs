@@ -15,6 +15,7 @@ pub enum StreamType {
     Sub,
     Other,
     Font,
+    // TODO: separate to AttachedPic & Attach
     Attach,
 }
 
