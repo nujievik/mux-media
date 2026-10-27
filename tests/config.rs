@@ -67,15 +67,22 @@ fn parse_empty_args() {
     let e = &EMPTY_ARGS;
     assert_eq!(e.log_level, Default::default());
     assert!(!e.overwrite);
+    assert_eq!(1, e.jobs);
     assert!(!e.exit_on_err);
     assert!(!e.save_config);
-    assert_eq!(1, e.jobs);
+
     assert_eq!(&e.auto_flags, &Default::default());
+    assert!(!e.clean_flags);
+    assert!(!e.clean_meta);
+
     assert_eq!(&e.streams, &Default::default());
     assert_eq!(&e.defaults, &Default::default());
     assert_eq!(&e.forceds, &Default::default());
     assert_eq!(&e.titles, &Default::default());
     assert_eq!(&e.langs, &Default::default());
+    assert_eq!(&e.subs_encoding, &Default::default());
+    assert_eq!(&e.ts_offsets, &Default::default());
+
     assert_eq!(&e.retiming, &Default::default());
     assert!(e.target_configs.is_empty());
     assert!(e.is_output_constructed_from_input);
