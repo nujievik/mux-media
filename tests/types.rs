@@ -6,10 +6,10 @@ mod char_encoding;
 mod cli_arg;
 #[path = "types/extension.rs"]
 mod extension;
+#[path = "types/file_number.rs"]
+mod file_number;
 #[path = "types/lang_code.rs"]
 mod lang_code;
-#[path = "types/media_number.rs"]
-mod media_number;
 #[path = "types/mux_error.rs"]
 mod mux_error;
 #[path = "types/range.rs"]

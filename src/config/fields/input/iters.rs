@@ -1,7 +1,7 @@
 use super::{ConfigInput, InputFileType, InputType};
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, Extension, FxHashSet, MediaNumber, RangeUsize, helpers, i18n::logs};
+use crate::{ArcPathBuf, Extension, FileNumber, FxHashSet, RangeUsize, helpers, i18n::logs};
 use either::Either;
 use globset::GlobSet;
 use std::{
@@ -90,7 +90,7 @@ impl ConfigInput {
     pub fn iter_media_grouped_by_stem(&self) -> impl Iterator<Item = MediaGroupedByStem> {
         match &self.ty {
             InputType::Dir(dir) => {
-                let mut range_and_media_number = self.init_range_and_media_number();
+                let mut range_and_file_number = self.init_range_and_file_number();
                 let mut processed = FxHashSet::<OsString>::default();
 
                 let it = self.iter_media_in_dir(dir).filter_map(move |path| {
@@ -101,8 +101,8 @@ impl ConfigInput {
                         return None;
                     }
 
-                    if let Some((range, num)) = range_and_media_number.as_mut() {
-                        num.upd(up_stem);
+                    if let Some((range, num)) = range_and_file_number.as_mut() {
+                        num.update(up_stem.as_encoded_bytes());
                         // file must has num AND range must contains num
                         if !num.get_usize().is_some_and(|n| range.contains(&n)) {
                             logs::debug_media_out_of_range(up_stem);
@@ -155,18 +155,18 @@ impl ConfigInput {
     }
 
     #[inline(always)]
-    fn init_range_and_media_number(&self) -> Option<(&RangeUsize, MediaNumber)> {
+    fn init_range_and_file_number(&self) -> Option<(&RangeUsize, FileNumber)> {
         let range = self.range.as_ref()?;
         let second_file = self.iter_media_in_dir(self.dir()).skip(1).next();
 
         if let Some(second_file) = second_file {
             if let Some(stem) = second_file.file_stem() {
-                return Some((range, MediaNumber::from(stem)));
+                return Some((range, FileNumber::from(stem)));
             }
         }
 
         const EMPTY_SLICE: &[u8] = &[];
-        Some((range, MediaNumber::from(EMPTY_SLICE)))
+        Some((range, FileNumber::from(EMPTY_SLICE)))
     }
 }
 

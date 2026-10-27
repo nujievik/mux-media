@@ -1,8 +1,7 @@
-use mux_media::MediaNumber;
-use std::ffi::OsStr;
+use mux_media::FileNumber;
 
-fn new(s: &str) -> MediaNumber {
-    MediaNumber::from(OsStr::new(s))
+fn new(s: &str) -> FileNumber {
+    FileNumber::from_bytes(s)
 }
 
 #[test]
@@ -34,7 +33,7 @@ fn test_zero_digit() {
 #[test]
 fn update() {
     let mut num = new("x023y");
-    num.upd(OsStr::new("a111b"));
+    num.update("a111b");
     assert_eq!("111", num.as_str());
     assert_eq!(111, num.get_usize().unwrap());
 }
@@ -47,7 +46,7 @@ fn update_multi_digit() {
     let mut num = new(file_1);
     assert_eq!("1920", num.as_str());
 
-    num.upd(OsStr::new(file_2));
+    num.update(file_2);
 
     assert_eq!("2", num.as_str());
     assert_eq!(2, num.get_usize().unwrap());
@@ -61,7 +60,7 @@ fn update_multi_digit_with_diff_len() {
     let mut num = new(file_1);
     assert_eq!("1920", num.as_str());
 
-    num.upd(OsStr::new(file_2));
+    num.update(file_2);
 
     assert_eq!("2", num.as_str());
     assert_eq!(2, num.get_usize().unwrap());

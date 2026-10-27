@@ -1,23 +1,28 @@
 use std::ffi::OsStr;
 
-/// Extracts a number from byte slices.
+/// Extracts an ascii-digit number from file names.
 ///
-/// Defined number:
-/// - if previous known: diff ascii-digit subsequence in previous and current byte slice.
-/// - if previous unknown: first ascii-digit subsequence in current byte slice.
+/// Defines number:
+/// - by default: as first ascii-digit subsequence.
+/// - after [`FileNumber::update`]: as first different ascii-digit subsequence between two names
+/// OR by default (if not different ascii-digit subsequence).
+///
+/// # Limits
+/// Correct works with standard path length only (255 ascii-digits max). In other cases,
+/// processes first 255 ascii-digits only.
 #[derive(Clone)]
-pub struct MediaNumber {
+pub struct FileNumber {
     // ranges stores input (start, end) values, not digits_buf
-    ranges: [(u8, u8); Self::MAX_NUMBER_NUMBERS],
-    ranges_idx: u8,
+    ranges: [(u16, u16); Self::MAX_NUMBER_NUMBERS],
+    ranges_idx: u16,
 
     // ascii digit bytes only
-    digits_buf: [u8; Self::MAX_ASCII_FILENAME_LEN],
+    digits_buf: [u8; Self::MAX_ASCII_DIGITS],
 }
 
-impl MediaNumber {
-    /// Max file name in most filesystems is 255 ascii bytes.
-    const MAX_ASCII_FILENAME_LEN: usize = u8::MAX as usize;
+impl FileNumber {
+    /// Max digits count in most filesystems is 255 ascii bytes.
+    const MAX_ASCII_DIGITS: usize = u8::MAX as usize;
 
     /// Max file name in most filesystems is 255 ascii bytes. Minimum digit range is 2 bytes
     /// (digit + sep). Therefore MAX_NUMBER_NUMBERS is 128.
@@ -34,6 +39,16 @@ impl MediaNumber {
         self.as_str().parse::<usize>().ok()
     }
 
+    /// Constructs a new [`FileNumber`] from a byte slice.
+    ///
+    /// Sets number as first ascii-digit subsequence (if present); otherwise, as empty string.
+    pub fn from_bytes<B>(bytes: &B) -> FileNumber
+    where
+        B: AsRef<[u8]> + ?Sized,
+    {
+        FileNumber::from(bytes.as_ref())
+    }
+
     /// Updates the number from `new` bytes.
     ///
     /// # Cases
@@ -43,11 +58,14 @@ impl MediaNumber {
     /// - New bytes contain correct and different number at the any other old address:
     /// copies this number bytes and updates index number.
     ///
-    /// - Otherwise, its eq constructs new [`MediaNumber`].
-    pub fn upd(&mut self, new: &OsStr) {
-        let new_bytes = new.as_encoded_bytes();
+    /// - Otherwise, its eq constructs new [`FileNumber`].
+    pub fn update<B>(&mut self, new: &B)
+    where
+        B: AsRef<[u8]> + ?Sized,
+    {
+        let new_bytes = new.as_ref();
 
-        let is_updated_only_number_and_idx = |current: &mut MediaNumber, ranges_idx| -> bool {
+        let is_updated_only_number_and_idx = |current: &mut FileNumber, ranges_idx| -> bool {
             let (start, end) = current.ranges[ranges_idx];
             let end = end as usize;
 
@@ -64,7 +82,7 @@ impl MediaNumber {
                         let remainder = &maybe_new_number[i..];
 
                         return if remainder.iter().all(|b| b.is_ascii_digit()) {
-                            current.ranges_idx = ranges_idx as u8;
+                            current.ranges_idx = ranges_idx as u16;
                             current.as_mut_bytes_idx(ranges_idx)[i..].copy_from_slice(remainder);
                             true
                         } else {
@@ -97,7 +115,7 @@ impl MediaNumber {
             }
         }
 
-        *self = MediaNumber::from(new_bytes);
+        *self = FileNumber::from(new_bytes);
     }
 
     fn as_bytes(&self) -> &[u8] {
@@ -105,85 +123,79 @@ impl MediaNumber {
     }
 
     fn as_bytes_idx(&self, idx: usize) -> &[u8] {
-        let mut start = 0;
-        let mut end = 0;
-
-        for (r_start, r_end) in self.ranges.iter().take(idx + 1) {
-            start = end;
-            end += r_end - r_start;
-        }
-
-        &self.digits_buf[start as usize..end as usize]
+        let (start, end) = self.digit_start_end_idx(idx);
+        &self.digits_buf[start..end]
     }
 
     fn as_mut_bytes_idx(&mut self, idx: usize) -> &mut [u8] {
+        let (start, end) = self.digit_start_end_idx(idx);
+        &mut self.digits_buf[start..end]
+    }
+
+    fn digit_start_end_idx(&self, idx: usize) -> (usize, usize) {
         let mut start = 0;
         let mut end = 0;
 
         for (r_start, r_end) in self.ranges.iter().take(idx + 1) {
             start = end;
-            end += r_end - r_start;
+            end += (r_end - r_start) as usize;
         }
 
-        &mut self.digits_buf[start as usize..end as usize]
+        (start, end)
     }
 }
 
-impl From<&OsStr> for MediaNumber {
-    /// Constructs a new [`Self`] from [`OsStr`].
-    ///
-    /// Sets to number string the first number found (if any); otherwise, an empty string.
+impl From<&OsStr> for FileNumber {
     fn from(value: &OsStr) -> Self {
         value.as_encoded_bytes().into()
     }
 }
 
-impl From<&[u8]> for MediaNumber {
-    /// Constructs a new [`Self`] from a byte slice.
-    ///
-    /// Sets to number string the first number found (if any); otherwise, an empty string.
+impl From<&[u8]> for FileNumber {
     fn from(bytes: &[u8]) -> Self {
-        let mut ranges = [(0u8, 0u8); Self::MAX_NUMBER_NUMBERS];
-        let mut ranges_init_len = 0;
+        let mut ranges = [(0u16, 0u16); Self::MAX_NUMBER_NUMBERS];
+        let mut i_ranges = 0;
+        let mut count_digits = 0;
 
         let mut start = None;
 
         for (i, byte) in bytes.into_iter().enumerate() {
             match (byte.is_ascii_digit(), start) {
-                (true, None) => start = Some(i as u8),
+                (true, None) => start = Some(i),
                 (false, Some(st)) => {
-                    if i > Self::MAX_ASCII_FILENAME_LEN {
+                    if i > u16::MAX as usize {
                         break;
                     }
 
-                    ranges[ranges_init_len] = (st, i as u8);
-                    ranges_init_len += 1;
-
-                    if ranges_init_len == Self::MAX_NUMBER_NUMBERS {
+                    count_digits += i - st;
+                    if count_digits > Self::MAX_ASCII_DIGITS {
                         break;
                     }
+
+                    ranges[i_ranges] = (st as u16, i as u16);
+                    i_ranges += 1;
                     start = None;
                 }
                 _ => continue,
             }
         }
 
-        let mut digits_buf = [0u8; Self::MAX_ASCII_FILENAME_LEN];
+        let mut digits_buf = [0u8; Self::MAX_ASCII_DIGITS];
         let mut i = 0;
 
-        for &(start, end) in &ranges {
-            let len = (end - start) as usize;
-            let next_i = i + len;
+        ranges
+            .iter()
+            .take_while(|(_, end)| *end > 0)
+            .for_each(|&(start, end)| {
+                let (start, end) = (start as usize, end as usize);
+                let len = end - start;
+                let next_i = i + len;
 
-            if next_i > Self::MAX_ASCII_FILENAME_LEN {
-                break;
-            }
+                digits_buf[i..next_i].copy_from_slice(&bytes[start..end]);
+                i = next_i;
+            });
 
-            digits_buf[i..next_i].copy_from_slice(&bytes[start as usize..end as usize]);
-            i = next_i;
-        }
-
-        MediaNumber {
+        FileNumber {
             digits_buf,
             ranges,
             ranges_idx: 0,
