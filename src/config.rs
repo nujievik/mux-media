@@ -77,7 +77,7 @@ pub(crate) use fields::input::{InputType, iters::MediaGroupedByStem};
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{FxIndexMap, IsDefault, LangCode, Target};
+use crate::{FxIndexMap, IsDefault, Target};
 use std::path::PathBuf;
 
 /// A configuration.
@@ -92,8 +92,6 @@ pub struct Config {
     pub input: ConfigInput,
     pub output: ConfigOutput,
 
-    #[deprecated = "use [`Config::locales`] instead"]
-    pub locale: LangCode,
     pub locales: ConfigLocales,
     pub log_level: ConfigLogLevel,
     // TODO: move to ConfigOutput

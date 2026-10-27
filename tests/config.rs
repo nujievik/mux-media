@@ -82,7 +82,7 @@ fn parse_empty_args() {
 }
 
 fn assert_eq_wo_locale(mut left: Config, right: &Config) {
-    left.locale = right.locale;
+    left.locales = right.locales.clone();
     assert_eq!(&left, right);
 }
 

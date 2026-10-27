@@ -174,8 +174,6 @@ impl FromArgMatches for Config {
                 input,
                 output,
 
-                #[allow(deprecated)]
-                locale: locales.locale(),
                 locales,
                 log_level: log_level(m),
                 overwrite: flag!(m, Overwrite),
@@ -357,10 +355,6 @@ impl FromArgMatches for Config {
             let (locale, locale_log) = update_log_language(m);
 
             if let Some(l) = locale {
-                #[allow(deprecated)]
-                {
-                    cfg.locale = l;
-                }
                 cfg.locales.locale = l;
             }
 
