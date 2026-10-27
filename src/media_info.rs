@@ -50,6 +50,7 @@ impl MediaInfo<'_> {
     pub fn clear(&mut self) {
         self.cache.of_group = MediaInfoCacheOfGroup::default();
         self.cache.of_files.clear();
+        self.chapters = None;
     }
 
     /// Tries insert a `src` file into the cache.
