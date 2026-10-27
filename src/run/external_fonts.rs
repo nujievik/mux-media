@@ -5,7 +5,7 @@ use crate::{
 };
 use log::{debug, warn};
 use std::{
-    ffi::CString,
+    ffi::{CString, c_int},
     fs,
     path::{Path, PathBuf},
     ptr,
@@ -106,10 +106,16 @@ fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: &Vec<PathB
         let name = some_or!(continue; CString::new(name.as_encoded_bytes()).ok());
 
         let data = some_or!(continue; fs::read(font).ok());
+        let size = data.len();
+
+        if size > c_int::MAX as usize {
+            continue;
+        }
 
         unsafe {
-            let size = data.len();
-            let buf = sys::av_malloc(size + sys::AV_INPUT_BUFFER_PADDING_SIZE as usize) as *mut u8;
+            let padding = sys::AV_INPUT_BUFFER_PADDING_SIZE as usize;
+
+            let buf = sys::av_malloc(size + padding) as *mut u8;
             if buf.is_null() {
                 continue;
             }
@@ -125,8 +131,10 @@ fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: &Vec<PathB
             (*par).codec_id = sys::AVCodecID::AV_CODEC_ID_NONE;
 
             ptr::copy_nonoverlapping(data.as_ptr(), buf, size);
+            // zeroed padding
+            ptr::write_bytes(buf.add(size), 0, padding);
             (*par).extradata = buf;
-            (*par).extradata_size = size as i32;
+            (*par).extradata_size = size as _;
 
             sys::av_dict_set(&mut (*st).metadata, c"filename".as_ptr(), name.as_ptr(), 0);
             sys::av_dict_set(&mut (*st).metadata, c"mimetype".as_ptr(), mime.as_ptr(), 0);

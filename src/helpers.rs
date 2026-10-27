@@ -166,6 +166,21 @@ pub(crate) fn add_attached_pic<'a>(
         return Err(err!("attachment stream has not attached_pic packet"));
     }
 
+    let size = av_pkt.size as usize;
+    let padding = ffi::AV_INPUT_BUFFER_PADDING_SIZE as usize;
+
+    let buf = unsafe {
+        let buf = ffi::av_malloc(size + padding) as *mut u8;
+        if buf.is_null() {
+            return Err(err!("fail av_malloc"));
+        }
+
+        std::ptr::copy_nonoverlapping(av_pkt.data, buf, size);
+        // zeroed padding
+        std::ptr::write_bytes(buf.add(size), 0, padding);
+        buf
+    };
+
     let mut ost = octx.add_stream(codec::Id::None)?;
     ost.set_parameters(ist.parameters());
     unsafe {
@@ -176,16 +191,8 @@ pub(crate) fn add_attached_pic<'a>(
     ost_params.codec_tag = 0;
     ost_params.codec_type = ffi::AVMediaType::AVMEDIA_TYPE_ATTACHMENT;
     ost_params.codec_id = ffi::AVCodecID::AV_CODEC_ID_NONE;
-
-    unsafe {
-        let raw_data = std::slice::from_raw_parts(av_pkt.data, av_pkt.size as usize);
-        let size = raw_data.len();
-        let buf = ffi::av_malloc(size + ffi::AV_INPUT_BUFFER_PADDING_SIZE as usize) as *mut u8;
-
-        std::ptr::copy_nonoverlapping(raw_data.as_ptr(), buf, size);
-        ost_params.extradata = buf;
-        ost_params.extradata_size = size as i32;
-    }
+    ost_params.extradata = buf;
+    ost_params.extradata_size = size as _;
 
     let mut meta = ffmpeg::Dictionary::new();
     meta.set("mimetype", mimetype);
