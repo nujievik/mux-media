@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.20.0] - 2026-10-28
+
+### Changed
+- Replace --attachs to --pics.
+- Save meta & flags on --clean-meta & --clean-flags.
+
+### Fixed
+- Error while --clean-flags & attached_pic.
+- Get file number for long Windows filenames (>255 bytes in UTF-8
+representation).
+
+
 ## [0.19.11] - 2026-10-27
 
 ### Fixed
