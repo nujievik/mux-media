@@ -28,6 +28,7 @@ macro_rules! enum_cli_arg {
 enum_cli_arg! {
     Input => "input",
     Output => "output",
+    Overwrite => "overwrite",
     Range => "range",
     Skip => "skip",
     Depth => "depth",
@@ -38,7 +39,6 @@ enum_cli_arg! {
     LocaleLog => "locale-log",
     Verbose => "verbose",
     Quiet => "quiet",
-    Overwrite => "overwrite",
     Jobs => "jobs",
     ExitOnErr => "exit-on-err",
     Load => "load",

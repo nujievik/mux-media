@@ -48,10 +48,11 @@ Run `mux-media -h` to display help.
 | I/O options:                 | |
 | `-i, --input <path>` | Set input file OR directory with files |
 | `-o, --output <dir>` | Save muxed files to directory |
-| `-r, --range <n[-m]>` | Mux files with filename in-range only |
+| `-w, --overwrite` | Overwrite input files |
+| `-r, --range <n[-m]>` | Mux media with filename in-range only |
 | `    --skip <n[,m]...>` | Set patterns of filepaths to skip |
 | `    --depth <n>` | Scan subdirectories up to this depth |
-| `    --orphans-too` | Mux orphan files too |
+| `    --orphans-too` | Mux orphan mediafiles too |
 | | |
 | Global options: | |
 | `-l, --locale <lng>` | Set priority streams language & log language |
@@ -59,7 +60,6 @@ Run `mux-media -h` to display help.
 | `    --locale-log <lng>` | Set log language only (eng or rus) |
 | `-v, --verbose...` | Increase logging |
 | `-q, --quiet` | Suppress logging |
-| `-w, --overwrite` | Overwrite input files |
 | `-j, --jobs <n>` | Set max parallel muxing |
 | `-e, --exit-on-err` | Skip muxing next files if error occurs |
 | `    --load <txt>` | Load .txt config |

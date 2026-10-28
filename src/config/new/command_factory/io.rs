@@ -27,6 +27,13 @@ impl Blocks {
                     .value_parser(ValueParser::new(OutputParser)),
             )
             .arg(
+                Arg::new(undashed!(Overwrite))
+                    .short('w')
+                    .long(undashed!(Overwrite))
+                    .help(Msg::HelpOverwrite.as_str_localized())
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
                 Arg::new(undashed!(Range))
                     .short('r')
                     .long(undashed!(Range))

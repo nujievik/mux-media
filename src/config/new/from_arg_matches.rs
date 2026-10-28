@@ -176,7 +176,6 @@ impl FromArgMatches for Config {
 
                 locales,
                 log_level: log_level(m),
-                overwrite: flag!(m, Overwrite),
                 exit_on_err: flag!(m, ExitOnErr),
                 save_config: flag!(m, SaveConfig),
                 jobs: rm_or!(m, Jobs, u8, || Config::JOBS_DEFAULT),
@@ -293,7 +292,6 @@ impl FromArgMatches for Config {
         output(self, m);
         log_level(self, m);
 
-        upd_flag!(self.overwrite, m, Overwrite);
         upd_flag!(self.exit_on_err, m, ExitOnErr);
         upd_flag!(self.save_config, m, SaveConfig);
         upd!(self.jobs, m, Jobs, u8);
@@ -374,6 +372,7 @@ impl FromArgMatches for Config {
                 input.ty = ty;
             }
 
+            upd_flag!(input.overwrite, m, Overwrite);
             upd!(input.range, m, Range, RangeUsize, @opt);
             upd!(input.skip, m, Skip, GlobSetPattern, @opt);
             upd!(input.depth, m, Depth, u8);
@@ -581,6 +580,7 @@ fn try_input(m: &mut ArgMatches) -> Result<ConfigInput, Error> {
 
     Ok(ConfigInput {
         ty,
+        overwrite: flag!(m, Overwrite),
         range: rm!(m, Range, RangeUsize),
         skip: rm!(m, Skip, GlobSetPattern),
         depth: rm_or!(m, Depth, u8, || ConfigInput::DEPTH_DEFAULT),

@@ -66,9 +66,6 @@ impl ToArgs for Config {
     {
         write_fields!(self, w, buf; locales, input, output, log_level);
 
-        if self.overwrite {
-            to_args!(w, Overwrite)?;
-        }
         if self.exit_on_err {
             to_args!(w, ExitOnErr)?;
         }

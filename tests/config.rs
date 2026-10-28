@@ -66,7 +66,7 @@ fn parse_empty_args_output() {
 fn parse_empty_args() {
     let e = &EMPTY_ARGS;
     assert_eq!(e.log_level, Default::default());
-    assert!(!e.overwrite);
+    assert!(!e.input.overwrite);
     assert_eq!(1, e.jobs);
     assert!(!e.exit_on_err);
     assert!(!e.save_config);
@@ -134,6 +134,8 @@ fn parse_input_output() {
     assert_eq!(c.output.dir(), &o);
     assert!(!c.is_output_constructed_from_input);
 
+    test_parse!(["--overwrite"], input.overwrite, true);
+
     test_parse!(
         ["-r", "1-1"],
         input.range,
@@ -150,7 +152,6 @@ fn parse_input_output() {
 #[test]
 fn parse_global() {
     use log::LevelFilter;
-    test_parse!(["--overwrite"], overwrite, true);
     test_parse!(["-v"], log_level, ConfigLogLevel(LevelFilter::Debug));
     test_parse!(["-vv"], log_level, ConfigLogLevel(LevelFilter::Trace));
     test_parse!(["-q"], log_level, ConfigLogLevel(LevelFilter::Error));
@@ -370,7 +371,6 @@ fn test_target_switching() {
     assert!(cfg.defaults.single_val.is_none());
 }
 
-build_test_to_args!(overwrite_to_args, "config_overwrite"; vec!["--overwrite"]);
 build_test_to_args!(to_args_exit_on_err, "config_exit_on_err"; vec!["--exit-on-err"]);
 build_test_to_args!(to_args_clean_flags, "config_clean_flags"; vec!["--clean-flags"]);
 build_test_to_args!(to_args_clean_meta, "config_clean_meta"; vec!["--clean-meta"]);

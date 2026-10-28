@@ -17,6 +17,10 @@ impl ToArgs for ConfigInput {
             }
         }
 
+        if self.overwrite {
+            to_args!(w, Overwrite)?;
+        }
+
         if let Some(range) = &self.range {
             to_args!(w, Range)?;
             helpers::write_range(w, range, buf)?;

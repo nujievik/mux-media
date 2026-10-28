@@ -282,7 +282,7 @@ fn new_first_file_size(order: &StreamsOrder, need_write_progress: bool) -> u64 {
 }
 
 fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Result<()> {
-    if !cfg.overwrite {
+    if !cfg.input.overwrite {
         return Ok(());
     }
 
@@ -317,7 +317,7 @@ fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Resu
 }
 
 fn remove_input_fonts(cfg: &Config, fonts: Option<ExternalFonts>) -> Result<()> {
-    if !cfg.overwrite {
+    if !cfg.input.overwrite {
         return Ok(());
     }
 

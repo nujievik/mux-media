@@ -12,6 +12,7 @@ use std::path::{Path, PathBuf};
 pub struct ConfigInput {
     // must ensures that files is unempty.
     pub(crate) ty: InputType,
+    pub overwrite: bool,
     pub range: Option<RangeUsize>,
     pub skip: Option<GlobSetPattern>,
     pub depth: u8,

@@ -46,13 +46,6 @@ impl Blocks {
                     .conflicts_with(undashed!(Verbose)),
             )
             .arg(
-                Arg::new(undashed!(Overwrite))
-                    .short('w')
-                    .long(undashed!(Overwrite))
-                    .help(Msg::HelpOverwrite.as_str_localized())
-                    .action(ArgAction::SetTrue),
-            )
-            .arg(
                 Arg::new(undashed!(Jobs))
                     .short('j')
                     .long(undashed!(Jobs))
