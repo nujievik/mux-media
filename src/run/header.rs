@@ -131,7 +131,7 @@ fn set_ost_dispositions(
     let st = unsafe { &mut *ost.as_mut_ptr() };
 
     if mi.cfg.clean_flags {
-        st.disposition = 0;
+        st.disposition &= ffmpeg::ffi::AV_DISPOSITION_ATTACHED_PIC;
     }
 
     for ty in DispositionType::iter() {
