@@ -13,9 +13,12 @@ fn from_os_str_stream() {
     [
         (StreamType::Video, vec!["d", "v", "video"]),
         (StreamType::Audio, vec!["a", "audio"]),
-        (StreamType::Sub, vec!["s", "sub", "subs"]),
-        (StreamType::Font, vec!["f", "font", "fonts"]),
-        (StreamType::Attach, vec!["m", "attach", "attachs"]),
+        (
+            StreamType::Subtitles,
+            vec!["s", "sub", "subs", "subtitle", "subtitles"],
+        ),
+        (StreamType::AttachedFont, vec!["f", "font", "fonts"]),
+        (StreamType::AttachedPic, vec!["p", "pic", "pics"]),
         (StreamType::Other, vec!["other", "others"]),
     ]
     .into_iter()

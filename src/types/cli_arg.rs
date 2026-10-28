@@ -72,8 +72,8 @@ enum_cli_arg! {
     NoVideo => "no-video",
     Fonts => "fonts",
     NoFonts => "no-fonts",
-    Attachs => "attachs",
-    NoAttachs => "no-attachs",
+    Pics => "pics",
+    NoPics => "no-pics",
     CleanFlags => "clean-flags",
     CleanMeta => "clean-meta",
 

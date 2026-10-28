@@ -73,7 +73,7 @@ fn try_sorted_src_stream_key(
         streams.iter().for_each(|stream| {
             let ty = stream.ty;
             // skip temp dummy sub
-            if ty.is_sub()
+            if ty.is_subtitles()
                 && stream.i == 0
                 && src.parent().map_or(false, |p| p == cfg.output.temp_dir())
             {
@@ -96,7 +96,7 @@ fn try_sorted_src_stream_key(
             let (i, cfg_order) = cfg.stream_val(MarkConfigStreamsOrder, &target_paths, stream);
             let cfg_value = cfg_order.get(&i, &lang);
 
-            let fname = if ty.is_an_attach() {
+            let fname = if ty.is_attached() {
                 match &stream.filename {
                     Some(fname) if !attach_filenames.contains(fname) => {
                         let _ = attach_filenames.insert(fname.clone());
@@ -165,7 +165,10 @@ fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<Streams
     let mut src_num = 0usize;
 
     for (i, mut item) in order.0.into_iter().enumerate() {
-        if item.ty.is_track() {
+        if matches!(
+            item.ty,
+            StreamType::Video | StreamType::Audio | StreamType::Subtitles
+        ) {
             match rtm.try_any(i, &item) {
                 Ok(retimed) => {
                     item.src = Some(retimed.src);

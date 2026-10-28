@@ -277,10 +277,10 @@ impl FromArgMatches for Config {
             };
 
             insert_some(StreamType::Audio, get_streams!(m, Audio, NoAudio));
-            insert_some(StreamType::Sub, get_streams!(m, Subs, NoSubs));
+            insert_some(StreamType::Subtitles, get_streams!(m, Subs, NoSubs));
             insert_some(StreamType::Video, get_streams!(m, Video, NoVideo));
-            insert_some(StreamType::Font, get_streams!(m, Fonts, NoFonts));
-            insert_some(StreamType::Attach, get_streams!(m, Attachs, NoAttachs));
+            insert_some(StreamType::AttachedFont, get_streams!(m, Fonts, NoFonts));
+            insert_some(StreamType::AttachedPic, get_streams!(m, Pics, NoPics));
 
             map
         }
@@ -466,16 +466,16 @@ impl FromArgMatches for Config {
 
         fn target_streams(cfg: &mut Config, m: &mut ArgMatches) {
             trg_upd_streams!(cfg.target_configs, StreamType::Audio, m, Audio, NoAudio);
-            trg_upd_streams!(cfg.target_configs, StreamType::Sub, m, Subs, NoSubs);
+            trg_upd_streams!(cfg.target_configs, StreamType::Subtitles, m, Subs, NoSubs);
             trg_upd_streams!(cfg.target_configs, StreamType::Video, m, Video, NoVideo);
-            trg_upd_streams!(cfg.target_configs, StreamType::Font, m, Fonts, NoFonts);
             trg_upd_streams!(
                 cfg.target_configs,
-                StreamType::Attach,
+                StreamType::AttachedFont,
                 m,
-                Attachs,
-                NoAttachs
+                Fonts,
+                NoFonts
             );
+            trg_upd_streams!(cfg.target_configs, StreamType::AttachedPic, m, Pics, NoPics);
         }
     }
 }

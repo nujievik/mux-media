@@ -27,7 +27,7 @@ use std::path::{Path, PathBuf};
 ///     #
 ///     let args = [
 ///         "-i", dir.to_str().unwrap(),
-///         "-t", "attach", "--order", "0",
+///         "-t", "pic", "--order", "0",
 ///         "-t", "font", "--order", "1",
 ///         "-t", "sub", "--order", "2",
 ///         "-t", "audio", "--order", "3",
@@ -46,11 +46,11 @@ use std::path::{Path, PathBuf};
 ///     mi.try_insert(&sub_font).unwrap();
 ///     let o = StreamsOrder::new(&mut mi).unwrap();
 ///
-///     assert_eq!(o[0].ty, StreamType::Attach);
-///     //assert_eq!(o[1].ty, StreamType::Font);
-///     //assert_eq!(o[2].ty, StreamType::Sub);
-///     //assert_eq!(o[3].ty, StreamType::Audio);
-///     //assert_eq!(o[4].ty, StreamType::Video);
+///     assert_eq!(o[0].ty, StreamType::AttachedPic);
+///     assert_eq!(o[1].ty, StreamType::AttachedFont);
+///     assert_eq!(o[2].ty, StreamType::Subtitles);
+///     assert_eq!(o[3].ty, StreamType::Audio);
+///     assert_eq!(o[4].ty, StreamType::Video);
 ///     ```
 ///
 /// 1. [`StreamType`]:
@@ -58,8 +58,9 @@ use std::path::{Path, PathBuf};
 ///     - `Audio`
 ///     - `Sub`
 ///     - `Other`
-///     - `Font`
-///     - `Attach`
+///     - `AttachedFont`
+///     - `AttachedPic`
+///     - `AttachedOther`
 ///
 ///     ```
 ///     # use mux_media::*;
@@ -88,9 +89,9 @@ use std::path::{Path, PathBuf};
 ///
 ///     assert_eq!(o[0].ty, StreamType::Video);
 ///     assert_eq!(o[1].ty, StreamType::Audio);
-///     assert_eq!(o[2].ty, StreamType::Sub);
-///     assert_eq!(o[3].ty, StreamType::Font);
-///     assert_eq!(o[4].ty, StreamType::Attach);
+///     assert_eq!(o[2].ty, StreamType::Subtitles);
+///     assert_eq!(o[3].ty, StreamType::AttachedFont);
+///     assert_eq!(o[4].ty, StreamType::AttachedPic);
 ///
 ///     assert_eq!(&o[0].src(), &vid_attach);
 ///     assert_eq!(&o[1].src(), &audio);
@@ -283,7 +284,7 @@ pub struct StreamsOrderItem {
     /// A type of stream.
     pub ty: StreamType,
 
-    /// Whether stream ty is [`StreamType::Sub`] AND
+    /// Whether stream ty is [`StreamType::Subtitles`] AND
     /// (stream title OR `key` MarkMediaInfoPathTail OR `key` MarkMediaInfoRelativeUpmost) contains
     /// a signs-substring (example, "signs").
     pub is_signs: bool,

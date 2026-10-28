@@ -6,7 +6,7 @@ use crate::ffmpeg::{
     self, Packet, Rational,
     format::{self, context},
 };
-use crate::{Result, helpers};
+use crate::{Result, StreamType, helpers};
 
 #[non_exhaustive]
 pub enum Encoder {
@@ -30,18 +30,17 @@ impl Encoder {
     pub fn new<'a>(
         ist: &format::stream::Stream,
         octx: &'a mut format::context::Output,
-        is_attach: bool,
+        ty: StreamType,
     ) -> Result<(ffmpeg::StreamMut<'a>, Self)> {
-        if is_attach {
-            match helpers::add_attached_pic(ist, octx) {
+        match ty {
+            StreamType::AttachedPic => match helpers::add_attached_pic(ist, octx) {
                 Ok(ost) => Ok((ost, Encoder::AttachedPic)),
                 Err(e) => {
                     log::error!("{}", e);
-                    Err(err!("fail copy attachment stream.\nTry --no-attachs"))
+                    Err(err!("fail copy attached pic stream.\nTry --no-pics"))
                 }
-            }
-        } else {
-            EncoderCopy::new_encoder(ist, octx)
+            },
+            _ => EncoderCopy::new_encoder(ist, octx),
         }
     }
 }

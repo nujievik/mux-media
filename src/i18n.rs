@@ -61,8 +61,8 @@ pub enum Msg {
     HelpNoVideo,
     HelpFonts,
     HelpNoFonts,
-    HelpAttachs,
-    HelpNoAttachs,
+    HelpPics,
+    HelpNoPics,
     HelpCleanFlags,
     HelpCleanMeta,
 

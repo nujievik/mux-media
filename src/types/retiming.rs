@@ -62,7 +62,7 @@ impl Retiming<'_, '_> {
         match ty {
             StreamType::Video => self.try_video(src, i_stream),
             StreamType::Audio => self.try_audio(i, src, i_stream),
-            StreamType::Sub => self.try_sub(i, src, i_stream),
+            StreamType::Subtitles => self.try_sub(i, src, i_stream),
             _ => Err(err!("unsupported stream")),
         }
     }

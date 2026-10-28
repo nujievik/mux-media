@@ -7,21 +7,40 @@ use strum_macros::{AsRefStr, EnumIter};
 
 /// A type of stream.
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Ord, PartialOrd, AsRefStr, Enum, EnumIter)]
-#[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]
+#[non_exhaustive]
 pub enum StreamType {
     Video,
     Audio,
-    Sub,
+    Subtitles,
     Other,
-    Font,
-    // TODO: separate to AttachedPic & Attach
-    Attach,
+    /// Attached TTF or OTF font.
+    AttachedFont,
+    AttachedPic,
+    AttachedOther,
 }
 
 impl StreamType {
-    pub(crate) fn as_path(&self) -> &Path {
-        Path::new(self.as_ref())
+    /// Returns string representation.
+    ///
+    /// ```
+    /// use mux_media::StreamType;
+    /// use strum::IntoEnumIterator;
+    ///
+    /// assert_eq!("video", StreamType::Video.as_str());
+    ///
+    /// for ty in StreamType::iter() {
+    ///     assert_eq!(ty, ty.as_str().parse::<StreamType>().unwrap());
+    /// }
+    /// ```
+    #[inline]
+    pub fn as_str(&self) -> &str {
+        self.as_ref()
+    }
+
+    #[inline]
+    pub fn as_path(&self) -> &Path {
+        Path::new(self.as_str())
     }
 }
 

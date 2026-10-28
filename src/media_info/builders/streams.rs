@@ -27,18 +27,19 @@ impl MediaInfo<'_> {
                 let params = stream.parameters();
                 let codec = CodecId(params.id());
 
-                let is_attach = || unsafe {
+                let is_attached_pic = || unsafe {
                     ((*stream.as_ptr()).disposition & ffi::AV_DISPOSITION_ATTACHED_PIC) != 0
                 };
                 let is_font = || codec.is_font() || is_font_filename(&filename);
 
                 let ty = match params.medium() {
                     Type::Audio => StreamType::Audio,
-                    Type::Subtitle => StreamType::Sub,
-                    Type::Video if is_attach() => StreamType::Attach,
+                    Type::Subtitle => StreamType::Subtitles,
+                    Type::Video if is_attached_pic() => StreamType::AttachedPic,
                     Type::Video => StreamType::Video,
-                    Type::Attachment if is_font() => StreamType::Font,
-                    Type::Attachment if is_attach() => StreamType::Attach,
+                    Type::Attachment if is_font() => StreamType::AttachedFont,
+                    Type::Attachment if is_attached_pic() => StreamType::AttachedPic,
+                    Type::Attachment => StreamType::AttachedOther,
                     _ => StreamType::Other,
                 };
 

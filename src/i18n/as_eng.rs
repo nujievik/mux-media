@@ -37,10 +37,10 @@ impl_msg_as_str!(
     HelpNoSubs => "Don't save any subtitle stream",
     HelpVideo => "[!]Save video streams",
     HelpNoVideo => "Don't save any video stream",
-    HelpFonts => "[!]Save font attachments",
-    HelpNoFonts => "Don't save any font attachment",
-    HelpAttachs => "[!]Save other attachments",
-    HelpNoAttachs => "Don't save any other attachment",
+    HelpFonts => "[!]Save attached fonts",
+    HelpNoFonts => "Don't save any attached font",
+    HelpPics => "[!]Save attached pictures",
+    HelpNoPics => "Don't save any attached picture",
     HelpCleanFlags => "Save known flags of streams only",
     HelpCleanMeta => "Save known metadata of streams only",
 
@@ -120,6 +120,6 @@ impl_msg_as_str!(
     ListTargets => r#"Supported targets (in order of priority):
  1. Path to a file
  2. Path to the parent directory of the file
- 3. Stream type: video, audio, subs, fonts, or attachs
+ 3. Stream type: video, audio, subs, fonts, or pics
  4. Global (default)"#,
 );

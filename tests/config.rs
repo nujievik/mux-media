@@ -173,7 +173,7 @@ fn parse_no_streams() {
         ("subs", "-S"),
         ("video", "-D"),
         ("fonts", "-F"),
-        ("attachs", "-M"),
+        ("pics", "-P"),
     ]
     .iter()
     .for_each(|(trg, arg)| {
@@ -200,7 +200,7 @@ fn parse_streams() {
         ("subs", "-s0"),
         ("video", "-d0"),
         ("fonts", "-f0"),
-        ("attachs", "-m0"),
+        ("pics", "-p0"),
     ]
     .iter()
     .for_each(|(trg, arg)| {
@@ -289,7 +289,7 @@ fn test_aliases_of_args() {
         vec!["-D", "--no-video"],
         vec!["-C", "--no-chapters"],
         vec!["-F", "--no-fonts"],
-        vec!["-M", "--no-attachs"],
+        vec!["-P", "--no-pics"],
         vec!["--clean-meta", "--clean-metadata"],
     ]
     .iter()
@@ -309,7 +309,7 @@ fn test_aliases_of_args() {
         (vec!["-s", "--subs"], "1"),
         (vec!["-d", "--video"], "1"),
         (vec!["-f", "--fonts"], "1"),
-        (vec!["-m", "--attachs"], "1"),
+        (vec!["-p", "--pics"], "1"),
         (vec!["-c", "--chapters"], "0:0:0.0-0:5:0.0"),
     ]
     .iter()
@@ -366,7 +366,12 @@ fn test_target_switching() {
             .0
     );
     assert_eq!(cfg.jobs, 8);
-    assert!(cfg.target(MarkConfigDefaults, "sub").single_val.unwrap().0);
+    assert!(
+        cfg.target(MarkConfigDefaults, "subtitles")
+            .single_val
+            .unwrap()
+            .0
+    );
 
     assert!(cfg.defaults.single_val.is_none());
 }

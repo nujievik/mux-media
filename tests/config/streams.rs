@@ -22,10 +22,10 @@ fn parse_no_flag_aliases() {
 
     for (cli, ty) in [
         ("-A", StreamType::Audio),
-        ("-S", StreamType::Sub),
+        ("-S", StreamType::Subtitles),
         ("-D", StreamType::Video),
-        ("-F", StreamType::Font),
-        ("-M", StreamType::Attach),
+        ("-F", StreamType::AttachedFont),
+        ("-P", StreamType::AttachedPic),
     ] {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
@@ -80,10 +80,10 @@ fn parse_idxs_aliases() {
 
     for (cli, ty) in [
         ("-a0", StreamType::Audio),
-        ("-s0", StreamType::Sub),
+        ("-s0", StreamType::Subtitles),
         ("-d0", StreamType::Video),
-        ("-f0", StreamType::Font),
-        ("-m0", StreamType::Attach),
+        ("-f0", StreamType::AttachedFont),
+        ("-p0", StreamType::AttachedPic),
     ] {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
@@ -150,10 +150,10 @@ fn parse_ranges_aliases() {
 
     for (cli, ty) in [
         ("-a0-1", StreamType::Audio),
-        ("-s0-1", StreamType::Sub),
+        ("-s0-1", StreamType::Subtitles),
         ("-d0-1", StreamType::Video),
-        ("-f0-1", StreamType::Font),
-        ("-m0-1", StreamType::Attach),
+        ("-f0-1", StreamType::AttachedFont),
+        ("-p0-1", StreamType::AttachedPic),
     ] {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
@@ -206,10 +206,10 @@ fn parse_langs_aliases() {
 
     for (cli, ty) in [
         ("-aeng", StreamType::Audio),
-        ("-seng", StreamType::Sub),
+        ("-seng", StreamType::Subtitles),
         ("-deng", StreamType::Video),
-        ("-feng", StreamType::Font),
-        ("-meng", StreamType::Attach),
+        ("-feng", StreamType::AttachedFont),
+        ("-peng", StreamType::AttachedPic),
     ] {
         let t = Target::StreamType(ty);
         let mut val = ConfigTarget::default();
@@ -246,7 +246,7 @@ fn parse_target_switching() {
         "global",
         "--no-streams",
         "--target",
-        "attach",
+        "pic",
         "--no-streams",
         "--target",
         "sub",
@@ -260,11 +260,11 @@ fn parse_target_switching() {
     ];
 
     let ts = [
-        StreamType::Audio,
-        StreamType::Attach,
-        StreamType::Sub,
         StreamType::Video,
-        StreamType::Font,
+        StreamType::Audio,
+        StreamType::Subtitles,
+        StreamType::AttachedFont,
+        StreamType::AttachedPic,
     ]
     .into_iter()
     .map(|ty| {

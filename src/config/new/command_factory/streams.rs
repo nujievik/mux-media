@@ -74,20 +74,20 @@ impl Blocks {
                     .conflicts_with(undashed!(Fonts)),
             )
             .arg(
-                Arg::new(undashed!(Attachs))
-                    .short('m')
-                    .long(undashed!(Attachs))
+                Arg::new(undashed!(Pics))
+                    .short('p')
+                    .long(undashed!(Pics))
                     .value_name("[!]n[,m]...")
-                    .help(Msg::HelpAttachs.as_str_localized())
+                    .help(Msg::HelpPics.as_str_localized())
                     .value_parser(ValueParser::new(ConfigStreams::from_str)),
             )
             .arg(
-                Arg::new(undashed!(NoAttachs))
-                    .short('M')
-                    .long(undashed!(NoAttachs))
-                    .help(Msg::HelpNoAttachs.as_str_localized())
+                Arg::new(undashed!(NoPics))
+                    .short('P')
+                    .long(undashed!(NoPics))
+                    .help(Msg::HelpNoPics.as_str_localized())
                     .action(ArgAction::SetTrue)
-                    .conflicts_with(undashed!(Attachs)),
+                    .conflicts_with(undashed!(Pics)),
             )
             .arg(
                 Arg::new(undashed!(CleanFlags))

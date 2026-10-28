@@ -28,7 +28,7 @@ pub(super) fn write_header(
 
     for ord in &order.0 {
         let ist = input_stream::new(mi, &mut icontexts, ord)?;
-        let (mut ost, mut enc) = Encoder::new(&ist, octx, ord.ty.is_attach())?;
+        let (mut ost, mut enc) = Encoder::new(&ist, octx, ord.ty)?;
 
         if let Some(xs) = immut!(mi, MarkMediaInfoStreams, &ord.key) {
             let stream = &xs[ord.key_i_stream];
@@ -95,12 +95,12 @@ fn new_ost_metadata<'a>(
         ist.metadata().to_owned()
     };
 
-    if stream.lang.is_user() || !stream.ty.is_an_attach() {
+    if stream.lang.is_user() || !stream.ty.is_attached() {
         meta.set("language", stream.lang.as_str());
     }
 
     if let Some(title) = stream.title.as_ref() {
-        if title.is_user() || !stream.ty.is_an_attach() {
+        if title.is_user() || !stream.ty.is_attached() {
             meta.set("title", &*title);
         }
     }
@@ -138,7 +138,7 @@ fn set_ost_dispositions(
 
             None if !matches!(ty, DispositionType::Default) => true,
 
-            None if stream.ty.is_sub() => {
+            None if stream.ty.is_subtitles() => {
                 match lang_default_audio.as_ref() {
                     // set default signs only if signs lang == lang_default_audio
                     Some((_, lang)) if ord.is_signs => lang == &*stream.lang,

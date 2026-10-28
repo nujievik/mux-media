@@ -3,7 +3,7 @@ use crate::Stream;
 
 impl MediaInfo<'_> {
     pub(crate) fn is_signs(&mut self, src: &Path, stream: &Stream) -> bool {
-        if !stream.ty.is_sub() {
+        if !stream.ty.is_subtitles() {
             return false;
         }
 

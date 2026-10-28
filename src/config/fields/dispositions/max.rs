@@ -11,12 +11,13 @@ impl ConfigDispositions {
     }
 
     pub(crate) fn max_for_stream_type(&self, ty: DispositionType, stream_ty: StreamType) -> usize {
-        self.max_in_auto.unwrap_or(match stream_ty {
-            StreamType::Attach | StreamType::Font => 0,
-            _ => match ty {
+        self.max_in_auto.unwrap_or(if stream_ty.is_attached() {
+            0
+        } else {
+            match ty {
                 DispositionType::Default => 1,
                 DispositionType::Forced => 0,
-            },
+            }
         })
     }
 }

@@ -54,7 +54,7 @@ impl MediaInfo<'_> {
             .get_targets(MarkConfigSubsEncoding, targets)
             .unwrap_or_else(|| {
                 self.cfg
-                    .target(MarkConfigSubsEncoding, StreamType::Sub.as_ref())
+                    .target(MarkConfigSubsEncoding, StreamType::Subtitles.as_ref())
             });
 
         if let Some(enc) = c.get_encoding() {

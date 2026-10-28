@@ -82,10 +82,10 @@ Run `mux-media -h` to display help.
 | `-S, --no-subs` | Don't save any subtitle stream |
 | `-d, --video <[!]n[,m]...>` | `[!]Save video streams` |
 | `-D, --no-video` | Don't save any video stream |
-| `-f, --fonts <[!]n[,m]...>` | `[!]Save font attachments` |
-| `-F, --no-fonts` | Don't save any font attachment |
-| `-m, --attachs <[!]n[,m]...>` | `[!]Save other attachments` |
-| `-M, --no-attachs` | Don't save any other attachment |
+| `-f, --fonts <[!]n[,m]...>` | `[!]Save attached fonts` |
+| `-F, --no-fonts` | Don't save any attached font |
+| `-p, --pics <[!]n[,m]...>` | `[!]Save attached pictures` |
+| `-P, --no-pics` | Don't save any attached picture |
 | `    --clean-flags` | Save known flags of streams only |
 | `    --clean-meta` | Save known metadata of streams only |
 | | |
