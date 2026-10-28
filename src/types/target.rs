@@ -16,8 +16,11 @@ pub enum Target {
 }
 
 impl Target {
-    /// Tries construct [`Target`] from an os string.
-    pub fn new<OS: AsRef<OsStr>>(os: OS) -> Result<Target> {
+    /// Tries parse [`Target`] from an os string.
+    pub fn parse_os<OS: AsRef<OsStr>>(os: &OS) -> Result<Target>
+    where
+        OS: AsRef<OsStr> + ?Sized,
+    {
         let os = os.as_ref();
 
         if let Some(t) = os.to_str().and_then(|s| get_from_str(s)) {
