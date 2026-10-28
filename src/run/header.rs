@@ -89,10 +89,16 @@ fn new_ost_metadata<'a>(
     stream: &Stream,
     ist: &'a ffmpeg::Stream<'a>,
 ) -> Dictionary<'a> {
+    let ist_meta = ist.metadata();
+
     let mut meta = if clean_meta {
-        Dictionary::new()
+        let mut new = Dictionary::new();
+        if let Some(s) = ist_meta.get("mimetype") {
+            new.set("mimetype", s);
+        }
+        new
     } else {
-        ist.metadata().to_owned()
+        ist_meta.to_owned()
     };
 
     if stream.lang.is_user() || !stream.ty.is_attached() {
