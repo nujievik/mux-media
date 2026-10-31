@@ -14,9 +14,7 @@ jobs:
   windows-x64-static:
     runs-on: windows-latest
     env:
-      TARGET: x86_64-pc-windows-msvc
       FFMPEG_DIR: ${{ github.workspace }}/target/x86_64-pc-windows-msvc/mux-media-ffmpeg
-      RUSTFLAGS: "-C target-cpu=generic"
 
     steps:
       - uses: actions/checkout@v4
@@ -43,7 +41,7 @@ jobs:
           git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
           cd $SRC_DIR
           ./configure --prefix="$PREFIX_DIR" --arch=x86_64 --cpu=x86-64 --target-os=win64 --toolchain=msvc \
-            --pkg-config-flags="--static" --extra-cflags="-O2 -MD" \
+            --pkg-config-flags="--static" --extra-cflags="-O2 -MT" --extra-cxxflags="-MT" --extra-ldflags="-nodefaultlib:msvcrt" \
             --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
             --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
             --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
@@ -60,7 +58,11 @@ jobs:
           make install
 
       - name: Build & Test Static Release
-        run: cargo test --release --features ffmpeg-static --target ${{ env.TARGET }}
+        env:
+          RUSTFLAGS: "-C opt-level=2 -C target-cpu=x86-64 -C target-feature=+crt-static"
+          CFLAGS: "-MT"
+          CXXFLAGS: "-MT"
+        run: cargo test --release --features ffmpeg-static --target x86_64-pc-windows-msvc
 
 
   macos-arm64-static:

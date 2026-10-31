@@ -82,7 +82,7 @@ jobs:
           git clone --depth 1 --branch n8.1.2 https://github.com/ffmpeg/ffmpeg $SRC_DIR
           cd $SRC_DIR
           ./configure --prefix="$PREFIX_DIR" --cpu=${{ matrix.target_cpu }} ${{ matrix.ffmpeg_configure_flags }} --toolchain=msvc \
-            --pkg-config-flags="--static" --extra-cflags="-O2 -MD" \
+            --pkg-config-flags="--static" --extra-cflags="-O2 -MT" --extra-cxxflags="-MT" --extra-ldflags="-nodefaultlib:msvcrt" \
             --disable-runtime-cpudetect --disable-autodetect --disable-programs --disable-doc \
             --disable-avdevice --disable-swresample --disable-swscale --disable-avfilter --disable-network \
             --disable-encoders --disable-hwaccels --disable-muxers --disable-protocols --disable-devices --disable-filters \
@@ -100,7 +100,9 @@ jobs:
 
       - name: Build
         env:
-          RUSTFLAGS: "-C opt-level=2 -C target-cpu=${{ matrix.target_cpu }}"
+          RUSTFLAGS: "-C opt-level=2 -C target-cpu=${{ matrix.target_cpu }} -C target-feature=+crt-static"
+          CFLAGS: "-MT"
+          CXXFLAGS: "-MT"
         run: cargo build --release --features ffmpeg-static --target ${{ matrix.target }}
 
       - uses: actions/upload-artifact@v4
