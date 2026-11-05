@@ -27,13 +27,17 @@ pub struct MediaInfo<'a> {
     pub cache: MediaInfoCache,
     /// Job number. Separates access to temp files.
     pub job: u8,
-    buf: Option<[u8; MediaInfo::BUF_SIZE]>,
+    buf: Option<Box<[u8]>>,
     // TODO: move to StremsOrder::chapters
     pub(crate) chapters: Option<Vec<ConfigChaptersTimeRange>>,
 }
 
 impl MediaInfo<'_> {
-    const BUF_SIZE: usize = 1024 * 128; // 128 KiB
+    fn buffer_mut(&mut self) -> &mut [u8] {
+        const BUF_SIZE: usize = 1024 * 128; // 128 KiB
+        self.buf
+            .get_or_insert_with(|| vec![0; BUF_SIZE].into_boxed_slice())
+    }
 
     pub fn new<'a>(cfg: &'a Config, job: u8) -> MediaInfo<'a> {
         MediaInfo {

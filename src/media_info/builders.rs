@@ -62,8 +62,7 @@ impl MediaInfo<'_> {
         }
 
         if *self.cfg.auto_flags.encs {
-            let buf = self.buf.get_or_insert_with(|| [0u8; Self::BUF_SIZE]);
-            Ok(CharEncoding::detect(src, buf))
+            Ok(CharEncoding::detect(src, self.buffer_mut()))
         } else {
             Ok(CharEncoding::NotRecognized)
         }
