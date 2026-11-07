@@ -2,6 +2,7 @@ mod cache;
 mod external_segments;
 
 use super::*;
+use crate::config::ConfigRetiming;
 use crate::media_info::*;
 use crate::{
     ArcPathBuf, Config, FxHashMap, MediaInfo, MuxError, Result, StreamType, StreamsOrder, Time,
@@ -167,6 +168,26 @@ fn try_times(
         }
 
         Err(err!("not found I-frame"))
+    }
+}
+
+impl ConfigRetiming {
+    fn is_save_chapter(&self, chp: &RetimingChapter) -> bool {
+        if self.no_linked && chp.uid.is_some() {
+            return false;
+        }
+
+        if self.parts.is_default() {
+            return true;
+        }
+
+        if let Some(pat) = self.parts.pattern.as_ref() {
+            if chp.title.as_ref().is_some_and(|title| pat.is_match(title)) {
+                return !self.parts.inverse;
+            }
+        }
+
+        self.parts.inverse
     }
 }
 

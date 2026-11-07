@@ -71,7 +71,10 @@ pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType
 pub use helpers::{ensure_long_path_prefix, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
-pub use run::run;
+pub use run::{
+    run,
+    streams_order::{StreamsOrder, StreamsOrderItem},
+};
 pub use traits::{
     Field, ToArgs, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},
@@ -90,7 +93,6 @@ pub use types::{
     my_bool::Bool,
     range::RangeUsize,
     stream::{Stream, ty::StreamType},
-    streams_order::{StreamsOrder, StreamsOrderItem},
     target::Target,
     value::Value,
 };
@@ -105,4 +107,3 @@ use config::MediaGroupedByStem;
 use config::fields::chapters::ConfigChaptersTimeRange;
 use helpers::*;
 use media_info::cache::CacheState;
-use types::retiming::{Retiming, RetimingChapter};

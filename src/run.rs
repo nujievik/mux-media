@@ -3,6 +3,7 @@ mod current;
 mod encoder;
 mod external_fonts;
 mod header;
+pub(crate) mod streams_order;
 
 use crate::config::MarkConfigChapters;
 use crate::ffmpeg::{self, format};

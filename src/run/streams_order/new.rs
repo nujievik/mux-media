@@ -1,11 +1,9 @@
-use super::{StreamsOrder, StreamsOrderItem};
+use super::{StreamsOrder, StreamsOrderItem, retiming::Retiming};
 use crate::config::{
     MarkConfigDefaults, MarkConfigForceds, MarkConfigStreams, MarkConfigStreamsOrder,
 };
 use crate::media_info::*;
-use crate::{
-    ArcPathBuf, FxHashSet, Lang, LangCode, MediaInfo, Result, Retiming, StreamType, display,
-};
+use crate::{ArcPathBuf, FxHashSet, Lang, LangCode, MediaInfo, Result, StreamType, display};
 use log::warn;
 use std::cmp::Ordering;
 

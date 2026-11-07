@@ -1,4 +1,5 @@
 mod new;
+mod retiming;
 
 use crate::{ArcPathBuf, StreamType};
 use std::path::{Path, PathBuf};
