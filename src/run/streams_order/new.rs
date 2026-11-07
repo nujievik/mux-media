@@ -38,13 +38,15 @@ impl StreamsOrder {
     /// - Warning: fails retiming any media.
     pub fn new(mi: &mut MediaInfo) -> Result<StreamsOrder> {
         if mi.cache.of_files.is_empty() {
-            Err(err!("not found any cached media file"))
-        } else {
-            let sources = sources(mi);
-            let sorted_src_stream_key = try_sorted_src_stream_key(mi, &sources)?;
-            let items = items(sources, sorted_src_stream_key);
-            try_order(mi, items)
+            return Err(err!("not found any cached media file"));
         }
+
+        let sources = sources(mi);
+        let sorted_src_stream_key = try_sorted_src_stream_key(mi, &sources)?;
+
+        let mut order = StreamsOrder(items(sources, sorted_src_stream_key));
+        order.convert_subs_encodings(mi)?;
+        retiming(mi, order.0)
     }
 }
 
@@ -149,7 +151,7 @@ fn items(
     items
 }
 
-fn try_order(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<StreamsOrder> {
+fn retiming(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<StreamsOrder> {
     let exit_on_err = mi.cfg.exit_on_err;
     let order = StreamsOrder(items);
 

@@ -1,7 +1,7 @@
 mod base;
 mod destination;
 mod external;
-mod ty;
+pub(crate) mod ty;
 
 use super::{RetimedStream, Retiming, SignedTime};
 use crate::{Result, Time, display};
@@ -65,7 +65,7 @@ impl Retiming<'_, '_> {
     }
 }
 
-fn try_extract(src: &Path, i_stream: usize, dest_ty: SubType, dest_path: &Path) -> Result<()> {
+pub fn try_extract(src: &Path, i_stream: usize, dest_ty: SubType, dest_path: &Path) -> Result<()> {
     use crate::ffmpeg::{Rational, format};
 
     let mut ictx = format::input(&src)?;

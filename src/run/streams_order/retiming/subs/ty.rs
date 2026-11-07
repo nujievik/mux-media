@@ -1,5 +1,5 @@
 use crate::media_info::MarkMediaInfoStreams;
-use crate::{CodecId, Extension, MediaInfo};
+use crate::{CodecId, Extension, MediaInfo, display};
 use std::path::Path;
 
 #[derive(Copy, Clone, Debug)]
@@ -24,7 +24,7 @@ impl SubType {
         }
     }
 
-    pub fn from_codec_id(mi: &MediaInfo, src: &Path, i_stream: usize) -> SubType {
+    pub fn get_from_codec_id(mi: &MediaInfo, src: &Path, i_stream: usize) -> Option<SubType> {
         use crate::ffmpeg::codec::id::Id;
 
         let c = *mi
@@ -32,19 +32,24 @@ impl SubType {
             .map(|xs| &xs[i_stream].codec)
             .unwrap_or(&CodecId::default());
 
-        match c.0 {
+        let ty = match c.0 {
             Id::ASS | Id::SSA => SubType::Ssa,
             Id::SRT | Id::SUBRIP => SubType::Srt,
             Id::WEBVTT => SubType::Vtt,
-            _ => {
-                log::warn!(
-                    "Unsupported codec {:?} of sub stream {}. Try retime as .srt",
-                    c,
-                    i_stream
-                );
-                SubType::Srt
-            }
-        }
+            _ => return None,
+        };
+        Some(ty)
+    }
+
+    pub fn from_codec_id(mi: &MediaInfo, src: &Path, i_stream: usize) -> SubType {
+        SubType::get_from_codec_id(mi, src, i_stream).unwrap_or_else(|| {
+            log::warn!(
+                "unsupported format of subs '{}' stream {}. Try retime as .srt",
+                display(src),
+                i_stream
+            );
+            SubType::Srt
+        })
     }
 
     pub const fn as_ext(self) -> &'static str {

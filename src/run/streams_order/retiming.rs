@@ -1,7 +1,7 @@
 mod audio;
 mod new;
 mod signed_time;
-mod subs;
+pub(crate) mod subs;
 mod video;
 
 use crate::ffmpeg::{
@@ -55,7 +55,7 @@ pub struct RetimedStream {
 
 impl Retiming<'_, '_> {
     pub(crate) fn try_any(&self, i: usize, item: &StreamsOrderItem) -> Result<RetimedStream> {
-        let src = &item.key;
+        let src = item.src();
         let i_stream = item.i_stream;
         let ty = item.ty;
 
