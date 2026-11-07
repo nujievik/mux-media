@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn parse_empty_args() {
-    let xs = &EMPTY_ARGS.locales;
+    let xs = &CONFIG.locales;
     assert!(xs.get_locale_streams().is_none());
     assert!(xs.get_locale_log().is_none());
 }
@@ -39,7 +39,7 @@ fn parse_locale_log() {
 
 #[test]
 fn empty_to_args() {
-    let empty = &EMPTY_ARGS;
+    let empty = &CONFIG;
     let empty_to_args = empty.to_args().unwrap();
     assert_eq!(
         &empty_to_args[..2],

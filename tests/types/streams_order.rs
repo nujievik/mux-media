@@ -142,3 +142,14 @@ fn skip_sub_streams() {
     assert_eq!(StreamType::Video, order[0].ty);
     assert_eq!(StreamType::Audio, order[1].ty);
 }
+
+#[test]
+fn skip_attached_with_duplicate_fnames() {
+    let mut mi = MediaInfo::new(&CONFIG, 0);
+    mi.try_insert(data("font_attachs_x16.mks")).unwrap();
+
+    let order = mi.try_take_cmn(MarkMediaInfoStreamsOrder).unwrap();
+    assert_eq!(2, order.len());
+    assert_eq!(StreamType::Subtitles, order[0].ty);
+    assert_eq!(StreamType::AttachedFont, order[1].ty);
+}

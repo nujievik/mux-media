@@ -40,13 +40,11 @@ use clap::{error::ErrorKind, *};
 use common::*;
 use is_default::IsDefault;
 use mux_media::{config::*, *};
-use std::{fs, sync::LazyLock};
-
-static EMPTY_ARGS: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
+use std::fs;
 
 #[test]
 fn parse_empty_args_input() {
-    let i = &EMPTY_ARGS.input;
+    let i = &CONFIG.input;
     assert_eq!(i.dir(), &fs::canonicalize(".").unwrap());
     assert!(i.range.is_none());
     assert!(i.skip.is_none());
@@ -56,7 +54,7 @@ fn parse_empty_args_input() {
 
 #[test]
 fn parse_empty_args_output() {
-    let o = &EMPTY_ARGS.output;
+    let o = &CONFIG.output;
     let dir = fs::canonicalize(".").unwrap().join("muxed");
     assert_eq!(o.dir(), &dir);
     assert_eq!(o.temp_dir(), dir.join(".temp-mux-media"));
@@ -64,7 +62,7 @@ fn parse_empty_args_output() {
 
 #[test]
 fn parse_empty_args() {
-    let e = &EMPTY_ARGS;
+    let e = &CONFIG;
     assert_eq!(e.log_level, Default::default());
     assert!(!e.input.overwrite);
     assert_eq!(1, e.jobs);
@@ -113,7 +111,7 @@ fn test_ok_exit() {
 
 macro_rules! test_parse {
     ($args:expr, $( $field:ident $( .$sub_field:ident )? , $exp:expr ),* ) => {{
-        let mut exp = (*EMPTY_ARGS).clone();
+        let mut exp = (*CONFIG).clone();
         $( exp.$field $( .$sub_field )? = $exp; )*
 
         assert_eq_wo_locale(cfg($args), &exp);
@@ -181,7 +179,7 @@ fn parse_no_streams() {
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
 
-        let mut exp = (*EMPTY_ARGS).clone();
+        let mut exp = (*CONFIG).clone();
         exp.target_configs.insert(trg, val);
         assert_eq_wo_locale(cfg([arg]), &exp);
     })
@@ -208,7 +206,7 @@ fn parse_streams() {
         let mut val = ConfigTarget::default();
         val.streams = Some(xs.clone());
 
-        let mut exp = (*EMPTY_ARGS).clone();
+        let mut exp = (*CONFIG).clone();
         exp.target_configs.insert(trg, val);
         assert_eq_wo_locale(cfg([arg]), &exp);
     })

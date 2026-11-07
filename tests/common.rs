@@ -5,6 +5,7 @@ use mux_media::*;
 use std::{
     ffi::{OsStr, OsString},
     path::{MAIN_SEPARATOR, Path, PathBuf},
+    sync::LazyLock,
 };
 
 pub fn p<OS: AsRef<OsStr> + ?Sized>(oss: &OS) -> &Path {
@@ -48,6 +49,8 @@ pub fn temp(add: impl AsRef<OsStr>) -> PathBuf {
     p.push(add);
     data(p)
 }
+
+pub static CONFIG: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
 
 pub fn cfg<I, OS>(args: I) -> Config
 where

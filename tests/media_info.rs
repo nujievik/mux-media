@@ -6,9 +6,6 @@ mod durations;
 use common::*;
 use encoding_rs::Encoding;
 use mux_media::{media_info::*, *};
-use std::sync::LazyLock;
-
-static CONFIG: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
 
 pub fn new() -> MediaInfo<'static> {
     MediaInfo::new(&*CONFIG, 0)
