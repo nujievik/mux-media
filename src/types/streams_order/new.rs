@@ -72,6 +72,7 @@ fn try_sorted_src_stream_key(
 
         streams.iter().for_each(|stream| {
             let ty = stream.ty;
+
             // skip temp dummy sub
             if ty.is_subtitles()
                 && stream.i == 0
@@ -85,6 +86,19 @@ fn try_sorted_src_stream_key(
                 return;
             }
 
+            let fname = if ty.is_attached() {
+                match &stream.filename {
+                    Some(fname) if !attach_filenames.contains(fname) => {
+                        let _ = attach_filenames.insert(fname.clone());
+                        Some(fname.to_lowercase())
+                    }
+                    Some(_) => return, // skip fname duplicates
+                    None => None,
+                }
+            } else {
+                None
+            };
+
             let lang = &stream.lang;
             let is_signs = mi.is_signs(src, stream);
 
@@ -95,18 +109,6 @@ fn try_sorted_src_stream_key(
 
             let (i, cfg_order) = cfg.stream_val(MarkConfigStreamsOrder, &target_paths, stream);
             let cfg_value = cfg_order.get(&i, &lang);
-
-            let fname = if ty.is_attached() {
-                match &stream.filename {
-                    Some(fname) if !attach_filenames.contains(fname) => {
-                        let _ = attach_filenames.insert(fname.clone());
-                        Some(fname.to_lowercase())
-                    }
-                    Some(_) | None => None,
-                }
-            } else {
-                None
-            };
 
             let key = OrderSortKey::new(
                 cfg_value, ty, default, forced, is_signs, lang, locale, fname,
