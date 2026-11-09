@@ -3,8 +3,7 @@ use super::*;
 #[test]
 fn parse_default() {
     let xs = ConfigTsOffsets::default();
-    let cfg = cfg::<_, &str>([]);
-    assert_eq!(xs.clone(), cfg.ts_offsets);
+    assert_eq!(&xs, &CONFIG.ts_offsets);
 }
 
 #[test]

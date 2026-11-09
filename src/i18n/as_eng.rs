@@ -58,7 +58,7 @@ impl_msg_as_str!(
     HelpMaxForceds => "Max auto-enabled forced",
     HelpTitles => "Set stream titles",
     HelpLangs => "Set stream languages",
-    HelpSubsEncoding => "Decode subs as n-encoding",
+    HelpSubsEncodings => "Decode subs as E-encoding",
     HelpTsOffsets => "Set streams timestamps offsets (ms)",
 
     HelpRetimingOptions => "Retiming options",
@@ -76,6 +76,13 @@ impl_msg_as_str!(
     WritingExternalFontsToTempFile => "writing external fonts to temp file",
     ExternalFontsSuccessfullyWritten => "external fonts successfully written",
     FailWriteExternalFonts => "fail write external fonts",
+
+    ConvertingSubtitlesEncoding => "converting subtitles encoding",
+    Stream => "stream",
+    SuccessfullyConvertedSubtitles => "successfully converted subtitles",
+    FailConvertSubtitlesEncoding => "fail convert subtitles encoding",
+    CopyAsIs => "Copy as is",
+    UnsupportedSubtitlesFormat => "unsupported subtitles format",
 
     MuxingTo => "Muxing to",
     MuxingFiles => "muxing files",
@@ -98,7 +105,6 @@ impl_msg_as_str!(
     Debug => "Debug",
     Trace => "Trace",
 
-    ConvertingSubtitleEncoding => "Converting subtitle encoding",
     FailSaveConfig => "fail save config",
     FailUpdateLanguage => "fail update language",
     FileAlreadyExists => "file already exists",

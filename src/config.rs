@@ -56,7 +56,7 @@ mod to_args;
 
 pub use fields::{
     MarkConfigChapters, MarkConfigDefaults, MarkConfigForceds, MarkConfigLangMetadata,
-    MarkConfigStreams, MarkConfigStreamsOrder, MarkConfigSubsEncoding, MarkConfigTitleMetadata,
+    MarkConfigStreams, MarkConfigStreamsOrder, MarkConfigSubsEncodings, MarkConfigTitleMetadata,
     MarkConfigTsOffsets,
     auto_flags::ConfigAutoFlags,
     chapters::ConfigChapters,
@@ -69,7 +69,7 @@ pub use fields::{
     retiming::{ConfigRetiming, ConfigRetimingParts},
     streams::ConfigStreams,
     streams_order::ConfigStreamsOrder,
-    subs_encoding::ConfigSubsEncoding,
+    subs_encodings::ConfigSubsEncodings,
     ts_offsets::ConfigTsOffsets,
 };
 
@@ -109,7 +109,7 @@ pub struct Config {
     pub forceds: ConfigDispositions,
     pub titles: ConfigTitleMetadata,
     pub langs: ConfigLangMetadata,
-    pub subs_encoding: ConfigSubsEncoding,
+    pub subs_encodings: ConfigSubsEncodings,
     pub ts_offsets: ConfigTsOffsets,
 
     pub retiming: ConfigRetiming,
@@ -128,7 +128,7 @@ pub struct ConfigTarget {
     pub forceds: Option<ConfigDispositions>,
     pub titles: Option<ConfigTitleMetadata>,
     pub langs: Option<ConfigLangMetadata>,
-    pub subs_encoding: Option<ConfigSubsEncoding>,
+    pub subs_encodings: Option<ConfigSubsEncodings>,
     pub ts_offsets: Option<ConfigTsOffsets>,
 }
 

@@ -6,7 +6,7 @@ fn new(args: &[&str]) -> ConfigAutoFlags {
 
 #[test]
 fn parse_empty() {
-    let f = new(&[]);
+    let f = &CONFIG.auto_flags;
     assert_eq!(false, f.no_auto);
     assert_eq!(Value::Auto(true), f.defaults);
     assert_eq!(Value::Auto(true), f.forceds);

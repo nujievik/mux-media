@@ -15,12 +15,12 @@ pub(crate) mod output;
 pub(crate) mod retiming;
 pub(crate) mod streams;
 pub(crate) mod streams_order;
-pub(crate) mod subs_encoding;
+pub(crate) mod subs_encodings;
 pub(crate) mod ts_offsets;
 
 use super::{
     Config, ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams,
-    ConfigStreamsOrder, ConfigSubsEncoding, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets,
+    ConfigStreamsOrder, ConfigSubsEncodings, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets,
 };
 use crate::{DispositionType, Field, Stream, Target};
 use std::path::Path;
@@ -154,6 +154,6 @@ fields! {
     forceds, ConfigDispositions => MarkConfigForceds,
     titles, ConfigTitleMetadata => MarkConfigTitleMetadata,
     langs, ConfigLangMetadata => MarkConfigLangMetadata,
-    subs_encoding, ConfigSubsEncoding => MarkConfigSubsEncoding,
+    subs_encodings, ConfigSubsEncodings => MarkConfigSubsEncodings,
     ts_offsets, ConfigTsOffsets => MarkConfigTsOffsets,
 }

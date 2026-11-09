@@ -52,3 +52,22 @@ fn mux_attached_pic() {
 
     assert_eq!(182, av_st.attached_pic.size);
 }
+
+#[test]
+fn mux_cp1251_subs() {
+    let i = data("cp1251.srt");
+    let o = temp("mux/cp1251_subs");
+    let mut cfg = cfg([p("-i"), &i, p("-o"), &o]);
+
+    let _ = fs::remove_dir_all(cfg.output.dir());
+    cfg.try_finalize_init().unwrap();
+    assert_eq!(1, cfg.mux().unwrap());
+
+    let temp = fs::read(
+        cfg.output
+            .temp_dir()
+            .join(format!("0-converted-subs-0-0.srt")),
+    )
+    .unwrap();
+    assert!(temp != fs::read(&i).unwrap());
+}

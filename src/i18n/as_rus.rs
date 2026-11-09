@@ -58,7 +58,7 @@ impl_msg_as_str!(
     HelpMaxForceds => "Максимум включаемых в авто forced",
     HelpTitles => "Установить имена потоков",
     HelpLangs => "Установить языки потоков",
-    HelpSubsEncoding => "Декодировать субтитры в кодировке n",
+    HelpSubsEncodings => "Декодировать субтитры в кодировке E",
     HelpTsOffsets => "Задать смещения временных меток потоков (мс)",
 
     HelpRetimingOptions => "Ретайминг опции",
@@ -76,6 +76,13 @@ impl_msg_as_str!(
     WritingExternalFontsToTempFile => "запись внешних шрифтов во временный файл",
     ExternalFontsSuccessfullyWritten => "внешние шрифты успешно записаны",
     FailWriteExternalFonts => "ошибка записи внешних субтитров",
+
+    ConvertingSubtitlesEncoding => "конвертация кодировки субтитров",
+    Stream => "поток",
+    SuccessfullyConvertedSubtitles => "субтитры успешно конвертированы",
+    FailConvertSubtitlesEncoding => "ошибка конвертации кодировки субтитров",
+    CopyAsIs => "Копирование как есть",
+    UnsupportedSubtitlesFormat => "неподдерживаемый формат субтитров",
 
     MuxingTo => "Муксирование в",
     MuxingFiles => "муксирование файлов",
@@ -98,7 +105,6 @@ impl_msg_as_str!(
     Debug => "Отладка",
     Trace => "Отладка",
 
-    ConvertingSubtitleEncoding => "Конвертация кодировки субтитров",
     FailSaveConfig => "ошибка сохранения конфига",
     FailUpdateLanguage => "не удалось обновить язык",
     FileAlreadyExists => "файл уже существует",

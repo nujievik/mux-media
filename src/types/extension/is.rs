@@ -22,8 +22,4 @@ impl Extension {
     pub(crate) fn is_media(&self) -> bool {
         !self.is_font() && !self.is_attach()
     }
-
-    pub(crate) fn is_subs(&self) -> bool {
-        is_any!(self, Ass Mks Srt Ssa Sub Sup Vtt)
-    }
 }

@@ -16,7 +16,6 @@ impl TryFinalizeInit for MediaInfo<'_> {
             self.try_init(MarkMediaInfoPathTail, src)?;
             self.try_init(MarkMediaInfoRelativeUpmost, src)?;
             self.try_init(MarkMediaInfoTargetPaths, src)?;
-            self.try_init(MarkMediaInfoSubsEncoding, src)?;
             self.try_init(MarkMediaInfoPlayableDuration, src)?;
         }
 

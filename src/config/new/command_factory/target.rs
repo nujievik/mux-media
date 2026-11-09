@@ -1,7 +1,7 @@
 use super::Blocks;
 use crate::config::{
     ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigStreamsOrder,
-    ConfigSubsEncoding, ConfigTitleMetadata, ConfigTsOffsets,
+    ConfigSubsEncodings, ConfigTitleMetadata, ConfigTsOffsets,
 };
 use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
@@ -108,11 +108,11 @@ impl Blocks {
                     .value_parser(ValueParser::new(ConfigLangMetadata::from_str)),
             )
             .arg(
-                Arg::new(undashed!(SubsEncoding))
-                    .long(undashed!(SubsEncoding))
-                    .value_name("n")
-                    .help(Msg::HelpSubsEncoding.as_str_localized())
-                    .value_parser(ValueParser::new(ConfigSubsEncoding::from_str)),
+                Arg::new(undashed!(SubsEncodings))
+                    .long(undashed!(SubsEncodings))
+                    .value_name("[n:]E[,m:E]...")
+                    .help(Msg::HelpSubsEncodings.as_str_localized())
+                    .value_parser(ValueParser::new(ConfigSubsEncodings::from_str)),
             )
             .arg(
                 Arg::new(undashed!(TsOffsets))

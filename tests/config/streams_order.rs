@@ -3,8 +3,7 @@ use super::*;
 #[test]
 fn parse_default() {
     let xs = ConfigStreamsOrder::default();
-    let cfg = cfg::<_, &str>([]);
-    assert_eq!(xs.clone(), cfg.order);
+    assert_eq!(&xs, &CONFIG.order);
 }
 
 #[test]

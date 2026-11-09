@@ -1,11 +1,9 @@
 use super::retiming::subs::{self, ty::SubType};
 use super::{StreamsOrder, StreamsOrderItem};
-use crate::config::MarkConfigSubsEncoding;
+use crate::config::MarkConfigSubsEncodings;
 use crate::ffmpeg::{codec::id::Id, format};
-use crate::media_info::{
-    MarkMediaInfoStreams, MarkMediaInfoSubsEncoding, MarkMediaInfoTargetPaths,
-};
-use crate::{CharEncoding, MediaInfo, Msg, Result, StreamType, display};
+use crate::media_info::{MarkMediaInfoStreams, MarkMediaInfoTargetPaths};
+use crate::{CharEncoding, MediaInfo, Msg, Result, display, immut};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use log::{debug, warn};
@@ -13,6 +11,20 @@ use std::{
     fs, io,
     path::{Path, PathBuf},
 };
+
+macro_rules! warn_fail_convert {
+    ($item:ident, $err:expr) => {
+        warn!(
+            "{}: {}. {} '{}' {} {}",
+            Msg::FailConvertSubtitlesEncoding,
+            $err,
+            Msg::CopyAsIs,
+            display(&$item.key),
+            Msg::Stream,
+            $item.key_i_stream,
+        )
+    };
+}
 
 impl StreamsOrder {
     pub(crate) fn convert_subs_encodings(&mut self, mi: &mut MediaInfo) -> Result<()> {
@@ -53,14 +65,7 @@ impl StreamsOrder {
                 }
                 Ok(None) => (),
                 Err(e) if mi.cfg.exit_on_err => return Err(e),
-                Err(e) => {
-                    warn!(
-                        "fail reencode subtitles to UTF-8: {}. Copying without reencode '{}' stream {}",
-                        e,
-                        display(&item.key),
-                        item.i_stream,
-                    );
-                }
+                Err(e) => warn_fail_convert!(item, e),
             }
         }
 
@@ -69,32 +74,30 @@ impl StreamsOrder {
 }
 
 fn convert_item(mi: &mut MediaInfo, item: &StreamsOrderItem) -> Result<Option<PathBuf>> {
-    if let Some(sub_ty) = SubType::new_from_path(&item.key) {
-        return convert_file(mi, item, &item.key, None, sub_ty);
-    }
-
     let cfg = mi.cfg;
-    let targets = mi.try_get(MarkMediaInfoTargetPaths, &item.key)?;
+    mi.try_init(MarkMediaInfoTargetPaths, &item.key)?;
+    let stream = &immut!(@try, mi, MarkMediaInfoStreams, &item.key)?[item.key_i_stream];
+    let targets = mi.try_immut(MarkMediaInfoTargetPaths, &item.key)?;
 
-    let enc = cfg
-        .get_targets(MarkConfigSubsEncoding, targets)
-        .unwrap_or_else(|| cfg.target(MarkConfigSubsEncoding, StreamType::Subtitles.as_ref()))
-        .get_encoding();
+    let (i, encodings) = cfg.stream_val(MarkConfigSubsEncodings, targets, &stream);
+    let enc = encodings.get(&i, &stream.lang);
 
-    // do nothing if no manual enc && no auto enc
-    if enc.is_none() && !*cfg.auto_flags.encs {
-        return Ok(None);
+    match enc {
+        // do nothing if is utf-8
+        Some(enc) if matches!(enc.name(), "UTF-8") => return Ok(None),
+        // do nothing if no manual enc && no auto enc
+        None if !*cfg.auto_flags.encs => return Ok(None),
+        _ => (),
     }
 
-    mi.try_init(MarkMediaInfoStreams, &item.key)?;
-    let sub_ty = match SubType::get_from_codec_id(mi, &item.key, item.i_stream) {
+    if let Some(sub_ty) = SubType::new_from_path(&item.key) {
+        return convert_text_file(mi, item, &item.key, None, sub_ty);
+    }
+
+    let sub_ty = match SubType::get_from_codec_id(mi, &item.key, item.key_i_stream) {
         Some(ty) => ty,
         None => {
-            debug!(
-                "unrecognized format of subs '{}' stream {}. Copying without reencode",
-                display(&item.key),
-                item.i_stream
-            );
+            warn_fail_convert!(item, Msg::UnsupportedSubtitlesFormat.as_str_localized());
             return Ok(None);
         }
     };
@@ -104,10 +107,21 @@ fn convert_item(mi: &mut MediaInfo, item: &StreamsOrderItem) -> Result<Option<Pa
         None => return Ok(None),
     };
 
-    convert_file(mi, item, &extracted_path, enc, sub_ty)
+    convert_text_file(mi, item, &extracted_path, enc, sub_ty)
 }
 
-fn convert_file(
+fn temp_path(mi: &MediaInfo, item: &StreamsOrderItem, sub_ty: SubType, pname: &str) -> PathBuf {
+    mi.cfg.output.temp_dir().join(format!(
+        "{}-{}-{}-{}.{}",
+        mi.job,
+        pname,
+        item.src_num,
+        item.key_i_stream,
+        sub_ty.as_ext()
+    ))
+}
+
+fn convert_text_file(
     mi: &mut MediaInfo,
     item: &StreamsOrderItem,
     src: &Path,
@@ -117,27 +131,32 @@ fn convert_file(
     let enc = if let Some(enc) = enc {
         enc
     } else {
-        match mi.get(MarkMediaInfoSubsEncoding, src) {
-            Some(CharEncoding::NotUtf8Compatible(enc)) => enc,
+        match CharEncoding::detect_text_file(src, mi.buffer_mut()) {
+            CharEncoding::NotUtf8Compatible(enc) => enc,
             _ => return Ok(None),
         }
     };
 
     debug!(
-        "{} '{}'...",
-        Msg::ConvertingSubtitleEncoding,
-        display(&item.key)
+        "{} '{}' {} {}...",
+        Msg::ConvertingSubtitlesEncoding,
+        display(&item.key),
+        Msg::Stream,
+        item.key_i_stream,
     );
 
-    let dest = mi.cfg.output.temp_dir().join(format!(
-        "{}-converted-subs-{}-{}.{}",
-        mi.job,
-        item.src_num,
-        item.i_stream,
-        sub_ty.as_ext()
-    ));
+    let dest = temp_path(mi, item, sub_ty, "converted-subs");
 
-    rw_file(src, enc, &dest).map(|_| Some(dest))
+    rw_file(src, enc, &dest)?;
+
+    debug!(
+        "{} '{}' {} {}",
+        Msg::SuccessfullyConvertedSubtitles,
+        display(&item.key),
+        Msg::Stream,
+        item.key_i_stream,
+    );
+    Ok(Some(dest))
 }
 
 fn rw_file(src: &Path, enc: &'static Encoding, dest: &Path) -> Result<()> {
@@ -157,23 +176,17 @@ fn extract_subs(
     enc: Option<&'static Encoding>,
     sub_ty: SubType,
 ) -> Result<Option<PathBuf>> {
-    let extracted_path = mi.cfg.output.temp_dir().join(format!(
-        "{}-extracted-subs-{}-{}.{}",
-        mi.job,
-        item.src_num,
-        item.i_stream,
-        sub_ty.as_ext()
-    ));
+    let extracted_path = temp_path(mi, item, sub_ty, "extracted-subs");
 
     if enc.is_none() {
-        try_extract_some_packets(&item.key, item.i_stream, &extracted_path)?;
-        match mi.get(MarkMediaInfoSubsEncoding, &extracted_path) {
-            Some(CharEncoding::NotUtf8Compatible(_)) => (),
+        try_extract_some_packets(&item.key, item.key_i_stream, &extracted_path)?;
+        match CharEncoding::detect_text_file(&extracted_path, mi.buffer_mut()) {
+            CharEncoding::NotUtf8Compatible(_) => (),
             _ => return Ok(None),
         }
     }
 
-    subs::try_extract(&item.key, item.i_stream, sub_ty, &extracted_path)?;
+    subs::try_extract(&item.key, item.key_i_stream, sub_ty, &extracted_path)?;
     Ok(Some(extracted_path))
 }
 

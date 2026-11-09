@@ -80,7 +80,7 @@ pub enum Msg {
     HelpMaxForceds,
     HelpTitles,
     HelpLangs,
-    HelpSubsEncoding,
+    HelpSubsEncodings,
     HelpTsOffsets,
 
     HelpRetimingOptions,
@@ -98,6 +98,13 @@ pub enum Msg {
     WritingExternalFontsToTempFile,
     ExternalFontsSuccessfullyWritten,
     FailWriteExternalFonts,
+
+    ConvertingSubtitlesEncoding,
+    Stream,
+    SuccessfullyConvertedSubtitles,
+    FailConvertSubtitlesEncoding,
+    CopyAsIs,
+    UnsupportedSubtitlesFormat,
 
     MuxingTo,
     MuxingFiles,
@@ -120,7 +127,6 @@ pub enum Msg {
     Debug,
     Trace,
 
-    ConvertingSubtitleEncoding,
     FailSaveConfig,
     FailUpdateLanguage,
     FileAlreadyExists,

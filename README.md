@@ -103,7 +103,7 @@ Run `mux-media -h` to display help.
 | `    --max-forceds <n>` | Max auto-enabled forced |
 | `    --titles <[n:]T[,m:T]...>` | Set stream titles |
 | `    --langs <[n:]L[,m:L]...>` | Set stream languages |
-| `    --subs-encoding <n>` | Decode subs as n-encoding |
+| `    --subs-encodings <[n:]E[,m:E]...>` | Decode subs as E-encoding |
 | `    --ts-offsets <[n:]T[,m:T]...>` | Set streams timestamps offsets (ms) |
 | | |
 | Retiming options: | |

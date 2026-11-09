@@ -1,6 +1,4 @@
-use crate::{
-    ArcPathBuf, CharEncoding, FxHashMap, IsDefault, Result, Stream, StreamsOrder, Target, Time,
-};
+use crate::{ArcPathBuf, FxHashMap, IsDefault, Result, Stream, StreamsOrder, Target, Time};
 use std::{ffi::OsString, mem};
 
 /// A state of cache field.
@@ -34,7 +32,6 @@ pub struct MediaInfoCacheOfFile {
     pub streams: CacheState<Vec<Stream>>,
     pub path_tail: CacheState<String>,
     pub relative_upmost: CacheState<String>,
-    pub sub_char_encoding: CacheState<CharEncoding>,
 
     /// Targets from file path and parent path, existed in [`Config::target_configs`](
     /// crate::Config::target_configs).

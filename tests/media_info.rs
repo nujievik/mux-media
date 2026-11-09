@@ -4,7 +4,6 @@ mod common;
 mod durations;
 
 use common::*;
-use encoding_rs::Encoding;
 use mux_media::{media_info::*, *};
 
 pub fn new() -> MediaInfo<'static> {
@@ -100,31 +99,6 @@ fn test_cmn_streams_order() {
     let mut mi = new();
     mi.try_insert(data("audio_x1.mka")).unwrap();
     mi.try_init_cmn(MarkMediaInfoStreamsOrder).unwrap();
-}
-
-#[test]
-fn test_sub_charset() {
-    let mut mi = new();
-    let empty = || CharEncoding::Utf8Compatible;
-    let new = |s: &str| {
-        CharEncoding::NotUtf8Compatible(Encoding::for_label_no_replacement(s.as_bytes()).unwrap())
-    };
-
-    [
-        ("srt.srt", empty()),
-        ("sub_x1.mks", empty()),
-        ("cp1251.srt", new("windows-1251")),
-    ]
-    .iter()
-    .for_each(|(f, enc)| {
-        assert_eq!(
-            enc,
-            mi.try_get(MarkMediaInfoSubsEncoding, &data(f)).unwrap()
-        );
-    });
-
-    mi.try_get(MarkMediaInfoSubsEncoding, &data("audio_x1.mka"))
-        .unwrap_err();
 }
 
 #[test]

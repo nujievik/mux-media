@@ -22,8 +22,8 @@ mod retiming;
 mod streams;
 #[path = "config/streams_order.rs"]
 mod streams_order;
-#[path = "config/subs_encoding.rs"]
-mod subs_encoding;
+#[path = "config/subs_encodings.rs"]
+mod subs_encodings;
 #[path = "config/ts_offsets.rs"]
 mod ts_offsets;
 
@@ -78,7 +78,7 @@ fn parse_empty_args() {
     assert_eq!(&e.forceds, &Default::default());
     assert_eq!(&e.titles, &Default::default());
     assert_eq!(&e.langs, &Default::default());
-    assert_eq!(&e.subs_encoding, &Default::default());
+    assert_eq!(&e.subs_encodings, &Default::default());
     assert_eq!(&e.ts_offsets, &Default::default());
 
     assert_eq!(&e.retiming, &Default::default());

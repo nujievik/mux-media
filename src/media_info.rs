@@ -8,8 +8,8 @@ pub use cache::{MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup};
 pub use lazy_fields::{
     MarkMediaInfoAudioDuration, MarkMediaInfoCacheOfFile, MarkMediaInfoPathTail,
     MarkMediaInfoPlayableDuration, MarkMediaInfoRelativeUpmost, MarkMediaInfoStem,
-    MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoSubsEncoding,
-    MarkMediaInfoTargetPaths, MarkMediaInfoVideoDuration,
+    MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths,
+    MarkMediaInfoVideoDuration,
 };
 
 use crate::{ArcPathBuf, Config, ConfigChaptersTimeRange, FxHashMap, Result, i18n::logs};
@@ -33,7 +33,7 @@ pub struct MediaInfo<'a> {
 }
 
 impl MediaInfo<'_> {
-    fn buffer_mut(&mut self) -> &mut [u8] {
+    pub(crate) fn buffer_mut(&mut self) -> &mut [u8] {
         const BUF_SIZE: usize = 1024 * 128; // 128 KiB
         self.buf
             .get_or_insert_with(|| vec![0; BUF_SIZE].into_boxed_slice())

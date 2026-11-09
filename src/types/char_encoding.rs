@@ -1,4 +1,3 @@
-use crate::Extension;
 use encoding_rs::Encoding;
 use std::{fs::File, io::Read, path::Path};
 
@@ -11,19 +10,11 @@ pub enum CharEncoding {
 }
 
 impl CharEncoding {
-    /// Detect charset reading file bytes into given buffer.
-    pub fn detect<P>(file: &P, buf: &mut [u8]) -> CharEncoding
+    pub fn detect_text_file<P>(file: &P, buf: &mut [u8]) -> CharEncoding
     where
         P: AsRef<Path> + ?Sized,
     {
-        let f = file.as_ref();
-
-        if Extension::from_path(f).is_some_and(|ext| ext.is_matroska()) {
-            // All text in a Matroska(tm) file is encoded in UTF-8
-            return Self::Utf8Compatible;
-        }
-
-        detect_file_charenc(f, buf).map_or(Self::NotRecognized, |s| {
+        detect_file_charenc(file.as_ref(), buf).map_or(Self::NotRecognized, |s| {
             if is_utf8_compatible(&s) {
                 return Self::Utf8Compatible;
             }
@@ -37,7 +28,6 @@ impl CharEncoding {
 }
 
 fn is_utf8_compatible(s: &str) -> bool {
-    let s = s.trim();
     s.eq_ignore_ascii_case("ascii") || s.eq_ignore_ascii_case("utf-8")
 }
 

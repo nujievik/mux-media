@@ -2,8 +2,7 @@ mod durations;
 mod streams;
 
 use super::*;
-use crate::config::MarkConfigSubsEncoding;
-use crate::{CharEncoding, Extension, Result, StreamType, StreamsOrder, Target, helpers};
+use crate::{Result, StreamsOrder, Target, helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
@@ -39,33 +38,6 @@ impl MediaInfo<'_> {
                 helpers::os_str_tail(self.cfg.input.dir().as_os_str(), parent.as_os_str())
                     .map(|os| os.to_string_lossy().into_owned())
             })
-    }
-
-    pub(super) fn build_sub_char_encoding(&mut self, src: &Path) -> Result<CharEncoding> {
-        if !Extension::from_path(src).map_or(false, |ext| ext.is_subs()) {
-            return Err(err!(NotASubtitleFile));
-        }
-
-        let _ = self.try_init(MarkMediaInfoTargetPaths, src)?;
-        let targets = self.try_immut(MarkMediaInfoTargetPaths, src)?;
-
-        let c = self
-            .cfg
-            .get_targets(MarkConfigSubsEncoding, targets)
-            .unwrap_or_else(|| {
-                self.cfg
-                    .target(MarkConfigSubsEncoding, StreamType::Subtitles.as_ref())
-            });
-
-        if let Some(enc) = c.get_encoding() {
-            return Ok(CharEncoding::NotUtf8Compatible(enc));
-        }
-
-        if *self.cfg.auto_flags.encs {
-            Ok(CharEncoding::detect(src, self.buffer_mut()))
-        } else {
-            Ok(CharEncoding::NotRecognized)
-        }
     }
 
     pub(super) fn build_target_paths(&self, src: &Path) -> Result<Vec<Target>> {

@@ -1,29 +1,23 @@
 use crate::common::*;
 use encoding_rs::Encoding;
 use mux_media::*;
-use std::{path::PathBuf, sync::LazyLock};
 
-pub fn empty() -> CharEncoding {
-    CharEncoding::Utf8Compatible
-}
-
-pub fn new(s: &str) -> CharEncoding {
+fn not_compatible(s: &str) -> CharEncoding {
     CharEncoding::NotUtf8Compatible(Encoding::for_label_no_replacement(s.as_bytes()).unwrap())
 }
 
-static FILE_ENC_PAIRS: LazyLock<[(PathBuf, CharEncoding); 3]> = LazyLock::new(|| {
-    [
-        (data("sub_x1.mks"), empty()),
-        (data("srt.srt"), empty()),
-        (data("cp1251.srt"), new("windows-1251")),
-    ]
-});
-
 #[test]
-fn test_new() {
+fn detect_text_file() {
+    let file_enc_pairs = [
+        ("srt.srt", CharEncoding::Utf8Compatible),
+        ("cp1251.srt", not_compatible("cp1251")),
+        ("sub_x1.mks", CharEncoding::NotRecognized),
+        ("txt.txt", CharEncoding::NotRecognized),
+    ];
     let mut buf = [0u8; 1024 * 128];
 
-    FILE_ENC_PAIRS.iter().for_each(|(f, enc)| {
-        assert_eq!(enc, &CharEncoding::detect(f, &mut buf));
-    })
+    for (file, enc) in file_enc_pairs {
+        let file = data(file);
+        assert_eq!(enc, CharEncoding::detect_text_file(&file, &mut buf));
+    }
 }

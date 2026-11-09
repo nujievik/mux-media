@@ -1,7 +1,7 @@
 use super::super::{
     Config, ConfigAutoFlags, ConfigChapters, ConfigDispositions, ConfigInput, ConfigLangMetadata,
     ConfigLocales, ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigStreamsOrder,
-    ConfigSubsEncoding, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets, InputType,
+    ConfigSubsEncodings, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets, InputType,
 };
 use super::LogLang;
 use crate::{
@@ -191,11 +191,11 @@ impl FromArgMatches for Config {
                 forceds: dispositions!(m, Forceds, MaxForceds),
                 titles: rm_or!(m, Titles, ConfigTitleMetadata, ConfigTitleMetadata::default),
                 langs: rm_or!(m, Langs, ConfigLangMetadata, ConfigLangMetadata::default),
-                subs_encoding: rm_or!(
+                subs_encodings: rm_or!(
                     m,
-                    SubsEncoding,
-                    ConfigSubsEncoding,
-                    ConfigSubsEncoding::default
+                    SubsEncodings,
+                    ConfigSubsEncodings,
+                    ConfigSubsEncodings::default
                 ),
                 ts_offsets: rm_or!(m, TsOffsets, ConfigTsOffsets, ConfigTsOffsets::default),
 
@@ -308,7 +308,7 @@ impl FromArgMatches for Config {
         upd_dispositions!(self.forceds, m, Forceds, MaxForceds);
         upd!(self.titles, m, Titles, ConfigTitleMetadata);
         upd!(self.langs, m, Langs, ConfigLangMetadata);
-        upd!(self.subs_encoding, m, SubsEncoding, ConfigSubsEncoding);
+        upd!(self.subs_encodings, m, SubsEncodings, ConfigSubsEncodings);
         upd!(self.ts_offsets, m, TsOffsets, ConfigTsOffsets);
 
         retiming_options(self, m);
@@ -657,7 +657,7 @@ impl FromArgMatches for ConfigTarget {
             forceds: get_dispositions!(m, Forceds, MaxForceds),
             titles: rm!(m, Titles, ConfigTitleMetadata),
             langs: rm!(m, Langs, ConfigLangMetadata),
-            subs_encoding: rm!(m, SubsEncoding, ConfigSubsEncoding),
+            subs_encodings: rm!(m, SubsEncodings, ConfigSubsEncodings),
             ts_offsets: rm!(m, TsOffsets, ConfigTsOffsets),
         })
     }
@@ -673,7 +673,7 @@ impl FromArgMatches for ConfigTarget {
 
         upd!(self.titles, m, Titles, ConfigTitleMetadata, @opt);
         upd!(self.langs, m, Langs, ConfigLangMetadata, @opt);
-        upd!(self.subs_encoding, m, SubsEncoding, ConfigSubsEncoding, @opt);
+        upd!(self.subs_encodings, m, SubsEncodings, ConfigSubsEncodings, @opt);
         upd!(self.ts_offsets, m, TsOffsets, ConfigTsOffsets, @opt);
 
         return Ok(());
