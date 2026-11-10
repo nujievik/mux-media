@@ -1,8 +1,5 @@
-use crate::ffmpeg::{
-    self, Packet, Rational, Rescale, format::context::input::PacketIter, util::media::Type,
-};
-
-const NANOSECOND_TIME_BASE: Rational = Rational(1, 1_000_000_000);
+use crate::NANOSECOND_TIME_BASE;
+use crate::ffmpeg::{self, Packet, Rescale, format::context::input::PacketIter, util::media::Type};
 
 pub struct BufPackets<'a>(Vec<BufPkt<'a>>);
 

@@ -1,4 +1,3 @@
-mod durations;
 mod streams;
 
 use super::*;
@@ -52,5 +51,9 @@ impl MediaInfo<'_> {
         }
 
         Ok(targets)
+    }
+
+    pub(super) fn build_durations(&mut self, src: &Path) -> Result<VideoAndAudioDurations> {
+        VideoAndAudioDurations::try_from_media_file(self, src)
     }
 }

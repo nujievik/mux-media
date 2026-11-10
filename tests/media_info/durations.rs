@@ -1,25 +1,33 @@
 use super::*;
 
 #[test]
-fn test_audio_duration() {
+fn audio_durations() {
     let mut mi = new();
-    let d = mi.try_get(MarkMediaInfoAudioDuration, &data("audio_x1.mka"));
-    assert_eq!(*d.unwrap(), Time::from_millis(1013));
-    mi.try_get(MarkMediaInfoAudioDuration, &data("video_x1.mkv"))
-        .unwrap_err();
+    let xs = mi
+        .try_get(MarkMediaInfoVideoAndAudioDurations, &data("audio_x1.mka"))
+        .unwrap();
+
+    const EXPECTED: Time = Time::from_millis(1013);
+    assert_eq!(EXPECTED, xs.get_audio().unwrap());
+    assert_eq!(EXPECTED, xs.max());
+    assert_eq!(None, xs.get_video());
 }
 
 #[test]
-fn test_video_duration() {
+fn video_durations() {
     let mut mi = new();
-    let d = mi.try_take(MarkMediaInfoVideoDuration, &data("video_x1.mkv"));
-    assert_eq!(d.unwrap(), Time::from_millis(1000));
-    mi.try_get(MarkMediaInfoVideoDuration, &data("audio_x1.mka"))
-        .unwrap_err();
+    let xs = mi
+        .try_get(MarkMediaInfoVideoAndAudioDurations, &data("video_x1.mkv"))
+        .unwrap();
+
+    const EXPECTED: Time = Time::from_millis(1000);
+    assert_eq!(EXPECTED, xs.get_video().unwrap());
+    assert_eq!(EXPECTED, xs.max());
+    assert_eq!(None, xs.get_audio());
 }
 
 #[test]
-fn test_playable_duration() {
+fn max_durations() {
     let set = [
         ("video_x1.mkv", 1000),
         ("audio_x1.mka", 1013),
@@ -30,9 +38,16 @@ fn test_playable_duration() {
     let mut mi = new();
 
     for (file, millis) in set {
-        let d = *mi
-            .try_get(MarkMediaInfoPlayableDuration, &data(file))
+        let file = data(file);
+        let xs = mi
+            .try_take(MarkMediaInfoVideoAndAudioDurations, &file)
             .unwrap();
-        assert_eq!(d, Time::from_millis(millis));
+
+        assert_eq!(xs.max(), Time::from_millis(millis));
+        // eq directly
+        assert_eq!(
+            xs,
+            VideoAndAudioDurations::try_from_media_file(&mut mi, &file).unwrap()
+        );
     }
 }

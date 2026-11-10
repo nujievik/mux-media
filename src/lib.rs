@@ -105,6 +105,7 @@ pub use types::{
 
 static VERSION: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
 const MILLISECOND_TIME_BASE: ffmpeg::Rational = ffmpeg::Rational(1, 1000);
+const NANOSECOND_TIME_BASE: ffmpeg::Rational = ffmpeg::Rational(1, 1_000_000_000);
 
 use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;

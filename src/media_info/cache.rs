@@ -1,4 +1,7 @@
-use crate::{ArcPathBuf, FxHashMap, IsDefault, Result, Stream, StreamsOrder, Target, Time};
+pub(crate) mod durations;
+
+use crate::{ArcPathBuf, FxHashMap, IsDefault, Result, Stream, StreamsOrder, Target};
+use durations::VideoAndAudioDurations;
 use std::{ffi::OsString, mem};
 
 /// A state of cache field.
@@ -36,10 +39,7 @@ pub struct MediaInfoCacheOfFile {
     /// Targets from file path and parent path, existed in [`Config::target_configs`](
     /// crate::Config::target_configs).
     pub target_paths: CacheState<Vec<Target>>,
-
-    pub audio_duration: CacheState<Time>,
-    pub video_duration: CacheState<Time>,
-    pub playable_duration: CacheState<Time>,
+    pub video_and_audio_durations: CacheState<VideoAndAudioDurations>,
 }
 
 impl IsDefault for MediaInfoCache {

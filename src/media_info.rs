@@ -4,12 +4,13 @@ mod finalize;
 mod is_signs;
 mod lazy_fields;
 
-pub use cache::{MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup};
+pub use cache::{
+    MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup, durations::VideoAndAudioDurations,
+};
 pub use lazy_fields::{
-    MarkMediaInfoAudioDuration, MarkMediaInfoCacheOfFile, MarkMediaInfoPathTail,
-    MarkMediaInfoPlayableDuration, MarkMediaInfoRelativeUpmost, MarkMediaInfoStem,
-    MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths,
-    MarkMediaInfoVideoDuration,
+    MarkMediaInfoCacheOfFile, MarkMediaInfoPathTail, MarkMediaInfoRelativeUpmost,
+    MarkMediaInfoStem, MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths,
+    MarkMediaInfoVideoAndAudioDurations,
 };
 
 use crate::{ArcPathBuf, Config, ConfigChaptersTimeRange, FxHashMap, Result, i18n::logs};

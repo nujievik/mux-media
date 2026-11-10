@@ -86,7 +86,10 @@ fn try_times(
 ) -> Result<(Time, SignedTime, Time, SignedTime)> {
     const ACCEPT_VIDEO_OFFSET: Time = Time::from_secs(10);
 
-    let duration = *mi.try_get(MarkMediaInfoVideoDuration, src)?;
+    let durations = mi.try_get(MarkMediaInfoVideoAndAudioDurations, src)?;
+    let duration = durations
+        .get_video()
+        .ok_or_else(|| err!("fail get video duration"))?;
 
     let (start, start_offset) = if start < ACCEPT_VIDEO_OFFSET {
         (Time::ZERO, SignedTime::new(true, start))
@@ -271,9 +274,11 @@ fn try_chapters(
             let duration = match uid {
                 Some(u) => {
                     let src = find_external_segment(mi, cache, base_dir, u)?;
-                    *mi.try_get(MarkMediaInfoPlayableDuration, &src)?
+                    mi.try_get(MarkMediaInfoVideoAndAudioDurations, &src)?.max()
                 }
-                None => *mi.try_get(MarkMediaInfoPlayableDuration, &base)?,
+                None => mi
+                    .try_get(MarkMediaInfoVideoAndAudioDurations, &base)?
+                    .max(),
             };
             push(c, c.time_start.into(), duration);
         }

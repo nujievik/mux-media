@@ -1,8 +1,8 @@
-use super::{MediaInfo, MediaInfoCacheOfFile};
+use super::{MediaInfo, MediaInfoCacheOfFile, VideoAndAudioDurations};
 use crate::{
     ArcPathBuf,
     CacheState::{self, Cached, Failed, NotCached},
-    LazyField, LazyPathField, Result, Stream, StreamsOrder, Target, Time,
+    LazyField, LazyPathField, Result, Stream, StreamsOrder, Target,
 };
 use std::{ffi::OsString, mem, path::Path};
 
@@ -430,7 +430,5 @@ lazy_path_fields!(
     relative_upmost, String, build_relative_upmost => MarkMediaInfoRelativeUpmost;
 
     target_paths, Vec<Target>, build_target_paths => MarkMediaInfoTargetPaths;
-    audio_duration, Time, build_audio_duration => MarkMediaInfoAudioDuration;
-    video_duration, Time, build_video_duration => MarkMediaInfoVideoDuration;
-    playable_duration, Time, build_playable_duration => MarkMediaInfoPlayableDuration;
+    video_and_audio_durations, VideoAndAudioDurations, build_durations => MarkMediaInfoVideoAndAudioDurations;
 );
