@@ -26,7 +26,8 @@ impl_msg_as_str!(
     HelpAutoForceds => "Автонастройка forced флагов",
     HelpAutoTitles => "Автонастройка имен потоков",
     HelpAutoLangs => "Автонастройка языков потоков",
-    HelpAutoEncs => "Автонастройка кодировки субтитров",
+    HelpAutoSubsEncodings => "Автонастройка кодировки субтитров",
+    HelpNoAutoSubsEncodings => "Без автонастройки кодировки субтитров",
     HelpAutoTsOffsets => "Автонастройка ts-offsets",
     HelpNoAutoTsOffsets => "Без автонастройки ts-offsets",
 

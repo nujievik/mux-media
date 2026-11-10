@@ -71,7 +71,8 @@ Run `mux-media -h` to display help.
 | `    --auto-forceds / --no-auto-forceds` | Auto set forced flags |
 | `    --auto-titles / --no-auto-titles` | Auto set stream titles |
 | `    --auto-langs / --no-auto-langs` | Auto set stream langs |
-| `    --auto-encs / --no-auto-encs` | Auto set subs encodings |
+| `    --auto-subs-encodings` | Auto set subs encodings |
+| `    --no-auto-subs-encodings` | No auto set subs encodings |
 | `    --auto-ts-offsets` | Auto set audio ts-offsets |
 | `    --no-auto-ts-offsets` | No auto set audio ts-offsets |
 | | |

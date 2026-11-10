@@ -12,7 +12,7 @@ fn parse_empty() {
     assert_eq!(Value::Auto(true), f.forceds);
     assert_eq!(Value::Auto(true), f.titles);
     assert_eq!(Value::Auto(true), f.langs);
-    assert_eq!(Value::Auto(true), f.encs);
+    assert_eq!(Value::Auto(true), f.subs_encodings);
     assert_eq!(Value::Auto(true), f.ts_offsets);
 }
 
@@ -24,7 +24,7 @@ fn parse_no_auto() {
     assert_eq!(Value::Auto(false), f.forceds);
     assert_eq!(Value::Auto(false), f.titles);
     assert_eq!(Value::Auto(false), f.langs);
-    assert_eq!(Value::Auto(false), f.encs);
+    assert_eq!(Value::Auto(false), f.subs_encodings);
     assert_eq!(Value::Auto(false), f.ts_offsets);
 }
 
@@ -45,7 +45,7 @@ macro_rules! parse_manual_test {
                 assert_eq!(auto_v, flags.forceds);
                 assert_eq!(auto_v, flags.titles);
                 assert_eq!(auto_v, flags.langs);
-                assert_eq!(auto_v, flags.encs);
+                assert_eq!(auto_v, flags.subs_encodings);
                 assert_eq!(auto_v, flags.ts_offsets);
             )*
         }
@@ -58,7 +58,7 @@ parse_manual_test!(
     &["--auto-forceds"], forceds;
     &["--auto-titles"], titles;
     &["--auto-langs"], langs;
-    &["--auto-encs"], encs;
+    &["--auto-subs-encodins"], subs_encodings;
     &["--auto-ts-offsets"], ts_offsets;
 );
 
@@ -68,7 +68,7 @@ parse_manual_test!(
     &["--no-auto-forceds"], forceds;
     &["--no-auto-titles"], titles;
     &["--no-auto-langs"], langs;
-    &["--no-auto-encs"], encs;
+    &["--no-auto-subs-encodins"], subs_encodings;
     &["--no-auto-ts-offsets"], ts_offsets;
 );
 
@@ -78,7 +78,7 @@ parse_manual_test!(
     &["--no-auto", "--auto-forceds"], forceds;
     &["--no-auto", "--auto-titles"], titles;
     &["--no-auto", "--auto-langs"], langs;
-    &["--no-auto", "--auto-encs"], encs;
+    &["--no-auto", "--auto-subs-encodins"], subs_encodings;
     &["--no-auto", "--auto-ts-offsets"], ts_offsets;
 );
 
@@ -88,7 +88,7 @@ parse_manual_test!(
     &["--no-auto", "--no-auto-forceds"], forceds;
     &["--no-auto", "--no-auto-titles"], titles;
     &["--no-auto", "--no-auto-langs"], langs;
-    &["--no-auto", "--no-auto-encs"], encs;
+    &["--no-auto", "--no-auto-subs-encodins"], subs_encodings;
     &["--no-auto", "--no-auto-ts-offsets"], ts_offsets;
 );
 
@@ -113,7 +113,7 @@ update_test!(
     "--auto-forceds", "--no-auto-forceds";
     "--auto-titles", "--no-auto-titles";
     "--auto-langs", "--no-auto-langs";
-    "--auto-encs", "--no-auto-encs";
+    "--auto-subs-encodins", "--no-auto-subs-encodins";
     "--auto-ts-offsets", "--no-auto-ts-offsets";
 );
 
@@ -124,27 +124,27 @@ crate::build_test_to_args!(
     vec!["--auto-forceds"],
     vec!["--auto-titles"],
     vec!["--auto-langs"],
-    vec!["--auto-encs"],
+    vec!["--auto-subs-encodins"],
     vec!["--auto-ts-offsets"],
 
     vec!["--no-auto-defaults"],
     vec!["--no-auto-forceds"],
     vec!["--no-auto-titles"],
     vec!["--no-auto-langs"],
-    vec!["--no-auto-encs"],
+    vec!["--no-auto-subs-encodins"],
     vec!["--no-auto-ts-offsets"],
 
     vec!["--no-auto", "--auto-defaults"],
     vec!["--no-auto", "--auto-forceds"],
     vec!["--no-auto", "--auto-titles"],
     vec!["--no-auto", "--auto-langs"],
-    vec!["--no-auto", "--auto-encs"],
+    vec!["--no-auto", "--auto-subs-encodins"],
     vec!["--no-auto", "--auto-ts-offsets"],
 
     vec!["--no-auto", "--no-auto-defaults"],
     vec!["--no-auto", "--no-auto-forceds"],
     vec!["--no-auto", "--no-auto-titles"],
     vec!["--no-auto", "--no-auto-langs"],
-    vec!["--no-auto", "--no-auto-encs"],
+    vec!["--no-auto", "--no-auto-subs-encodins"],
     vec!["--no-auto", "--no-auto-ts-offsets"],
 );

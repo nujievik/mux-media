@@ -45,6 +45,19 @@ impl Blocks {
 
         cmd = cmd
             .arg(
+                Arg::new(undashed!(AutoSubsEncodings))
+                    .long(undashed!(AutoSubsEncodings))
+                    .help(msg!(HelpAutoSubsEncodings))
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(undashed!(NoAutoSubsEncodings))
+                    .long(undashed!(NoAutoSubsEncodings))
+                    .help(msg!(HelpNoAutoSubsEncodings))
+                    .action(ArgAction::SetTrue)
+                    .conflicts_with(undashed!(AutoSubsEncodings)),
+            )
+            .arg(
                 Arg::new(undashed!(AutoTsOffsets))
                     .long(undashed!(AutoTsOffsets))
                     .help(Msg::HelpAutoTsOffsets.as_str_localized())
@@ -69,7 +82,6 @@ enum AutoFlag {
     AutoForceds,
     AutoTitles,
     AutoLangs,
-    AutoEncs,
 }
 
 impl AutoFlag {
@@ -79,7 +91,6 @@ impl AutoFlag {
             Self::AutoForceds => CliArg::HelpAutoForceds,
             Self::AutoTitles => CliArg::HelpAutoTitles,
             Self::AutoLangs => CliArg::HelpAutoLangs,
-            Self::AutoEncs => CliArg::HelpAutoEncs,
         }
     }
 
@@ -89,7 +100,6 @@ impl AutoFlag {
             Self::AutoForceds => CliArg::AutoForceds,
             Self::AutoTitles => CliArg::AutoTitles,
             Self::AutoLangs => CliArg::AutoLangs,
-            Self::AutoEncs => CliArg::AutoEncs,
         }
     }
 
@@ -99,7 +109,6 @@ impl AutoFlag {
             Self::AutoForceds => CliArg::NoAutoForceds,
             Self::AutoTitles => CliArg::NoAutoTitles,
             Self::AutoLangs => CliArg::NoAutoLangs,
-            Self::AutoEncs => CliArg::NoAutoEncs,
         }
     }
 
@@ -109,7 +118,6 @@ impl AutoFlag {
             Self::AutoForceds => Msg::HelpAutoForceds,
             Self::AutoTitles => Msg::HelpAutoTitles,
             Self::AutoLangs => Msg::HelpAutoLangs,
-            Self::AutoEncs => Msg::HelpAutoEncs,
         }
         .as_str_localized()
     }

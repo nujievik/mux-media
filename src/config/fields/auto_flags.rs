@@ -12,7 +12,7 @@ pub struct ConfigAutoFlags {
     pub forceds: Value<bool>,
     pub titles: Value<bool>,
     pub langs: Value<bool>,
-    pub encs: Value<bool>,
+    pub subs_encodings: Value<bool>,
     pub ts_offsets: Value<bool>,
 }
 
@@ -30,7 +30,7 @@ impl Default for ConfigAutoFlags {
             forceds: Value::Auto(true),
             titles: Value::Auto(true),
             langs: Value::Auto(true),
-            encs: Value::Auto(true),
+            subs_encodings: Value::Auto(true),
             ts_offsets: Value::Auto(true),
         }
     }
@@ -42,7 +42,7 @@ impl IsDefault for ConfigAutoFlags {
             && matches!(self.forceds, Value::Auto(true))
             && matches!(self.titles, Value::Auto(true))
             && matches!(self.langs, Value::Auto(true))
-            && matches!(self.encs, Value::Auto(true))
+            && matches!(self.subs_encodings, Value::Auto(true))
             && matches!(self.ts_offsets, Value::Auto(true))
     }
 }
@@ -74,7 +74,7 @@ impl ToArgs for ConfigAutoFlags {
             self.forceds, AutoForceds, NoAutoForceds,
             self.titles, AutoTitles, NoAutoTitles,
             self.langs, AutoLangs, NoAutoLangs,
-            self.encs, AutoEncs, NoAutoEncs,
+            self.subs_encodings, AutoSubsEncodings, NoAutoSubsEncodings,
             self.ts_offsets, AutoTsOffsets, NoAutoTsOffsets,
         );
 

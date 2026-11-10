@@ -19,7 +19,7 @@ PATH/TO/OUTPUT/DIRECTORY
 --auto-forceds
 --auto-titles
 --auto-langs
---auto-encs
+--auto-subs-encodings
 --target
 global
 --audio

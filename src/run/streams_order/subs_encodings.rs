@@ -86,7 +86,7 @@ fn convert_item(mi: &mut MediaInfo, item: &StreamsOrderItem) -> Result<Option<Pa
         // do nothing if is utf-8
         Some(enc) if matches!(enc.name(), "UTF-8") => return Ok(None),
         // do nothing if no manual enc && no auto enc
-        None if !*cfg.auto_flags.encs => return Ok(None),
+        None if !*cfg.auto_flags.subs_encodings => return Ok(None),
         _ => (),
     }
 

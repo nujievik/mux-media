@@ -19,6 +19,12 @@ macro_rules! err {
     }};
 }
 
+macro_rules! msg {
+    ($msg:ident) => {
+        $crate::Msg::$msg.as_str_localized()
+    };
+}
+
 macro_rules! some_or {
     ($or:expr; $x:expr) => {
         match $x {

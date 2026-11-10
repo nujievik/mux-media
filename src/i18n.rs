@@ -48,7 +48,8 @@ pub enum Msg {
     HelpAutoForceds,
     HelpAutoTitles,
     HelpAutoLangs,
-    HelpAutoEncs,
+    HelpAutoSubsEncodings,
+    HelpNoAutoSubsEncodings,
     HelpAutoTsOffsets,
     HelpNoAutoTsOffsets,
 

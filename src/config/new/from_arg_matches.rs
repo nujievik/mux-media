@@ -237,7 +237,11 @@ impl FromArgMatches for Config {
             new.forceds = val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), no_auto);
             new.titles = val(flag!(m, AutoTitles), flag!(m, NoAutoTitles), no_auto);
             new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), no_auto);
-            new.encs = val(flag!(m, AutoEncs), flag!(m, NoAutoEncs), no_auto);
+            new.subs_encodings = val(
+                flag!(m, AutoSubsEncodings),
+                flag!(m, NoAutoSubsEncodings),
+                no_auto,
+            );
             new.ts_offsets = val(flag!(m, AutoTsOffsets), flag!(m, NoAutoTsOffsets), no_auto);
 
             return new;
@@ -436,10 +440,10 @@ impl FromArgMatches for Config {
                 &mut auto.langs,
             );
             upd(
-                flag!(m, AutoEncs),
-                flag!(m, NoAutoEncs),
+                flag!(m, AutoSubsEncodings),
+                flag!(m, NoAutoSubsEncodings),
                 no_auto,
-                &mut auto.encs,
+                &mut auto.subs_encodings,
             );
             upd(
                 flag!(m, AutoTsOffsets),
