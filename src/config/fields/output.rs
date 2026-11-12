@@ -2,24 +2,26 @@ mod new;
 mod to_args;
 
 use crate::Result;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{ffi::OsStr, fs, path::Path};
 
 /// Output configuration.
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConfigOutput {
-    /// Output directory.
-    dir: PathBuf,
-    temp_dir: PathBuf,
+    // dir = temp_dir[0..dir_len]
+    dir_len: usize,
+    temp_dir: Box<Path>,
     /// Length of a created directory chain up to [`ConfigOutput::dir`].
     len_created_dir_chain: usize,
+    pub(crate) is_from_input: bool,
 }
 
 impl ConfigOutput {
     pub fn dir(&self) -> &Path {
-        &self.dir
+        let bytes = self.temp_dir.as_os_str().as_encoded_bytes();
+        // SAFETY: `self.temp_dir` was constructed by pushing a single normal component
+        // (".temp-mux-media") onto a `Path` of byte length `self.dir_len`. Therefore, the first
+        // `self.dir_len` bytes are identical to the original valid `OsStr`.
+        unsafe { Path::new(OsStr::from_encoded_bytes_unchecked(&bytes[..self.dir_len])) }
     }
 
     pub fn temp_dir(&self) -> &Path {
@@ -29,7 +31,7 @@ impl ConfigOutput {
     /// Creates non-exists directories in the directory chain up to `ConfigOutput::temp_dir()`.
     pub fn create_dirs(&mut self) -> Result<()> {
         let mut dirs: Vec<&Path> = Vec::new();
-        let mut dir = self.temp_dir.as_path();
+        let mut dir: &Path = &self.temp_dir;
 
         while !dir.exists() {
             dirs.push(dir);
@@ -55,7 +57,7 @@ impl ConfigOutput {
     /// Removes temp directory and created empty directories while last time call [`Self::create_dirs`].
     pub fn remove_created_dirs(&self) {
         let _ = fs::remove_dir_all(&self.temp_dir);
-        remove_created_dir_chain(&self.dir, self.len_created_dir_chain);
+        remove_created_dir_chain(self.dir(), self.len_created_dir_chain);
     }
 }
 

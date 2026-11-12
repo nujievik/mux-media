@@ -1,34 +1,34 @@
 use super::ConfigOutput;
-use crate::config::{ConfigInput, InputType};
+use crate::config::ConfigInput;
 use crate::{MuxError, Result, TryFinalizeInit};
 use std::path::{Path, PathBuf};
 
+const TEMP_SUBDIR: &str = concat!(".temp-", env!("CARGO_PKG_NAME"));
+
 impl ConfigOutput {
-    /// Tries create new [`ConfigOutput`] from a path.
+    /// Tries create new [`ConfigOutput`] from a directory path.
     ///
     /// # Errors
     ///
     /// Returns an error if:
     /// - path is file
-    /// - fails [`std::env::current_dir`]
-    pub fn new(path: impl AsRef<Path>) -> Result<ConfigOutput> {
-        let dir = new_dir(path.as_ref())?;
-        Ok(ConfigOutput {
-            temp_dir: new_temp_dir(&dir),
-            dir,
-            len_created_dir_chain: 0,
-        })
+    /// - fails [`std::path::absolute`]
+    pub fn try_from_dir<P>(dir: P) -> Result<ConfigOutput>
+    where
+        P: Into<PathBuf> + AsRef<Path>,
+    {
+        let dir = new_dir(dir, false)?;
+        Ok(Self::with_dir(dir, false))
     }
-}
 
-impl Default for ConfigOutput {
-    fn default() -> ConfigOutput {
-        let dir = || Path::new(".").join("muxed");
-        let dir = new_dir(&dir()).unwrap_or(PathBuf::from(dir()));
+    fn with_dir(mut dir: PathBuf, is_from_input: bool) -> ConfigOutput {
+        let dir_len = dir.as_os_str().len();
+        dir.push(TEMP_SUBDIR);
         ConfigOutput {
-            temp_dir: new_temp_dir(&dir),
-            dir,
+            temp_dir: dir.into_boxed_path(),
+            dir_len,
             len_created_dir_chain: 0,
+            is_from_input,
         }
     }
 }
@@ -37,11 +37,16 @@ impl TryFrom<&ConfigInput> for ConfigOutput {
     type Error = MuxError;
 
     fn try_from(input: &ConfigInput) -> Result<ConfigOutput> {
-        let i_dir: &Path = match &input.ty {
-            InputType::Dir(d) => d,
-            InputType::Files(xs) => xs[0].parent().unwrap_or(Path::new(".")),
-        };
-        Self::new(i_dir.join("muxed"))
+        const OUTPUT_SUBDIR: &str = "muxed";
+        let input_dir = input.dir();
+        let cap = input_dir.as_os_str().len() + 1 + OUTPUT_SUBDIR.len() + 1 + TEMP_SUBDIR.len();
+
+        let mut dir = PathBuf::with_capacity(cap);
+        dir.push(input_dir);
+        dir.push(OUTPUT_SUBDIR);
+
+        let dir = new_dir(dir, true)?;
+        Ok(Self::with_dir(dir, true))
     }
 }
 
@@ -52,18 +57,24 @@ impl TryFinalizeInit for ConfigOutput {
     }
 }
 
-fn new_dir(path: &Path) -> Result<PathBuf> {
-    if path.is_file() {
-        Err(err!("is not a directory"))
+fn new_dir(p: impl Into<PathBuf> + AsRef<Path>, is_from_input: bool) -> Result<PathBuf> {
+    if is_from_input {
+        check_is_not_file(p.as_ref())?;
+        Ok(p.into())
     } else {
-        let dir: PathBuf = try_absolutize(path.into())?.components().collect();
-        Ok(crate::ensure_long_path_prefix(dir))
+        let p = try_absolutize(p.into())?;
+        let p = crate::ensure_long_path_prefix(p);
+        check_is_not_file(&p)?;
+        Ok(p)
     }
 }
 
-fn new_temp_dir(dir: &Path) -> PathBuf {
-    const TEMP_SUBDIRECTORY_NAME: &str = concat!(".temp-", env!("CARGO_PKG_NAME"));
-    dir.join(TEMP_SUBDIRECTORY_NAME)
+fn check_is_not_file(p: &Path) -> Result<()> {
+    if p.is_file() {
+        Err(err!("is not a directory"))
+    } else {
+        Ok(())
+    }
 }
 
 fn try_absolutize(path: PathBuf) -> Result<PathBuf> {
@@ -77,8 +88,7 @@ fn try_absolutize(path: PathBuf) -> Result<PathBuf> {
     if path.is_absolute() {
         Ok(path)
     } else {
-        let mut new = std::env::current_dir()?;
-        new.push(path);
-        Ok(new)
+        let path = std::path::absolute(path)?;
+        Ok(path)
     }
 }

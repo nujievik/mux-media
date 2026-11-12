@@ -12,16 +12,9 @@ fn assert_eq_cwd_dirs(o: &ConfigOutput, dir_subdirs: &str) {
 }
 
 #[test]
-fn default() {
-    let o = ConfigOutput::default();
-    assert_eq_cwd_dirs(&o, "muxed");
-    assert_eq!(o, ConfigOutput::new("./muxed").unwrap());
-}
-
-#[test]
-fn new() {
+fn try_from_dir() {
     for x in ["a", "b", "c/d/e"] {
-        let o = ConfigOutput::new(format!("./{}", x)).unwrap();
+        let o = ConfigOutput::try_from_dir(format!("./{}", x)).unwrap();
         assert_eq_cwd_dirs(&o, x);
     }
 }
@@ -39,10 +32,17 @@ fn try_from_input() {
 }
 
 #[test]
+fn parse_empty() {
+    // empty must be eq try_from_input
+    let o = ConfigOutput::try_from(&CONFIG.input).unwrap();
+    assert_eq!(&o, &CONFIG.output);
+}
+
+#[test]
 fn parse() {
     for x in ["a", "b", "c/d/e"] {
         let cwd_dir = format!("./{}", x);
-        let o = ConfigOutput::new(&cwd_dir).unwrap();
+        let o = ConfigOutput::try_from_dir(&cwd_dir).unwrap();
 
         assert_eq!(o, cfg(["-o", &cwd_dir]).output);
     }
@@ -55,7 +55,7 @@ fn create_and_remove_dirs() {
     let _ = fs::remove_dir_all(&base);
     assert!(!base.exists());
 
-    let mut o = ConfigOutput::new(&dir).unwrap();
+    let mut o = ConfigOutput::try_from_dir(&dir).unwrap();
     o.create_dirs().unwrap();
     assert!(dir.join(".temp-mux-media").exists());
 
@@ -67,7 +67,7 @@ fn create_and_remove_dirs() {
 fn to_args() {
     for x in ["a", "b", "c/d/e"] {
         let dir = cwd_dir(x);
-        let o = ConfigOutput::new(format!("./{}", x)).unwrap();
+        let o = ConfigOutput::try_from_dir(format!("./{}", x)).unwrap();
 
         let args = crate::common::to_args(["--output", dir.to_str().unwrap()]);
         assert_eq!(args, o.to_args().unwrap());

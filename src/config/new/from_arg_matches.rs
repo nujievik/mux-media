@@ -165,9 +165,9 @@ impl FromArgMatches for Config {
         fn cfg(m: &mut ArgMatches, locales: ConfigLocales) -> Result<Config, Error> {
             let input = try_input(m)?;
 
-            let (output, is_output_constructed_from_input) = match rm!(m, Output, ConfigOutput) {
-                Some(out) => (out, false),
-                None => (ConfigOutput::try_from(&input)?, true),
+            let output = match rm!(m, Output, ConfigOutput) {
+                Some(o) => o,
+                None => ConfigOutput::try_from(&input)?,
             };
 
             Ok(Config {
@@ -201,7 +201,6 @@ impl FromArgMatches for Config {
 
                 retiming: retiming(m),
                 target_configs: target_configs(m),
-                is_output_constructed_from_input,
             })
         }
 
@@ -391,7 +390,6 @@ impl FromArgMatches for Config {
         fn output(cfg: &mut Config, m: &mut ArgMatches) {
             if let Some(output) = rm!(m, Output, ConfigOutput) {
                 cfg.output = output;
-                cfg.is_output_constructed_from_input = false;
             }
         }
 

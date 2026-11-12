@@ -11,8 +11,10 @@ pub enum Value<T> {
 impl<T> Value<T> {
     /// Returns a reference to the internal value.
     #[inline]
-    pub fn deref(&self) -> &T {
-        <Self as Deref>::deref(self)
+    pub const fn deref(&self) -> &T {
+        match self {
+            Value::Auto(v) | Value::User(v) => v,
+        }
     }
 
     /// Consumes the enum and returns the internal value.
@@ -84,14 +86,12 @@ impl<T> Deref for Value<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        match self {
-            Value::Auto(v) | Value::User(v) => v,
-        }
+        self.deref()
     }
 }
 
 impl<T: fmt::Display> fmt::Display for Value<T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.deref())
+        self.deref().fmt(f)
     }
 }

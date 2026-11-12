@@ -83,7 +83,6 @@ fn parse_empty_args() {
 
     assert_eq!(&e.retiming, &Default::default());
     assert!(e.target_configs.is_empty());
-    assert!(e.is_output_constructed_from_input);
 }
 
 fn assert_eq_wo_locale(mut left: Config, right: &Config) {
@@ -126,11 +125,9 @@ fn parse_input_output() {
     let c = cfg([p("-i"), &i]);
     assert_eq!(c.input.dir(), &i);
     assert_eq!(c.output.dir(), &o);
-    assert!(c.is_output_constructed_from_input);
 
     let c = cfg([p("-o"), &o]);
     assert_eq!(c.output.dir(), &o);
-    assert!(!c.is_output_constructed_from_input);
 
     test_parse!(["--overwrite"], input.overwrite, true);
 

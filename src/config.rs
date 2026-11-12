@@ -114,7 +114,6 @@ pub struct Config {
 
     pub retiming: ConfigRetiming,
     pub target_configs: FxIndexMap<Target, ConfigTarget>,
-    pub is_output_constructed_from_input: bool,
 }
 
 /// A configuration for a [`Target`].

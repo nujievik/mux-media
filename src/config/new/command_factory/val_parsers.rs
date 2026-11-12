@@ -51,5 +51,5 @@ typed_value_parser!(
     PathBuf,
     ConfigInput::try_canonicalize_and_read
 );
-typed_value_parser!(OutputParser, ConfigOutput, ConfigOutput::new);
+typed_value_parser!(OutputParser, ConfigOutput, ConfigOutput::try_from_dir);
 typed_value_parser!(ConfigParser, PathBuf, try_canonicalize_and_open);
