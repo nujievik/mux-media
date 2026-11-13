@@ -1,5 +1,5 @@
+use super::MediaInfoCacheOfFile;
 use crate::ffmpeg::{self, Rational, Rescale};
-use crate::media_info::{MarkMediaInfoStreams, MediaInfo};
 use crate::{NANOSECOND_TIME_BASE, Result, StreamType};
 use std::path::Path;
 use subtitle_lines::Time;
@@ -17,8 +17,11 @@ enum DurationsValue {
 use DurationsValue::*;
 
 impl VideoAndAudioDurations {
-    pub fn try_from_media_file(mi: &mut MediaInfo, src: &Path) -> Result<VideoAndAudioDurations> {
-        value_from_media_file(mi, src).map(|value| VideoAndAudioDurations { value })
+    pub(crate) fn try_from_streams(
+        src: &Path,
+        cache: &mut MediaInfoCacheOfFile,
+    ) -> Result<VideoAndAudioDurations> {
+        value_from_streams(src, cache).map(|value| VideoAndAudioDurations { value })
     }
 
     #[inline]
@@ -47,8 +50,8 @@ impl VideoAndAudioDurations {
     }
 }
 
-fn value_from_media_file(mi: &mut MediaInfo<'_>, src: &Path) -> Result<DurationsValue> {
-    let streams = mi.try_get(MarkMediaInfoStreams, src)?;
+fn value_from_streams(src: &Path, cache: &mut MediaInfoCacheOfFile) -> Result<DurationsValue> {
+    let streams = cache.caching_streams(src)?;
     let mut ictx = ffmpeg::format::input(src)?;
 
     let mut is_has_video = false;

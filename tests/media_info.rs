@@ -20,15 +20,15 @@ fn test_empty() {
 fn test_set_cmn_stem() {
     ["x", "a", "bc"].iter().for_each(|s| {
         let mut mi = new();
-        mi.set_cmn(MarkMediaInfoStem, s.into());
-        assert_eq!(s, mi.try_get_cmn(MarkMediaInfoStem).unwrap());
+        mi.set_cmn(MarkMediaInfoShortestFileStem, s.into());
+        assert_eq!(s, mi.try_get_cmn(MarkMediaInfoShortestFileStem).unwrap());
     })
 }
 
 #[test]
 fn test_clear() {
     let mut mi = new();
-    mi.set_cmn(MarkMediaInfoStem, "x".into());
+    mi.set_cmn(MarkMediaInfoShortestFileStem, "x".into());
     mi.try_insert(data("srt.srt")).unwrap();
     mi.clear();
 
@@ -79,7 +79,7 @@ fn test_cmn_stem() {
         .into_iter()
         .for_each(|(stem, f)| {
             mi.try_insert(data(f)).unwrap();
-            assert_eq!(stem, mi.try_get_cmn(MarkMediaInfoStem).unwrap());
+            assert_eq!(stem, mi.try_get_cmn(MarkMediaInfoShortestFileStem).unwrap());
             mi.clear();
         });
 
@@ -91,7 +91,10 @@ fn test_cmn_stem() {
     .iter()
     .for_each(|f| mi.try_insert(data(f)).unwrap());
 
-    assert_eq!("x1_set", mi.try_get_cmn(MarkMediaInfoStem).unwrap());
+    assert_eq!(
+        "x1_set",
+        mi.try_get_cmn(MarkMediaInfoShortestFileStem).unwrap()
+    );
 }
 
 #[test]
@@ -123,7 +126,7 @@ fn test_streams() {
 fn test_path_tail() {
     let mut mi = new();
 
-    mi.set_cmn(MarkMediaInfoStem, "".into());
+    mi.set_cmn(MarkMediaInfoShortestFileStem, "".into());
 
     [
         ("audio_x1", "audio_x1.mka"),
@@ -139,7 +142,7 @@ fn test_path_tail() {
     });
 
     mi.clear();
-    mi.set_cmn(MarkMediaInfoStem, "s".into());
+    mi.set_cmn(MarkMediaInfoShortestFileStem, "s".into());
 
     [("ub_x1", "sub_x1.mks"), ("rt", "srt.srt")]
         .iter()
@@ -191,7 +194,7 @@ fn test_stream_title() {
         let f = data(f);
         mi.clear();
         mi.try_insert(&f).unwrap();
-        mi.set_cmn(MarkMediaInfoStem, cmn_stem.into());
+        mi.set_cmn(MarkMediaInfoShortestFileStem, cmn_stem.into());
         mi.try_finalize_init_streams().unwrap();
 
         let exp = String::from(title);
@@ -221,7 +224,7 @@ fn test_stream_lang() {
         let f = data(f);
         mi.clear();
         mi.try_insert(&f).unwrap();
-        mi.set_cmn(MarkMediaInfoStem, cmn_stem.into());
+        mi.set_cmn(MarkMediaInfoShortestFileStem, cmn_stem.into());
         mi.try_finalize_init_streams().unwrap();
 
         assert_eq!(lang, *mi.try_get(MarkMediaInfoStreams, &f).unwrap()[0].lang);

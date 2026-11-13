@@ -1,5 +1,5 @@
 use super::ExternalFonts;
-use crate::media_info::MarkMediaInfoStem;
+use crate::media_info::MarkMediaInfoShortestFileStem;
 use crate::{Config, MediaGroupedByStem, MediaInfo, MuxError, Result, i18n::logs};
 use log::error;
 use std::{
@@ -49,7 +49,7 @@ fn init_current_files<'a>(
         return MuxCurrent::Continue;
     }
 
-    mi.set_cmn(MarkMediaInfoStem, stem);
+    mi.set_cmn(MarkMediaInfoShortestFileStem, stem);
 
     if let Err(e) = mi
         .try_insert_many(files)

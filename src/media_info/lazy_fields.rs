@@ -1,9 +1,5 @@
-use super::{MediaInfo, MediaInfoCacheOfFile, VideoAndAudioDurations};
-use crate::{
-    ArcPathBuf,
-    CacheState::{self, Cached, Failed, NotCached},
-    LazyField, LazyPathField, Result, Stream, StreamsOrder,
-};
+use super::{MediaInfo, VideoAndAudioDurations};
+use crate::{CacheState::*, LazyField, LazyPathField, Result, Stream, StreamsOrder};
 use std::{ffi::OsString, path::Path};
 
 /// Initializes a [`MediaInfo`](crate::MediaInfo) value if need and immutably borrows it.
@@ -205,40 +201,12 @@ macro_rules! lazy_fields {
             type FieldType = $ty;
 
             #[inline]
-            fn try_init(&mut self) -> Result<()> {
-                if let NotCached = self.cache.of_group.$field {
-                    let (state, result) = CacheState::convert_result(self.$builder());
-                    self.cache.of_group.$field = state;
-                    return result;
-                }
-
-                self.cache.of_group.$field.try_get().map(|_| ())
-            }
-
-            #[inline]
-            fn init(&mut self) -> Option<()> {
-                if let NotCached = self.cache.of_group.$field {
-                    let (state, result) = CacheState::convert_result(self.$builder());
-                    self.cache.of_group.$field = state;
-                    return result.ok();
-                }
-
-                match self.cache.of_group.$field {
-                    Cached(_) => Some(()),
-                    _ => None,
-                }
-            }
-
-            #[inline]
             fn try_mut(&mut self) -> Result<&mut Self::FieldType> {
-                <Self as LazyField::<$marker>>::try_init(self)?;
+                if let NotCached = self.cache.of_group.$field {
+                    let res = self.$builder();
+                    return self.cache.of_group.$field.set(res);
+                }
                 self.cache.of_group.$field.try_mut()
-            }
-
-            #[inline]
-            fn get_mut(&mut self) -> Option<&mut Self::FieldType> {
-                <Self as LazyField::<$marker>>::init(self)?;
-                self.cache.of_group.$field.get_mut()
             }
 
             #[inline]
@@ -247,20 +215,9 @@ macro_rules! lazy_fields {
             }
 
             #[inline]
-            fn immut(&self) -> Option<&Self::FieldType> {
-                self.cache.of_group.$field.get()
-            }
-
-            #[inline]
             fn try_take(&mut self) -> Result<Self::FieldType> {
                 <Self as LazyField::<$marker>>::try_init(self)?;
                 self.cache.of_group.$field.try_take()
-            }
-
-            #[inline]
-            fn take(&mut self) -> Option<Self::FieldType> {
-                <Self as LazyField::<$marker>>::init(self)?;
-                self.cache.of_group.$field.take()
             }
 
             #[inline]
@@ -280,63 +237,12 @@ macro_rules! lazy_path_fields {
             type FieldType = $ty;
 
             #[inline]
-            fn try_init(&mut self, src: &Path) -> Result<()> {
-                match self.cache.of_files.get(src).map(|e| &e.$map_field) {
-                    Some(Cached(_)) => return Ok(()),
-                    Some(Failed) => return Err(err!("previously failed")),
-                    _ => {}
-                }
-
-                let (state, result) = CacheState::convert_result(self.$builder(src));
-
-                match self.cache.of_files.get_mut(src) {
-                    Some(fields) => fields.$map_field = state,
-                    None => {
-                        let mut cache = MediaInfoCacheOfFile::default();
-                        cache.$map_field = state;
-                        self.cache.of_files.insert(ArcPathBuf::from(src), cache);
-                    }
-                }
-
-                result
-            }
-
-            #[inline]
-            fn init(&mut self, src: &Path) -> Option<()> {
-                match self.cache.of_files.get(src).map(|e| &e.$map_field) {
-                    Some(Cached(_)) => return Some(()),
-                    Some(Failed) => return None,
-                    _ => {}
-                }
-
-                let (state, result) = CacheState::convert_result(self.$builder(src));
-
-                match self.cache.of_files.get_mut(src) {
-                    Some(fields) => fields.$map_field = state,
-                    None => {
-                        let mut cache = MediaInfoCacheOfFile::default();
-                        cache.$map_field = state;
-                        self.cache.of_files.insert(ArcPathBuf::from(src), cache);
-                    }
-                }
-
-                result.ok()
-            }
-
-            #[inline]
             fn try_mut(&mut self, src: &Path) -> Result<&mut Self::FieldType> {
-                <Self as LazyPathField::<$marker>>::try_init(self, src)?;
-
-                match self.cache.of_files.get_mut(src) {
-                    Some(cache) => cache.$map_field.try_mut(),
-                    None => Err(err!("Unexpected None cache")),
+                if let NotCached = &self.cache.caching_file_cache(src).$map_field {
+                    let res = self.$builder(src);
+                    return self.cache.caching_file_cache(src).$map_field.set(res);
                 }
-            }
-
-            #[inline]
-            fn get_mut(&mut self, src: &Path) -> Option<&mut Self::FieldType> {
-                <Self as LazyPathField::<$marker>>::init(self, src)?;
-                self.cache.of_files.get_mut(src).and_then(|cache| cache.$map_field.get_mut())
+                self.cache.caching_file_cache(src).$map_field.try_mut()
             }
 
             #[inline]
@@ -348,44 +254,21 @@ macro_rules! lazy_path_fields {
             }
 
             #[inline]
-            fn immut(&self, src: &Path) -> Option<&Self::FieldType> {
-                self.cache.of_files.get(src).and_then(|cache| cache.$map_field.get())
-            }
-
-            #[inline]
             fn try_take(&mut self, src: &Path) -> Result<Self::FieldType> {
                 <Self as LazyPathField::<$marker>>::try_init(self, src)?;
-
-                self.cache
-                    .of_files
-                    .get_mut(src)
-                    .ok_or_else(|| err!(FileNotCached))
-                    .and_then(|cache| cache.$map_field.try_take())
-            }
-
-            #[inline]
-            fn take(&mut self, src: &Path) -> Option<Self::FieldType> {
-                <Self as LazyPathField::<$marker>>::init(self, src)?;
-                self.cache.of_files.get_mut(src).and_then(|cache| cache.$map_field.take())
+                self.cache.caching_file_cache(src).$map_field.try_take()
             }
 
             #[inline]
             fn set(&mut self, src: &Path, value: Self::FieldType) {
-                let value = Cached(value);
-                match self.cache.of_files.get_mut(src) {
-                    Some(cache) => cache.$map_field = value,
-                    None => {
-                        let cache = MediaInfoCacheOfFile { $map_field: value, ..Default::default() };
-                        self.cache.of_files.insert(src.into(), cache);
-                    },
-                }
+                self.cache.caching_file_cache(src).$map_field = Cached(value);
             }
         }
     )* };
 }
 
 lazy_fields!(
-    stem, OsString, build_stem => MarkMediaInfoStem;
+    shortest_file_stem, OsString, build_shortest_file_stem => MarkMediaInfoShortestFileStem;
     streams_order, StreamsOrder, build_streams_order => MarkMediaInfoStreamsOrder;
 );
 

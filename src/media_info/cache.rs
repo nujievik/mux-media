@@ -13,6 +13,7 @@ pub enum CacheState<T> {
     Cached(T),
     Failed,
 }
+use CacheState::*;
 
 /// A cache of [`MediaInfo`](crate::MediaInfo).
 #[derive(Clone, Debug, Default)]
@@ -25,7 +26,7 @@ pub struct MediaInfoCache<'a> {
 #[derive(Clone, Debug, Default, IsDefault)]
 #[non_exhaustive]
 pub struct MediaInfoCacheOfGroup {
-    pub stem: CacheState<OsString>,
+    pub shortest_file_stem: CacheState<OsString>,
     pub streams_order: CacheState<StreamsOrder>,
 }
 
@@ -41,10 +42,19 @@ pub struct MediaInfoCacheOfFile<'a> {
 }
 
 impl<T> CacheState<T> {
-    pub(crate) fn convert_result(result: Result<T>) -> (CacheState<T>, Result<()>) {
+    pub(crate) fn set(&mut self, result: Result<T>) -> Result<&mut T> {
         match result {
-            Ok(v) => (CacheState::Cached(v), Ok(())),
-            Err(e) => (CacheState::Failed, Err(e)),
+            Ok(v) => {
+                *self = Cached(v);
+                match self {
+                    Cached(v) => Ok(v),
+                    _ => unreachable!(),
+                }
+            }
+            Err(e) => {
+                *self = Failed;
+                Err(e)
+            }
         }
     }
 
@@ -56,13 +66,6 @@ impl<T> CacheState<T> {
         }
     }
 
-    pub(crate) const fn get(&self) -> Option<&T> {
-        match self {
-            CacheState::Cached(val) => Some(val),
-            _ => None,
-        }
-    }
-
     pub(crate) fn try_mut(&mut self) -> Result<&mut T> {
         match self {
             CacheState::Cached(val) => Ok(val),
@@ -71,25 +74,11 @@ impl<T> CacheState<T> {
         }
     }
 
-    pub(crate) const fn get_mut(&mut self) -> Option<&mut T> {
-        match self {
-            CacheState::Cached(val) => Some(val),
-            _ => None,
-        }
-    }
-
     pub(crate) fn try_take(&mut self) -> Result<T> {
         match mem::take(self) {
             CacheState::Cached(val) => Ok(val),
             CacheState::NotCached => Err(err!("not cached any")),
             CacheState::Failed => Err(err!("previously failed")),
-        }
-    }
-
-    pub(crate) fn take(&mut self) -> Option<T> {
-        match mem::take(self) {
-            CacheState::Cached(val) => Some(val),
-            _ => None,
         }
     }
 

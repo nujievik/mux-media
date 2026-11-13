@@ -1,4 +1,3 @@
-pub(crate) mod builders;
 pub(crate) mod cache;
 mod finalize;
 mod is_signs;
@@ -8,14 +7,12 @@ pub use cache::{
     MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup, durations::VideoAndAudioDurations,
 };
 pub use lazy_fields::{
-    MarkMediaInfoPathTail, MarkMediaInfoRelativeUpmost, MarkMediaInfoStem, MarkMediaInfoStreams,
-    MarkMediaInfoStreamsOrder, MarkMediaInfoVideoAndAudioDurations,
+    MarkMediaInfoPathTail, MarkMediaInfoRelativeUpmost, MarkMediaInfoShortestFileStem,
+    MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoVideoAndAudioDurations,
 };
 
-use crate::{
-    ArcPathBuf, Config, ConfigChaptersTimeRange, FxHashMap, Result, config::PathConfigs, i18n::logs,
-};
-use cache::CacheState;
+use crate::{ArcPathBuf, Config, ConfigChaptersTimeRange, Result, config::PathConfigs, i18n::logs};
+use cache::CacheState::{self, *};
 use rayon::prelude::*;
 use std::path::Path;
 
@@ -109,23 +106,15 @@ impl MediaInfo<'_> {
         let exit_on_err = self.cfg.exit_on_err;
         let cache_is_empty = self.cache.of_files.is_empty();
 
-        let map = sources
-            .into_par_iter()
-            .filter_map(|src| {
-                match self.try_key_cache_to_insert(src, exit_on_err, cache_is_empty) {
-                    Ok(Some((key, cache))) => Some(Ok((key, cache))),
-                    Ok(None) => None,
-                    Err(e) => Some(Err(e)),
-                }
-            })
-            .collect::<Result<FxHashMap<_, _>>>()?;
+        let it = sources.into_par_iter().filter_map(|src| {
+            match self.try_key_cache_to_insert(src, exit_on_err, cache_is_empty) {
+                Ok(Some((key, cache))) => Some(Ok((key, cache))),
+                Ok(None) => None,
+                Err(e) => Some(Err(e)),
+            }
+        });
 
-        if cache_is_empty {
-            self.cache.of_files = map;
-        } else {
-            self.cache.of_files.extend(map);
-        }
-
+        self.cache.of_files.extend(it.collect::<Result<Vec<_>>>()?);
         Ok(())
     }
 }
@@ -140,21 +129,25 @@ impl<'a> MediaInfo<'a> {
     ) -> Result<Option<(ArcPathBuf, MediaInfoCacheOfFile<'a>)>> {
         let m = src.as_ref();
 
-        if !cache_is_empty
-            && self
-                .cache
-                .of_files
-                .get(m)
-                .map_or(false, |c| c.streams.is_cached())
-        {
-            return Ok(None);
-        }
+        let k_cache = if cache_is_empty {
+            None
+        } else {
+            let k_cache = self.cache.of_files.get_key_value(m);
+
+            if k_cache.is_some_and(|(_, c)| c.streams.is_cached()) {
+                return Ok(None);
+            }
+            k_cache
+        };
 
         match self.build_streams(m) {
             Ok(streams) => {
-                let mut cache = MediaInfoCacheOfFile::default();
+                let (k, mut cache) = match k_cache {
+                    Some((k, c)) => (k.clone(), c.clone()),
+                    None => (src.into(), MediaInfoCacheOfFile::default()),
+                };
                 cache.streams = CacheState::Cached(streams);
-                Ok(Some((src.into(), cache)))
+                Ok(Some((k, cache)))
             }
             Err(e) if exit_on_err => Err(e),
             Err(e) => {

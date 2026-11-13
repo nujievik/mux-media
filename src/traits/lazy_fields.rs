@@ -6,9 +6,6 @@ pub trait LazyField<F> {
     /// The type of the associated field.
     type FieldType;
 
-    /// Initializes the field if it hasn't been initialized yet.
-    fn try_init(&mut self) -> Result<()>;
-
     /// Returns a mutable reference to the field value, initializing it if necessary.
     fn try_mut(&mut self) -> Result<&mut Self::FieldType>;
 
@@ -24,10 +21,13 @@ pub trait LazyField<F> {
     fn set(&mut self, value: Self::FieldType);
 
     /// Initializes the field if it hasn't been initialized yet.
+    fn try_init(&mut self) -> Result<()> {
+        self.try_mut().map(|_| ())
+    }
+
+    /// Initializes the field if it hasn't been initialized yet.
     ///
     /// Returns `Some(())` on success, or `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyField::try_init`] and performs no allocation.
     fn init(&mut self) -> Option<()> {
         self.try_init().ok()
     }
@@ -35,15 +35,11 @@ pub trait LazyField<F> {
     /// Returns a mutable reference to the field value, initializing it if necessary.
     ///
     /// Returns `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyField::try_mut`] and performs no allocation.
     fn get_mut(&mut self) -> Option<&mut Self::FieldType> {
         self.try_mut().ok()
     }
 
     /// Returns a reference to the field value, initializing it if necessary.
-    ///
-    /// Default implementation delegates to [`LazyField::try_mut`] and performs no allocation.
     fn try_get(&mut self) -> Result<&Self::FieldType> {
         self.try_mut().map(|r| &*r)
     }
@@ -51,8 +47,6 @@ pub trait LazyField<F> {
     /// Returns a reference to the field value, initializing it if necessary.
     ///
     /// Returns `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyField::get_mut`] and performs no allocation.
     fn get(&mut self) -> Option<&Self::FieldType> {
         self.get_mut().map(|r| &*r)
     }
@@ -60,8 +54,6 @@ pub trait LazyField<F> {
     /// Returns a reference to the field value if it has already been initialized.
     ///
     /// Returns `None` if the field is uninitialized or an error occurred.
-    ///
-    /// Default implementation delegates to [`LazyField::try_immut`] and performs no allocation.
     fn immut(&self) -> Option<&Self::FieldType> {
         self.try_immut().ok()
     }
@@ -69,8 +61,6 @@ pub trait LazyField<F> {
     /// Takes the field value, initializing it if needed, and replaces it with a default.
     ///
     /// Returns `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyField::try_take`] and performs no allocation.
     fn take(&mut self) -> Option<Self::FieldType> {
         self.try_take().ok()
     }
@@ -80,9 +70,6 @@ pub trait LazyField<F> {
 pub trait LazyPathField<F> {
     /// The type of the associated field.
     type FieldType;
-
-    /// Initializes the field if it hasn't been initialized yet.
-    fn try_init(&mut self, path: &Path) -> Result<()>;
 
     /// Returns a mutable reference to the field value, initializing it if necessary.
     fn try_mut(&mut self, path: &Path) -> Result<&mut Self::FieldType>;
@@ -99,10 +86,13 @@ pub trait LazyPathField<F> {
     fn set(&mut self, path: &Path, value: Self::FieldType);
 
     /// Initializes the field if it hasn't been initialized yet.
+    fn try_init(&mut self, path: &Path) -> Result<()> {
+        self.try_mut(path).map(|_| ())
+    }
+
+    /// Initializes the field if it hasn't been initialized yet.
     ///
     /// Returns `Some(())` on success, or `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyPathField::try_init`] and performs no allocation.
     fn init(&mut self, path: &Path) -> Option<()> {
         self.try_init(path).ok()
     }
@@ -110,15 +100,11 @@ pub trait LazyPathField<F> {
     /// Returns a mutable reference to the field value, initializing it if necessary.
     ///
     /// Returns `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyPathField::try_mut`] and performs no allocation.
     fn get_mut(&mut self, path: &Path) -> Option<&mut Self::FieldType> {
         self.try_mut(path).ok()
     }
 
     /// Returns a reference to the field value, initializing it if necessary.
-    ///
-    /// Default implementation delegates to [`LazyPathField::try_mut`] and performs no allocation.
     fn try_get(&mut self, path: &Path) -> Result<&Self::FieldType> {
         self.try_mut(path).map(|r| &*r)
     }
@@ -126,8 +112,6 @@ pub trait LazyPathField<F> {
     /// Returns a reference to the field value, initializing it if necessary.
     ///
     /// Returns `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyPathField::get_mut`] and performs no allocation.
     fn get(&mut self, path: &Path) -> Option<&Self::FieldType> {
         self.get_mut(path).map(|r| &*r)
     }
@@ -135,8 +119,6 @@ pub trait LazyPathField<F> {
     /// Returns a reference to the field value if it has already been initialized.
     ///
     /// Returns `None` if the field is uninitialized or an error occurred.
-    ///
-    /// Default implementation delegates to [`LazyPathField::try_immut`] and performs no allocation.
     fn immut(&self, path: &Path) -> Option<&Self::FieldType> {
         self.try_immut(path).ok()
     }
@@ -144,8 +126,6 @@ pub trait LazyPathField<F> {
     /// Takes the field value, initializing it if needed, and replaces it with a default.
     ///
     /// Returns `None` on error.
-    ///
-    /// Default implementation delegates to [`LazyPathField::try_take`] and performs no allocation.
     fn take(&mut self, path: &Path) -> Option<Self::FieldType> {
         self.try_take(path).ok()
     }

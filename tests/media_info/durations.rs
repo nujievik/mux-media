@@ -44,10 +44,5 @@ fn max_durations() {
             .unwrap();
 
         assert_eq!(xs.max(), Time::from_millis(millis));
-        // eq directly
-        assert_eq!(
-            xs,
-            VideoAndAudioDurations::try_from_media_file(&mut mi, &file).unwrap()
-        );
     }
 }
