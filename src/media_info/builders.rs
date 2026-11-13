@@ -1,7 +1,7 @@
 mod streams;
 
 use super::*;
-use crate::{Result, StreamsOrder, Target, helpers};
+use crate::{Result, StreamsOrder, helpers};
 use std::{ffi::OsString, path::Path};
 
 impl MediaInfo<'_> {
@@ -37,20 +37,6 @@ impl MediaInfo<'_> {
                 helpers::os_str_tail(self.cfg.input.dir().as_os_str(), parent.as_os_str())
                     .map(|os| os.to_string_lossy().into_owned())
             })
-    }
-
-    pub(super) fn build_target_paths(&self, src: &Path) -> Result<Vec<Target>> {
-        let mut targets = Vec::<Target>::new();
-
-        if let Some(trg) = self.cfg.get_key(src) {
-            targets.push(trg);
-        }
-
-        if let Some(trg) = src.parent().and_then(|p| self.cfg.get_key(p)) {
-            targets.push(trg);
-        }
-
-        Ok(targets)
     }
 
     pub(super) fn build_durations(&mut self, src: &Path) -> Result<VideoAndAudioDurations> {

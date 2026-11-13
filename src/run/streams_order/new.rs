@@ -68,7 +68,7 @@ fn try_sorted_src_stream_key(
 
     for (i_src, src) in sources.iter().enumerate() {
         let streams = mi.try_take(MarkMediaInfoStreams, src)?;
-        let target_paths = mi.try_take(MarkMediaInfoTargetPaths, src)?;
+        let path_configs = mi.path_configs(src);
 
         streams.iter().for_each(|stream| {
             let ty = stream.ty;
@@ -81,7 +81,7 @@ fn try_sorted_src_stream_key(
                 return;
             }
 
-            let (i, cfg_streams) = cfg.stream_val(MarkConfigStreams, &target_paths, stream);
+            let (i, cfg_streams) = cfg.stream_value(MarkConfigStreams, &path_configs, stream);
             if !cfg_streams.is_save(&i, &stream.lang) {
                 return;
             }
@@ -102,12 +102,12 @@ fn try_sorted_src_stream_key(
             let lang = &stream.lang;
             let is_signs = mi.is_signs(src, stream);
 
-            let (i, defaults) = cfg.stream_val(MarkConfigDefaults, &target_paths, stream);
+            let (i, defaults) = cfg.stream_value(MarkConfigDefaults, &path_configs, stream);
             let default = defaults.get(&i, &lang);
-            let (i, forceds) = cfg.stream_val(MarkConfigForceds, &target_paths, stream);
+            let (i, forceds) = cfg.stream_value(MarkConfigForceds, &path_configs, stream);
             let forced = forceds.get(&i, &lang);
 
-            let (i, cfg_order) = cfg.stream_val(MarkConfigStreamsOrder, &target_paths, stream);
+            let (i, cfg_order) = cfg.stream_value(MarkConfigStreamsOrder, &path_configs, stream);
             let cfg_value = cfg_order.get(&i, &lang);
 
             let key = OrderSortKey::new(
@@ -118,7 +118,6 @@ fn try_sorted_src_stream_key(
         });
 
         mi.set(MarkMediaInfoStreams, src, streams);
-        mi.set(MarkMediaInfoTargetPaths, src, target_paths);
     }
 
     streams_to_sort.sort_by(|a, b| a.2.cmp(&b.2));

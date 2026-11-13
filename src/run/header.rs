@@ -1,12 +1,12 @@
 mod input_stream;
 
 use super::{Encode, Encoder};
-use crate::config::MarkConfigTsOffsets;
+use crate::config::{MarkConfigTsOffsets, PathConfigs};
 use crate::ffmpeg::{self, Dictionary, format::context};
-use crate::media_info::{MarkMediaInfoStreams, MarkMediaInfoTargetPaths};
+use crate::media_info::MarkMediaInfoStreams;
 use crate::{
     DispositionType, Lang, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
-    Target, VERSION, immut,
+    VERSION, immut,
 };
 use enum_map::EnumMap;
 
@@ -30,26 +30,28 @@ pub(super) fn write_header(
         let ist = input_stream::new(mi, &mut icontexts, ord)?;
         let (mut ost, mut enc) = Encoder::new(&ist, octx, ord.ty)?;
 
+        let path_configs = mi.path_configs(&ord.key);
+
         if let Some(xs) = immut!(mi, MarkMediaInfoStreams, &ord.key) {
             let stream = &xs[ord.key_i_stream];
             ost.set_metadata(new_ost_metadata(mi.cfg.clean_meta, stream, &ist));
 
-            if let Some(target_paths) = mi.immut(MarkMediaInfoTargetPaths, &ord.key) {
-                set_ost_dispositions(
-                    mi,
-                    target_paths,
-                    &auto,
-                    &mut counts,
-                    &mut lang_default_audio,
-                    ord,
-                    stream,
-                    &mut ost,
-                );
+            set_ost_dispositions(
+                mi,
+                &path_configs,
+                &auto,
+                &mut counts,
+                &mut lang_default_audio,
+                ord,
+                stream,
+                &mut ost,
+            );
 
-                let (i, offsets) = mi.cfg.stream_val(MarkConfigTsOffsets, target_paths, stream);
-                if let Some(offset) = offsets.get(&i, &stream.lang) {
-                    enc.set_ts_offset(Some(offset as i64));
-                }
+            let (i, offsets) = mi
+                .cfg
+                .stream_value(MarkConfigTsOffsets, &path_configs, stream);
+            if let Some(offset) = offsets.get(&i, &stream.lang) {
+                enc.set_ts_offset(Some(offset as i64));
             }
         }
 
@@ -120,7 +122,7 @@ fn new_ost_metadata<'a>(
 
 fn set_ost_dispositions(
     mi: &MediaInfo,
-    target_paths: &Vec<Target>,
+    path_configs: &PathConfigs<'_>,
     auto: &EnumMap<DispositionType, bool>,
     counts: &mut EnumMap<StreamType, EnumMap<DispositionType, usize>>,
     lang_default_audio: &mut Option<(bool, Lang)>,
@@ -135,7 +137,7 @@ fn set_ost_dispositions(
     }
 
     for ty in DispositionType::iter() {
-        let (i_key, values) = mi.cfg.stream_val_dispositions(ty, target_paths, stream);
+        let (i_key, values) = mi.cfg.stream_dispositions(ty, path_configs, stream);
 
         let v = match values.get(&i_key, &stream.lang) {
             Some(v) => v,

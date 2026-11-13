@@ -8,11 +8,11 @@ use std::{
     sync::Mutex,
 };
 
-pub fn mux_current_files(
-    cfg: &Config,
-    fonts: Option<&ExternalFonts>,
+pub fn mux_current_files<'a>(
+    cfg: &'a Config,
+    fonts: Option<&ExternalFonts<'a>>,
     cnt: &Mutex<usize>,
-    mi: &mut MediaInfo<'_>,
+    mi: &mut MediaInfo<'a>,
     m: MediaGroupedByStem,
 ) -> Result<()> {
     let mut out = cfg.output.dir().join(&m.stem);
@@ -37,9 +37,9 @@ pub fn mux_current_files(
     Ok(())
 }
 
-fn init_current_files(
-    fonts: Option<&ExternalFonts>,
-    mi: &mut MediaInfo,
+fn init_current_files<'a>(
+    fonts: Option<&ExternalFonts<'a>>,
+    mi: &mut MediaInfo<'a>,
     stem: OsString,
     files: Vec<PathBuf>,
     out: &Path,

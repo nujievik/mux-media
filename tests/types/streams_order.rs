@@ -2,10 +2,9 @@ use crate::common::*;
 use mux_media::{media_info::*, *};
 use std::sync::LazyLock;
 
-static CACHE_LANGS_MKV: LazyLock<MediaInfoCache> = LazyLock::new(|| {
+static CACHE_LANGS_MKV: LazyLock<MediaInfoCache<'static>> = LazyLock::new(|| {
     let file = data("streams_order/langs.mkv");
-    let cfg = cfg::<_, &str>([]);
-    let mut mi = MediaInfo::new(&cfg, 0);
+    let mut mi = MediaInfo::new(&CONFIG, 0);
     mi.try_init(MarkMediaInfoStreams, &file).unwrap();
     mi.cache
 });
@@ -134,7 +133,7 @@ fn skip_sub_streams() {
         "subs/x1_set.[subs].mks",
     ] {
         let f = format!("x1_set/{}", f);
-        mi.try_insert(data(f)).unwrap();
+        mi.try_insert(data(&f)).unwrap();
     }
 
     let order = mi.try_take_cmn(MarkMediaInfoStreamsOrder).unwrap();

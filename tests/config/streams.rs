@@ -1,7 +1,10 @@
 use super::*;
+use enum_map::EnumMap;
 
-fn new(args: &[&str]) -> ConfigStreams {
-    cfg(args).streams
+fn parse_eq_with_streams(args: &[&str], streams: ConfigStreams) {
+    let mut with_streams = CONFIG.clone();
+    with_streams.streams = streams;
+    assert_eq_wo_locale(with_streams, &cfg(args))
 }
 
 #[test]
@@ -10,7 +13,7 @@ fn parse_no_flag() {
         no_flag: true,
         ..Default::default()
     };
-    assert_eq!(xs, new(&["--no-streams"]));
+    parse_eq_with_streams(&["--no-streams"], xs);
 }
 
 #[test]
@@ -27,12 +30,12 @@ fn parse_no_flag_aliases() {
         ("-F", StreamType::AttachedFont),
         ("-P", StreamType::AttachedPic),
     ] {
-        let t = Target::StreamType(ty);
-        let mut val = ConfigTarget::default();
-        val.streams = Some(xs.clone());
-        let ts = FxIndexMap::from_iter([(t, val)]);
+        let mut map: EnumMap<StreamType, ConfigTarget> = EnumMap::default();
+        map[ty].streams = Some(xs.clone());
 
-        assert_eq!(ts, cfg([cli]).target_configs);
+        let mut exp = CONFIG.clone();
+        exp.per_stream_type = map;
+        assert_eq_wo_locale(exp, &cfg([cli]));
     }
 }
 
@@ -49,7 +52,7 @@ fn parse_idxs() {
             idxs: Some(FxIndexSet::from_iter(idxs)),
             ..Default::default()
         };
-        assert_eq!(xs, new(&["--streams", arg]));
+        parse_eq_with_streams(&["--streams", arg], xs);
     })
 }
 
@@ -67,7 +70,7 @@ fn parse_idxs_inverse() {
             idxs: Some(FxIndexSet::from_iter(idxs)),
             ..Default::default()
         };
-        assert_eq!(xs, new(&["--streams", arg]));
+        parse_eq_with_streams(&["--streams", arg], xs);
     })
 }
 
@@ -85,12 +88,12 @@ fn parse_idxs_aliases() {
         ("-f0", StreamType::AttachedFont),
         ("-p0", StreamType::AttachedPic),
     ] {
-        let t = Target::StreamType(ty);
-        let mut val = ConfigTarget::default();
-        val.streams = Some(xs.clone());
-        let ts = FxIndexMap::from_iter([(t, val)]);
+        let mut map: EnumMap<StreamType, ConfigTarget> = EnumMap::default();
+        map[ty].streams = Some(xs.clone());
 
-        assert_eq!(ts, cfg([cli]).target_configs);
+        let mut exp = CONFIG.clone();
+        exp.per_stream_type = map;
+        assert_eq_wo_locale(exp, &cfg([cli]));
     }
 }
 
@@ -113,7 +116,7 @@ fn parse_ranges() {
             ranges: Some(ranges),
             ..Default::default()
         };
-        assert_eq!(xs, new(&["--streams", arg]));
+        parse_eq_with_streams(&["--streams", arg], xs);
     })
 }
 
@@ -137,7 +140,7 @@ fn parse_ranges_inverse() {
             ranges: Some(ranges),
             ..Default::default()
         };
-        assert_eq!(xs, new(&["--streams", arg]));
+        parse_eq_with_streams(&["--streams", arg], xs);
     })
 }
 
@@ -155,12 +158,12 @@ fn parse_ranges_aliases() {
         ("-f0-1", StreamType::AttachedFont),
         ("-p0-1", StreamType::AttachedPic),
     ] {
-        let t = Target::StreamType(ty);
-        let mut val = ConfigTarget::default();
-        val.streams = Some(xs.clone());
-        let ts = FxIndexMap::from_iter([(t, val)]);
+        let mut map: EnumMap<StreamType, ConfigTarget> = EnumMap::default();
+        map[ty].streams = Some(xs.clone());
 
-        assert_eq!(ts, cfg([cli]).target_configs);
+        let mut exp = CONFIG.clone();
+        exp.per_stream_type = map;
+        assert_eq_wo_locale(exp, &cfg([cli]));
     }
 }
 
@@ -176,7 +179,7 @@ fn parse_langs() {
             langs: Some(FxIndexSet::from_iter(langs)),
             ..Default::default()
         };
-        assert_eq!(xs, new(&["--streams", arg]));
+        parse_eq_with_streams(&["--streams", arg], xs);
     })
 }
 
@@ -193,7 +196,7 @@ fn parse_langs_inverse() {
             langs: Some(FxIndexSet::from_iter(langs)),
             ..Default::default()
         };
-        assert_eq!(xs, new(&["--streams", arg]));
+        parse_eq_with_streams(&["--streams", arg], xs);
     })
 }
 
@@ -211,12 +214,12 @@ fn parse_langs_aliases() {
         ("-feng", StreamType::AttachedFont),
         ("-peng", StreamType::AttachedPic),
     ] {
-        let t = Target::StreamType(ty);
-        let mut val = ConfigTarget::default();
-        val.streams = Some(xs.clone());
-        let ts = FxIndexMap::from_iter([(t, val)]);
+        let mut map: EnumMap<StreamType, ConfigTarget> = EnumMap::default();
+        map[ty].streams = Some(xs.clone());
 
-        assert_eq!(ts, cfg([cli]).target_configs);
+        let mut exp = CONFIG.clone();
+        exp.per_stream_type = map;
+        assert_eq_wo_locale(exp, &cfg([cli]));
     }
 }
 
@@ -229,15 +232,18 @@ fn parse_all() {
         ranges: Some(vec![range::new("2-4")]),
         langs: Some([lang!(Eng), lang!(Und)].into_iter().collect()),
     };
-    assert_eq!(xs, new(&["--streams", "!1,eng,8,und,2-4"]));
+    parse_eq_with_streams(&["--streams", "!1,eng,8,und,2-4"], xs);
 }
 
 #[test]
 fn parse_target_switching() {
-    let xs = ConfigStreams {
+    let streams = ConfigStreams {
         no_flag: true,
         ..Default::default()
     };
+    let mut trg = ConfigTarget::default();
+    trg.streams = Some(streams.clone());
+
     let args = [
         "--target",
         "audio",
@@ -259,25 +265,18 @@ fn parse_target_switching() {
         "--no-streams",
     ];
 
-    let ts = [
-        StreamType::Video,
-        StreamType::Audio,
-        StreamType::Subtitles,
-        StreamType::AttachedFont,
-        StreamType::AttachedPic,
-    ]
-    .into_iter()
-    .map(|ty| {
-        let t = Target::StreamType(ty);
-        let mut val = ConfigTarget::default();
-        val.streams = Some(xs.clone());
-        (t, val)
-    })
-    .collect::<FxIndexMap<_, _>>();
+    let mut map: EnumMap<StreamType, ConfigTarget> = EnumMap::default();
+    map[StreamType::Audio] = trg.clone();
+    map[StreamType::AttachedPic] = trg.clone();
+    map[StreamType::Subtitles] = trg.clone();
+    map[StreamType::Video] = trg.clone();
+    map[StreamType::AttachedFont] = trg;
 
-    let cfg = cfg(args);
-    assert_eq!(xs, cfg.streams);
-    assert_eq!(ts, cfg.target_configs);
+    let mut exp = CONFIG.clone();
+    exp.streams = streams;
+    exp.per_stream_type = map;
+
+    assert_eq_wo_locale(exp, &cfg(args));
 }
 
 #[test]

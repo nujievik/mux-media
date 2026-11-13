@@ -1,6 +1,7 @@
+mod caching;
 pub(crate) mod durations;
 
-use crate::{ArcPathBuf, FxHashMap, IsDefault, Result, Stream, StreamsOrder, Target};
+use crate::{ArcPathBuf, FxHashMap, IsDefault, Result, Stream, StreamsOrder, config::PathConfigs};
 use durations::VideoAndAudioDurations;
 use std::{ffi::OsString, mem};
 
@@ -15,9 +16,9 @@ pub enum CacheState<T> {
 
 /// A cache of [`MediaInfo`](crate::MediaInfo).
 #[derive(Clone, Debug, Default)]
-pub struct MediaInfoCache {
+pub struct MediaInfoCache<'a> {
     pub of_group: MediaInfoCacheOfGroup,
-    pub of_files: FxHashMap<ArcPathBuf, MediaInfoCacheOfFile>,
+    pub of_files: FxHashMap<ArcPathBuf, MediaInfoCacheOfFile<'a>>,
 }
 
 /// A cache of [`MediaInfo`](crate::MediaInfo) common for stem-grouped files.
@@ -31,21 +32,12 @@ pub struct MediaInfoCacheOfGroup {
 /// A cache of [`MediaInfo`](crate::MediaInfo) is separate for each file.
 #[derive(Clone, Debug, Default, IsDefault)]
 #[non_exhaustive]
-pub struct MediaInfoCacheOfFile {
+pub struct MediaInfoCacheOfFile<'a> {
+    pub path_configs: Option<PathConfigs<'a>>,
     pub streams: CacheState<Vec<Stream>>,
     pub path_tail: CacheState<String>,
     pub relative_upmost: CacheState<String>,
-
-    /// Targets from file path and parent path, existed in [`Config::target_configs`](
-    /// crate::Config::target_configs).
-    pub target_paths: CacheState<Vec<Target>>,
     pub video_and_audio_durations: CacheState<VideoAndAudioDurations>,
-}
-
-impl IsDefault for MediaInfoCache {
-    fn is_default(&self) -> bool {
-        self.of_group.is_default() && self.of_files.is_empty()
-    }
 }
 
 impl<T> CacheState<T> {

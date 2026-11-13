@@ -1,5 +1,5 @@
 use super::{Config, ConfigTarget};
-use crate::{Msg, Result, ToArgs};
+use crate::{IsDefault, Msg, Result, ToArgs};
 use core::fmt::NumBuffer;
 use std::{fs, io::Write};
 
@@ -94,15 +94,23 @@ impl ToArgs for Config {
 
         write_fields!(self, w, buf; titles, langs, subs_encodings, ts_offsets, retiming);
 
-        for (t, t_cfg) in &self.target_configs {
-            if let Some(s) = t.to_str() {
+        for (ty, ty_cfg) in self.per_stream_type.iter() {
+            if !ty_cfg.is_default() {
                 to_args!(w, Target)?;
-                to_args!(w, s.as_bytes(), @v)?;
+                to_args!(w, ty.as_str().as_bytes(), @v)?;
+                ty_cfg.write_with_num_buffer(w, buf)?;
+            }
+        }
+
+        for (path, path_cfg) in self.by_path.iter() {
+            if let Some(path) = path.to_str() {
+                to_args!(w, Target)?;
+                to_args!(w, path.as_bytes(), @v)?;
             } else {
                 return Err(err!("invalid utf-8"));
             }
 
-            t_cfg.write_with_num_buffer(w, buf)?;
+            path_cfg.write_with_num_buffer(w, buf)?;
         }
 
         Ok(())

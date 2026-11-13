@@ -80,9 +80,10 @@ fn parse_empty_args() {
     assert_eq!(&e.langs, &Default::default());
     assert_eq!(&e.subs_encodings, &Default::default());
     assert_eq!(&e.ts_offsets, &Default::default());
-
     assert_eq!(&e.retiming, &Default::default());
-    assert!(e.target_configs.is_empty());
+
+    assert_eq!(&e.per_stream_type, &Default::default());
+    assert!(e.by_path.is_empty());
 }
 
 fn assert_eq_wo_locale(mut left: Config, right: &Config) {
@@ -153,60 +154,6 @@ fn parse_global() {
     test_parse!(["-e"], exit_on_err, true);
     test_parse!(["--save-config"], save_config, true);
     test_parse!(["--jobs", "8"], jobs, 8);
-}
-
-#[test]
-fn parse_no_streams() {
-    let xs = ConfigStreams {
-        no_flag: true,
-        ..Default::default()
-    };
-    test_parse!(["--no-streams"], streams, xs.clone());
-
-    [
-        ("audio", "-A"),
-        ("subs", "-S"),
-        ("video", "-D"),
-        ("fonts", "-F"),
-        ("pics", "-P"),
-    ]
-    .iter()
-    .for_each(|(trg, arg)| {
-        let trg = Target::StreamType(trg.parse::<StreamType>().unwrap());
-        let mut val = ConfigTarget::default();
-        val.streams = Some(xs.clone());
-
-        let mut exp = (*CONFIG).clone();
-        exp.target_configs.insert(trg, val);
-        assert_eq_wo_locale(cfg([arg]), &exp);
-    })
-}
-
-#[test]
-fn parse_streams() {
-    let xs = ConfigStreams {
-        idxs: Some([0].into_iter().collect()),
-        ..Default::default()
-    };
-    test_parse!(["--streams", "0"], streams, xs.clone());
-
-    [
-        ("audio", "-a0"),
-        ("subs", "-s0"),
-        ("video", "-d0"),
-        ("fonts", "-f0"),
-        ("pics", "-p0"),
-    ]
-    .iter()
-    .for_each(|(trg, arg)| {
-        let trg = Target::StreamType(trg.parse::<StreamType>().unwrap());
-        let mut val = ConfigTarget::default();
-        val.streams = Some(xs.clone());
-
-        let mut exp = (*CONFIG).clone();
-        exp.target_configs.insert(trg, val);
-        assert_eq_wo_locale(cfg([arg]), &exp);
-    })
 }
 
 #[test]
@@ -327,7 +274,7 @@ fn test_aliases_of_args() {
 
 #[test]
 fn test_target_switching() {
-    let cfg = cfg([
+    let args = &[
         "--exit-on-err",
         "--target",
         "video",
@@ -345,30 +292,82 @@ fn test_target_switching() {
         "subs",
         "--defaults",
         "true",
-    ]);
+    ];
 
-    assert!(cfg.exit_on_err);
-    assert!(
-        cfg.target(MarkConfigDefaults, "video")
-            .single_val
-            .unwrap()
-            .0
-    );
-    assert!(
-        cfg.target(MarkConfigDefaults, "audio")
-            .single_val
-            .unwrap()
-            .0
-    );
-    assert_eq!(cfg.jobs, 8);
-    assert!(
-        cfg.target(MarkConfigDefaults, "subtitles")
-            .single_val
-            .unwrap()
-            .0
-    );
+    let xs = ConfigDispositions {
+        single_val: Some(Bool(true)),
+        ..Default::default()
+    };
 
-    assert!(cfg.defaults.single_val.is_none());
+    let mut exp = CONFIG.clone();
+    exp.exit_on_err = true;
+    exp.per_stream_type[StreamType::Video].defaults = Some(xs.clone());
+    exp.per_stream_type[StreamType::Audio].defaults = Some(xs.clone());
+
+    exp.jobs = 8;
+    exp.per_stream_type[StreamType::Subtitles].defaults = Some(xs);
+
+    assert_eq_wo_locale(exp, &cfg(args));
+}
+
+const TEST_TARGETS: &[&[&str]] = &[
+    &["audio_x1.mka", "audio_x8.mka", "ogg.ogg"],
+    &["srt.srt", "sub_x1.mks", "sub_x8.mks", "cp1251.srt"],
+    &["video_x1.mkv", "video_x8.mkv"],
+];
+
+fn trg_with_no_chapters() -> ConfigTarget {
+    let mut chapters = ConfigChapters::default();
+    chapters.no_flag = true;
+
+    let mut trg = ConfigTarget::default();
+    trg.chapters = Some(chapters);
+    trg
+}
+
+#[test]
+fn parse_file_targets() {
+    let trg = trg_with_no_chapters();
+
+    TEST_TARGETS.iter().for_each(|files| {
+        files.iter().for_each(|f| {
+            let f = data(f);
+            let mut exp = CONFIG.clone();
+            exp.by_path.insert(f.clone().into(), trg.clone());
+
+            assert_eq_wo_locale(exp, &cfg([p("--target"), &f, p("-C")]));
+        })
+    })
+}
+
+#[test]
+fn parse_parent_target() {
+    let parent = data("");
+    let mut exp = CONFIG.clone();
+    exp.by_path
+        .insert(parent.clone().into(), trg_with_no_chapters());
+
+    assert_eq_wo_locale(exp, &cfg([p("--target"), &parent, p("-C")]));
+}
+
+#[test]
+fn parse_file_and_dir_targets() {
+    let parent = data(""); //common for all files
+    let trg = trg_with_no_chapters();
+
+    TEST_TARGETS.iter().for_each(|files| {
+        files.iter().for_each(|f| {
+            let f = data(f);
+            let args = [p("--target"), &f, p("-C"), p("--target"), &parent, p("-C")];
+
+            let mut exp = CONFIG.clone();
+            exp.by_path.insert(f.clone().into(), trg.clone());
+            exp.by_path
+                .insert(parent.clone().into(), trg_with_no_chapters());
+
+            assert_eq_wo_locale(exp, &cfg(args));
+        })
+    })
 }
 
 build_test_to_args!(to_args_exit_on_err, "config_exit_on_err"; vec!["--exit-on-err"]);

@@ -2,7 +2,7 @@ use crate::config::MarkConfigStreams;
 use crate::ffmpeg::{self, sys};
 use crate::media_info::MediaInfoCacheOfFile;
 use crate::{
-    ArcPathBuf, CacheState, Config, Extension, MediaInfo, Msg, Result, StreamType, Target, display,
+    ArcPathBuf, CacheState, Config, Extension, MediaInfo, Msg, Result, StreamType, display,
     display_file_list,
 };
 use log::{debug, warn};
@@ -13,18 +13,18 @@ use std::{
     ptr,
 };
 
-pub struct ExternalFonts {
+pub struct ExternalFonts<'a> {
     pub files: Vec<PathBuf>,
     pub temp_file: ArcPathBuf,
-    pub cache_temp_file: MediaInfoCacheOfFile,
+    pub cache_temp_file: MediaInfoCacheOfFile<'a>,
 }
 
-impl ExternalFonts {
-    pub fn get_new(cfg: &Config) -> Option<ExternalFonts> {
+impl<'a> ExternalFonts<'a> {
+    pub fn get_new(cfg: &'a Config) -> Option<ExternalFonts<'a>> {
         if cfg
-            .target(
+            .target_or_global(
                 MarkConfigStreams,
-                Target::StreamType(StreamType::AttachedFont),
+                &cfg.per_stream_type[StreamType::AttachedFont],
             )
             .no_flag
         {

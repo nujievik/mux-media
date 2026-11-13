@@ -22,123 +22,83 @@ use super::{
     Config, ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams,
     ConfigStreamsOrder, ConfigSubsEncodings, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets,
 };
-use crate::{DispositionType, Field, Stream, Target};
+use crate::{DispositionType, Field, Stream};
 use std::path::Path;
 
 impl Config {
-    /// Returns a field value for marker `F`:
-    ///
-    /// - From the first given target contains in [`Config::target_configs`], that has a Some value.
-    /// - Otherwise, from the common (global) configuration.
-    pub fn target<F, K>(&self, field_mark: F, key: K) -> &<Self as Field<F>>::FieldType
+    #[inline]
+    pub fn target_or_global<'a, F, TY>(&'a self, f: F, trg: &'a ConfigTarget) -> &'a TY
     where
-        Self: Field<F>,
-        ConfigTarget: Field<F, FieldType = Option<<Self as Field<F>>::FieldType>>,
-        K: AsRef<Path>,
+        Config: Field<F, FieldType = TY>,
+        ConfigTarget: Field<F, FieldType = Option<TY>>,
     {
-        self.get_target(field_mark, key)
-            .unwrap_or(<Self as Field<F>>::field(self))
+        trg.get(f).unwrap_or(<Self as Field<F>>::field(self))
     }
 
-    // Returns (index, val)
-    pub(crate) fn stream_val<F, I, T>(
-        &self,
-        f: F,
-        target_paths: I,
+    pub(crate) fn stream_value<'a, F, TY>(
+        &'a self,
+        _: F,
+        path_configs: &'a PathConfigs<'_>,
         stream: &Stream,
-    ) -> (usize, &<Self as Field<F>>::FieldType)
+    ) -> (usize, &'a TY)
     where
-        F: Copy,
-        Self: Field<F>,
-        ConfigTarget: Field<F, FieldType = Option<<Self as Field<F>>::FieldType>>,
-        I: IntoIterator<Item = T>,
-        T: AsRef<Path>,
+        Config: Field<F, FieldType = TY>,
+        PathConfigs<'a>: Field<F, FieldType = Option<TY>>,
+        ConfigTarget: Field<F, FieldType = Option<TY>>,
     {
-        if let Some(v) = self.get_targets(f, target_paths) {
+        if let Some(v) = <PathConfigs as Field<F>>::field(path_configs) {
             (stream.i, v)
-        } else if let Some(v) = self.get_target(f, Target::StreamType(stream.ty)) {
+        } else if let Some(v) = <ConfigTarget as Field<F>>::field(&self.per_stream_type[stream.ty])
+        {
             (stream.i_ty, v)
         } else {
-            (stream.i, <Self as Field<F>>::field(self))
+            (stream.i, <Config as Field<F>>::field(self))
         }
     }
 
-    // Returns (index, val)
-    pub(crate) fn stream_val_dispositions<I, T>(
-        &self,
+    pub(crate) fn stream_dispositions<'a>(
+        &'a self,
         ty: DispositionType,
-        target_paths: I,
+        path_configs: &'a PathConfigs<'_>,
         stream: &Stream,
-    ) -> (usize, &ConfigDispositions)
-    where
-        I: IntoIterator<Item = T>,
-        T: AsRef<Path>,
-    {
+    ) -> (usize, &'a ConfigDispositions) {
         match ty {
-            DispositionType::Default => self.stream_val(MarkConfigDefaults, target_paths, stream),
-            DispositionType::Forced => self.stream_val(MarkConfigForceds, target_paths, stream),
+            DispositionType::Default => self.stream_value(MarkConfigDefaults, path_configs, stream),
+            DispositionType::Forced => self.stream_value(MarkConfigForceds, path_configs, stream),
         }
-    }
-
-    #[inline]
-    pub fn get_target<F, K>(&self, _: F, key: K) -> Option<&<Self as Field<F>>::FieldType>
-    where
-        Self: Field<F>,
-        ConfigTarget: Field<F, FieldType = Option<<Self as Field<F>>::FieldType>>,
-        K: AsRef<Path>,
-    {
-        self.target_configs
-            .get(key.as_ref())
-            .and_then(|v| <ConfigTarget as Field<F>>::field(v).as_ref())
-    }
-
-    pub fn get_targets<F, I, T>(&self, f: F, ts: I) -> Option<&<Self as Field<F>>::FieldType>
-    where
-        F: Copy,
-        Self: Field<F>,
-        ConfigTarget: Field<F, FieldType = Option<<Self as Field<F>>::FieldType>>,
-        I: IntoIterator<Item = T>,
-        T: AsRef<Path>,
-    {
-        ts.into_iter().find_map(|t| self.get_target(f, t))
-    }
-
-    /// Gets a cloned [`Target`] key if its exists in [`Self::targets`].
-    ///
-    /// This operation avoids heap allocation: internally it either copies an enum variant
-    /// or increments the [`Arc`](std::sync::Arc) reference count.
-    pub(crate) fn get_key(&self, key: impl AsRef<Path>) -> Option<Target> {
-        self.target_configs
-            .get_key_value(key.as_ref())
-            .map(|(k, _)| k.clone())
     }
 }
 
 macro_rules! fields {
-    // Base type and optional (target) type
-    ($type:ident, $opt_type:ident;
-    $( $field:ident, $ty:ty => $marker:ident ),* $(,)?
-    ) => {
+    ( $( $field:ident, $ty:ty => $marker:ident ),* $(,)? ) => {
         $(
             #[doc = concat!("Marker of [`Config`] fields, that stores [`", stringify!($ty), "`].")]
-            #[derive(Copy, Clone)]
             pub struct $marker;
 
-            impl Field<$marker> for $type {
+            impl Field<$marker> for Config {
                 type FieldType = $ty;
 
-                #[inline(always)]
-                fn field(&self) -> &Self::FieldType {
+                #[inline]
+                fn field(&self) -> &$ty {
                     &self.$field
                 }
             }
 
-            impl Field<$marker> for $opt_type {
+            impl Field<$marker> for ConfigTarget {
                 type FieldType = Option<$ty>;
 
-                #[inline(always)]
-                fn field(&self) -> &Self::FieldType {
+                #[inline]
+                fn field(&self) -> &Option<$ty> {
                     &self.$field
+                }
+            }
+
+            impl<'a> Field<$marker> for PathConfigs<'a> {
+                type FieldType = Option<$ty>;
+
+                #[inline]
+                fn field(&self) -> &'a Option<$ty> {
+                    self.field($marker)
                 }
             }
         )*
@@ -146,7 +106,6 @@ macro_rules! fields {
 }
 
 fields! {
-    Config, ConfigTarget;
     streams, ConfigStreams => MarkConfigStreams,
     chapters, ConfigChapters => MarkConfigChapters,
     order, ConfigStreamsOrder => MarkConfigStreamsOrder,
@@ -156,4 +115,67 @@ fields! {
     langs, ConfigLangMetadata => MarkConfigLangMetadata,
     subs_encodings, ConfigSubsEncodings => MarkConfigSubsEncodings,
     ts_offsets, ConfigTsOffsets => MarkConfigTsOffsets,
+}
+
+#[derive(Copy, Clone, Debug)]
+pub struct PathConfigs<'a> {
+    value: PathConfigsValue<'a>,
+}
+#[derive(Copy, Clone, Debug)]
+enum PathConfigsValue<'a> {
+    FileAndParentDir((&'a ConfigTarget, &'a ConfigTarget)),
+    FileOrParentDir(&'a ConfigTarget),
+    Empty,
+}
+use PathConfigsValue::*;
+
+impl ConfigTarget {
+    #[inline]
+    pub fn get<F, TY>(&self, _: F) -> Option<&TY>
+    where
+        ConfigTarget: Field<F, FieldType = Option<TY>>,
+    {
+        <ConfigTarget as Field<F>>::field(self).as_ref()
+    }
+}
+
+impl<'a> PathConfigs<'a> {
+    pub(crate) fn new(cfg: &'a Config, file: &Path) -> PathConfigs<'a> {
+        let dir = file.parent().and_then(|p| cfg.by_path.get_key_value(p));
+
+        let value = match (cfg.by_path.get_key_value(file), dir) {
+            (Some((_, file)), Some((_, dir))) => FileAndParentDir((file, dir)),
+            (Some((_, c)), None) | (None, Some((_, c))) => FileOrParentDir(c),
+            (None, None) => Empty,
+        };
+        PathConfigs { value }
+    }
+
+    #[inline]
+    pub fn get<F, TY>(&self, f: F) -> Option<&'a TY>
+    where
+        ConfigTarget: Field<F, FieldType = Option<TY>>,
+    {
+        self.field(f).as_ref()
+    }
+
+    #[inline]
+    pub fn field<F, TY>(&self, _: F) -> &'a Option<TY>
+    where
+        ConfigTarget: Field<F, FieldType = Option<TY>>,
+    {
+        match self.value {
+            FileAndParentDir((f, d)) => {
+                let f_field = <ConfigTarget as Field<F>>::field(f);
+
+                if f_field.is_some() {
+                    f_field
+                } else {
+                    <ConfigTarget as Field<F>>::field(d)
+                }
+            }
+            FileOrParentDir(x) => <ConfigTarget as Field<F>>::field(x),
+            Empty => &None,
+        }
+    }
 }

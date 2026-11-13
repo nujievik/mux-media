@@ -3,10 +3,10 @@ use super::super::{
     ConfigLocales, ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigStreamsOrder,
     ConfigSubsEncodings, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets, InputType,
 };
-use super::LogLang;
+use super::{LogLang, Target};
 use crate::{
-    CliArg, Extension, FxIndexMap, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize,
-    StreamType, Target, VERSION, Value, undashed,
+    CliArg, Extension, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize, StreamType,
+    VERSION, Value, undashed,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
@@ -103,31 +103,6 @@ macro_rules! upd_streams {
     };
 }
 
-macro_rules! trg_upd_streams {
-    ($target_configs:expr, $k:expr, $matches:ident, $arg:ident, $no_arg:ident) => {{
-        match $target_configs.entry(Target::StreamType($k)) {
-            indexmap::map::Entry::Occupied(mut entry) => {
-                let trg_cfg = entry.get_mut();
-
-                if let Some(v) = trg_cfg.streams.as_mut() {
-                    upd_streams!(*v, $matches, $arg, $no_arg);
-                } else if let Some(v) = get_streams!($matches, $arg, $no_arg) {
-                    trg_cfg.streams = Some(v);
-                }
-            }
-            indexmap::map::Entry::Vacant(entry) => {
-                if let Some(v) = get_streams!($matches, $arg, $no_arg) {
-                    let v = ConfigTarget {
-                        streams: Some(v),
-                        ..Default::default()
-                    };
-                    entry.insert(v);
-                }
-            }
-        }
-    }};
-}
-
 macro_rules! upd_dispositions {
     ($field:expr, $matches:ident, $arg:ident, $max_arg:ident) => {{
         if let Some(val) = rm!($matches, $arg, ConfigDispositions) {
@@ -170,7 +145,7 @@ impl FromArgMatches for Config {
                 None => ConfigOutput::try_from(&input)?,
             };
 
-            Ok(Config {
+            let mut cfg = Config {
                 input,
                 output,
 
@@ -198,10 +173,14 @@ impl FromArgMatches for Config {
                     ConfigSubsEncodings::default
                 ),
                 ts_offsets: rm_or!(m, TsOffsets, ConfigTsOffsets, ConfigTsOffsets::default),
-
                 retiming: retiming(m),
-                target_configs: target_configs(m),
-            })
+
+                per_stream_type: Default::default(),
+                by_path: Default::default(),
+            };
+
+            upd_per_stream_type_streams_from_global_aliases(&mut cfg, m);
+            Ok(cfg)
         }
 
         fn locale(m: &ArgMatches) -> ConfigLocales {
@@ -261,32 +240,6 @@ impl FromArgMatches for Config {
             opts.no_linked = flag!(m, NoLinked);
             opts
         }
-
-        fn target_configs(m: &mut ArgMatches) -> FxIndexMap<Target, ConfigTarget> {
-            let mut map: FxIndexMap<Target, ConfigTarget> = Default::default();
-
-            let mut insert_some = |k, v: Option<ConfigStreams>| {
-                if v.is_none() {
-                    return;
-                }
-
-                let k = Target::StreamType(k);
-                let v = ConfigTarget {
-                    streams: v,
-                    ..Default::default()
-                };
-
-                map.insert(k, v);
-            };
-
-            insert_some(StreamType::Audio, get_streams!(m, Audio, NoAudio));
-            insert_some(StreamType::Subtitles, get_streams!(m, Subs, NoSubs));
-            insert_some(StreamType::Video, get_streams!(m, Video, NoVideo));
-            insert_some(StreamType::AttachedFont, get_streams!(m, Fonts, NoFonts));
-            insert_some(StreamType::AttachedPic, get_streams!(m, Pics, NoPics));
-
-            map
-        }
     }
 
     fn update_from_arg_matches_mut(&mut self, m: &mut ArgMatches) -> Result<(), Error> {
@@ -302,7 +255,7 @@ impl FromArgMatches for Config {
         auto_flags(self, m);
         upd_flag!(self.clean_flags, m, CleanFlags);
         upd_flag!(self.clean_meta, m, CleanMeta);
-        target_streams(self, m);
+        upd_per_stream_type_streams_from_global_aliases(self, m);
 
         upd_streams!(self.streams, m, Streams, NoStreams);
         upd_chapters(&mut self.chapters, m);
@@ -322,13 +275,10 @@ impl FromArgMatches for Config {
 
         while let Some(mut t_args) = m.get_raw(undashed!(Target)) {
             // unwrap is safe: target require as min 1 argument.
-            let t = t_args.next().unwrap();
-            let t = match self.get_key(t) {
-                Some(t) => t,
-                None => Target::parse_os(&t)?,
-            };
+            let target = t_args.next().unwrap();
+            let target = Target::parse_os(target)?;
 
-            if let Target::Global = t {
+            if let Target::Global = &target {
                 return self.try_update_from(t_args);
             }
 
@@ -339,14 +289,20 @@ impl FromArgMatches for Config {
             _owned_m = Some(matches);
             m = _owned_m.as_mut().unwrap();
 
-            match self.target_configs.entry(t) {
-                indexmap::map::Entry::Occupied(mut entry) => {
-                    entry.get_mut().update_from_arg_matches_mut(m)?;
+            match target {
+                Target::Global => unreachable!(), // already processed
+                Target::StreamType(ty) => {
+                    self.per_stream_type[ty].update_from_arg_matches_mut(m)?
                 }
-                indexmap::map::Entry::Vacant(entry) => {
-                    let val = ConfigTarget::from_arg_matches_mut(m)?;
-                    entry.insert(val);
-                }
+                Target::Path(path) => match self.by_path.entry(path) {
+                    indexmap::map::Entry::Occupied(mut entry) => {
+                        entry.get_mut().update_from_arg_matches_mut(m)?;
+                    }
+                    indexmap::map::Entry::Vacant(entry) => {
+                        let val = ConfigTarget::from_arg_matches_mut(m)?;
+                        entry.insert(val);
+                    }
+                },
             }
         }
 
@@ -465,21 +421,29 @@ impl FromArgMatches for Config {
             upd!(cfg.retiming, m, Parts, ConfigRetiming);
             upd_flag!(cfg.retiming.no_linked, m, NoLinked);
         }
-
-        fn target_streams(cfg: &mut Config, m: &mut ArgMatches) {
-            trg_upd_streams!(cfg.target_configs, StreamType::Audio, m, Audio, NoAudio);
-            trg_upd_streams!(cfg.target_configs, StreamType::Subtitles, m, Subs, NoSubs);
-            trg_upd_streams!(cfg.target_configs, StreamType::Video, m, Video, NoVideo);
-            trg_upd_streams!(
-                cfg.target_configs,
-                StreamType::AttachedFont,
-                m,
-                Fonts,
-                NoFonts
-            );
-            trg_upd_streams!(cfg.target_configs, StreamType::AttachedPic, m, Pics, NoPics);
-        }
     }
+}
+
+macro_rules! upd_per_stream_type_streams_from_global_aliases {
+    ($cfg:expr, $matches:ident; $( $ty:ident, $arg:ident, $no_arg:ident );* $(;)?) => {{ $(
+        let cfg = &mut $cfg.per_stream_type[StreamType::$ty];
+
+        if let Some(v) = cfg.streams.as_mut() {
+            upd_streams!(*v, $matches, $arg, $no_arg);
+        } else if let Some(v) = get_streams!($matches, $arg, $no_arg) {
+            cfg.streams = Some(v);
+        }
+    )* }};
+}
+fn upd_per_stream_type_streams_from_global_aliases(cfg: &mut Config, m: &mut ArgMatches) {
+    upd_per_stream_type_streams_from_global_aliases!(
+        cfg, m;
+        Audio, Audio, NoAudio;
+        Subtitles, Subs, NoSubs;
+        Video, Video, NoVideo;
+        AttachedFont, Fonts, NoFonts;
+        AttachedPic, Pics, NoPics;
+    );
 }
 
 // Returns (locale, locale_log)

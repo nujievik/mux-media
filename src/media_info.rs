@@ -8,12 +8,13 @@ pub use cache::{
     MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup, durations::VideoAndAudioDurations,
 };
 pub use lazy_fields::{
-    MarkMediaInfoCacheOfFile, MarkMediaInfoPathTail, MarkMediaInfoRelativeUpmost,
-    MarkMediaInfoStem, MarkMediaInfoStreams, MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths,
-    MarkMediaInfoVideoAndAudioDurations,
+    MarkMediaInfoPathTail, MarkMediaInfoRelativeUpmost, MarkMediaInfoStem, MarkMediaInfoStreams,
+    MarkMediaInfoStreamsOrder, MarkMediaInfoVideoAndAudioDurations,
 };
 
-use crate::{ArcPathBuf, Config, ConfigChaptersTimeRange, FxHashMap, Result, i18n::logs};
+use crate::{
+    ArcPathBuf, Config, ConfigChaptersTimeRange, FxHashMap, Result, config::PathConfigs, i18n::logs,
+};
 use cache::CacheState;
 use rayon::prelude::*;
 use std::path::Path;
@@ -25,7 +26,7 @@ use std::path::Path;
 #[non_exhaustive]
 pub struct MediaInfo<'a> {
     pub cfg: &'a Config,
-    pub cache: MediaInfoCache,
+    pub cache: MediaInfoCache<'a>,
     /// Job number. Separates access to temp files.
     pub job: u8,
     buf: Option<Box<[u8]>>,
@@ -33,14 +34,8 @@ pub struct MediaInfo<'a> {
     pub(crate) chapters: Option<Vec<ConfigChaptersTimeRange>>,
 }
 
-impl MediaInfo<'_> {
-    pub(crate) fn buffer_mut(&mut self) -> &mut [u8] {
-        const BUF_SIZE: usize = 1024 * 128; // 128 KiB
-        self.buf
-            .get_or_insert_with(|| vec![0; BUF_SIZE].into_boxed_slice())
-    }
-
-    pub fn new<'a>(cfg: &'a Config, job: u8) -> MediaInfo<'a> {
+impl<'a> MediaInfo<'a> {
+    pub fn new(cfg: &'a Config, job: u8) -> MediaInfo<'a> {
         MediaInfo {
             cfg,
             cache: Default::default(),
@@ -50,8 +45,23 @@ impl MediaInfo<'_> {
         }
     }
 
+    pub fn path_configs(&mut self, src: &Path) -> PathConfigs<'a> {
+        let cfg = self.cfg;
+        self.cache
+            .caching_file_cache(src)
+            .caching_path_configs(cfg, src)
+    }
+}
+
+impl MediaInfo<'_> {
+    pub(crate) fn buffer_mut(&mut self) -> &mut [u8] {
+        const BUF_SIZE: usize = 1024 * 128; // 128 KiB
+        self.buf
+            .get_or_insert_with(|| vec![0; BUF_SIZE].into_boxed_slice())
+    }
+
     /// Clears caches.
-    #[inline(always)]
+    #[inline]
     pub fn clear(&mut self) {
         self.cache.of_group = MediaInfoCacheOfGroup::default();
         self.cache.of_files.clear();
@@ -118,14 +128,16 @@ impl MediaInfo<'_> {
 
         Ok(())
     }
+}
 
+impl<'a> MediaInfo<'a> {
     #[inline]
     fn try_key_cache_to_insert(
         &self,
         src: impl Into<ArcPathBuf> + AsRef<Path>,
         exit_on_err: bool,
         cache_is_empty: bool,
-    ) -> Result<Option<(ArcPathBuf, MediaInfoCacheOfFile)>> {
+    ) -> Result<Option<(ArcPathBuf, MediaInfoCacheOfFile<'a>)>> {
         let m = src.as_ref();
 
         if !cache_is_empty

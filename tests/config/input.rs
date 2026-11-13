@@ -27,7 +27,7 @@ static TEST_INPUT_MEDIA: &[(&str, &[&[&str]])] = &[
 
 fn data_media(s: &str) -> PathBuf {
     let s = format!("input/{}", s);
-    data(s)
+    data(&s)
 }
 
 fn iter_media_and_assert(input: &ConfigInput, dir: &PathBuf, expected: &Vec<Vec<PathBuf>>) {
@@ -116,13 +116,13 @@ pub static TEST_INPUT_FONTS: &[(&str, &[&str])] = &[
     ),
 ];
 
-pub fn data_font(tail: impl AsRef<Path>) -> PathBuf {
-    let p = p("input/fonts/").join(tail);
-    data(p)
+pub fn data_font(tail: &str) -> PathBuf {
+    let add = format!("input/fonts/{}", tail);
+    data(&add)
 }
 
 fn collect_fonts_and_assert_eq(dir: &Path, expected: &[&str], input: &ConfigInput) {
-    let expected: HashSet<_> = expected.iter().map(|f| data_font(dir.join(f))).collect();
+    let expected: HashSet<_> = expected.iter().map(|f| dir.join(f)).collect();
     let collected = HashSet::from_iter(input.collect_fonts());
     assert_eq!(expected, collected);
 }

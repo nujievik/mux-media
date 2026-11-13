@@ -12,42 +12,23 @@ pub fn p<OS: AsRef<OsStr> + ?Sized>(oss: &OS) -> &Path {
     Path::new(oss.as_ref())
 }
 
-pub fn new_dir(subdir: impl AsRef<OsStr>) -> PathBuf {
-    let subdir = ensure_platform_seps(subdir);
-    let sep = has_trailing_sep(&subdir);
-
-    let mut dir = std::env::current_dir().unwrap();
-    dir.push(subdir);
-
-    if sep {
-        dir = ensure_trailing_sep(dir);
-    }
-
-    ensure_long_path_prefix(dir)
+pub fn data(add: &str) -> PathBuf {
+    let mut p = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    p.push("tests");
+    p.push("data");
+    path_with_add(p, add)
 }
 
-pub fn data(add: impl AsRef<OsStr>) -> PathBuf {
-    let add = ensure_platform_seps(add);
-    let sep = has_trailing_sep(&add);
-
-    let path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("tests")
-        .join("data")
-        .join(add);
-
-    let mut path = ensure_long_path_prefix(path);
-
-    if sep {
-        path = ensure_trailing_sep(path);
-    }
-
-    path
+pub fn temp(add: &str) -> PathBuf {
+    let p = data("temp");
+    path_with_add(p, add)
 }
 
-pub fn temp(add: impl AsRef<OsStr>) -> PathBuf {
-    let mut p = OsString::from("temp/");
-    p.push(add);
-    data(p)
+fn path_with_add(mut p: PathBuf, add: &str) -> PathBuf {
+    for s in add.split('/') {
+        p.push(s);
+    }
+    ensure_long_path_prefix(p)
 }
 
 pub static CONFIG: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));
@@ -123,36 +104,6 @@ pub fn s_sep(s: &str) -> String {
     s.replace(ALT_SEP_STR, SEP_STR)
 }
 
-fn ensure_platform_seps(oss: impl AsRef<OsStr>) -> PathBuf {
-    let bytes: Vec<u8> = oss
-        .as_ref()
-        .as_encoded_bytes()
-        .into_iter()
-        .map(|&b| if b == ALT_SEP_BYTE { SEP_BYTE } else { b })
-        .collect();
-
-    let oss = unsafe { OsString::from_encoded_bytes_unchecked(bytes) };
-
-    PathBuf::from(oss)
-}
-
-fn has_trailing_sep(oss: impl AsRef<OsStr>) -> bool {
-    let bytes = oss.as_ref().as_encoded_bytes();
-    bytes.ends_with(&[SEP_BYTE]) || bytes.ends_with(&[ALT_SEP_BYTE])
-}
-
-fn ensure_trailing_sep(path: impl Into<PathBuf>) -> PathBuf {
-    let path = path.into();
-
-    if path.as_os_str().as_encoded_bytes().ends_with(&[SEP_BYTE]) {
-        return path;
-    }
-
-    let mut path = path.into_os_string();
-    path.push(SEP_STR);
-    path.into()
-}
-
 #[macro_export]
 macro_rules! test_from_str {
     ($type:ty, $err_cases:expr, @err) => {{
@@ -189,8 +140,7 @@ macro_rules! build_test_to_args {
     ( $fn:ident, $txt_dir:expr; $( $args:expr ),* $(,)? ) => {
         #[test]
         fn $fn() {
-            let dir = std::path::Path::new("to_args").join($txt_dir);
-            let dir = $crate::common::temp(&dir);
+            let dir = $crate::common::temp(&format!("to_args/{}", $txt_dir));
 
             let in_dir = dir.to_str().unwrap();
             let out_dir = dir.join("muxed").to_str().unwrap().to_string();

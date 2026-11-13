@@ -2,8 +2,8 @@ use super::retiming::subs::{self, ty::SubType};
 use super::{StreamsOrder, StreamsOrderItem};
 use crate::config::MarkConfigSubsEncodings;
 use crate::ffmpeg::{codec::id::Id, format};
-use crate::media_info::{MarkMediaInfoStreams, MarkMediaInfoTargetPaths};
-use crate::{CharEncoding, MediaInfo, Msg, Result, display, immut};
+use crate::media_info::MarkMediaInfoStreams;
+use crate::{CharEncoding, MediaInfo, Msg, Result, display};
 use encoding_rs::Encoding;
 use encoding_rs_io::DecodeReaderBytesBuilder;
 use log::{debug, warn};
@@ -75,11 +75,10 @@ impl StreamsOrder {
 
 fn convert_item(mi: &mut MediaInfo, item: &StreamsOrderItem) -> Result<Option<PathBuf>> {
     let cfg = mi.cfg;
-    mi.try_init(MarkMediaInfoTargetPaths, &item.key)?;
-    let stream = &immut!(@try, mi, MarkMediaInfoStreams, &item.key)?[item.key_i_stream];
-    let targets = mi.try_immut(MarkMediaInfoTargetPaths, &item.key)?;
+    let path_configs = mi.path_configs(&item.key);
+    let stream = &mi.try_get(MarkMediaInfoStreams, &item.key)?[item.key_i_stream];
 
-    let (i, encodings) = cfg.stream_val(MarkConfigSubsEncodings, targets, &stream);
+    let (i, encodings) = cfg.stream_value(MarkConfigSubsEncodings, &path_configs, &stream);
     let enc = encodings.get(&i, &stream.lang);
 
     match enc {

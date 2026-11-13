@@ -7,7 +7,7 @@ pub(crate) mod streams_order;
 
 use crate::config::MarkConfigChapters;
 use crate::ffmpeg::{self, format};
-use crate::media_info::{MarkMediaInfoStreamsOrder, MarkMediaInfoTargetPaths};
+use crate::media_info::MarkMediaInfoStreamsOrder;
 use crate::{
     Config, ConfigChaptersTimeRange, MILLISECOND_TIME_BASE, MediaInfo, Msg, MuxError, MuxLogger,
     Result, StreamsOrder, TryFinalizeInit, display,
@@ -212,10 +212,7 @@ fn add_chapters(
 
     let cfg_chapters = order
         .iter_first_entries()
-        .find_map(|ord| {
-            let target_paths = mi.get(MarkMediaInfoTargetPaths, &ord.key)?;
-            cfg.get_targets(MarkConfigChapters, target_paths)
-        })
+        .find_map(|ord| mi.path_configs(&ord.key).get(MarkConfigChapters))
         .unwrap_or(&cfg.chapters);
 
     if cfg_chapters.no_flag {

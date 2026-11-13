@@ -2,9 +2,9 @@ use super::{MediaInfo, MediaInfoCacheOfFile, VideoAndAudioDurations};
 use crate::{
     ArcPathBuf,
     CacheState::{self, Cached, Failed, NotCached},
-    LazyField, LazyPathField, Result, Stream, StreamsOrder, Target,
+    LazyField, LazyPathField, Result, Stream, StreamsOrder,
 };
-use std::{ffi::OsString, mem, path::Path};
+use std::{ffi::OsString, path::Path};
 
 /// Initializes a [`MediaInfo`](crate::MediaInfo) value if need and immutably borrows it.
 #[macro_export]
@@ -271,41 +271,6 @@ macro_rules! lazy_fields {
     )* };
 }
 
-/// Marker of [`MediaInfo`] fields, that stores
-pub struct MarkMediaInfoCacheOfFile;
-
-impl LazyPathField<MarkMediaInfoCacheOfFile> for MediaInfo<'_> {
-    type FieldType = MediaInfoCacheOfFile;
-
-    fn try_init(&mut self, src: &Path) -> Result<()> {
-        if let None = self.cache.of_files.get(src) {
-            let _ = self.cache.of_files.insert(src.into(), Default::default());
-        }
-        Ok(())
-    }
-
-    fn try_mut(&mut self, src: &Path) -> Result<&mut Self::FieldType> {
-        <Self as LazyPathField<MarkMediaInfoCacheOfFile>>::try_init(self, src).unwrap();
-        Ok(self.cache.of_files.get_mut(src).unwrap())
-    }
-
-    fn try_immut(&self, src: &Path) -> Result<&Self::FieldType> {
-        self.cache
-            .of_files
-            .get(src)
-            .ok_or_else(|| err!(FileNotCached))
-    }
-
-    fn try_take(&mut self, src: &Path) -> Result<Self::FieldType> {
-        <Self as LazyPathField<MarkMediaInfoCacheOfFile>>::try_init(self, src).unwrap();
-        Ok(mem::take(self.cache.of_files.get_mut(src).unwrap()))
-    }
-
-    fn set(&mut self, src: &Path, value: MediaInfoCacheOfFile) {
-        let _ = self.cache.of_files.insert(src.into(), value);
-    }
-}
-
 macro_rules! lazy_path_fields {
     ($( $map_field:ident, $ty:ty, $builder:ident => $marker:ident; )*) => { $(
         #[doc = concat!("Marker of [`MediaInfo`] fields, that stores [`", stringify!($ty), "`].")]
@@ -428,7 +393,5 @@ lazy_path_fields!(
     streams, Vec<Stream>, build_streams => MarkMediaInfoStreams;
     path_tail, String, build_path_tail => MarkMediaInfoPathTail;
     relative_upmost, String, build_relative_upmost => MarkMediaInfoRelativeUpmost;
-
-    target_paths, Vec<Target>, build_target_paths => MarkMediaInfoTargetPaths;
     video_and_audio_durations, VideoAndAudioDurations, build_durations => MarkMediaInfoVideoAndAudioDurations;
 );

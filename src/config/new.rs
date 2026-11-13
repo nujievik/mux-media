@@ -1,6 +1,7 @@
 mod command_factory;
 mod finalize;
 mod from_arg_matches;
+mod target;
 
 use super::ConfigInput;
 use crate::{Config, LangCode, Msg, MuxError, Result, display, undashed};
@@ -13,6 +14,7 @@ use std::{
     path::{Path, PathBuf},
     str::FromStr,
 };
+use target::Target;
 
 impl Config {
     pub(crate) fn try_init() -> Result<Config> {

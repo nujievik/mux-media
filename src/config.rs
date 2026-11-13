@@ -57,7 +57,7 @@ mod to_args;
 pub use fields::{
     MarkConfigChapters, MarkConfigDefaults, MarkConfigForceds, MarkConfigLangMetadata,
     MarkConfigStreams, MarkConfigStreamsOrder, MarkConfigSubsEncodings, MarkConfigTitleMetadata,
-    MarkConfigTsOffsets,
+    MarkConfigTsOffsets, PathConfigs,
     auto_flags::ConfigAutoFlags,
     chapters::ConfigChapters,
     dispositions::ConfigDispositions,
@@ -77,8 +77,9 @@ pub(crate) use fields::input::{InputType, iters::MediaGroupedByStem};
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{FxIndexMap, IsDefault, Target};
-use std::path::PathBuf;
+use crate::{FxIndexMap, IsDefault, StreamType};
+use enum_map::EnumMap;
+use std::path::{Path, PathBuf};
 
 /// A configuration.
 ///
@@ -111,12 +112,13 @@ pub struct Config {
     pub langs: ConfigLangMetadata,
     pub subs_encodings: ConfigSubsEncodings,
     pub ts_offsets: ConfigTsOffsets,
-
     pub retiming: ConfigRetiming,
-    pub target_configs: FxIndexMap<Target, ConfigTarget>,
+
+    pub per_stream_type: EnumMap<StreamType, ConfigTarget>,
+    pub by_path: FxIndexMap<Box<Path>, ConfigTarget>,
 }
 
-/// A configuration for a [`Target`].
+/// Target configuration.
 #[derive(Clone, Debug, Default, PartialEq, IsDefault)]
 #[non_exhaustive]
 pub struct ConfigTarget {

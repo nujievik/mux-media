@@ -1,8 +1,6 @@
 use super::*;
 use crate::config::{MarkConfigLangMetadata, MarkConfigTitleMetadata};
-use crate::{
-    ArcPathBuf, IsDefault, Lang, LangCode, Result, Stream, Target, TryFinalizeInit, Value,
-};
+use crate::{ArcPathBuf, IsDefault, Lang, LangCode, Result, Stream, TryFinalizeInit, Value};
 use std::path::Path;
 
 impl TryFinalizeInit for MediaInfo<'_> {
@@ -15,7 +13,6 @@ impl TryFinalizeInit for MediaInfo<'_> {
             self.try_finalize_init_streams_src(src)?;
             self.try_init(MarkMediaInfoPathTail, src)?;
             self.try_init(MarkMediaInfoRelativeUpmost, src)?;
-            self.try_init(MarkMediaInfoTargetPaths, src)?;
             self.try_init(MarkMediaInfoVideoAndAudioDurations, src)?;
         }
 
@@ -34,19 +31,18 @@ impl MediaInfo<'_> {
 
     fn try_finalize_init_streams_src(&mut self, src: &Path) -> Result<()> {
         let mut streams = self.try_take(MarkMediaInfoStreams, src)?;
-        let ts = self.try_take(MarkMediaInfoTargetPaths, src)?;
+        let path_configs = self.path_configs(src);
 
         for stream in streams.iter_mut() {
-            if let Some(n) = self.get_title(src, &ts, stream) {
+            if let Some(n) = self.get_title(src, &path_configs, stream) {
                 stream.title = Some(n);
             }
-            if let Some(l) = self.get_lang(src, &ts, stream) {
+            if let Some(l) = self.get_lang(src, &path_configs, stream) {
                 stream.lang = l;
             }
         }
 
         self.set(MarkMediaInfoStreams, src, streams);
-        self.set(MarkMediaInfoTargetPaths, src, ts);
 
         Ok(())
     }
@@ -54,10 +50,12 @@ impl MediaInfo<'_> {
     fn get_title(
         &mut self,
         src: &Path,
-        ts: &Vec<Target>,
+        path_configs: &PathConfigs,
         stream: &Stream,
     ) -> Option<Value<String>> {
-        let (i, titles) = self.cfg.stream_val(MarkConfigTitleMetadata, ts, stream);
+        let (i, titles) = self
+            .cfg
+            .stream_value(MarkConfigTitleMetadata, path_configs, stream);
 
         if let Some(n) = titles.get(&i, &stream.lang) {
             return Some(Value::User(n.clone()));
@@ -87,8 +85,15 @@ impl MediaInfo<'_> {
         None
     }
 
-    fn get_lang(&mut self, src: &Path, ts: &Vec<Target>, stream: &Stream) -> Option<Value<Lang>> {
-        let (i, langs) = self.cfg.stream_val(MarkConfigLangMetadata, ts, stream);
+    fn get_lang(
+        &mut self,
+        src: &Path,
+        path_configs: &PathConfigs,
+        stream: &Stream,
+    ) -> Option<Value<Lang>> {
+        let (i, langs) = self
+            .cfg
+            .stream_value(MarkConfigLangMetadata, path_configs, stream);
 
         if let Some(l) = langs.get(&i, &stream.lang) {
             return Some(Value::User(l.clone()));
