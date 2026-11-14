@@ -1,5 +1,5 @@
 use crate::ffmpeg::{self, codec, ffi, format};
-use crate::{Config, RangeUsize, Result, StreamType};
+use crate::{Config, RangeUsizeInclusive, Result, StreamType};
 use core::fmt::NumBuffer;
 use std::{
     ffi::{OsStr, OsString},
@@ -326,15 +326,15 @@ pub(crate) fn try_ffmpeg_opened(
 
 pub(crate) fn write_range<W>(
     writer: &mut W,
-    range: &RangeUsize,
+    range: &RangeUsizeInclusive,
     buf: &mut NumBuffer<usize>,
 ) -> io::Result<usize>
 where
     W: Write + ?Sized,
 {
-    writer.write(range.0.start.format_into(buf).as_bytes())?;
+    writer.write(range.start().format_into(buf).as_bytes())?;
     writer.write(b"-")?;
-    writer.write((range.0.end - 1).format_into(buf).as_bytes())
+    writer.write((range.end()).format_into(buf).as_bytes())
 }
 
 pub(crate) fn write_part_of_arg<W, F>(

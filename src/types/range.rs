@@ -1,92 +1,69 @@
 use crate::{MuxError, Result};
-use std::{fmt, ops, str::FromStr};
+use std::str::FromStr;
 
-const MAX_MINUS_ONE: usize = !0 - 1;
-
-/// A wrapper around [`Range<usize>`](ops::Range<usize>).
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct RangeUsize(pub(crate) ops::Range<usize>);
-
-deref_singleton_tuple_struct!(RangeUsize, ops::Range<usize>);
-
-impl fmt::Display for RangeUsize {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}-{}", self.0.start, self.0.end - 1)
-    }
+#[derive(Copy, Clone, Debug, PartialEq)]
+pub struct RangeUsizeInclusive {
+    start: usize,
+    end: usize,
 }
 
-impl Iterator for RangeUsize {
-    type Item = usize;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.0.next()
-    }
-}
-
-impl TryFrom<(usize, usize)> for RangeUsize {
-    type Error = MuxError;
-
-    fn try_from(start_end: (usize, usize)) -> Result<Self> {
-        let (start, mut end) = start_end;
-
-        if end < start {
-            return Err(err!("end of range must be >= start"));
-        }
-
-        if end == usize::MAX {
-            return Err(err!("end of range must be lesser than MAX"));
+impl RangeUsizeInclusive {
+    /// Tries construct new [`RangeUsizeInclusive`] from `start` and `end`.
+    ///
+    /// # Errors
+    /// Returns error **only if** `end` < `start`.
+    #[inline]
+    pub fn try_new(start: usize, end: usize) -> Result<RangeUsizeInclusive> {
+        if end >= start {
+            Ok(Self { start, end })
         } else {
-            end += 1;
+            Err(err!("end of range must be >= start"))
         }
+    }
 
-        Ok(Self(ops::Range { start, end }))
+    #[inline]
+    pub fn start(&self) -> usize {
+        self.start
+    }
+
+    #[inline]
+    pub fn end(&self) -> usize {
+        self.end
+    }
+
+    #[inline]
+    pub fn contains(&self, num: &usize) -> bool {
+        *num >= self.start && *num <= self.end
     }
 }
 
-impl FromStr for RangeUsize {
+impl FromStr for RangeUsizeInclusive {
     type Err = MuxError;
 
-    fn from_str(s: &str) -> Result<Self> {
-        let s = s.trim();
-
-        let (start, end) = match detect_delimiter(s) {
-            Some((_, count)) if count > 1 => {
-                return Err(err!("too many delimiters in input"));
+    fn from_str(s: &str) -> Result<RangeUsizeInclusive> {
+        let (start, end) = match s.split_once('-') {
+            Some(xs) => xs,
+            None => {
+                let start = s.parse::<usize>()?;
+                return Ok(RangeUsizeInclusive {
+                    start,
+                    end: usize::MAX,
+                });
             }
-            Some((delimiter, _)) => parse_with_delimiter(s, delimiter)?,
-            None => parse_single_or_empty(s)?,
         };
 
-        return Self::try_from((start, end));
+        let start = if start.is_empty() {
+            0
+        } else {
+            start.parse::<usize>()?
+        };
 
-        fn detect_delimiter(s: &str) -> Option<(&str, usize)> {
-            for delimiter in &["-", ",", "..="] {
-                if s.contains(delimiter) {
-                    return Some((delimiter, s.matches(delimiter).count()));
-                }
-            }
-            None
-        }
+        let end = if end.is_empty() {
+            usize::MAX
+        } else {
+            end.parse::<usize>()?
+        };
 
-        fn parse_with_delimiter(s: &str, delimiter: &str) -> Result<(usize, usize)> {
-            let mut ps = s.splitn(2, delimiter);
-            let start = parse_part(ps.next().unwrap_or(""), 0)?;
-            let end = parse_part(ps.next().unwrap_or(""), MAX_MINUS_ONE)?;
-            Ok((start, end))
-        }
-
-        fn parse_single_or_empty(s: &str) -> Result<(usize, usize)> {
-            let start = parse_part(s, 0)?;
-            Ok((start, MAX_MINUS_ONE))
-        }
-
-        fn parse_part(part: &str, val_on_empty: usize) -> Result<usize> {
-            if part.is_empty() {
-                Ok(val_on_empty)
-            } else {
-                let v = part.parse::<usize>()?;
-                Ok(v)
-            }
-        }
+        RangeUsizeInclusive::try_new(start, end)
     }
 }

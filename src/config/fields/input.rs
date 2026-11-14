@@ -4,7 +4,7 @@ mod to_args;
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, GlobSetPattern, RangeUsize};
+use crate::{ArcPathBuf, GlobSetPattern, RangeUsizeInclusive};
 use enum_map::{Enum, EnumMap};
 use std::path::{Path, PathBuf};
 
@@ -13,7 +13,7 @@ pub struct ConfigInput {
     // must ensures that files is unempty.
     pub(crate) ty: InputType,
     pub overwrite: bool,
-    pub range: Option<RangeUsize>,
+    pub range: Option<RangeUsizeInclusive>,
     pub skip: Option<GlobSetPattern>,
     pub depth: u8,
     pub orphans_too: bool,

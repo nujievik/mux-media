@@ -28,10 +28,10 @@ mod subs_encodings;
 mod ts_offsets;
 
 mod range {
-    use mux_media::RangeUsize;
+    use mux_media::RangeUsizeInclusive;
 
-    pub fn new(s: &str) -> RangeUsize {
-        s.parse::<RangeUsize>()
+    pub fn new(s: &str) -> RangeUsizeInclusive {
+        s.parse::<RangeUsizeInclusive>()
             .expect(&format!("Fail range from '{}'", s))
     }
 }
@@ -135,7 +135,7 @@ fn parse_input_output() {
     test_parse!(
         ["-r", "1-1"],
         input.range,
-        Some(RangeUsize::try_from((1, 1)).unwrap())
+        Some(RangeUsizeInclusive::try_new(1, 1).unwrap())
     );
 
     let x_globset = Some("x".parse::<GlobSetPattern>().unwrap());

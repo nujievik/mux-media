@@ -14,7 +14,7 @@ impl FromStr for ConfigDispositions {
         }
 
         let mut idxs: FxIndexMap<usize, Bool> = Default::default();
-        let mut ranges: Vec<(RangeUsize, Bool)> = Vec::new();
+        let mut ranges: Vec<(RangeUsizeInclusive, Bool)> = Vec::new();
         let mut langs: FxIndexMap<Lang, Bool> = Default::default();
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
@@ -24,7 +24,7 @@ impl FromStr for ConfigDispositions {
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.insert(i, b);
-            } else if let Ok(rng) = id.parse::<RangeUsize>() {
+            } else if let Ok(rng) = id.parse::<RangeUsizeInclusive>() {
                 ranges.push((rng, b));
             } else {
                 langs.insert(Lang::new(id), b);

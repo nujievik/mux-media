@@ -24,7 +24,7 @@ where
         }
 
         let mut idxs: FxIndexMap<usize, T> = Default::default();
-        let mut ranges: Vec<(RangeUsize, T)> = Vec::new();
+        let mut ranges: Vec<(RangeUsizeInclusive, T)> = Vec::new();
         let mut langs: FxIndexMap<Lang, T> = Default::default();
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
@@ -36,7 +36,7 @@ where
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.insert(i, val);
-            } else if let Ok(rng) = id.parse::<RangeUsize>() {
+            } else if let Ok(rng) = id.parse::<RangeUsizeInclusive>() {
                 ranges.push((rng, val));
             } else {
                 langs.insert(Lang::new(id), val);

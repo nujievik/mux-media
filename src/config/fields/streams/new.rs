@@ -10,13 +10,13 @@ impl FromStr for ConfigStreams {
         let (inverse, s) = helpers::parse_inverse_str(s);
 
         let mut idxs: FxIndexSet<usize> = Default::default();
-        let mut ranges: Vec<RangeUsize> = Vec::new();
+        let mut ranges: Vec<RangeUsizeInclusive> = Vec::new();
         let mut langs: FxIndexSet<Lang> = Default::default();
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
             if let Ok(i) = part.parse::<usize>() {
                 idxs.insert(i);
-            } else if let Ok(rng) = part.parse::<RangeUsize>() {
+            } else if let Ok(rng) = part.parse::<RangeUsizeInclusive>() {
                 ranges.push(rng);
             } else {
                 langs.insert(Lang::new(part));

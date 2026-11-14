@@ -5,8 +5,8 @@ use super::super::{
 };
 use super::{LogLang, Target};
 use crate::{
-    CliArg, Extension, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize, StreamType,
-    VERSION, Value,
+    CliArg, Extension, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsizeInclusive,
+    StreamType, VERSION, Value,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
@@ -335,7 +335,7 @@ impl FromArgMatches for Config {
             }
 
             upd_flag!(input.overwrite, m, Overwrite);
-            upd!(input.range, m, Range, RangeUsize, @opt);
+            upd!(input.range, m, Range, RangeUsizeInclusive, @opt);
             upd!(input.skip, m, Skip, GlobSetPattern, @opt);
             upd!(input.depth, m, Depth, u8);
 
@@ -550,7 +550,7 @@ fn try_input(m: &mut ArgMatches) -> Result<ConfigInput, Error> {
     Ok(ConfigInput {
         ty,
         overwrite: flag!(m, Overwrite),
-        range: rm!(m, Range, RangeUsize),
+        range: rm!(m, Range, RangeUsizeInclusive),
         skip: rm!(m, Skip, GlobSetPattern),
         depth: rm_or!(m, Depth, u8, || ConfigInput::DEPTH_DEFAULT),
         orphans_too: flag!(m, OrphansToo),

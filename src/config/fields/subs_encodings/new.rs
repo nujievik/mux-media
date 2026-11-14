@@ -14,7 +14,7 @@ impl FromStr for ConfigSubsEncodings {
         }
 
         let mut idxs: FxIndexMap<usize, &'static Encoding> = Default::default();
-        let mut ranges: Vec<(RangeUsize, &'static Encoding)> = Vec::new();
+        let mut ranges: Vec<(RangeUsizeInclusive, &'static Encoding)> = Vec::new();
         let mut langs: FxIndexMap<Lang, &'static Encoding> = Default::default();
 
         for part in s.split(',') {
@@ -27,7 +27,7 @@ impl FromStr for ConfigSubsEncodings {
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.insert(i, v);
-            } else if let Ok(rng) = id.parse::<RangeUsize>() {
+            } else if let Ok(rng) = id.parse::<RangeUsizeInclusive>() {
                 ranges.push((rng, v));
             } else {
                 langs.insert(Lang::new(id), v);

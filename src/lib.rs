@@ -94,7 +94,7 @@ pub use types::{
     mux_error::{MuxError, MuxErrorParse},
     mux_logger::MuxLogger,
     my_bool::Bool,
-    range::RangeUsize,
+    range::RangeUsizeInclusive,
     stream::{Stream, ty::StreamType},
     value::Value,
 };

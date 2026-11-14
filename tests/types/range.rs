@@ -1,104 +1,54 @@
-use mux_media::RangeUsize;
+use mux_media::RangeUsizeInclusive;
 
 const MAX: usize = usize::MAX;
 
-pub fn new(s: &str) -> RangeUsize {
-    s.parse::<RangeUsize>()
+pub fn new(s: &str) -> RangeUsizeInclusive {
+    s.parse::<RangeUsizeInclusive>()
         .expect(&format!("Fail range from '{}'", s))
 }
 
 #[test]
-fn test_empty_str() {
-    let range = new("");
-    assert_eq!(0, range.start);
-    assert_eq!(MAX, range.end);
+fn test_full() {
+    let range = new("-");
+    assert_eq!(0, range.start());
+    assert_eq!(MAX, range.end());
 }
 
 crate::test_from_str!(
-    from_str, RangeUsize;
+    from_str, RangeUsizeInclusive;
     [
-        "", "5", "0", " 10 ", "5,10", "5,", ",10", "5-10", "5-", "-10", "5..=10"
+        "-", "5", "0", "5-10", "5-", "-10",
     ];
-    ["a,10", "5,b", "5,10,15", "5-10-15", "5.10", "10,5"]
+    ["a-10", "5-b", "5-10-15", "5-10-15", "10-5"]
 );
 
 #[test]
 fn test_expected_start_end() {
     let cases = [
-        ("", (0, MAX)),
-        (",", (0, MAX)),
+        ("-", (0, MAX)),
         ("5", (5, MAX)),
         ("0", (0, MAX)),
-        (" 10 ", (10, MAX)),
-        ("5,10", (5, 11)),
-        ("5,", (5, MAX)),
-        (",10", (0, 11)),
-        ("5-10", (5, 11)),
+        ("10", (10, MAX)),
+        ("5-10", (5, 10)),
+        ("-10", (0, 10)),
         ("5-", (5, MAX)),
-        ("-10", (0, 11)),
-        ("6-6", (6, 7)),
-        ("3..=7", (3, 8)),
+        ("6-6", (6, 6)),
+        ("3-7", (3, 7)),
     ];
 
     for (s, (min, max)) in cases {
         let range = new(s);
-        assert_eq!(min, range.start);
-        assert_eq!(max, range.end);
+        assert_eq!(min, range.start());
+        assert_eq!(max, range.end());
     }
-}
-
-#[test]
-fn test_iter() {
-    let cases = [
-        ("5-10", (5, 10)),
-        ("-10", (0, 10)),
-        ("6-6", (6, 6)),
-        ("3-7", (3, 7)),
-        ("-128", (0, 128)),
-        ("64-128", (64, 128)),
-    ];
-
-    for (s, (min, max)) in cases {
-        let mut iter = new(s).into_iter();
-        for x in min..=max {
-            let i = iter.next().expect(&format!(
-                "None iter.next() for '{}', on std iter '{}'",
-                s, x
-            ));
-            assert_eq!(x, i);
-        }
-        assert!(
-            iter.next().is_none(),
-            "Some iter.next() for '{}', after end std iter",
-            s
-        );
-    }
-}
-
-#[test]
-fn test_to_string() {
-    [
-        ("5-10", (5, 10)),
-        ("-10", (0, 10)),
-        ("6-6", (6, 6)),
-        ("3-7", (3, 7)),
-        ("-128", (0, 128)),
-        ("64-128", (64, 128)),
-    ]
-    .iter()
-    .for_each(|(s, (start, end))| {
-        let exp = format!("{}-{}", start, end);
-        let rng = s.parse::<RangeUsize>().unwrap();
-        assert_eq!(exp, rng.to_string());
-    })
 }
 
 #[test]
 fn test_contains() {
     [
-        ("", [0, 8, MAX - 1]),
-        ("5-", [5, 8, MAX - 1]),
-        ("10-", [10, 16, MAX - 1]),
+        ("-", [0, 8, MAX]),
+        ("5-", [5, 8, MAX]),
+        ("10-", [10, 16, MAX]),
         ("5-10", [5, 8, 10]),
         ("-10", [0, 8, 10]),
         ("6-6", [6, 6, 6]),

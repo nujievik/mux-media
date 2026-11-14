@@ -2,7 +2,7 @@ mod get;
 mod new;
 mod to_args;
 
-use crate::{FxIndexMap, IsDefault, Lang, RangeUsize};
+use crate::{FxIndexMap, IsDefault, Lang, RangeUsizeInclusive};
 use std::fmt::{Debug, Display};
 
 /// A `title` metadata configuration.
@@ -21,7 +21,7 @@ where
 {
     pub single_val: Option<T>,
     pub idxs: Option<FxIndexMap<usize, T>>,
-    pub ranges: Option<Vec<(RangeUsize, T)>>,
+    pub ranges: Option<Vec<(RangeUsizeInclusive, T)>>,
     pub langs: Option<FxIndexMap<Lang, T>>,
 }
 

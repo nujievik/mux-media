@@ -1,7 +1,9 @@
 use super::{ConfigInput, InputFileType, InputType};
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, Extension, FileNumber, FxHashSet, RangeUsize, helpers, i18n::logs};
+use crate::{
+    ArcPathBuf, Extension, FileNumber, FxHashSet, RangeUsizeInclusive, helpers, i18n::logs,
+};
 use either::Either;
 use globset::GlobSet;
 use std::{
@@ -159,7 +161,7 @@ impl ConfigInput {
     }
 
     #[inline(always)]
-    fn init_range_and_file_number(&self) -> Option<(&RangeUsize, FileNumber)> {
+    fn init_range_and_file_number(&self) -> Option<(&RangeUsizeInclusive, FileNumber)> {
         let range = self.range.as_ref()?;
         let second_file = self.iter_media_in_dir(self.dir()).skip(1).next();
 

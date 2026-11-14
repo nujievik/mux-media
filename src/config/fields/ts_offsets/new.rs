@@ -14,7 +14,7 @@ impl FromStr for ConfigTsOffsets {
         }
 
         let mut idxs: FxIndexMap<usize, i32> = Default::default();
-        let mut ranges: Vec<(RangeUsize, i32)> = Vec::new();
+        let mut ranges: Vec<(RangeUsizeInclusive, i32)> = Vec::new();
         let mut langs: FxIndexMap<Lang, i32> = Default::default();
 
         for part in s.split(',').map(str::trim).filter(|s| !s.is_empty()) {
@@ -26,7 +26,7 @@ impl FromStr for ConfigTsOffsets {
 
             if let Ok(i) = id.parse::<usize>() {
                 idxs.insert(i, v);
-            } else if let Ok(rng) = id.parse::<RangeUsize>() {
+            } else if let Ok(rng) = id.parse::<RangeUsizeInclusive>() {
                 ranges.push((rng, v));
             } else {
                 langs.insert(Lang::new(id), v);

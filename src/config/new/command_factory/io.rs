@@ -1,6 +1,6 @@
 use super::Blocks;
 use super::val_parsers::{InputPathParser, OutputParser};
-use crate::{GlobSetPattern, Msg, RangeUsize};
+use crate::{GlobSetPattern, Msg, RangeUsizeInclusive};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
 
@@ -39,7 +39,7 @@ impl Blocks {
                     .long(undashed!(Range))
                     .value_name("n[-m]")
                     .help(Msg::HelpRange.as_str_localized())
-                    .value_parser(ValueParser::new(RangeUsize::from_str)),
+                    .value_parser(ValueParser::new(RangeUsizeInclusive::from_str)),
             )
             .arg(
                 Arg::new(undashed!(Skip))
