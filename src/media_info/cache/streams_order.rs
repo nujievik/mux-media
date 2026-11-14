@@ -58,7 +58,7 @@ use std::path::{Path, PathBuf};
 /// 1. [`StreamType`]:
 ///     - `Video`
 ///     - `Audio`
-///     - `Sub`
+///     - `Subtitles`
 ///     - `Other`
 ///     - `AttachedFont`
 ///     - `AttachedPic`
@@ -277,7 +277,7 @@ use std::path::{Path, PathBuf};
 ///     assert_eq!(&o[1].src(), &second);
 ///     ```
 #[derive(Clone, Debug)]
-pub struct StreamsOrder(pub Vec<StreamsOrderItem>);
+pub struct StreamsOrder(Vec<StreamsOrderItem>);
 
 /// A [`StreamsOrder`] item.
 #[derive(Clone, Debug)]

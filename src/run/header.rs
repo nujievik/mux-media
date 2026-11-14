@@ -30,7 +30,7 @@ pub(super) fn write_header(
     // (is_locale, value)
     let mut lang_default_audio: Option<(bool, Lang)> = None;
 
-    for ord in &order.0 {
+    for ord in order.iter() {
         let ist = input_stream::new(mi, &mut icontexts, ord)?;
         let (mut ost, mut enc) = Encoder::new(&ist, octx, ord.ty)?;
 
@@ -71,7 +71,7 @@ pub(super) fn write_header(
     set_octx_metadata(octx, creation_time);
     octx.write_header()?;
 
-    for (i, ord) in order.0.iter().enumerate() {
+    for (i, ord) in order.iter().enumerate() {
         let ost_index = some_or!(continue; idx_map[ord.src_num][ord.i_stream]);
         let ist_tb = icontexts[ord.src_num]
             .stream(ord.i_stream)

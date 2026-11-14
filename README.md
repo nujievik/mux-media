@@ -7,7 +7,6 @@ https://github.com/nujievik/mux-media/actions/workflows/tests.yml)
 
 
 ## Quick Start
-
 1. [Download](https://github.com/nujievik/mux-media/releases) an
 archive for your system.
 2. Unpack it.
@@ -15,7 +14,6 @@ archive for your system.
 
 
 ## Default Behaviour
-
 - Saves muxed files to the `muxed` subdirectory.
 - Muxes all media extension files in a CWD directory and 16 its
 subdirectories.
@@ -23,7 +21,25 @@ subdirectories.
 (eg., **Death Note - 01**.mkv and **Death Note - 01**.eng.aac) to
 single MKV-container.
 - Skips orphan files without an other same filename prefix file.
-- Attachs all founded `*.OTF` & `*.TTF` fonts to each output MKV.
+- Attaches all found `*.OTF` & `*.TTF` fonts to each output MKV.
+
+
+## Auto Features
+- Convert subtitles encoding to UTF-8.
+- Fix "delay relative to video" for external audio.
+- Merge matroska linked video.
+- Set stream titles & langs by parse filenames.
+- Setup default & forced flags.
+- Streams sort.
+
+
+## Streams Info
+To print streams info run `mux-media --info`.
+
+This shows first mediafiles group, their parsed streams, sorted
+streams order, additional external fonts. This takes all `[options]`
+user settings, so may use for setup without write files.
+
 
 ## Supported Extensions 📁
 

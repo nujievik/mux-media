@@ -57,12 +57,13 @@ fn print_already_cached_streams(mi: &MediaInfo<'_>, media: &[PathBuf]) {
                 println!("    filename: {}", fname);
             }
         }
+        println!("");
     }
 }
 
 fn print_streams_order(order: &StreamsOrder) {
     let width = order.len().to_string().len();
-    println!("\n\nSorted streams order:");
+    println!("\nSorted streams order:");
 
     for (i, ord) in (0..).zip(order.iter()) {
         println!(
