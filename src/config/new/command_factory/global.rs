@@ -1,5 +1,5 @@
 use super::{super::LogLang, Blocks, val_parsers::ConfigParser};
-use crate::{LangCode, Msg, undashed};
+use crate::{LangCode, Msg};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
 

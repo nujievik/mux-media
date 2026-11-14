@@ -4,7 +4,7 @@ mod parse;
 mod target;
 
 use super::ConfigInput;
-use crate::{Config, LangCode, Msg, MuxError, Result, display, undashed};
+use crate::{Config, LangCode, Msg, MuxError, Result, display};
 use clap::{ArgMatches, Command, CommandFactory, FromArgMatches, Parser};
 use parse::{printable_args, update_log_language};
 use std::{

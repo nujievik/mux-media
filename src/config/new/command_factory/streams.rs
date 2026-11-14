@@ -1,6 +1,6 @@
 use super::Blocks;
+use crate::Msg;
 use crate::config::ConfigStreams;
-use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
 

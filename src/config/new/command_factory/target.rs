@@ -1,9 +1,9 @@
 use super::Blocks;
+use crate::Msg;
 use crate::config::{
     ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams, ConfigStreamsOrder,
     ConfigSubsEncodings, ConfigTitleMetadata, ConfigTsOffsets,
 };
-use crate::{Msg, undashed};
 use clap::{Arg, ArgAction, builder::ValueParser};
 use std::str::FromStr;
 

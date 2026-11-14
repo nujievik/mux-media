@@ -6,7 +6,7 @@ use super::super::{
 use super::{LogLang, Target};
 use crate::{
     CliArg, Extension, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsize, StreamType,
-    VERSION, Value, undashed,
+    VERSION, Value,
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;

@@ -2,8 +2,6 @@ mod common;
 
 #[path = "types/char_encoding.rs"]
 mod char_encoding;
-#[path = "types/cli_arg.rs"]
-mod cli_arg;
 #[path = "types/extension.rs"]
 mod extension;
 #[path = "types/file_number.rs"]

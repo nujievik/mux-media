@@ -1,7 +1,19 @@
+macro_rules! dashed {
+    ($arg:ident) => {
+        $crate::CliArg::$arg.dashed()
+    };
+}
+
+macro_rules! undashed {
+    ($arg:ident) => {
+        $crate::CliArg::$arg.undashed()
+    };
+}
+
 macro_rules! to_args {
     ($writer:ident, $arg:ident) => {
         $writer
-            .write($crate::dashed!($arg).as_bytes())
+            .write(dashed!($arg).as_bytes())
             .and_then(|_| $writer.write(b"\n"))
     };
 

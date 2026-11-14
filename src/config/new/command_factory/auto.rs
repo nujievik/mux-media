@@ -1,5 +1,5 @@
 use super::Blocks;
-use crate::{CliArg, Msg, undashed};
+use crate::{CliArg, Msg};
 use clap::{Arg, ArgAction};
 use strum::IntoEnumIterator;
 use strum_macros::EnumIter;

@@ -1,5 +1,5 @@
 use super::Blocks;
-use crate::{Msg, config::ConfigRetiming, undashed};
+use crate::{Msg, config::ConfigRetiming};
 use clap::{Arg, ArgAction, builder::ValueParser};
 
 impl Blocks {

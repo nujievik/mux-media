@@ -1,4 +1,4 @@
-use crate::{IsDefault, Result, ToArgs, dashed};
+use crate::{IsDefault, Result, ToArgs};
 use core::fmt::NumBuffer;
 use log::LevelFilter;
 use std::io::Write;

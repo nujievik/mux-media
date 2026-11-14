@@ -9,6 +9,10 @@ macro_rules! enum_cli_arg {
 
         impl CliArg {
             /// Returns argument with leading dashes (e.g. `"--input"`).
+            /// ```
+            /// use mux_media::CliArg;
+            /// assert_eq!("--input", CliArg::Input.dashed());
+            /// ```
             pub const fn dashed(self) -> &'static str {
                 match self {
                     $( Self::$var => concat!("--", $s) ),*
@@ -16,6 +20,10 @@ macro_rules! enum_cli_arg {
             }
 
             /// Returns argument without leading dashes (e.g. `"input"`).
+            /// ```
+            /// use mux_media::CliArg;
+            /// assert_eq!("input", CliArg::Input.undashed());
+            /// ```
             pub const fn undashed(self) -> &'static str {
                 match self {
                     $( Self::$var => $s ),*
@@ -99,20 +107,4 @@ enum_cli_arg! {
     Info => "info",
     Version => "version",
     Help => "help",
-}
-
-/// Returns a [`CliArg`] string with leading dashes (e.g. `"--input"`).
-#[macro_export]
-macro_rules! dashed {
-    ($arg:ident) => {
-        $crate::CliArg::$arg.dashed()
-    };
-}
-
-/// Returns a [`CliArg`] string without leading dashes (e.g. `"input"`).
-#[macro_export]
-macro_rules! undashed {
-    ($arg:ident) => {
-        $crate::CliArg::$arg.undashed()
-    };
 }

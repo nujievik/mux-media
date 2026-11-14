@@ -1,5 +1,5 @@
 use super::Blocks;
-use crate::{Msg, undashed};
+use crate::Msg;
 use clap::{Arg, ArgAction};
 
 impl Blocks {
