@@ -1,4 +1,5 @@
 mod input_stream;
+mod utc_time;
 
 use super::{Encode, Encoder};
 use crate::config::{MarkConfigTsOffsets, PathConfigs};
@@ -12,6 +13,12 @@ pub(super) fn write_header(
     order: &StreamsOrder,
     octx: &mut context::Output,
 ) -> Result<(Vec<context::Input>, Vec<Encoder>, Vec<Vec<Option<usize>>>)> {
+    let mut creation_time = utc_time::UtcTime::now();
+    let creation_time = match creation_time.as_mut() {
+        Some(t) => Some(t.format_to_iso_8601()),
+        None => None,
+    };
+
     let len = order.iter_first_entries().count();
     let mut icontexts = Vec::with_capacity(len);
     let mut idx_map: Vec<Vec<Option<usize>>> = vec![vec![]; len];
@@ -31,7 +38,12 @@ pub(super) fn write_header(
 
         if let Some(xs) = immut!(mi, MarkMediaInfoStreams, &ord.key) {
             let stream = &xs[ord.key_i_stream];
-            ost.set_metadata(new_ost_metadata(mi.cfg.clean_meta, stream, &ist));
+            ost.set_metadata(new_ost_metadata(
+                creation_time,
+                mi.cfg.clean_meta,
+                stream,
+                &ist,
+            ));
 
             set_ost_dispositions(
                 mi,
@@ -56,7 +68,7 @@ pub(super) fn write_header(
         encoders.push(enc);
     }
 
-    set_octx_metadata(octx);
+    set_octx_metadata(octx, creation_time);
     octx.write_header()?;
 
     for (i, ord) in order.0.iter().enumerate() {
@@ -75,15 +87,18 @@ pub(super) fn write_header(
     Ok((icontexts, encoders, idx_map))
 }
 
-fn set_octx_metadata(octx: &mut context::Output) {
+fn set_octx_metadata(octx: &mut context::Output, creation_time: Option<&str>) {
     let mut meta = Dictionary::new();
-
     meta.set("encoding_tool", VERSION);
 
+    if let Some(time) = creation_time {
+        meta.set("creation_time", time);
+    }
     octx.set_metadata(meta);
 }
 
 fn new_ost_metadata<'a>(
+    creation_time: Option<&str>,
     clean_meta: bool,
     stream: &Stream,
     ist: &'a ffmpeg::Stream<'a>,
@@ -112,6 +127,21 @@ fn new_ost_metadata<'a>(
 
     if let Some(s) = stream.filename.as_ref() {
         meta.set("filename", s);
+    }
+
+    if matches!(
+        stream.ty,
+        StreamType::Video | StreamType::Audio | StreamType::Subtitles
+    ) {
+        const _STATISTICS_TAGS: &str = "_STATISTICS_TAGS";
+        if meta.get(_STATISTICS_TAGS).is_none() {
+            meta.set(_STATISTICS_TAGS, "DURATION");
+        }
+
+        meta.set("_STATISTICS_WRITING_APP", VERSION);
+        if let Some(time) = creation_time {
+            meta.set("_STATISTICS_WRITING_DATE_UTC", time);
+        }
     }
 
     meta

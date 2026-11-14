@@ -1,7 +1,7 @@
 use core::fmt::NumBuffer;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-pub struct CreationTime {
+pub struct UtcTime {
     year: u16,
     month: u8,
     day: u8,
@@ -13,8 +13,12 @@ pub struct CreationTime {
     buf: [u8; 20],
 }
 
-impl CreationTime {
-    pub fn now() -> Option<CreationTime> {
+impl UtcTime {
+    const CREATION_YEAR: u16 = 2026;
+    const CREATION_MONTH: u8 = 11;
+    const CREATION_DAY: u8 = 14;
+
+    pub fn now() -> Option<UtcTime> {
         let now = SystemTime::now();
         let duration = now.duration_since(UNIX_EPOCH).ok()?;
 
@@ -44,6 +48,10 @@ impl CreationTime {
             }
         }
 
+        if year < Self::CREATION_YEAR {
+            return None;
+        }
+
         let mut month_days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         if is_leap(year) {
             month_days[1] = 29;
@@ -60,6 +68,13 @@ impl CreationTime {
         }
 
         let day = (days + 1) as u8; // days starts with 1
+
+        if month < Self::CREATION_MONTH {
+            return None;
+        }
+        if day < Self::CREATION_DAY {
+            return None;
+        }
 
         Some(Self {
             year,
@@ -133,7 +148,7 @@ mod tests {
 
     #[test]
     fn format_to_iso_8601() {
-        let mut time = CreationTime::now().unwrap();
+        let mut time = UtcTime::now().unwrap();
         let pairs = [
             ("1970-01-01T00:00:00Z", (1970, 1, 1, 0, 0, 0)),
             ("1992-04-08T11:22:33Z", (1992, 4, 8, 11, 22, 33)),
@@ -157,7 +172,7 @@ mod tests {
 
     #[test]
     fn now() {
-        let now = CreationTime::now().unwrap();
+        let now = UtcTime::now().unwrap();
         assert!(now.year >= 2026);
         assert!(now.month <= 12);
         assert!(now.day <= 31);
@@ -168,7 +183,7 @@ mod tests {
 
     #[test]
     fn now_format_to_iso_8601() {
-        let mut now = CreationTime::now().unwrap();
+        let mut now = UtcTime::now().unwrap();
         let now_year = now.year;
         let now_month = now.month;
         let now_day = now.day;
