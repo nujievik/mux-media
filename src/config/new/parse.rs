@@ -177,6 +177,8 @@ impl FromArgMatches for Config {
 
                 per_stream_type: Default::default(),
                 by_path: Default::default(),
+
+                info: flag!(m, Info),
             };
 
             upd_per_stream_type_streams_from_global_aliases(&mut cfg, m);
@@ -266,6 +268,7 @@ impl FromArgMatches for Config {
         upd!(self.langs, m, Langs, ConfigLangMetadata);
         upd!(self.subs_encodings, m, SubsEncodings, ConfigSubsEncodings);
         upd!(self.ts_offsets, m, TsOffsets, ConfigTsOffsets);
+        upd_flag!(self.info, m, Info);
 
         retiming_options(self, m);
 

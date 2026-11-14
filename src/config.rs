@@ -116,6 +116,8 @@ pub struct Config {
 
     pub per_stream_type: EnumMap<StreamType, ConfigTarget>,
     pub by_path: FxIndexMap<Box<Path>, ConfigTarget>,
+
+    pub(crate) info: bool,
 }
 
 /// Target configuration.

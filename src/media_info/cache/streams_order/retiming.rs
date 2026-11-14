@@ -4,13 +4,14 @@ mod signed_time;
 pub(crate) mod subs;
 mod video;
 
+use super::*;
 use crate::ffmpeg::{
     Rational, Rescale,
     format::{self, context},
 };
 use crate::{
     ArcPathBuf, ConfigChaptersTimeRange, MILLISECOND_TIME_BASE, MediaInfo, Result, StreamType,
-    StreamsOrderItem, Time, add_copy_stream, display,
+    Time, add_copy_stream, display,
 };
 use signed_time::SignedTime;
 use std::path::{Path, PathBuf};

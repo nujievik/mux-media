@@ -1,5 +1,5 @@
-use super::{MediaInfo, VideoAndAudioDurations};
-use crate::{CacheState::*, LazyField, LazyPathField, Result, Stream, StreamsOrder};
+use super::{MediaInfo, StreamsOrder, VideoAndAudioDurations};
+use crate::{CacheState::*, LazyField, LazyPathField, Result, Stream};
 use std::{ffi::OsString, path::Path};
 
 /// Initializes a [`MediaInfo`](crate::MediaInfo) value if need and immutably borrows it.

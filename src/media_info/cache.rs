@@ -1,9 +1,11 @@
 mod caching;
 pub(crate) mod durations;
+pub(crate) mod streams_order;
 
-use crate::{ArcPathBuf, FxHashMap, IsDefault, Result, Stream, StreamsOrder, config::PathConfigs};
+use crate::{ArcPathBuf, FxHashMap, IsDefault, Result, Stream, config::PathConfigs};
 use durations::VideoAndAudioDurations;
 use std::{ffi::OsString, mem};
+use streams_order::StreamsOrder;
 
 /// A state of cache field.
 #[derive(Clone, Debug, Default, IsDefault)]

@@ -17,7 +17,7 @@ impl StreamsOrder {
     /// - Not cached any media file in the [`MediaInfo`].
     /// ```
     /// use clap::Parser;
-    /// use mux_media::*;
+    /// use mux_media::{*, media_info::StreamsOrder};
     ///
     /// let cfg = Config::parse_from::<_, &str>([]);
     /// let mut mi = MediaInfo::new(&cfg, 0);
@@ -25,10 +25,6 @@ impl StreamsOrder {
     /// ```
     ///
     /// - Fails extract an media info.
-    ///
-    /// - Fails retiming any **only if** `exit_on_err` is `true`.
-    ///
-    /// - Fais retiming all files.
     ///
     /// # Logging
     ///
@@ -43,10 +39,16 @@ impl StreamsOrder {
 
         let sources = sources(mi);
         let sorted_src_stream_key = try_sorted_src_stream_key(mi, &sources)?;
+        Ok(StreamsOrder(items(sources, sorted_src_stream_key)))
+    }
 
-        let mut order = StreamsOrder(items(sources, sorted_src_stream_key));
-        order.convert_subs_encodings(mi)?;
-        retiming(mi, order.0)
+    /// Tries retime order streams (on matroska linked or manual --parts).
+    ///
+    /// # Errors
+    /// - Fails retiming any **only if** `exit_on_err` is `true`.
+    /// - Fails retiming all files.
+    pub fn retiming(self, mi: &mut MediaInfo) -> Result<StreamsOrder> {
+        retiming(mi, self.0)
     }
 }
 

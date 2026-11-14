@@ -119,9 +119,13 @@ impl ConfigInput {
                         })
                         .collect();
 
-                    if !self.orphans_too && matched.len() < 2 {
-                        logs::warn_no_ext_media(up_stem);
-                        return None;
+                    match matched.len() {
+                        0 => return None, // if not self.try_finalize_init
+                        1 if !self.orphans_too => {
+                            logs::warn_no_ext_media(up_stem);
+                            return None;
+                        }
+                        _ => (),
                     }
 
                     processed.insert(up_stem.to_owned());

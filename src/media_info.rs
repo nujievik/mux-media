@@ -4,7 +4,9 @@ mod is_signs;
 mod lazy_fields;
 
 pub use cache::{
-    MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup, durations::VideoAndAudioDurations,
+    MediaInfoCache, MediaInfoCacheOfFile, MediaInfoCacheOfGroup,
+    durations::VideoAndAudioDurations,
+    streams_order::{StreamsOrder, StreamsOrderItem},
 };
 pub use lazy_fields::{
     MarkMediaInfoPathTail, MarkMediaInfoRelativeUpmost, MarkMediaInfoShortestFileStem,

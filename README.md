@@ -113,6 +113,7 @@ Run `mux-media -h` to display help.
 | | |
 | Other options: | |
 | `    --list-langs` | Show supported language codes |
+| `    --info` | Show files info (first group only) |
 | `-V, --version` | Show version |
 | `-h, --help` | Show help |
 

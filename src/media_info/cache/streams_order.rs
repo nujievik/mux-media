@@ -16,7 +16,7 @@ use std::path::{Path, PathBuf};
 ///    - 255 (auto).
 ///
 ///    ```
-///     # use mux_media::*;
+///     # use mux_media::{*, media_info::StreamsOrder};
 ///     # use clap::Parser;
 ///     # use std::path::Path;
 ///     #
@@ -65,7 +65,7 @@ use std::path::{Path, PathBuf};
 ///     - `AttachedOther`
 ///
 ///     ```
-///     # use mux_media::*;
+///     # use mux_media::{*, media_info::StreamsOrder};
 ///     # use clap::Parser;
 ///     # use std::path::Path;
 ///     #
@@ -108,7 +108,7 @@ use std::path::{Path, PathBuf};
 ///     - User-defined `false`
 ///
 ///     ```
-///     # use mux_media::*;
+///     # use mux_media::{*, media_info::StreamsOrder};
 ///     # use clap::Parser;
 ///     # use std::path::Path;
 ///     #
@@ -141,7 +141,7 @@ use std::path::{Path, PathBuf};
 ///     - User-defined `false`
 ///
 ///     ```
-///     # use mux_media::*;
+///     # use mux_media::{*, media_info::StreamsOrder};
 ///     # use clap::Parser;
 ///     # use std::path::Path;
 ///     #
@@ -177,7 +177,7 @@ use std::path::{Path, PathBuf};
 ///    Its affected only `Sub` streams if they has same 1-3.
 ///
 ///     ```
-///     # use mux_media::*;
+///     # use mux_media::{*, media_info::StreamsOrder};
 ///     # use clap::Parser;
 ///     # use std::path::Path;
 ///     #
@@ -214,7 +214,7 @@ use std::path::{Path, PathBuf};
 ///     - `Jpn` (Japanese)
 ///
 ///     ```
-///     # use mux_media::*;
+///     # use mux_media::{*, media_info::StreamsOrder};
 ///     # use clap::Parser;
 ///     # use std::path::Path;
 ///     #
@@ -248,7 +248,7 @@ use std::path::{Path, PathBuf};
 /// 6. Path name.
 ///
 ///     ```
-///     # use mux_media::*;
+///     # use mux_media::{*, media_info::StreamsOrder};
 ///     # use clap::Parser;
 ///     # use std::path::Path;
 ///     #

@@ -3,11 +3,8 @@ mod input_stream;
 use super::{Encode, Encoder};
 use crate::config::{MarkConfigTsOffsets, PathConfigs};
 use crate::ffmpeg::{self, Dictionary, format::context};
-use crate::media_info::MarkMediaInfoStreams;
-use crate::{
-    DispositionType, Lang, MediaInfo, Result, Stream, StreamType, StreamsOrder, StreamsOrderItem,
-    VERSION, immut,
-};
+use crate::media_info::{MarkMediaInfoStreams, StreamsOrder, StreamsOrderItem};
+use crate::{DispositionType, Lang, MediaInfo, Result, Stream, StreamType, VERSION, immut};
 use enum_map::EnumMap;
 
 pub(super) fn write_header(

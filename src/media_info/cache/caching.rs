@@ -78,7 +78,9 @@ impl MediaInfo<'_> {
     }
 
     pub(crate) fn build_streams_order(&mut self) -> Result<StreamsOrder> {
-        StreamsOrder::new(self)
+        StreamsOrder::new(self)?
+            .convert_subs_encodings(self)?
+            .retiming(self)
     }
 
     pub(crate) fn build_streams(&self, src: &Path) -> Result<Vec<Stream>> {

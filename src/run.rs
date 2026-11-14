@@ -3,14 +3,14 @@ mod current;
 mod encoder;
 mod external_fonts;
 mod header;
-pub(crate) mod streams_order;
+mod print_info;
 
 use crate::config::MarkConfigChapters;
 use crate::ffmpeg::{self, format};
-use crate::media_info::MarkMediaInfoStreamsOrder;
+use crate::media_info::{MarkMediaInfoStreamsOrder, StreamsOrder};
 use crate::{
     Config, ConfigChaptersTimeRange, MILLISECOND_TIME_BASE, MediaInfo, Msg, MuxError, MuxLogger,
-    Result, StreamsOrder, TryFinalizeInit, display,
+    Result, TryFinalizeInit, display,
 };
 use buf_packets::BufPackets;
 use encoder::{Encode, Encoder};
@@ -44,26 +44,12 @@ use std::{
 pub fn run() -> Result<()> {
     fn init_cfg() -> Result<Config> {
         let mut cfg = Config::try_init()?;
-        if let Err(e) = cfg.try_finalize_init() {
-            cfg.output.remove_created_dirs();
-            Err(e)
-        } else {
-            Ok(cfg)
+        if cfg.info {
+            print_info::print_info(cfg)?;
+            return Err(MuxError::new_ok());
         }
-    }
-
-    fn init_ffmpeg(cfg: &Config) -> Result<()> {
-        if let Err(e) = ffmpeg::init() {
-            cfg.output.remove_created_dirs();
-            Err(e.into())
-        } else {
-            let lvl = match cfg.log_level.0 {
-                LevelFilter::Trace => ffmpeg::log::Level::Trace,
-                _ => ffmpeg::log::Level::Quiet,
-            };
-            ffmpeg::log::set_level(lvl);
-            Ok(())
-        }
+        cfg.try_finalize_init()?;
+        Ok(cfg)
     }
 
     let cfg = init_cfg()?;
@@ -80,6 +66,20 @@ pub fn run() -> Result<()> {
             cfg.save_config_or_warn();
         }
     })
+}
+
+fn init_ffmpeg(cfg: &Config) -> Result<()> {
+    if let Err(e) = ffmpeg::init() {
+        cfg.output.remove_created_dirs();
+        Err(e.into())
+    } else {
+        let lvl = match cfg.log_level.0 {
+            LevelFilter::Trace => ffmpeg::log::Level::Trace,
+            _ => ffmpeg::log::Level::Quiet,
+        };
+        ffmpeg::log::set_level(lvl);
+        Ok(())
+    }
 }
 
 impl Config {

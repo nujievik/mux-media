@@ -96,6 +96,7 @@ enum_cli_arg! {
     NoLinked => "no-linked",
 
     ListLangs => "list-langs",
+    Info => "info",
     Version => "version",
     Help => "help",
 }

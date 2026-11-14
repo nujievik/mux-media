@@ -27,7 +27,12 @@ macro_rules! warn_fail_convert {
 }
 
 impl StreamsOrder {
-    pub(crate) fn convert_subs_encodings(&mut self, mi: &mut MediaInfo) -> Result<()> {
+    /// Tries convert subs encodings.
+    ///
+    /// # Errors
+    /// - **Only if** config exit_on_err true.
+    /// - Fails convert a subtitles.
+    pub fn convert_subs_encodings(mut self, mi: &mut MediaInfo) -> Result<StreamsOrder> {
         // all in old numbers
         let mut num_adds = vec![None; self.0.len()];
         let mut max_num_add = 0usize;
@@ -69,7 +74,7 @@ impl StreamsOrder {
             }
         }
 
-        Ok(())
+        Ok(self)
     }
 }
 

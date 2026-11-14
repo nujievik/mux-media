@@ -9,7 +9,7 @@ impl TryFinalizeInit for Config {
 }
 
 impl Config {
-    fn finalize_output(&mut self) -> Result<()> {
+    pub(crate) fn finalize_output(&mut self) -> Result<()> {
         if self.output.is_from_input && Some(self.input.dir()) != self.output.dir().parent() {
             self.output = ConfigOutput::try_from(&self.input)?;
         }

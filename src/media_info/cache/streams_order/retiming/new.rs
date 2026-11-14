@@ -5,8 +5,7 @@ use super::*;
 use crate::config::ConfigRetiming;
 use crate::media_info::*;
 use crate::{
-    ArcPathBuf, Config, FxHashMap, MediaInfo, MuxError, Result, StreamType, StreamsOrder, Time,
-    ffmpeg, helpers,
+    ArcPathBuf, Config, FxHashMap, MediaInfo, MuxError, Result, StreamType, Time, ffmpeg, helpers,
 };
 use cache::CacheMatroska;
 use external_segments::find_external_segment;

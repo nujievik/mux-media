@@ -2,7 +2,7 @@ use crate::ffmpeg::{
     self,
     format::{self, context},
 };
-use crate::{MediaInfo, Result, StreamsOrderItem};
+use crate::{MediaInfo, Result, media_info::StreamsOrderItem};
 
 pub fn new<'a>(
     _: &mut MediaInfo,

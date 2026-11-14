@@ -77,10 +77,7 @@ pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType
 pub use helpers::{ensure_long_path_prefix, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
-pub use run::{
-    run,
-    streams_order::{StreamsOrder, StreamsOrderItem},
-};
+pub use run::run;
 pub use traits::{
     Field, ToArgs, TryFinalizeInit,
     lazy_fields::{LazyField, LazyPathField},

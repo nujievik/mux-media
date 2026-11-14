@@ -1,12 +1,12 @@
 mod command_factory;
 mod finalize;
-mod from_arg_matches;
+mod parse;
 mod target;
 
 use super::ConfigInput;
 use crate::{Config, LangCode, Msg, MuxError, Result, display, undashed};
 use clap::{ArgMatches, Command, CommandFactory, FromArgMatches, Parser};
-use from_arg_matches::{printable_args, update_log_language};
+use parse::{printable_args, update_log_language};
 use std::{
     env::args_os,
     fs::File,

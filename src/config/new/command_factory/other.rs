@@ -13,6 +13,12 @@ impl Blocks {
                     .alias("list-languages")
                     .help(Msg::HelpListLangs.as_str_localized())
                     .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(undashed!(Info))
+                    .long(undashed!(Info))
+                    .help(msg!(HelpInfo))
+                    .action(ArgAction::SetTrue),
             );
 
         self

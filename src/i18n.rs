@@ -90,6 +90,7 @@ pub enum Msg {
 
     HelpOtherOptions,
     HelpListLangs,
+    HelpInfo,
     HelpVersion,
     HelpHelp,
 

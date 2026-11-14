@@ -68,6 +68,7 @@ impl_msg_as_str!(
 
     HelpOtherOptions => "Other options",
     HelpListLangs => "Show supported language codes",
+    HelpInfo => "Show files info (first group only)",
     HelpVersion => "Show version",
     HelpHelp => "Show help",
 
