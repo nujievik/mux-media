@@ -63,7 +63,7 @@ fn new_dir(p: impl Into<PathBuf> + AsRef<Path>, is_from_input: bool) -> Result<P
         Ok(p.into())
     } else {
         let p = try_absolutize(p.into())?;
-        let p = crate::ensure_long_path_prefix(p);
+        let p = crate::extended_length_path(p);
         check_is_not_file(&p)?;
         Ok(p)
     }

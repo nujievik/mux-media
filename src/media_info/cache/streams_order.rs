@@ -25,7 +25,7 @@ use std::path::{Path, PathBuf};
 ///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("ty");
-///     # let dir = ensure_long_path_prefix(dir);
+///     # let dir = extended_length_path(dir);
 ///     #
 ///     let args = [
 ///         "-i", dir.to_str().unwrap(),
@@ -74,7 +74,7 @@ use std::path::{Path, PathBuf};
 ///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("ty");
-///     # let dir = ensure_long_path_prefix(dir);
+///     # let dir = extended_length_path(dir);
 ///     #
 ///     # let args = [Path::new("-i"), &dir];
 ///     # let cfg = Config::parse_from(args);
@@ -117,7 +117,7 @@ use std::path::{Path, PathBuf};
 ///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
-///     # let dir = ensure_long_path_prefix(dir);
+///     # let dir = extended_length_path(dir);
 ///     #
 ///     let first = dir.join("1.srt");
 ///     let second = dir.join("2.srt");
@@ -150,7 +150,7 @@ use std::path::{Path, PathBuf};
 ///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
-///     # let dir = ensure_long_path_prefix(dir);
+///     # let dir = extended_length_path(dir);
 ///     #
 ///     // Hidden steps same as in 2.
 ///     #
@@ -186,7 +186,7 @@ use std::path::{Path, PathBuf};
 ///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
-///     # let dir = ensure_long_path_prefix(dir);
+///     # let dir = extended_length_path(dir);
 ///     #
 ///     // Hidden steps same as in 2.
 ///     #
@@ -223,7 +223,7 @@ use std::path::{Path, PathBuf};
 ///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
-///     # let dir = ensure_long_path_prefix(dir);
+///     # let dir = extended_length_path(dir);
 ///     #
 ///     // Hidden steps same as in 2.
 ///     #
@@ -257,7 +257,7 @@ use std::path::{Path, PathBuf};
 ///     #     .join("data")
 ///     #     .join("streams_order")
 ///     #     .join("srt_pair");
-///     # let dir = ensure_long_path_prefix(dir);
+///     # let dir = extended_length_path(dir);
 ///     #
 ///     // Hidden steps same as in 2.
 ///     #

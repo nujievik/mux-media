@@ -28,7 +28,7 @@ fn path_with_add(mut p: PathBuf, add: &str) -> PathBuf {
     for s in add.split('/') {
         p.push(s);
     }
-    ensure_long_path_prefix(p)
+    extended_length_path(p)
 }
 
 pub static CONFIG: LazyLock<Config> = LazyLock::new(|| cfg::<_, &str>([]));

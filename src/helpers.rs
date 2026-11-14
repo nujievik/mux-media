@@ -9,7 +9,7 @@ use std::{
 };
 
 #[cfg(windows)]
-static LONG_PATH_PREFIX: &str = r"\\?\";
+static EXTENDED_LENGTH_PATH_PREFIX: &str = r"\\?\";
 
 /// Tries run muxing, returning a count of successfully muxed media files.
 ///
@@ -18,47 +18,60 @@ pub fn mux(cfg: &Config) -> Result<usize> {
     cfg.mux()
 }
 
-/// Returns a path unchanged (Unix).
+/// Adds missing extended-length prefix (`\\?\`) on Windows, or returns path unchanged on Unix.
+///
+/// # Unix
+/// Returns a path unchanged.
 ///
 /// ```
-/// # use mux_media::ensure_long_path_prefix;
-/// # use std::path::PathBuf;
-/// #
+/// # #[cfg(unix)]
+/// # {
+/// use mux_media::extended_length_path;
+/// use std::path::PathBuf;
+///
 /// let p = PathBuf::from("path");
-/// assert_eq!(ensure_long_path_prefix(&p), p);
+/// assert_eq!(extended_length_path(&p), p);
+/// # }
 /// ```
-#[cfg(unix)]
-#[inline(always)]
-pub fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
-    path.into()
-}
-
-/// Adds `\\?\` prefix if missing (Windows).
+///
+/// # Windows
+/// Adds missing `\\?\` prefix, or returns path unchanged if already present.
 ///
 /// ```
-/// # use mux_media::ensure_long_path_prefix;
-/// # use std::path::PathBuf;
-/// #
-/// let p = PathBuf::from(r"\\?\path");
-/// assert_eq!(&ensure_long_path_prefix("path"), &p);
-/// assert_eq!(&ensure_long_path_prefix(r"\\?\path"), &p);
-/// ```
-#[cfg(windows)]
-#[inline]
-pub fn ensure_long_path_prefix(path: impl Into<PathBuf>) -> PathBuf {
-    let path = path.into();
-
-    if path
-        .as_os_str()
-        .as_encoded_bytes()
-        .starts_with(LONG_PATH_PREFIX.as_bytes())
+/// # #[cfg(windows)]
+/// # {
+/// use mux_media::extended_length_path;
+/// use std::path::PathBuf;
+///
+/// let expected = PathBuf::from(r"\\?\C:\path");
+/// assert_eq!(&expected, &extended_length_path(r"C:\path"));
+/// assert_eq!(&expected, &extended_length_path(r"\\?\C:\path"));
+/// # }
+pub fn extended_length_path<P>(path: P) -> PathBuf
+where
+    P: Into<PathBuf> + AsRef<Path>,
+{
+    #[cfg(unix)]
     {
-        return path;
+        return path.into();
     }
 
-    let mut prf_path = std::ffi::OsString::from(LONG_PATH_PREFIX);
-    prf_path.push(path.as_os_str());
-    prf_path.into()
+    #[cfg(windows)]
+    {
+        let os = path.as_ref().as_os_str();
+
+        if os
+            .as_encoded_bytes()
+            .starts_with(EXTENDED_LENGTH_PATH_PREFIX.as_bytes())
+        {
+            return path.into();
+        }
+
+        let mut path = OsString::with_capacity(EXTENDED_LENGTH_PATH_PREFIX.len() + os.len());
+        path.push(EXTENDED_LENGTH_PATH_PREFIX);
+        path.push(os);
+        path.into()
+    }
 }
 
 macro_rules! copy_fields {
@@ -213,7 +226,7 @@ where
     {
         let src_bytes = path.as_os_str().as_encoded_bytes();
 
-        if src_bytes.starts_with(LONG_PATH_PREFIX.as_bytes()) {
+        if src_bytes.starts_with(EXTENDED_LENGTH_PATH_PREFIX.as_bytes()) {
             let display_bytes = if src_bytes.len() == 4 {
                 &[]
             } else {

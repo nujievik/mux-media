@@ -2,7 +2,7 @@ use super::*;
 use std::{env::current_dir, path::PathBuf};
 
 fn cwd_dir(subdirs: &str) -> PathBuf {
-    ensure_long_path_prefix(current_dir().unwrap()).join(subdirs)
+    extended_length_path(current_dir().unwrap()).join(subdirs)
 }
 
 fn assert_eq_cwd_dirs(o: &ConfigOutput, dir_subdirs: &str) {

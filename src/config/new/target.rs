@@ -83,7 +83,7 @@ mod tests {
         for s in add.split('/') {
             p.push(s);
         }
-        crate::ensure_long_path_prefix(p)
+        crate::extended_length_path(p)
     }
 
     #[test]

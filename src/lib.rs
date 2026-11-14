@@ -74,7 +74,7 @@ pub use rustc_hash::{FxHashMap, FxHashSet};
 pub use subtitle_lines::Time;
 
 pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
-pub use helpers::{ensure_long_path_prefix, mux};
+pub use helpers::{extended_length_path, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
 pub use run::run;
