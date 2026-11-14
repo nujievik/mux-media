@@ -52,6 +52,7 @@ pub fn run() -> Result<()> {
         Ok(cfg)
     }
 
+    Msg::set_lang_from_system_locale();
     let cfg = init_cfg()?;
     MuxLogger::init_with_filter(*cfg.log_level);
     init_ffmpeg(&cfg)?;

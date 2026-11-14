@@ -2,7 +2,7 @@ macro_rules! impl_msg_as_str {
     ($fn:ident, $( $enum_var:ident => $text:expr ),* $(,)?) => {
         impl $crate::Msg {
             #[inline(always)]
-            pub(in crate::i18n) fn $fn(self) -> &'static str {
+            pub(crate) fn $fn(self) -> &'static str {
                 #[allow(deprecated)]
                 match self {
                     $( Self::$enum_var => $text ),*

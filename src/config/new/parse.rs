@@ -461,7 +461,7 @@ pub(super) fn update_log_language(m: &ArgMatches) -> (Option<LangCode>, Option<L
     };
 
     if let Some(l) = msg_lang {
-        Msg::upd_lang_or_warn(l);
+        Msg::set_lang_or_warn(l);
     }
 
     (locale, log.map(|l| l.0))

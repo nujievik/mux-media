@@ -13,6 +13,7 @@ pub enum Lang {
 
 /// A language code of ISO 639-1 in ISO 639-3 representation or undeterminated code (`Und`).
 #[derive(Copy, Clone, Debug, Default, Eq, Hash, PartialEq, AsRefStr, IsDefault)]
+#[repr(u8)]
 #[non_exhaustive]
 #[strum(serialize_all = "kebab-case")]
 pub enum LangCode {

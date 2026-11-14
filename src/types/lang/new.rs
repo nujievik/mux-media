@@ -21,15 +21,11 @@ impl Lang {
 }
 
 impl LangCode {
-    pub(crate) fn init() -> Self {
-        Self::get_from_system_locale().unwrap_or_default()
-    }
-
     pub(crate) fn get(s: &str) -> Option<LangCode> {
         get_code(s)
     }
 
-    fn get_from_system_locale() -> Option<Self> {
+    pub(crate) fn get_from_system_locale() -> Option<Self> {
         let locale = env::var("LC_ALL")
             .ok()
             .or_else(|| env::var("LANG").ok())
