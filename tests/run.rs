@@ -61,7 +61,9 @@ fn mux_cp1251_subs() {
 
     let _ = fs::remove_dir_all(cfg.output.dir());
     cfg.try_finalize_init().unwrap();
-    assert_eq!(1, cfg.mux().unwrap());
+    cfg.mux().unwrap();
+
+    assert!(o.join("cp1251.mkv").exists());
 
     let temp = fs::read(
         cfg.output

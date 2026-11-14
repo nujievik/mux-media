@@ -11,10 +11,10 @@ use std::{
 #[cfg(windows)]
 static EXTENDED_LENGTH_PATH_PREFIX: &str = r"\\?\";
 
-/// Tries run muxing, returning a count of successfully muxed media files.
+/// Tries run muxing.
 ///
 /// Delegates implementation to [`Config::mux`].
-pub fn mux(cfg: &Config) -> Result<usize> {
+pub fn mux(cfg: &Config) -> Result<()> {
     cfg.mux()
 }
 

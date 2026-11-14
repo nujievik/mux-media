@@ -5,13 +5,11 @@ use log::error;
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
-    sync::Mutex,
 };
 
 pub fn mux_current_files<'a>(
     cfg: &'a Config,
     fonts: Option<&ExternalFonts<'a>>,
-    cnt: &Mutex<usize>,
     mi: &mut MediaInfo<'a>,
     m: MediaGroupedByStem,
 ) -> Result<()> {
@@ -25,11 +23,7 @@ pub fn mux_current_files<'a>(
     }
 
     match mi.mux_files(&out) {
-        Ok(()) => {
-            if let Ok(mut cnt) = cnt.lock() {
-                *cnt += 1;
-            }
-        }
+        Ok(()) => (),
         Err(e) if cfg.exit_on_err => return Err(e),
         Err(e) => error!("{}", e),
     };

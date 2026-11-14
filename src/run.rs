@@ -59,14 +59,8 @@ pub fn run() -> Result<()> {
 
     let result = cfg.mux();
     cfg.output.remove_created_dirs();
-
-    result.map(|cnt| match cnt {
-        0 => warn!("{}", Msg::NotMuxedAny),
-        _ => {
-            info!("{} {} {}", Msg::SuccessfullyMuxed, cnt, Msg::Media);
-            cfg.save_config_or_warn();
-        }
-    })
+    cfg.save_config_or_warn();
+    result
 }
 
 fn init_ffmpeg(cfg: &Config) -> Result<()> {
@@ -84,17 +78,14 @@ fn init_ffmpeg(cfg: &Config) -> Result<()> {
 }
 
 impl Config {
-    /// Tries run muxing, returning a count of successfully muxed media files.
+    /// Tries run muxing.
     ///
     /// # Errors
-    ///
     /// - **Only if** [`Config::exit_on_err`] is true.
-    ///
     /// - Returns an error if one occurs during processing.
     #[inline]
-    pub fn mux(&self) -> Result<usize> {
+    pub fn mux(&self) -> Result<()> {
         let fonts = ExternalFonts::get_new(self);
-        let cnt = Mutex::new(0usize);
         let it = Mutex::new(self.input.iter_media_grouped_by_stem());
 
         (0..self.jobs).into_par_iter().try_for_each(|j| {
@@ -102,7 +93,7 @@ impl Config {
             loop {
                 let g = { it.lock().map_or(None, |mut it| it.next()) };
                 match g {
-                    Some(g) => current::mux_current_files(self, fonts.as_ref(), &cnt, &mut mi, g)?,
+                    Some(g) => current::mux_current_files(self, fonts.as_ref(), &mut mi, g)?,
                     None => return Ok::<(), MuxError>(()),
                 }
                 mi.clear();
@@ -113,7 +104,7 @@ impl Config {
             warn!("{}: {}", Msg::FailOverwriteInputFiles, e);
         }
 
-        Ok(cnt.into_inner().unwrap_or(0))
+        Ok(())
     }
 }
 
