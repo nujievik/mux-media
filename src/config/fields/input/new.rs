@@ -1,7 +1,30 @@
 use super::{ConfigInput, InputMedia, InputMediaDir, Value};
 use crate::{Extension, Result, TryFinalizeInit};
-use std::path::PathBuf;
+use log::{info, warn};
+use std::{fs, path::PathBuf};
 use walkdir::WalkDir;
+
+macro_rules! filter_and_insert {
+    ($self:ident, $media:expr, $skip:ident, $into_path_buf:expr) => {{
+        let path_buf = $into_path_buf;
+
+        let is_font = match Extension::from_path(&path_buf) {
+            Some(ext) if ext.is_font() => true,
+            Some(ext) if ext.is_media() => false,
+            _ => continue,
+        };
+
+        if $skip.is_some_and(|gs| gs.is_match(&path_buf)) {
+            continue;
+        }
+
+        if is_font {
+            $self.fonts.push(path_buf);
+        } else {
+            $media.push(path_buf.into());
+        }
+    }};
+}
 
 impl TryFinalizeInit for ConfigInput {
     /// Collects subdirectories of input directory. Do nothing if input is files.
@@ -14,8 +37,27 @@ impl TryFinalizeInit for ConfigInput {
             InputMedia::Dir(d) => d,
             InputMedia::Files(_) => return Ok(()),
         };
+        let skip = self.skip.as_ref();
 
-        let mut walker = WalkDir::new(&dir.dir).follow_links(true);
+        info!("Collect files...");
+
+        for res_entry in fs::read_dir(&dir.dir)? {
+            let entry = match res_entry {
+                Ok(entry) => entry,
+                Err(err) => {
+                    warn!("collect files error on 0 level: {}", err);
+                    continue;
+                }
+            };
+
+            filter_and_insert!(self, dir.dir_media, skip, entry.path());
+        }
+
+        if dir.dir_media.is_empty() {
+            return Err(err!(NoMediaFilesFoundInInputDirectory));
+        }
+
+        let mut walker = WalkDir::new(&dir.dir).follow_links(true).min_depth(2);
         if self.depth != u8::MAX {
             walker = walker.max_depth(self.depth as usize + 1); // +1 for files
         }
@@ -23,32 +65,13 @@ impl TryFinalizeInit for ConfigInput {
         for entry in walker.into_iter() {
             let entry = match entry {
                 Ok(entry) => entry,
-                Err(e) => {
-                    log::warn!("collect files error: {}", e);
+                Err(err) => {
+                    warn!("collect files error: {}", err);
                     continue;
                 }
             };
 
-            let path = entry.path();
-
-            let to_insert = match Extension::from_path(path) {
-                Some(ext) if ext.is_media() && entry.depth() < 2 => Some(true),
-                Some(ext) if ext.is_media() => Some(false),
-                Some(ext) if ext.is_font() => None,
-                _ => continue,
-            };
-
-            if self.skip.as_ref().is_some_and(|gs| gs.is_match(path)) {
-                continue;
-            }
-
-            let path = entry.into_path();
-
-            match to_insert {
-                Some(true) => dir.dir_media.push(path.into()),
-                Some(false) => dir.other_media.push(path.into()),
-                None => self.fonts.push(path),
-            }
+            filter_and_insert!(self, dir.other_media, skip, entry.into_path());
         }
 
         if dir.dir_media.is_empty() {
