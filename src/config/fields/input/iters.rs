@@ -105,17 +105,17 @@ fn iter_media_grouped_by_stem_dir<'a>(
     let mut capacity = 0;
 
     let len = dir.dir_media.len();
-    let mut is_taken = vec![false; len];
+    let mut is_taken = IsMediaTaken(vec![0u8; len.max(dir.other_media.len())]);
 
     iter::from_fn(move || {
         loop {
-            while pos < len && is_taken[pos] {
+            while pos < len && is_taken.dir(pos) {
                 pos += 1;
             }
             if pos == len {
                 return None;
             }
-            is_taken[pos] = true;
+            is_taken.set_dir_true(pos);
 
             let Some(current_stem) = dir.dir_media[pos].file_stem() else {
                 continue;
@@ -135,30 +135,36 @@ fn iter_media_grouped_by_stem_dir<'a>(
             let mut files: Vec<&'a ArcPathBuf> = Vec::with_capacity(capacity);
 
             for (i, f) in dir.dir_media.iter().enumerate() {
-                if is_taken[i] {
+                if is_taken.dir(i) {
                     continue;
                 }
                 let Some(stem) = f.file_stem() else {
+                    is_taken.set_dir_true(i);
                     continue;
                 };
                 if helpers::os_str_starts_with(current_stem, stem) {
                     files.push(f);
-                    is_taken[i] = true;
+                    is_taken.set_dir_true(i);
                 }
             }
 
-            for f in dir.other_media.iter() {
+            for (i, f) in dir.other_media.iter().enumerate() {
+                if is_taken.other(i) {
+                    continue;
+                }
                 let Some(stem) = f.file_stem() else {
+                    is_taken.set_other_true(i);
                     continue;
                 };
                 if helpers::os_str_starts_with(current_stem, stem) {
+                    is_taken.set_other_true(i);
                     files.push(f);
                 }
             }
 
             if files.is_empty() && !input.orphans_too {
                 logs::warn_no_ext_media(current_stem);
-                is_taken[pos] = false;
+                is_taken.set_dir_false(pos);
                 pos += 1;
                 continue;
             }
@@ -172,6 +178,33 @@ fn iter_media_grouped_by_stem_dir<'a>(
             });
         }
     })
+}
+
+struct IsMediaTaken(Vec<u8>);
+
+impl IsMediaTaken {
+    const TAKEN_DIR: u8 = 1 << 0;
+    const TAKEN_OTHER: u8 = 1 << 1;
+
+    fn dir(&self, i: usize) -> bool {
+        (self.0[i] & Self::TAKEN_DIR) != 0
+    }
+
+    fn other(&self, i: usize) -> bool {
+        (self.0[i] & Self::TAKEN_OTHER) != 0
+    }
+
+    fn set_dir_true(&mut self, i: usize) {
+        self.0[i] |= Self::TAKEN_DIR;
+    }
+
+    fn set_dir_false(&mut self, i: usize) {
+        self.0[i] &= !Self::TAKEN_DIR;
+    }
+
+    fn set_other_true(&mut self, i: usize) {
+        self.0[i] |= Self::TAKEN_OTHER;
+    }
 }
 
 #[inline(always)]
