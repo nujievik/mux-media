@@ -94,7 +94,12 @@ pub enum Msg {
     HelpVersion,
     HelpHelp,
 
+    CollectFiles,
+    CollectFilesError,
+    InInputDirectory,
     NoMediaFilesFoundInInputDirectory,
+    CollectedFilesSuccessfully,
+
     ForMoreInformationTry,
 
     WritingExternalFontsToTempFile,

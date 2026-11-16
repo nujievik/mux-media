@@ -72,7 +72,12 @@ impl_msg_as_str!(
     HelpVersion => "Показать версию",
     HelpHelp => "Показать справку",
 
+    CollectFiles => "Сбор файлов...",
+    CollectFilesError => "ошибка сборки файлов",
+    InInputDirectory => "в стартовой директории",
     NoMediaFilesFoundInInputDirectory => "не найдены медиафайлы в стартовой директории",
+    CollectedFilesSuccessfully => "Файлы успешно собраны",
+
     ForMoreInformationTry => "Для дополнительной информации попробуйте",
 
     WritingExternalFontsToTempFile => "запись внешних шрифтов во временный файл",

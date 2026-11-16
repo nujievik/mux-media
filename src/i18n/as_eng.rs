@@ -72,7 +72,12 @@ impl_msg_as_str!(
     HelpVersion => "Show version",
     HelpHelp => "Show help",
 
+    CollectFiles => "Collect files...",
+    CollectFilesError => "collect files error",
+    InInputDirectory => "in input directory",
     NoMediaFilesFoundInInputDirectory => "no media files found in input directory",
+    CollectedFilesSuccessfully => "Collected files successfully",
+
     ForMoreInformationTry => "For more information, try",
 
     WritingExternalFontsToTempFile => "writing external fonts to temp file",
