@@ -66,15 +66,18 @@ impl<'a> MediaInfoCacheOfFile<'a> {
 
 impl MediaInfo<'_> {
     pub(crate) fn build_shortest_file_stem(&self) -> Result<OsString> {
-        let shortest = self
-            .cache
-            .of_files
-            .iter()
-            .filter_map(|(p, _)| p.file_stem())
-            .min_by_key(|s| s.len())
-            .map(|stem| stem.to_owned());
+        let files = self.cache.of_files.keys().map(|k| k.as_path());
+        Ok(Self::help_build_shortest_file_stem(files).into())
+    }
 
-        Ok(shortest.unwrap_or_default())
+    pub(crate) fn help_build_shortest_file_stem<'a, I>(files: I) -> &'a OsStr
+    where
+        I: Iterator<Item = &'a Path>,
+    {
+        files
+            .filter_map(|p| p.file_stem())
+            .min_by_key(|s| s.len())
+            .unwrap_or(OsStr::new(""))
     }
 
     pub(crate) fn build_streams_order(&mut self) -> Result<StreamsOrder> {

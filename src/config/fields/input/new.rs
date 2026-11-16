@@ -1,9 +1,7 @@
-use super::{ConfigInput, InputFileType, InputType, iters::DirIter};
+use super::{ConfigInput, InputMedia, InputMediaDir, Value};
 use crate::{Extension, Result, TryFinalizeInit};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::PathBuf;
+use walkdir::WalkDir;
 
 impl TryFinalizeInit for ConfigInput {
     /// Collects subdirectories of input directory. Do nothing if input is files.
@@ -12,61 +10,77 @@ impl TryFinalizeInit for ConfigInput {
     ///
     /// Returns an error if not any media in the input directory.
     fn try_finalize_init(&mut self) -> Result<()> {
-        let dir = match &self.ty {
-            InputType::Dir(dir) => dir,
-            InputType::Files(_) => return Ok(()),
+        let dir = match &mut *self.media {
+            InputMedia::Dir(d) => d,
+            InputMedia::Files(_) => return Ok(()),
         };
 
-        if let None = self.iter_media_in_dir(dir).next() {
-            return Err(err!(NoMediaFilesFoundInInputDirectory));
+        let mut walker = WalkDir::new(&dir.dir).follow_links(true);
+        if self.depth != u8::MAX {
+            walker = walker.max_depth(self.depth as usize + 1); // +1 for files
         }
 
-        let skip = match &self.skip {
-            Some(skip) => Some(&skip.glob_set),
-            None => None,
-        };
+        for entry in walker.into_iter() {
+            let entry = match entry {
+                Ok(entry) => entry,
+                Err(e) => {
+                    log::warn!("collect files error: {}", e);
+                    continue;
+                }
+            };
 
-        let dirs: Vec<_> = DirIter::new(dir, self.depth as usize, skip).collect();
+            let path = entry.path();
 
-        self.file_dirs[InputFileType::Font] = dirs
-            .iter()
-            .filter(|dir| self.iter_fonts_in_dir(dir).next().is_some())
-            .map(|dir| dir.clone())
-            .collect();
+            let to_insert = match Extension::from_path(path) {
+                Some(ext) if ext.is_media() && entry.depth() < 2 => Some(true),
+                Some(ext) if ext.is_media() => Some(false),
+                Some(ext) if ext.is_font() => None,
+                _ => continue,
+            };
 
-        self.file_dirs[InputFileType::Media] = dirs
-            .into_iter()
-            .filter(|d| self.iter_media_in_dir(&d).next().is_some())
-            .collect();
+            if self.skip.as_ref().is_some_and(|gs| gs.is_match(path)) {
+                continue;
+            }
 
-        Ok(())
+            let path = entry.into_path();
+
+            match to_insert {
+                Some(true) => dir.dir_media.push(path.into()),
+                Some(false) => dir.other_media.push(path.into()),
+                None => self.fonts.push(path),
+            }
+        }
+
+        if dir.dir_media.is_empty() {
+            Err(err!(NoMediaFilesFoundInInputDirectory))
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl ConfigInput {
     pub(crate) const DEPTH_DEFAULT: u8 = 16;
 
-    pub(crate) fn try_default_dir() -> Result<PathBuf> {
-        Self::try_canonicalize_and_read(".")
+    pub(crate) fn empty() -> ConfigInput {
+        ConfigInput {
+            fonts: Vec::new(),
+            media: Value::Auto(InputMedia::new_dir(PathBuf::new())),
+            overwrite: false,
+            range: None,
+            skip: None,
+            depth: Self::DEPTH_DEFAULT,
+            orphans_too: false,
+        }
     }
+}
 
-    /// Tries canonicalize path and read its.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if:
-    /// - The path doesn't exist or its unreadable.
-    /// - The path is file with unsupported extension.
-    pub(crate) fn try_canonicalize_and_read(path: impl AsRef<Path>) -> Result<PathBuf> {
-        let path = fs::canonicalize(path)?;
-        if path.is_dir() {
-            let _ = fs::read_dir(&path)?;
-        } else {
-            if let None = Extension::from_path(&path) {
-                return Err(err!(UnsupportedFileExtension));
-            }
-            let _ = fs::File::open(&path)?;
-        };
-        Ok(path)
+impl InputMedia {
+    pub fn new_dir(dir: PathBuf) -> InputMedia {
+        InputMedia::Dir(InputMediaDir {
+            dir,
+            dir_media: Vec::new(),
+            other_media: Vec::new(),
+        })
     }
 }

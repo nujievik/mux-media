@@ -1,5 +1,5 @@
 use crate::IsDefault;
-use std::{fmt, ops::Deref};
+use std::{fmt, ops};
 
 /// A value, either auto or user-defined.
 #[derive(Clone, Debug, PartialEq)]
@@ -12,6 +12,12 @@ impl<T> Value<T> {
     /// Returns a reference to the internal value.
     #[inline]
     pub const fn deref(&self) -> &T {
+        match self {
+            Value::Auto(v) | Value::User(v) => v,
+        }
+    }
+
+    pub const fn deref_mut(&mut self) -> &mut T {
         match self {
             Value::Auto(v) | Value::User(v) => v,
         }
@@ -82,11 +88,16 @@ impl<T: IsDefault> IsDefault for Value<T> {
     }
 }
 
-impl<T> Deref for Value<T> {
+impl<T> ops::Deref for Value<T> {
     type Target = T;
 
-    fn deref(&self) -> &Self::Target {
+    fn deref(&self) -> &T {
         self.deref()
+    }
+}
+impl<T> ops::DerefMut for Value<T> {
+    fn deref_mut(&mut self) -> &mut T {
+        self.deref_mut()
     }
 }
 

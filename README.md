@@ -34,7 +34,7 @@ single MKV-container.
 
 
 ## Streams Info
-To print streams info run `mux-media --info`.
+Run `mux-media --info` to print streams info.
 
 This shows first mediafiles group, their parsed streams, sorted
 streams order, additional external fonts. This takes all `[options]`

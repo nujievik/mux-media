@@ -3,13 +3,12 @@ mod finalize;
 mod parse;
 mod target;
 
-use super::ConfigInput;
-use crate::{Config, LangCode, Msg, MuxError, Result, display};
+use crate::{Config, Extension, LangCode, Msg, MuxError, Result, display};
 use clap::{ArgMatches, Command, CommandFactory, FromArgMatches, Parser};
 use parse::{printable_args, update_log_language};
 use std::{
     env::args_os,
-    fs::File,
+    fs::{self, File},
     io::{BufRead, BufReader},
     path::{Path, PathBuf},
     str::FromStr,
@@ -58,26 +57,22 @@ impl Config {
             let input_txt = txt_matches
                 .as_ref()
                 .and_then(|m| {
-                    m.get_one::<PathBuf>(undashed!(Input))
-                        .map(|d| Config::txt_path(d))
+                    m.get_one::<InputPath>(undashed!(Input))
+                        .map(|p| Config::txt_path(&p.path))
                 })
                 .or_else(|| {
                     cli_matches
-                        .get_one::<PathBuf>(undashed!(Input))
-                        .map(|d| Config::txt_path(d))
+                        .get_one::<InputPath>(undashed!(Input))
+                        .map(|p| Config::txt_path(&p.path))
                 })
-                .or_else(|| {
-                    ConfigInput::try_default_dir()
-                        .map(|d| Config::txt_path(d))
-                        .ok()
-                });
+                .unwrap_or_else(|| Config::txt_path("."));
 
-            let opt = match input_txt.and_then(|j| try_read_txt_args(&j).ok()) {
-                Some(args) => Some(Config::try_parse_from(args)?),
-                None => None,
-            };
-
-            Ok(opt)
+            if let Some(args) = try_read_txt_args(&input_txt).ok() {
+                let c = Config::try_parse_from(args)?;
+                Ok(Some(c))
+            } else {
+                Ok(None)
+            }
         }
 
         fn upd_cfg(cfg: &mut Option<Config>, m: &mut ArgMatches) -> Result<()> {
@@ -112,5 +107,30 @@ impl FromStr for LogLang {
         } else {
             Err(err!("unsupported log language"))
         }
+    }
+}
+
+#[derive(Clone)]
+pub(crate) struct InputPath {
+    pub path: PathBuf,
+    pub ext: Option<Extension>,
+}
+impl InputPath {
+    pub fn parse(path: impl AsRef<Path>) -> crate::Result<InputPath> {
+        let path = fs::canonicalize(path)?;
+
+        let ext = if path.is_dir() {
+            let _ = fs::read_dir(&path)?;
+            None
+        } else {
+            let ext = match Extension::from_path(&path) {
+                Some(ext) if ext.is_font() || ext.is_media() => ext,
+                _ => return Err(err!(UnsupportedFileExtension)),
+            };
+            let _ = File::open(&path)?;
+            Some(ext)
+        };
+
+        Ok(InputPath { path, ext })
     }
 }

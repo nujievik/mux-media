@@ -42,19 +42,17 @@ use std::{
 ///    - Errors while processing current files return an error if `--exit-on-err` is set;
 ///      otherwise, muxing continues with the next files.
 pub fn run() -> Result<()> {
-    fn init_cfg() -> Result<Config> {
-        let mut cfg = Config::try_init()?;
-        if cfg.info {
-            print_info::print_info(cfg)?;
-            return Err(MuxError::new_ok());
-        }
-        cfg.try_finalize_init()?;
-        Ok(cfg)
+    Msg::set_lang_from_system_locale();
+
+    let mut cfg = Config::try_init()?;
+    MuxLogger::init_with_filter(*cfg.log_level);
+
+    if cfg.info {
+        print_info::print_info(cfg)?;
+        return Err(MuxError::new_ok());
     }
 
-    Msg::set_lang_from_system_locale();
-    let cfg = init_cfg()?;
-    MuxLogger::init_with_filter(*cfg.log_level);
+    cfg.try_finalize_init()?;
     init_ffmpeg(&cfg)?;
 
     let result = cfg.mux();
@@ -86,7 +84,7 @@ impl Config {
     #[inline]
     pub fn mux(&self) -> Result<()> {
         let fonts = ExternalFonts::get_new(self);
-        let it = Mutex::new(self.input.iter_media_grouped_by_stem());
+        let it = Mutex::new(self.input.new_iter_media_grouped_by_stem());
 
         (0..self.jobs).into_par_iter().try_for_each(|j| {
             let mut mi = MediaInfo::new(self, j);
@@ -100,7 +98,7 @@ impl Config {
             }
         })?;
 
-        if let Err(e) = remove_input_fonts(self, fonts) {
+        if let Err(e) = remove_input_fonts(self) {
             warn!("{}: {}", Msg::FailOverwriteInputFiles, e);
         }
 
@@ -306,17 +304,12 @@ fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Resu
     Ok(())
 }
 
-fn remove_input_fonts(cfg: &Config, fonts: Option<ExternalFonts>) -> Result<()> {
+fn remove_input_fonts(cfg: &Config) -> Result<()> {
     if !cfg.input.overwrite {
         return Ok(());
     }
 
-    let fonts = match fonts {
-        Some(xs) => xs,
-        None => return Ok(()),
-    };
-
-    for f in &fonts.files {
+    for f in &cfg.input.fonts {
         debug!("{} '{}'...", Msg::RemovingInputFile, display(f));
         fs::remove_file(f)?;
         debug!("{} '{}'", Msg::InputFileSuccessfullyRemoved, display(f));

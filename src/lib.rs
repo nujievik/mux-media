@@ -73,7 +73,10 @@ pub type FxIndexSet<T> = indexmap::IndexSet<T, rustc_hash::FxBuildHasher>;
 pub use rustc_hash::{FxHashMap, FxHashSet};
 pub use subtitle_lines::Time;
 
-pub use config::{Config, ConfigTarget, fields::dispositions::ty::DispositionType};
+pub use config::{
+    Config, ConfigTarget, fields::dispositions::ty::DispositionType,
+    fields::input::iters::NewMediaGroupedByStem,
+};
 pub use helpers::{extended_length_path, mux};
 pub use i18n::Msg;
 pub use media_info::MediaInfo;
@@ -106,7 +109,6 @@ const NANOSECOND_TIME_BASE: ffmpeg::Rational = ffmpeg::Rational(1, 1_000_000_000
 use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;
 
-use config::MediaGroupedByStem;
 use config::fields::chapters::ConfigChaptersTimeRange;
 use helpers::*;
 use media_info::cache::CacheState;

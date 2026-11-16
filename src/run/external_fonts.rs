@@ -9,12 +9,11 @@ use log::{debug, warn};
 use std::{
     ffi::{CString, c_int},
     fs,
-    path::{Path, PathBuf},
+    path::Path,
     ptr,
 };
 
 pub struct ExternalFonts<'a> {
-    pub files: Vec<PathBuf>,
     pub temp_file: ArcPathBuf,
     pub cache_temp_file: MediaInfoCacheOfFile<'a>,
 }
@@ -31,9 +30,7 @@ impl<'a> ExternalFonts<'a> {
             return None;
         }
 
-        let fonts = cfg.input.collect_fonts();
-
-        if fonts.is_empty() {
+        if cfg.input.fonts.is_empty() {
             return None;
         }
 
@@ -47,10 +44,10 @@ impl<'a> ExternalFonts<'a> {
         debug!(
             "{}:\n{}",
             Msg::WritingExternalFontsToTempFile,
-            display_file_list(fonts.iter())
+            display_file_list(cfg.input.fonts.iter())
         );
 
-        if let Err(e) = write_temp_fonts(&fonts, &out) {
+        if let Err(e) = write_temp_fonts(cfg, &out) {
             return fall(e);
         }
 
@@ -70,17 +67,16 @@ impl<'a> ExternalFonts<'a> {
         );
 
         Some(ExternalFonts {
-            files: fonts,
             temp_file: out.into(),
             cache_temp_file,
         })
     }
 }
 
-fn write_temp_fonts(fonts: &Vec<PathBuf>, out: &Path) -> Result<()> {
+fn write_temp_fonts(cfg: &Config, out: &Path) -> Result<()> {
     let mut octx = ffmpeg::format::output(out)?;
     add_dummy_subtitle_stream(&mut octx)?;
-    add_attachments(&mut octx, fonts);
+    add_attachments(&mut octx, cfg);
 
     octx.write_header()?;
     write_dummy_subtitle_packet(&mut octx)?;
@@ -104,8 +100,8 @@ fn add_dummy_subtitle_stream(octx: &mut ffmpeg::format::context::Output) -> Resu
     Ok(())
 }
 
-fn add_attachments(octx: &mut ffmpeg::format::context::Output, fonts: &Vec<PathBuf>) {
-    for font in fonts {
+fn add_attachments(octx: &mut ffmpeg::format::context::Output, cfg: &Config) {
+    for font in &cfg.input.fonts {
         let ext = some_or!(continue; Extension::from_path(font));
 
         let mime = match ext {

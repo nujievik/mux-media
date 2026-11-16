@@ -1,18 +1,20 @@
 use super::CacheMatroska;
-use crate::{ArcPathBuf, FxHashMap, FxHashSet, MediaInfo, Result};
+use crate::{ArcPathBuf, Extension, FxHashMap, FxHashSet, MediaInfo, Result, config::InputMedia};
+use either::Either;
 use rayon::prelude::*;
+use rustc_hash::FxBuildHasher;
 use std::{
     path::{Path, PathBuf},
-    sync::{LazyLock, RwLock},
+    sync::RwLock,
 };
 
-static EXTERNAL_SEGMENTS: LazyLock<RwLock<ExternalSegments>> =
-    LazyLock::new(|| RwLock::new(ExternalSegments::default()));
-
-#[derive(Clone, Debug, Default)]
+static EXTERNAL_SEGMENTS: RwLock<ExternalSegments> = RwLock::new(ExternalSegments {
+    map: FxHashMap::with_hasher(FxBuildHasher),
+    dir_set: FxHashSet::with_hasher(FxBuildHasher),
+});
 struct ExternalSegments {
-    pub map: FxHashMap<Box<[u8]>, ArcPathBuf>,
-    pub dir_set: FxHashSet<PathBuf>,
+    map: FxHashMap<Box<[u8]>, ArcPathBuf>,
+    dir_set: FxHashSet<PathBuf>,
 }
 
 pub(super) fn find_external_segment(
@@ -43,11 +45,17 @@ pub(super) fn find_external_segment(
     }
 
     fn insert_all_in_dir(mi: &MediaInfo, cache: &CacheMatroska, dir: &Path) {
-        let xs: Vec<(Box<[u8]>, ArcPathBuf)> = mi
-            .cfg
-            .input
-            .iter_matroska_in_dir(dir)
+        let is_in_dir = |p: &&ArcPathBuf| p.parent() == Some(dir);
+
+        let iter = match mi.cfg.input.media.deref() {
+            InputMedia::Dir(d) if dir == d.dir => Either::Left(d.dir_media.iter()),
+            InputMedia::Dir(d) => Either::Right(d.other_media.iter().filter(is_in_dir)),
+            InputMedia::Files(xs) => Either::Right(xs.iter().filter(is_in_dir)),
+        };
+
+        let uid_path_pairs: Vec<(Box<[u8]>, ArcPathBuf)> = iter
             .par_bridge()
+            .filter(|p| Extension::from_path(p).is_some_and(|ext| ext.is_matroska()))
             .filter_map(|m| {
                 if let Some(u) = match cache.immut(&m) {
                     Some(mat) => mat.info.uid.clone(),
@@ -60,11 +68,8 @@ pub(super) fn find_external_segment(
             })
             .collect();
 
-        let mut es = EXTERNAL_SEGMENTS.write().unwrap();
-
-        for (k, v) in xs {
-            es.map.insert(k, v);
-        }
-        es.dir_set.insert(dir.to_owned());
+        let mut segments = EXTERNAL_SEGMENTS.write().unwrap();
+        segments.map.extend(uid_path_pairs);
+        segments.dir_set.insert(dir.to_owned());
     }
 }

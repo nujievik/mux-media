@@ -1,16 +1,14 @@
 use super::init_ffmpeg;
 use crate::media_info::{MarkMediaInfoShortestFileStem, MarkMediaInfoStreams, StreamsOrder};
-use crate::{Config, MediaInfo, MuxLogger, Result, TryFinalizeInit, display};
+use crate::{ArcPathBuf, Config, MediaInfo, Result, TryFinalizeInit, display};
 use log::error;
-use std::path::PathBuf;
 
 pub(crate) fn print_info(mut cfg: Config) -> Result<()> {
-    MuxLogger::init_with_filter(*cfg.log_level);
     cfg.input.try_finalize_init()?;
     init_ffmpeg(&cfg)?;
     let mut mi = MediaInfo::new(&cfg, 0);
 
-    let media = match cfg.input.iter_media_grouped_by_stem().next() {
+    let media = match cfg.input.new_iter_media_grouped_by_stem().next() {
         Some(m) => m,
         None => {
             error!("no mediafiles found");
@@ -18,7 +16,7 @@ pub(crate) fn print_info(mut cfg: Config) -> Result<()> {
             return Ok(());
         }
     };
-    mi.set_cmn(MarkMediaInfoShortestFileStem, media.stem);
+    mi.set_cmn(MarkMediaInfoShortestFileStem, media.stem.into());
 
     for f in &media.files {
         if let Err(e) = mi.try_insert(f) {
@@ -40,7 +38,7 @@ pub(crate) fn print_info(mut cfg: Config) -> Result<()> {
     Ok(())
 }
 
-fn print_already_cached_streams(mi: &MediaInfo<'_>, media: &[PathBuf]) {
+fn print_already_cached_streams(mi: &MediaInfo<'_>, media: &[&ArcPathBuf]) {
     println!("Unsorted mediafiles:");
 
     for src in media {
@@ -77,13 +75,12 @@ fn print_streams_order(order: &StreamsOrder) {
 }
 
 fn print_external_fonts(cfg: &Config) {
-    let fonts = cfg.input.collect_fonts();
-    if fonts.is_empty() {
+    if cfg.input.fonts.is_empty() {
         return;
     }
 
     println!("\n\nAdditional external fonts:");
-    for font in &fonts {
+    for font in &cfg.input.fonts {
         println!("{}", display(font));
     }
 }

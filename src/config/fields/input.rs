@@ -4,41 +4,39 @@ mod to_args;
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, GlobSetPattern, RangeUsizeInclusive};
-use enum_map::{Enum, EnumMap};
+use crate::{ArcPathBuf, GlobSetPattern, RangeUsizeInclusive, Value};
 use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ConfigInput {
-    // must ensures that files is unempty.
-    pub(crate) ty: InputType,
+    pub(crate) fonts: Vec<PathBuf>,
+    pub(crate) media: Value<InputMedia>,
+
     pub overwrite: bool,
     pub range: Option<RangeUsizeInclusive>,
     pub skip: Option<GlobSetPattern>,
     pub depth: u8,
     pub orphans_too: bool,
-    pub(crate) file_dirs: EnumMap<InputFileType, Vec<ArcPathBuf>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum InputType {
-    Dir(PathBuf),
-    Files(Vec<PathBuf>),
+pub(crate) enum InputMedia {
+    Dir(InputMediaDir),
+    Files(Vec<ArcPathBuf>),
 }
-
-/// A type of input file.
-#[derive(Copy, Clone, Debug, Enum)]
-#[non_exhaustive]
-pub enum InputFileType {
-    Font,
-    Media,
+// TODO: move range, skip, depth, orphans_too from ConfigInput
+#[derive(Clone, Debug, PartialEq)]
+pub(crate) struct InputMediaDir {
+    pub(crate) dir: PathBuf,
+    pub(crate) dir_media: Vec<ArcPathBuf>,
+    pub(crate) other_media: Vec<ArcPathBuf>,
 }
 
 impl ConfigInput {
     pub fn dir(&self) -> &Path {
-        match &self.ty {
-            InputType::Dir(dir) => dir,
-            InputType::Files(xs) => &xs[0].parent().unwrap_or(Path::new(".")),
+        match &*self.media {
+            InputMedia::Dir(d) => &d.dir,
+            InputMedia::Files(xs) => xs[0].parent().unwrap_or(Path::new(".")),
         }
     }
 }

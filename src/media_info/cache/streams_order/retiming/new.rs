@@ -303,7 +303,7 @@ fn try_base(
     order: &StreamsOrder,
     cache: &mut CacheMatroska,
 ) -> Result<(ArcPathBuf, usize, Option<usize>)> {
-    for m in order.iter() {
+    for m in order.iter_first_entries() {
         if !m.ty.is_video() {
             break;
         }

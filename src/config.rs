@@ -85,7 +85,7 @@ pub use fields::{
     ts_offsets::ConfigTsOffsets,
 };
 
-pub(crate) use fields::input::{InputType, iters::MediaGroupedByStem};
+pub(crate) use fields::input::InputMedia;
 
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;

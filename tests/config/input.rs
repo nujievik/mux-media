@@ -231,9 +231,9 @@ fn err_unsupported_file_extension() {
 }
 
 #[test]
-fn err_only_fonts() {
+fn parse_fonts_only() {
     let otf = data("otf.otf");
     let ttf = data("ttf.ttf");
     let args = [p("-i"), &otf, p("-i"), &ttf];
-    Config::try_parse_from(&args).unwrap_err();
+    Config::try_parse_from(&args).unwrap();
 }

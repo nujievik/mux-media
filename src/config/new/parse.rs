@@ -1,16 +1,17 @@
 use super::super::{
     Config, ConfigAutoFlags, ConfigChapters, ConfigDispositions, ConfigInput, ConfigLangMetadata,
     ConfigLocales, ConfigLogLevel, ConfigOutput, ConfigRetiming, ConfigStreams, ConfigStreamsOrder,
-    ConfigSubsEncodings, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets, InputType,
+    ConfigSubsEncodings, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets, InputMedia,
 };
-use super::{LogLang, Target};
+use super::{InputPath, LogLang, Target};
 use crate::{
-    CliArg, Extension, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsizeInclusive,
-    StreamType, VERSION, Value,
+    CliArg, GlobSetPattern, IsDefault, LangCode, Msg, MuxError, RangeUsizeInclusive, StreamType,
+    VERSION,
+    Value::{self, Auto, User},
 };
 use clap::{ArgMatches, Command, CommandFactory, Error, FromArgMatches, Parser};
 use log::LevelFilter;
-use std::{ffi::CStr, path::PathBuf};
+use std::{ffi::CStr, fs};
 
 macro_rules! rm {
     ($matches:ident, $arg:ident, $ty:ty) => {
@@ -138,7 +139,7 @@ impl FromArgMatches for Config {
         return Ok(cfg);
 
         fn cfg(m: &mut ArgMatches, locales: ConfigLocales) -> Result<Config, Error> {
-            let input = try_input(m)?;
+            let input = input(m)?;
 
             let output = match rm!(m, Output, ConfigOutput) {
                 Some(o) => o,
@@ -183,6 +184,16 @@ impl FromArgMatches for Config {
 
             upd_per_stream_type_streams_from_global_aliases(&mut cfg, m);
             Ok(cfg)
+        }
+
+        fn input(m: &mut ArgMatches) -> Result<ConfigInput, Error> {
+            let mut input = ConfigInput::empty();
+            update_input(m, &mut input)?;
+            if input.media.is_auto() {
+                let dir = fs::canonicalize(".")?;
+                input.media = Auto(InputMedia::new_dir(dir));
+            }
+            Ok(input)
         }
 
         fn locale(m: &ArgMatches) -> ConfigLocales {
@@ -246,7 +257,7 @@ impl FromArgMatches for Config {
 
     fn update_from_arg_matches_mut(&mut self, m: &mut ArgMatches) -> Result<(), Error> {
         locale(self, m);
-        input(self, m);
+        update_input(m, &mut self.input)?;
         output(self, m);
         log_level(self, m);
 
@@ -324,25 +335,6 @@ impl FromArgMatches for Config {
 
             if let Some(l) = m.get_one::<LangCode>(undashed!(LocaleStreams)) {
                 cfg.locales.locale_streams = Some(*l);
-            }
-        }
-
-        fn input(cfg: &mut Config, m: &mut ArgMatches) {
-            let input = &mut cfg.input;
-
-            if let Some(Ok(ty)) = try_input_ty(m) {
-                input.ty = ty;
-            }
-
-            upd_flag!(input.overwrite, m, Overwrite);
-            upd!(input.range, m, Range, RangeUsizeInclusive, @opt);
-            upd!(input.skip, m, Skip, GlobSetPattern, @opt);
-            upd!(input.depth, m, Depth, u8);
-
-            upd_flag!(input.orphans_too, m, OrphansToo);
-
-            if input.file_dirs.values().any(|v| !v.is_empty()) {
-                input.file_dirs = Default::default();
             }
         }
 
@@ -541,39 +533,46 @@ pub(super) fn printable_args(m: &ArgMatches) -> Result<(), Error> {
     }
 }
 
-fn try_input(m: &mut ArgMatches) -> Result<ConfigInput, Error> {
-    let ty = match try_input_ty(m) {
-        Some(res) => res?,
-        None => InputType::Dir(ConfigInput::try_default_dir()?),
+fn update_input(m: &mut ArgMatches, i: &mut ConfigInput) -> Result<(), Error> {
+    update_input_files(m, i)?;
+
+    upd_flag!(i.overwrite, m, Overwrite);
+    upd!(i.range, m, Range, RangeUsizeInclusive, @opt);
+    upd!(i.skip, m, Skip, GlobSetPattern, @opt);
+
+    upd!(i.depth, m, Depth, u8);
+    upd_flag!(i.orphans_too, m, OrphansToo);
+    Ok(())
+}
+fn update_input_files(m: &mut ArgMatches, i: &mut ConfigInput) -> Result<(), Error> {
+    let Some(mut paths) = m.remove_many::<InputPath>(undashed!(Input)) else {
+        return Ok(());
     };
 
-    Ok(ConfigInput {
-        ty,
-        overwrite: flag!(m, Overwrite),
-        range: rm!(m, Range, RangeUsizeInclusive),
-        skip: rm!(m, Skip, GlobSetPattern),
-        depth: rm_or!(m, Depth, u8, || ConfigInput::DEPTH_DEFAULT),
-        orphans_too: flag!(m, OrphansToo),
-        file_dirs: Default::default(),
-    })
-}
+    while let Some(p) = paths.next() {
+        match (p.ext, &mut i.media) {
+            (None, User(InputMedia::Dir(_))) => {
+                return Err(err!("must be only 1 input directory").into());
+            }
+            (None, User(InputMedia::Files(_))) => return err_exclusive(),
+            (None, media) => *media = User(InputMedia::new_dir(p.path)),
 
-fn try_input_ty(m: &mut ArgMatches) -> Option<Result<InputType, Error>> {
-    let mut paths: Vec<_> = m.remove_many::<PathBuf>(undashed!(Input))?.collect();
+            (Some(ext), _) if ext.is_font() => i.fonts.push(p.path.into()),
 
-    if paths.is_empty() {
-        None
-    } else if paths.len() > 1 && paths.iter().any(|x| x.is_dir()) {
-        Some(Err(err!("must be only 1 directory").into()))
-    } else if paths.len() == 1 && paths[0].is_dir() {
-        Some(Ok(InputType::Dir(paths.pop().unwrap())))
-    } else if !paths
-        .iter()
-        .any(|p| Extension::from_path(p).is_some_and(|ext| ext.is_media()))
-    {
-        Some(Err(err!("must be at least 1 media file").into()))
-    } else {
-        Some(Ok(InputType::Files(paths)))
+            (Some(_), User(InputMedia::Dir(_))) => return err_exclusive(),
+            (Some(_), User(InputMedia::Files(xs))) => xs.push(p.path.into()),
+            (Some(_), media) => {
+                let mut xs = Vec::with_capacity(paths.len());
+                xs.push(p.path.into());
+                *media = User(InputMedia::Files(xs));
+            }
+        }
+    }
+
+    return Ok(());
+
+    fn err_exclusive() -> Result<(), Error> {
+        Err(err!("input must be media directory OR media files exclusive").into())
     }
 }
 

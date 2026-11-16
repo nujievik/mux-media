@@ -133,6 +133,7 @@ pub enum Msg {
     FailUpdateLanguage,
     FileAlreadyExists,
     FileNotCached,
+    #[deprecated]
     FoundRepeat,
     LanguageIsNotSupportedForLogging,
     LoadingTxtConfig,

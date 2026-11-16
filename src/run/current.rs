@@ -1,22 +1,19 @@
 use super::ExternalFonts;
 use crate::media_info::MarkMediaInfoShortestFileStem;
-use crate::{Config, MediaGroupedByStem, MediaInfo, MuxError, Result, i18n::logs};
+use crate::{ArcPathBuf, Config, MediaInfo, MuxError, NewMediaGroupedByStem, Result, i18n::logs};
 use log::error;
-use std::{
-    ffi::OsString,
-    path::{Path, PathBuf},
-};
+use std::{ffi::OsString, path::Path};
 
 pub fn mux_current_files<'a>(
     cfg: &'a Config,
     fonts: Option<&ExternalFonts<'a>>,
     mi: &mut MediaInfo<'a>,
-    m: MediaGroupedByStem,
+    m: NewMediaGroupedByStem<'a>,
 ) -> Result<()> {
     let mut out = cfg.output.dir().join(&m.stem);
     out.add_extension("mkv");
 
-    match init_current_files(fonts, mi, m.stem, m.files, &out) {
+    match init_current_files(fonts, mi, m.stem.into(), m.files, &out) {
         MuxCurrent::Ok(()) => (),
         MuxCurrent::Continue => return Ok(()),
         MuxCurrent::Err(e) => return Err(e),
@@ -35,7 +32,7 @@ fn init_current_files<'a>(
     fonts: Option<&ExternalFonts<'a>>,
     mi: &mut MediaInfo<'a>,
     stem: OsString,
-    files: Vec<PathBuf>,
+    files: Vec<&'a ArcPathBuf>,
     out: &Path,
 ) -> MuxCurrent<()> {
     if out.exists() {

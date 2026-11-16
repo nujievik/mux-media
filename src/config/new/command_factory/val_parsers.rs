@@ -1,4 +1,5 @@
-use crate::config::{ConfigInput, ConfigOutput};
+use super::super::InputPath;
+use crate::config::ConfigOutput;
 use crate::helpers::try_canonicalize_and_open;
 use clap::{
     Arg, Command, Error,
@@ -46,10 +47,6 @@ macro_rules! typed_value_parser {
     };
 }
 
-typed_value_parser!(
-    InputPathParser,
-    PathBuf,
-    ConfigInput::try_canonicalize_and_read
-);
+typed_value_parser!(InputPathParser, InputPath, InputPath::parse);
 typed_value_parser!(OutputParser, ConfigOutput, ConfigOutput::try_from_dir);
 typed_value_parser!(ConfigParser, PathBuf, try_canonicalize_and_open);

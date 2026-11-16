@@ -1,4 +1,4 @@
-use super::{ConfigInput, InputType};
+use super::{ConfigInput, InputMedia};
 use crate::{Result, ToArgs, helpers};
 use core::fmt::NumBuffer;
 use std::{io::Write, path::Path};
@@ -8,10 +8,13 @@ impl ToArgs for ConfigInput {
     where
         W: Write + ?Sized,
     {
-        match &self.ty {
-            InputType::Dir(dir) => write_input_path(w, dir)?,
-            InputType::Files(files) => {
+        match &*self.media {
+            InputMedia::Dir(d) => write_input_path(w, &d.dir)?,
+            InputMedia::Files(files) => {
                 for f in files {
+                    write_input_path(w, f)?;
+                }
+                for f in &self.fonts {
                     write_input_path(w, f)?;
                 }
             }
