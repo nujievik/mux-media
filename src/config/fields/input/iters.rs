@@ -1,7 +1,7 @@
 use super::{ConfigInput, InputMedia, InputMediaDir};
 #[allow(unused_imports)]
 use crate::TryFinalizeInit;
-use crate::{ArcPathBuf, FileNumber, MediaInfo, RangeUsizeInclusive, helpers, i18n::logs};
+use crate::{ArcPathBuf, FileNumber, MediaInfo, RangeUsizeInclusive, i18n::logs};
 use either::Either;
 use std::{
     ffi::{OsStr, OsString},
@@ -101,32 +101,25 @@ fn iter_media_grouped_by_stem_dir<'a>(
     dir: &'a InputMediaDir,
 ) -> impl Iterator<Item = NewMediaGroupedByStem<'a>> {
     let mut range_and_file_number = init_range_and_file_number(input, dir);
-    let mut pos = 0;
+
+    let media = || dir.dir_media.iter().chain(dir.other_media.iter());
+
+    let mut stems: Vec<_> = media().map(|p| p.file_stem()).collect();
     let mut capacity = 0;
 
-    let len = dir.dir_media.len();
-    let mut is_taken = IsMediaTaken(vec![0u8; len.max(dir.other_media.len())]);
-
     iter::from_fn(move || {
-        loop {
-            while pos < len && is_taken.dir(pos) {
-                pos += 1;
-            }
-            if pos == len {
-                return None;
-            }
-            is_taken.set_dir_true(pos);
-
-            let Some(current_stem) = dir.dir_media[pos].file_stem() else {
+        for pos in 0..dir.dir_media.len() {
+            let Some(prefix) = stems[pos].take() else {
                 continue;
             };
+            let prefix_bytes = prefix.as_encoded_bytes();
 
             if let Some((range, num)) = range_and_file_number.as_mut() {
-                num.update(current_stem.as_encoded_bytes());
+                num.update(prefix_bytes);
                 match num.get_usize() {
                     Some(n) if range.contains(&n) => (),
                     _ => {
-                        logs::debug_media_out_of_range(current_stem);
+                        logs::debug_media_out_of_range(prefix);
                         continue;
                     }
                 }
@@ -134,38 +127,19 @@ fn iter_media_grouped_by_stem_dir<'a>(
 
             let mut files: Vec<&'a ArcPathBuf> = Vec::with_capacity(capacity);
 
-            for (i, f) in dir.dir_media.iter().enumerate() {
-                if is_taken.dir(i) {
-                    continue;
-                }
-                let Some(stem) = f.file_stem() else {
-                    is_taken.set_dir_true(i);
+            for (file, opt_stem) in media().zip(stems.iter_mut()) {
+                let Some(stem) = opt_stem else {
                     continue;
                 };
-                if helpers::os_str_starts_with(current_stem, stem) {
-                    files.push(f);
-                    is_taken.set_dir_true(i);
-                }
-            }
-
-            for (i, f) in dir.other_media.iter().enumerate() {
-                if is_taken.other(i) {
-                    continue;
-                }
-                let Some(stem) = f.file_stem() else {
-                    is_taken.set_other_true(i);
-                    continue;
-                };
-                if helpers::os_str_starts_with(current_stem, stem) {
-                    is_taken.set_other_true(i);
-                    files.push(f);
+                if stem.as_encoded_bytes().starts_with(prefix_bytes) {
+                    files.push(file);
+                    *opt_stem = None;
                 }
             }
 
             if files.is_empty() && !input.orphans_too {
-                logs::warn_no_ext_media(current_stem);
-                is_taken.set_dir_false(pos);
-                pos += 1;
+                logs::warn_no_ext_media(prefix);
+                stems[pos] = Some(prefix);
                 continue;
             }
 
@@ -174,37 +148,11 @@ fn iter_media_grouped_by_stem_dir<'a>(
 
             return Some(NewMediaGroupedByStem {
                 files,
-                stem: current_stem,
+                stem: prefix,
             });
         }
+        None
     })
-}
-
-struct IsMediaTaken(Vec<u8>);
-
-impl IsMediaTaken {
-    const TAKEN_DIR: u8 = 1 << 0;
-    const TAKEN_OTHER: u8 = 1 << 1;
-
-    fn dir(&self, i: usize) -> bool {
-        (self.0[i] & Self::TAKEN_DIR) != 0
-    }
-
-    fn other(&self, i: usize) -> bool {
-        (self.0[i] & Self::TAKEN_OTHER) != 0
-    }
-
-    fn set_dir_true(&mut self, i: usize) {
-        self.0[i] |= Self::TAKEN_DIR;
-    }
-
-    fn set_dir_false(&mut self, i: usize) {
-        self.0[i] &= !Self::TAKEN_DIR;
-    }
-
-    fn set_other_true(&mut self, i: usize) {
-        self.0[i] |= Self::TAKEN_OTHER;
-    }
 }
 
 #[inline(always)]

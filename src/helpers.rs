@@ -278,13 +278,6 @@ pub(crate) fn try_canonicalize_and_open(path: impl AsRef<Path>) -> Result<PathBu
     Ok(path)
 }
 
-#[inline(always)]
-pub(crate) fn os_str_starts_with(prefix: &OsStr, longer: &OsStr) -> bool {
-    longer
-        .as_encoded_bytes()
-        .starts_with(prefix.as_encoded_bytes())
-}
-
 #[inline]
 pub(crate) fn os_str_tail(prefix: &OsStr, longer: &OsStr) -> Result<OsString> {
     let prefix_b = prefix.as_encoded_bytes();
