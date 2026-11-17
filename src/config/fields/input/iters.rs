@@ -119,7 +119,7 @@ fn iter_media_grouped_by_stem_dir<'a>(
 
             if let Some((range, num)) = range_and_file_number.as_mut() {
                 num.update(prefix);
-                match num.get_usize() {
+                match num.get_number() {
                     Some(n) if range.contains(&n) => (),
                     _ => {
                         logs::debug_media_out_of_range(prefix);
@@ -172,6 +172,7 @@ fn init_range_and_file_number<'a>(
 }
 
 /// Extracts an ascii-digits number from file names.
+#[derive(Debug, PartialEq)]
 struct FileNumber<'a> {
     file_stem_bytes: &'a [u8],
     stack_ranges: [(u8, u8); 128],
@@ -220,7 +221,7 @@ impl<'a> FileNumber<'a> {
             push_range(start, file_stem_bytes.len());
         }
 
-        let mut new = FileNumber {
+        FileNumber {
             file_stem_bytes,
             stack_ranges,
             other_ranges,
@@ -228,26 +229,37 @@ impl<'a> FileNumber<'a> {
             number_count,
             number_idx: 0,
             number: None,
-        };
-
-        // SAFETY: only ascii digit bytes
-        let s = unsafe { str::from_utf8_unchecked(new.as_bytes_idx(0)) };
-        new.number = s.parse::<usize>().ok();
-
-        new
+        }
     }
 
     fn update(&mut self, stem: &'a OsStr) {
         let new_bytes = stem.as_encoded_bytes();
 
-        for i in iter::once(self.number_idx)
+        let rebuild = |this: &Self| {
+            let mut new = FileNumber::new(stem);
+            let mut number_idx = new.number_idx;
+            for (i, (old, n)) in this.iter_ranges().zip(new.iter_ranges()).enumerate() {
+                if old != n {
+                    number_idx = i;
+                    break;
+                }
+            }
+            new.number_idx = number_idx;
+            new
+        };
+
+        for idx in iter::once(self.number_idx)
             .chain(0..self.number_idx)
             .chain(self.number_idx + 1..self.number_count)
         {
-            let (start, end) = self.digit_start_end_idx(i);
+            let (start, end) = self.number_start_end_idx(idx);
+
+            if end == 0 {
+                break;
+            }
 
             if end > new_bytes.len() {
-                break;
+                continue;
             }
 
             const MAX_USIZE_LEN: usize = (usize::MAX.ilog10() + 1) as usize;
@@ -257,36 +269,54 @@ impl<'a> FileNumber<'a> {
 
             let maybe_new_number = &new_bytes[start..end];
 
-            if maybe_new_number != &self.file_stem_bytes[start..end] {
-                let Ok(s) = str::from_utf8(maybe_new_number) else {
-                    break;
-                };
-                let Ok(number) = s.parse::<usize>() else {
-                    break;
-                };
+            for (i, (old, new)) in (start..).zip(
+                self.file_stem_bytes[start..end]
+                    .iter()
+                    .zip(maybe_new_number.iter()),
+            ) {
+                if old == new {
+                    continue;
+                }
 
-                self.number_idx = i;
-                self.number = Some(number);
+                let remainder = &new_bytes[i..end];
+
+                // has difference
+                if (start > 0 && new_bytes[start - 1].is_ascii_digit())
+                    || (new_bytes.get(end).is_some_and(|b| b.is_ascii_digit()))
+                    || !remainder.iter().all(|b| b.is_ascii_digit())
+                {
+                    *self = rebuild(self);
+                } else {
+                    // SAFETY: all bytes is_ascii_digit
+                    let s = unsafe { str::from_utf8_unchecked(maybe_new_number) };
+                    self.number = s.parse::<usize>().ok();
+                    self.number_idx = idx;
+                }
                 return;
             }
         }
 
-        *self = FileNumber::new(stem)
+        *self = rebuild(self);
     }
 }
 
 impl FileNumber<'_> {
-    /// Gets `usize` number if parsable.
-    fn get_usize(&self) -> Option<usize> {
+    fn get_number(&mut self) -> Option<usize> {
+        if self.number.is_none() {
+            let bytes = self.as_bytes_idx(self.number_idx);
+            // SAFETY: all bytes is_ascii_digit
+            let s = unsafe { str::from_utf8_unchecked(bytes) };
+            self.number = s.parse::<usize>().ok();
+        }
         self.number
     }
 
     fn as_bytes_idx(&self, idx: usize) -> &[u8] {
-        let (start, end) = self.digit_start_end_idx(idx);
+        let (start, end) = self.number_start_end_idx(idx);
         &self.file_stem_bytes[start..end]
     }
 
-    fn digit_start_end_idx(&self, idx: usize) -> (usize, usize) {
+    fn number_start_end_idx(&self, idx: usize) -> (usize, usize) {
         match self.first_other_ranges_idx {
             Some(i) if idx >= i => self.other_ranges[idx - i],
             _ => {
@@ -294,5 +324,17 @@ impl FileNumber<'_> {
                 (start as usize, end as usize)
             }
         }
+    }
+
+    fn iter_ranges(&self) -> impl Iterator<Item = (usize, usize)> + use<'_> {
+        let stack_iter = self
+            .stack_ranges
+            .iter()
+            .take_while(|&&(_, end)| end != 0)
+            .map(|&(start, end)| (start as usize, end as usize));
+
+        let other_iter = self.other_ranges.iter().map(|&(start, end)| (start, end));
+
+        stack_iter.chain(other_iter)
     }
 }
