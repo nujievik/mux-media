@@ -1,5 +1,5 @@
 use super::{ConfigInput, InputMedia, InputMediaDir, Value};
-use crate::{Extension, Msg, Result, TryFinalizeInit};
+use crate::{Extension, Msg, Result, TryFinalizeInit, display};
 use log::{info, warn};
 use std::{fs, path::PathBuf};
 use walkdir::WalkDir;
@@ -39,7 +39,12 @@ impl TryFinalizeInit for ConfigInput {
         };
         let skip = self.skip.as_ref();
 
-        info!("{}", Msg::CollectFiles);
+        info!(
+            "{} {} '{}'...",
+            Msg::CollectingFiles,
+            Msg::InInputDirectory,
+            display(&dir.dir)
+        );
 
         for res_entry in fs::read_dir(&dir.dir)? {
             let entry = match res_entry {
@@ -47,7 +52,7 @@ impl TryFinalizeInit for ConfigInput {
                 Err(err) => {
                     warn!(
                         "{} {}: {}",
-                        Msg::CollectFilesError,
+                        Msg::ErrorCollectingFiles,
                         Msg::InInputDirectory,
                         err
                     );
@@ -71,7 +76,7 @@ impl TryFinalizeInit for ConfigInput {
             let entry = match entry {
                 Ok(entry) => entry,
                 Err(err) => {
-                    warn!("{}: {}", Msg::CollectFilesError, err);
+                    warn!("{}: {}", Msg::ErrorCollectingFiles, err);
                     continue;
                 }
             };
@@ -79,7 +84,7 @@ impl TryFinalizeInit for ConfigInput {
             filter_and_insert!(self, dir.other_media, skip, entry.into_path());
         }
 
-        info!("{}\n", Msg::CollectedFilesSuccessfully);
+        info!("{}\n", Msg::FilesCollectedSuccessfully);
         Ok(())
     }
 }

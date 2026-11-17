@@ -72,11 +72,14 @@ impl_msg_as_str!(
     HelpVersion => "Show version",
     HelpHelp => "Show help",
 
+    CollectingFiles => "Collecting files",
+    ErrorCollectingFiles => "error collecting files",
     CollectFiles => "Collect files...",
     CollectFilesError => "collect files error",
     InInputDirectory => "in input directory",
     NoMediaFilesFoundInInputDirectory => "no media files found in input directory",
     CollectedFilesSuccessfully => "Collected files successfully",
+    FilesCollectedSuccessfully => "Files collected successfully",
 
     ForMoreInformationTry => "For more information, try",
 

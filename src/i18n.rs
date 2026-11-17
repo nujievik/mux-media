@@ -94,11 +94,17 @@ pub enum Msg {
     HelpVersion,
     HelpHelp,
 
+    CollectingFiles,
+    ErrorCollectingFiles,
+    #[deprecated]
     CollectFiles,
+    #[deprecated]
     CollectFilesError,
     InInputDirectory,
     NoMediaFilesFoundInInputDirectory,
+    #[deprecated]
     CollectedFilesSuccessfully,
+    FilesCollectedSuccessfully,
 
     ForMoreInformationTry,
 
