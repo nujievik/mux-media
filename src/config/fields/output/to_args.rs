@@ -8,6 +8,10 @@ impl ToArgs for ConfigOutput {
     where
         W: Write + ?Sized,
     {
+        if self.is_from_input {
+            return Ok(());
+        }
+
         let s = self.dir().to_str().ok_or_else(|| err!("invalid utf-8"))?;
         to_args!(w, Output)?;
         to_args!(w, s.as_bytes(), @v)?;

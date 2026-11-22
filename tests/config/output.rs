@@ -73,3 +73,8 @@ fn to_args() {
         assert_eq!(args, o.to_args().unwrap());
     }
 }
+
+#[test]
+fn to_args_while_is_auto() {
+    assert_eq!(0, CONFIG.output.to_args().unwrap().len());
+}
