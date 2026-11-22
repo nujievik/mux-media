@@ -37,16 +37,16 @@ impl ToArgs for ConfigChapters {
             for r in ranges {
                 helpers::write_part_of_arg(w, &mut is_first, |w| {
                     if let Some(title) = r.title.as_ref() {
-                        w.write(title.as_bytes())?;
-                        w.write(b":")?;
+                        w.write_all(title.as_bytes())?;
+                        w.write_all(b":")?;
                     }
 
-                    w.write(buf.format_time(r.start))?;
-                    w.write(b"-")?;
-                    w.write(buf.format_time(r.end))
+                    w.write_all(buf.format_time(r.start))?;
+                    w.write_all(b"-")?;
+                    w.write_all(buf.format_time(r.end))
                 })?;
             }
-            w.write(b"\n")?;
+            w.write_all(b"\n")?;
         }
 
         Ok(())

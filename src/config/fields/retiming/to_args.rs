@@ -31,7 +31,7 @@ impl ToArgs for ConfigRetimingParts {
         to_args!(w, Parts)?;
 
         if self.inverse {
-            w.write(b"!")?;
+            w.write_all(b"!")?;
         }
 
         to_args!(w, s.as_bytes(), @v)?;

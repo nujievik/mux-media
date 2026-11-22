@@ -53,7 +53,7 @@ macro_rules! write_args {
             let _ = match $val {
                 Value::User(true) => to_args!($writer, $arg),
                 Value::User(false) => to_args!($writer, $no_arg),
-                _ => Ok(0),
+                _ => Ok(()),
             }?;
         )*
     }}

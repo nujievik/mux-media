@@ -130,8 +130,8 @@ fn merge(dest: &Destination, splits: &[PathBuf]) -> Result<()> {
                     }
                     _ => (),
                 };
-                writer.write(l.as_bytes())?;
-                writer.write(b"\n")?;
+                writer.write_all(l.as_bytes())?;
+                writer.write_all(b"\n")?;
             }
 
             for split in splits.iter().skip(1) {
@@ -141,8 +141,8 @@ fn merge(dest: &Destination, splits: &[PathBuf]) -> Result<()> {
                 while let Some(line) = lines.next() {
                     match &line {
                         AssLine::Event(_) => {
-                            writer.write(line.as_bytes())?;
-                            writer.write(b"\n")?;
+                            writer.write_all(line.as_bytes())?;
+                            writer.write_all(b"\n")?;
                             is_written_event = true;
                         }
                         AssLine::SectionMark(_) if is_written_event => break,
@@ -151,28 +151,28 @@ fn merge(dest: &Destination, splits: &[PathBuf]) -> Result<()> {
                 }
             }
 
-            writer.write(b"\n")?;
+            writer.write_all(b"\n")?;
 
             if let Some(bytes) = buf_section_mark {
-                writer.write(&bytes)?;
-                writer.write(b"\n")?;
+                writer.write_all(&bytes)?;
+                writer.write_all(b"\n")?;
             }
 
             while let Some(l) = first_split_lines.next() {
-                writer.write(l.as_bytes())?;
-                writer.write(b"\n")?;
+                writer.write_all(l.as_bytes())?;
+                writer.write_all(b"\n")?;
             }
         }
         SubType::Srt => {
             let mut is_written_blank = true;
             for split in splits {
                 if !is_written_blank {
-                    writer.write(b"\n")?;
+                    writer.write_all(b"\n")?;
                 }
                 let mut lines = SrtLines::open_file(split)?;
                 while let Some(l) = lines.next() {
-                    writer.write(l.as_bytes())?;
-                    writer.write(b"\n")?;
+                    writer.write_all(l.as_bytes())?;
+                    writer.write_all(b"\n")?;
                     is_written_blank = matches!(l, SrtLine::Blank);
                 }
             }
@@ -183,7 +183,7 @@ fn merge(dest: &Destination, splits: &[PathBuf]) -> Result<()> {
 
             for split in splits {
                 if !is_written_blank {
-                    writer.write(b"\n")?;
+                    writer.write_all(b"\n")?;
                 }
                 let mut lines = VttLines::open_file(split)?;
                 while let Some(l) = lines.next() {
@@ -195,8 +195,8 @@ fn merge(dest: &Destination, splits: &[PathBuf]) -> Result<()> {
                         | VttLine::Text(_) => (),
                         _ => continue,
                     }
-                    writer.write(l.as_bytes())?;
-                    writer.write(b"\n")?;
+                    writer.write_all(l.as_bytes())?;
+                    writer.write_all(b"\n")?;
                     is_written_blank = matches!(l, VttLine::Blank);
                 }
                 is_first = false;

@@ -321,28 +321,24 @@ pub(crate) fn write_range<W>(
     writer: &mut W,
     range: &RangeUsizeInclusive,
     buf: &mut NumBuffer<usize>,
-) -> io::Result<usize>
+) -> io::Result<()>
 where
     W: Write + ?Sized,
 {
-    writer.write(range.start().format_into(buf).as_bytes())?;
-    writer.write(b"-")?;
-    writer.write((range.end()).format_into(buf).as_bytes())
+    writer.write_all(range.start().format_into(buf).as_bytes())?;
+    writer.write_all(b"-")?;
+    writer.write_all((range.end()).format_into(buf).as_bytes())
 }
 
-pub(crate) fn write_part_of_arg<W, F>(
-    writer: &mut W,
-    is_first: &mut bool,
-    f: F,
-) -> io::Result<usize>
+pub(crate) fn write_part_of_arg<W, F>(writer: &mut W, is_first: &mut bool, f: F) -> io::Result<()>
 where
     W: Write + ?Sized,
-    F: FnOnce(&mut W) -> io::Result<usize>,
+    F: FnOnce(&mut W) -> io::Result<()>,
 {
     if *is_first {
         *is_first = false
     } else {
-        writer.write(b",")?;
+        writer.write_all(b",")?;
     }
 
     f(writer)

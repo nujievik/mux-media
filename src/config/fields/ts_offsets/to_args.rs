@@ -23,8 +23,8 @@ impl ToArgs for ConfigTsOffsets {
         if let Some(xs) = self.idxs.as_ref() {
             for (k, v) in xs {
                 helpers::write_part_of_arg(w, &mut is_first, |w| {
-                    w.write(k.format_into(buf).as_bytes())?;
-                    w.write(b":")?;
+                    w.write_all(k.format_into(buf).as_bytes())?;
+                    w.write_all(b":")?;
                     write_signed_number(w, buf, *v)
                 })?;
             }
@@ -34,7 +34,7 @@ impl ToArgs for ConfigTsOffsets {
             for (k, v) in xs {
                 helpers::write_part_of_arg(w, &mut is_first, |w| {
                     helpers::write_range(w, k, buf)?;
-                    w.write(b":")?;
+                    w.write_all(b":")?;
                     write_signed_number(w, buf, *v)
                 })?;
             }
@@ -43,24 +43,24 @@ impl ToArgs for ConfigTsOffsets {
         if let Some(xs) = self.langs.as_ref() {
             for (k, v) in xs {
                 helpers::write_part_of_arg(w, &mut is_first, |w| {
-                    w.write(k.as_str().as_bytes())?;
-                    w.write(b":")?;
+                    w.write_all(k.as_str().as_bytes())?;
+                    w.write_all(b":")?;
                     write_signed_number(w, buf, *v)
                 })?;
             }
         }
 
-        w.write(b"\n")?;
+        w.write_all(b"\n")?;
         Ok(())
     }
 }
 
-fn write_signed_number<W>(w: &mut W, buf: &mut NumBuffer<usize>, num: i32) -> io::Result<usize>
+fn write_signed_number<W>(w: &mut W, buf: &mut NumBuffer<usize>, num: i32) -> io::Result<()>
 where
     W: Write + ?Sized,
 {
     if num.is_negative() {
-        w.write(b"-")?;
+        w.write_all(b"-")?;
     }
-    w.write((num.abs() as usize).format_into(buf).as_bytes())
+    w.write_all((num.abs() as usize).format_into(buf).as_bytes())
 }

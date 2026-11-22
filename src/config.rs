@@ -13,27 +13,29 @@ macro_rules! undashed {
 macro_rules! to_args {
     ($writer:ident, $arg:ident) => {
         $writer
-            .write(dashed!($arg).as_bytes())
-            .and_then(|_| $writer.write(b"\n"))
+            .write_all(dashed!($arg).as_bytes())
+            .and_then(|_| $writer.write_all(b"\n"))
     };
 
     ($writer:ident, $arg:expr, @v) => {
-        $writer.write($arg).and_then(|_| $writer.write(b"\n"))
+        $writer
+            .write_all($arg)
+            .and_then(|_| $writer.write_all(b"\n"))
     };
 
     ($writer:ident, $values:expr, @write_map, $buf:ident) => {{
         let mut is_first = true;
 
         if let Some(v) = $values.single_val.as_ref() {
-            $writer.write(v.as_str().as_bytes())?;
+            $writer.write_all(v.as_str().as_bytes())?;
         }
 
         if let Some(xs) = $values.idxs.as_ref() {
             for (k, v) in xs {
                 crate::helpers::write_part_of_arg($writer, &mut is_first, |$writer| {
-                    $writer.write(k.format_into($buf).as_bytes())?;
-                    $writer.write(b":")?;
-                    $writer.write(v.as_str().as_bytes())
+                    $writer.write_all(k.format_into($buf).as_bytes())?;
+                    $writer.write_all(b":")?;
+                    $writer.write_all(v.as_str().as_bytes())
                 })?;
             }
         }
@@ -42,8 +44,8 @@ macro_rules! to_args {
             for (k, v) in xs {
                 crate::helpers::write_part_of_arg($writer, &mut is_first, |$writer| {
                     crate::helpers::write_range($writer, k, $buf)?;
-                    $writer.write(b":")?;
-                    $writer.write(v.as_str().as_bytes())
+                    $writer.write_all(b":")?;
+                    $writer.write_all(v.as_str().as_bytes())
                 })?;
             }
         }
@@ -51,14 +53,14 @@ macro_rules! to_args {
         if let Some(xs) = $values.langs.as_ref() {
             for (k, v) in xs {
                 crate::helpers::write_part_of_arg($writer, &mut is_first, |$writer| {
-                    $writer.write(k.as_str().as_bytes())?;
-                    $writer.write(b":")?;
-                    $writer.write(v.as_str().as_bytes())
+                    $writer.write_all(k.as_str().as_bytes())?;
+                    $writer.write_all(b":")?;
+                    $writer.write_all(v.as_str().as_bytes())
                 })?;
             }
         }
 
-        $writer.write(b"\n")?;
+        $writer.write_all(b"\n")?;
     }};
 }
 

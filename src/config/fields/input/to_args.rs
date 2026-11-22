@@ -27,7 +27,7 @@ impl ToArgs for ConfigInput {
         if let Some(range) = &self.range {
             to_args!(w, Range)?;
             helpers::write_range(w, range, buf)?;
-            w.write(b"\n")?;
+            w.write_all(b"\n")?;
         }
 
         if let Some(pat) = &self.skip {

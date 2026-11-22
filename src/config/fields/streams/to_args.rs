@@ -20,7 +20,7 @@ impl ToArgs for ConfigStreams {
         to_args!(w, Streams)?;
 
         if self.inverse {
-            w.write(b"!")?;
+            w.write_all(b"!")?;
         }
 
         let mut is_first = true;
@@ -28,7 +28,7 @@ impl ToArgs for ConfigStreams {
         if let Some(xs) = &self.idxs {
             for x in xs {
                 helpers::write_part_of_arg(w, &mut is_first, |w| {
-                    w.write(x.format_into(buf).as_bytes())
+                    w.write_all(x.format_into(buf).as_bytes())
                 })?;
             }
         }
@@ -41,11 +41,13 @@ impl ToArgs for ConfigStreams {
 
         if let Some(xs) = &self.langs {
             for x in xs {
-                helpers::write_part_of_arg(w, &mut is_first, |w| w.write(x.as_str().as_bytes()))?;
+                helpers::write_part_of_arg(w, &mut is_first, |w| {
+                    w.write_all(x.as_str().as_bytes())
+                })?;
             }
         }
 
-        w.write(b"\n")?;
+        w.write_all(b"\n")?;
 
         Ok(())
     }
