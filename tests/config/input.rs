@@ -188,9 +188,14 @@ fn test_orphans_too() {
 }
 
 #[test]
-fn err_multi_dirs() {
-    let dir = data_media("1/");
-    let args = [p("-i"), &dir, p("-i"), &dir];
+fn parse_multi_dir_identical() {
+    let args = [p("-i"), &data(""), p("-i"), &data("")];
+    cfg(args);
+}
+
+#[test]
+fn err_multi_dir() {
+    let args = [p("-i"), &data_media("1/"), p("-i"), &data("")];
     Config::try_parse_from(&args).unwrap_err();
 }
 

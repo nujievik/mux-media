@@ -551,9 +551,10 @@ fn update_input_files(m: &mut ArgMatches, i: &mut ConfigInput) -> Result<(), Err
 
     while let Some(p) = paths.next() {
         match (p.ext, &mut i.media) {
-            (None, User(InputMedia::Dir(_))) => {
+            (None, User(InputMedia::Dir(d))) if &d.dir != &p.path => {
                 return Err(err!("must be only 1 input directory").into());
             }
+            (None, User(InputMedia::Dir(_))) => continue,
             (None, User(InputMedia::Files(_))) => return err_exclusive(),
             (None, media) => *media = User(InputMedia::new_dir(p.path)),
 
