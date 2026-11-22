@@ -8,11 +8,13 @@ impl ToArgs for ConfigInput {
     where
         W: Write + ?Sized,
     {
-        match &*self.media {
-            InputMedia::Dir(d) => write_input_path(w, &d.dir)?,
-            InputMedia::Files(files) => {
-                for f in files {
-                    write_input_path(w, f)?;
+        if !self.media.is_auto() {
+            match &*self.media {
+                InputMedia::Dir(d) => write_input_path(w, &d.dir)?,
+                InputMedia::Files(files) => {
+                    for f in files {
+                        write_input_path(w, f)?;
+                    }
                 }
             }
         }

@@ -270,3 +270,8 @@ fn to_args_dir_and_fonts() {
     assert_eq!(data("otf.otf"), PathBuf::from(&args[3]));
     assert_eq!(data("ttf.ttf"), PathBuf::from(&args[5]));
 }
+
+#[test]
+fn to_args_while_is_auto() {
+    assert_eq!(0, CONFIG.input.to_args().unwrap().len());
+}

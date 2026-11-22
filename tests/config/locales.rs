@@ -41,14 +41,12 @@ fn parse_locale_log() {
 fn empty_to_args() {
     let empty = &CONFIG;
     let empty_to_args = empty.to_args().unwrap();
+
+    assert_eq!(2, empty_to_args.len());
     assert_eq!(
-        &empty_to_args[..2],
+        &empty_to_args[..=1],
         &append_str_vecs([["--locale", empty.locales.locale().as_str()]])
     );
-    assert!(!matches!(
-        empty_to_args[2].as_str(),
-        "--locale-streams" | "--locale-log"
-    ));
 }
 
 #[test]
@@ -58,14 +56,11 @@ fn locale_to_args() {
         let cfg = cfg(&args);
         let cfg_to_args = cfg.to_args().unwrap();
 
+        assert_eq!(2, cfg_to_args.len());
         assert_eq!(
-            &cfg_to_args[..2],
+            &cfg_to_args[..=1],
             &append_str_vecs([["--locale", l.as_str()]])
         );
-        assert!(!matches!(
-            cfg_to_args[2].as_str(),
-            "--locale-streams" | "--locale-log"
-        ));
     }
 }
 
@@ -76,12 +71,12 @@ fn locale_streams_to_args() {
         let cfg = cfg(&args);
         let cfg_to_args = cfg.to_args().unwrap();
 
+        assert_eq!(4, cfg_to_args.len());
         assert_eq!("--locale", &cfg_to_args[0]);
         assert_eq!(
-            &cfg_to_args[2..4],
+            &cfg_to_args[2..=3],
             &append_str_vecs([["--locale-streams", l.as_str()]])
         );
-        assert!(!matches!(cfg_to_args[4].as_str(), "--locale-log"));
     }
 }
 
@@ -92,9 +87,10 @@ fn locale_log_to_args() {
         let cfg = cfg(&args);
         let cfg_to_args = cfg.to_args().unwrap();
 
+        assert_eq!(4, cfg_to_args.len());
         assert_eq!("--locale", &cfg_to_args[0]);
         assert_eq!(
-            &cfg_to_args[2..4],
+            &cfg_to_args[2..=3],
             &append_str_vecs([["--locale-log", l.as_str()]])
         );
     }
