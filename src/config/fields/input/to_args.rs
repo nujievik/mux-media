@@ -14,10 +14,11 @@ impl ToArgs for ConfigInput {
                 for f in files {
                     write_input_path(w, f)?;
                 }
-                for f in &self.fonts {
-                    write_input_path(w, f)?;
-                }
             }
+        }
+
+        for f in &self.fonts {
+            write_input_path(w, f)?;
         }
 
         if self.overwrite {

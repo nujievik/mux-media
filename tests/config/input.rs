@@ -237,3 +237,36 @@ fn parse_fonts_only() {
     let args = [p("-i"), &otf, p("-i"), &ttf];
     Config::try_parse_from(&args).unwrap();
 }
+
+fn cfg_from_dir_and_fonts() -> Config {
+    let otf = data("otf.otf");
+    let ttf = data("ttf.ttf");
+    let dir = data_media("1");
+    let args = [p("-i"), &dir, p("-i"), &otf, p("-i"), &ttf];
+    Config::try_parse_from(&args).unwrap()
+}
+
+#[test]
+fn parse_dir_and_fonts() {
+    let c = cfg_from_dir_and_fonts();
+    assert_eq!(c.input.dir(), &data_media("1"));
+    assert_eq!(
+        vec![data("otf.otf"), data("ttf.ttf")],
+        c.input.iter_fonts().collect::<Vec<_>>()
+    );
+}
+
+#[test]
+fn to_args_dir_and_fonts() {
+    let c = cfg_from_dir_and_fonts();
+
+    let args = c.input.to_args().unwrap();
+    assert_eq!(6, args.len());
+
+    for pos in [0, 2, 4] {
+        assert_eq!(&args[pos], &String::from("--input"));
+    }
+    assert_eq!(data_media("1"), PathBuf::from(&args[1]));
+    assert_eq!(data("otf.otf"), PathBuf::from(&args[3]));
+    assert_eq!(data("ttf.ttf"), PathBuf::from(&args[5]));
+}
