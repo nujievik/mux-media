@@ -38,8 +38,12 @@ impl StreamsOrder {
         }
 
         let sources = sources(mi);
-        let sorted_src_stream_key = try_sorted_src_stream_key(mi, &sources)?;
-        Ok(StreamsOrder(items(sources, sorted_src_stream_key)))
+        let (attach_filenames, sorted_src_stream_key) = try_sorted_src_stream_key(mi, &sources)?;
+
+        Ok(StreamsOrder {
+            items: sorted_into_items(sources, sorted_src_stream_key),
+            attach_filenames,
+        })
     }
 
     /// Tries retime order streams (on matroska linked or manual --parts).
@@ -48,7 +52,7 @@ impl StreamsOrder {
     /// - Fails retiming any **only if** `exit_on_err` is `true`.
     /// - Fails retiming all files.
     pub fn retiming(self, mi: &mut MediaInfo) -> Result<StreamsOrder> {
-        retiming(mi, self.0)
+        retiming(self, mi)
     }
 }
 
@@ -61,7 +65,7 @@ fn sources(mi: &mut MediaInfo) -> Vec<ArcPathBuf> {
 fn try_sorted_src_stream_key(
     mi: &mut MediaInfo,
     sources: &Vec<ArcPathBuf>,
-) -> Result<Vec<(usize, usize, OrderSortKey)>> {
+) -> Result<(FxHashSet<String>, Vec<(usize, usize, OrderSortKey)>)> {
     let cfg = mi.cfg;
     let locale = cfg.locales.locale_streams();
 
@@ -88,7 +92,7 @@ fn try_sorted_src_stream_key(
                 return;
             }
 
-            let fname = if ty.is_attached() {
+            let lowercased_filename = if ty.is_attached() {
                 match &stream.filename {
                     Some(fname) if !attach_filenames.contains(fname) => {
                         let _ = attach_filenames.insert(fname.clone());
@@ -113,7 +117,14 @@ fn try_sorted_src_stream_key(
             let cfg_value = cfg_order.get(&i, &lang);
 
             let key = OrderSortKey::new(
-                cfg_value, ty, default, forced, is_signs, lang, locale, fname,
+                cfg_value,
+                ty,
+                default,
+                forced,
+                is_signs,
+                lang,
+                locale,
+                lowercased_filename,
             );
 
             streams_to_sort.push((i_src, stream.i, key))
@@ -123,10 +134,11 @@ fn try_sorted_src_stream_key(
     }
 
     streams_to_sort.sort_by(|a, b| a.2.cmp(&b.2));
-    Ok(streams_to_sort)
+
+    Ok((attach_filenames, streams_to_sort))
 }
 
-fn items(
+fn sorted_into_items(
     sources: Vec<ArcPathBuf>,
     sorted_src_stream_key: Vec<(usize, usize, OrderSortKey)>,
 ) -> Vec<StreamsOrderItem> {
@@ -135,7 +147,7 @@ fn items(
     let mut src_num = 0usize;
 
     for (i_src, i_stream, sort_key) in sorted_src_stream_key {
-        let (num, is_first) = num_is_first(i_src, &mut src_numbers, &mut src_num);
+        let (num, is_first_entry) = num_is_first(i_src, &mut src_numbers, &mut src_num);
 
         items.push(StreamsOrderItem {
             ty: sort_key.ty,
@@ -145,16 +157,17 @@ fn items(
             src: None,
             i_stream,
             src_num: num,
-            is_first_entry: is_first,
+            is_first_entry,
+            lowercased_filename: sort_key.lowercased_filename,
+            is_font_file: false,
         })
     }
 
     items
 }
 
-fn retiming(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<StreamsOrder> {
+fn retiming(mut order: StreamsOrder, mi: &mut MediaInfo) -> Result<StreamsOrder> {
     let exit_on_err = mi.cfg.exit_on_err;
-    let order = StreamsOrder(items);
 
     let rtm = match Retiming::try_new(mi, &order) {
         Ok(rtm) => rtm,
@@ -162,12 +175,12 @@ fn retiming(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<StreamsO
         Err(e) => return Err(e),
     };
 
-    let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(order.0.len());
+    let mut items: Vec<StreamsOrderItem> = Vec::with_capacity(order.len());
 
     let mut src_numbers = vec![Option::<usize>::None; order.len()];
     let mut src_num = 0usize;
 
-    for (i, mut item) in order.0.into_iter().enumerate() {
+    for (i, mut item) in order.items.into_iter().enumerate() {
         if matches!(
             item.ty,
             StreamType::Video | StreamType::Audio | StreamType::Subtitles
@@ -197,9 +210,10 @@ fn retiming(mi: &mut MediaInfo, items: Vec<StreamsOrderItem>) -> Result<StreamsO
         items.push(item)
     }
 
+    order.items = items;
     mi.chapters = Some(rtm.into_chapters_time_ranges());
 
-    Ok(StreamsOrder(items))
+    Ok(order)
 }
 
 fn num_is_first(
@@ -225,7 +239,7 @@ struct OrderSortKey {
     forced: u8,
     is_signs: bool,
     lang: u8,
-    fname: Option<String>,
+    lowercased_filename: Option<String>,
 }
 
 impl OrderSortKey {
@@ -237,7 +251,7 @@ impl OrderSortKey {
         is_signs: bool,
         lang: &Lang,
         locale: LangCode,
-        fname: Option<String>,
+        lowercased_filename: Option<String>,
     ) -> Self {
         let cfg_value = cfg_value.unwrap_or(255);
 
@@ -264,7 +278,7 @@ impl OrderSortKey {
             forced,
             is_signs,
             lang,
-            fname,
+            lowercased_filename,
         }
     }
 }
@@ -277,7 +291,7 @@ impl PartialEq for OrderSortKey {
             && self.forced == other.forced
             && self.is_signs == other.is_signs
             && self.lang == other.lang
-            && &self.fname == &other.fname
+            && &self.lowercased_filename == &other.lowercased_filename
     }
 }
 impl Eq for OrderSortKey {}
@@ -296,7 +310,7 @@ impl Ord for OrderSortKey {
             self.forced,
             other.is_signs,
             self.lang,
-            &self.fname,
+            &self.lowercased_filename,
         )
             .cmp(&(
                 other.cfg_value,
@@ -305,7 +319,7 @@ impl Ord for OrderSortKey {
                 other.forced,
                 self.is_signs,
                 other.lang,
-                &other.fname,
+                &other.lowercased_filename,
             ))
     }
 }

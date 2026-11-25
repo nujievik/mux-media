@@ -4,7 +4,7 @@ use crate::ffmpeg::codec::id::Id;
 #[derive(Copy, Clone, Debug)]
 pub struct CodecId(pub Id);
 
-deref_singleton_tuple_struct!(CodecId, Id);
+deref_struct!(CodecId, Id);
 
 impl Default for CodecId {
     fn default() -> Self {

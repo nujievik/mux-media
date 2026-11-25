@@ -34,11 +34,11 @@ impl StreamsOrder {
     /// - Fails convert a subtitles.
     pub fn convert_subs_encodings(mut self, mi: &mut MediaInfo) -> Result<StreamsOrder> {
         // all in old numbers
-        let mut num_adds = vec![None; self.0.len()];
+        let mut num_adds = vec![None; self.len()];
         let mut max_num_add = 0usize;
         let mut max_num = 0usize;
 
-        for item in &mut self.0 {
+        for item in self.iter_mut() {
             let old_src_num = item.src_num;
 
             match num_adds[old_src_num] {

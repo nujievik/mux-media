@@ -13,7 +13,7 @@ use crate::{
     Result, TryFinalizeInit, display,
 };
 use buf_packets::BufPackets;
-use encoder::{Encode, Encoder};
+use encoder::EncoderCopy;
 use external_fonts::ExternalFonts;
 use log::{LevelFilter, debug, info, warn};
 use rayon::prelude::*;
@@ -119,7 +119,7 @@ impl MediaInfo<'_> {
 
             let mut iters: Vec<_> = icontexts
                 .iter_mut()
-                .map(|ictx| Box::new(ictx.packets()))
+                .map(|opt_ictx| opt_ictx.as_mut().map(|ictx| Box::new(ictx.packets())))
                 .collect();
             let mut buf_packets = BufPackets::new(*self.cfg.auto_flags.ts_offsets, &mut iters);
 
@@ -165,15 +165,12 @@ impl MediaInfo<'_> {
                     cnt += 1;
                 }
 
-                let enc = match idx_map[idx].get(ist.index()) {
-                    Some(Some(i)) => &mut encoders[*i],
-                    _ => continue,
+                let Some(Some(i)) = idx_map[idx].get(ist.index()) else {
+                    continue;
                 };
-                enc.processing_packet(&mut octx, &mut packet)?;
-            }
-
-            for enc in &mut encoders {
-                enc.finalize(&mut octx)?;
+                if let Some(enc) = encoders[*i].as_mut() {
+                    enc.process_packet(&mut octx, &mut packet)?;
+                }
             }
 
             add_chapters(self, &order, &icontexts, &mut octx);
@@ -195,7 +192,7 @@ impl MediaInfo<'_> {
 fn add_chapters(
     mi: &mut MediaInfo,
     order: &StreamsOrder,
-    icontexts: &Vec<format::context::Input>,
+    icontexts: &Vec<Option<format::context::Input>>,
     octx: &mut format::context::Output,
 ) {
     let cfg = mi.cfg;
@@ -229,7 +226,9 @@ fn add_chapters(
     }
 
     for ord in order.iter_first_entries() {
-        let ictx = &icontexts[ord.src_num];
+        let Some(ictx) = icontexts[ord.src_num].as_ref() else {
+            continue;
+        };
 
         for chp in ictx.chapters() {
             let meta = chp.metadata();

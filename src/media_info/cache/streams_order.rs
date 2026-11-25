@@ -1,8 +1,9 @@
+mod extract_ass_fonts;
 mod new;
 mod retiming;
 mod subs_encodings;
 
-use crate::{ArcPathBuf, StreamType};
+use crate::{ArcPathBuf, FxHashSet, StreamType};
 use std::path::{Path, PathBuf};
 
 /// A sorted order of streams.
@@ -277,7 +278,10 @@ use std::path::{Path, PathBuf};
 ///     assert_eq!(&o[1].src(), &second);
 ///     ```
 #[derive(Clone, Debug)]
-pub struct StreamsOrder(Vec<StreamsOrderItem>);
+pub struct StreamsOrder {
+    items: Vec<StreamsOrderItem>,
+    attach_filenames: FxHashSet<String>,
+}
 
 /// A [`StreamsOrder`] item.
 #[derive(Clone, Debug)]
@@ -310,13 +314,17 @@ pub struct StreamsOrderItem {
 
     /// Whether this is the first occurrence of the src in the [`StreamsOrder`].
     pub is_first_entry: bool,
+
+    lowercased_filename: Option<String>,
+
+    pub(crate) is_font_file: bool,
 }
 
-deref_singleton_tuple_struct!(StreamsOrder, Vec<StreamsOrderItem>);
+deref_struct!(StreamsOrder, Vec<StreamsOrderItem>, items);
 
 impl StreamsOrder {
     pub(crate) fn iter_first_entries(&self) -> impl Iterator<Item = &StreamsOrderItem> {
-        self.0.iter().filter(|m| m.is_first_entry)
+        self.iter().filter(|m| m.is_first_entry)
     }
 }
 

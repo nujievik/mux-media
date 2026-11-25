@@ -5,15 +5,15 @@ pub struct BufPackets<'a>(Vec<BufPkt<'a>>);
 
 struct BufPkt<'a> {
     buf: Option<(ffmpeg::Stream<'a>, Packet)>,
-    iter: &'a mut Box<PacketIter<'a>>,
+    iter: Option<&'a mut Box<PacketIter<'a>>>,
     // in ist_time_base
     offset_to_base_pts: Option<i64>,
 }
 
 impl<'a> BufPkt<'a> {
-    fn new(iter: &'a mut Box<PacketIter<'a>>) -> Self {
+    fn new(mut iter: Option<&'a mut Box<PacketIter<'a>>>) -> Self {
         Self {
-            buf: iter.next(),
+            buf: iter.as_mut().and_then(|it| it.next()),
             iter,
             offset_to_base_pts: None,
         }
@@ -21,8 +21,11 @@ impl<'a> BufPkt<'a> {
 }
 
 impl<'a> BufPackets<'a> {
-    pub fn new(auto_ts_offsets: bool, packets: &'a mut Vec<Box<PacketIter<'a>>>) -> Self {
-        let mut bufs: Vec<_> = packets.iter_mut().map(|iter| BufPkt::new(iter)).collect();
+    pub fn new(auto_ts_offsets: bool, packets: &'a mut Vec<Option<Box<PacketIter<'a>>>>) -> Self {
+        let mut bufs: Vec<_> = packets
+            .iter_mut()
+            .map(|iter| BufPkt::new(iter.as_mut()))
+            .collect();
 
         let base_pts = if auto_ts_offsets {
             bufs[0]
@@ -60,7 +63,7 @@ impl<'a> BufPackets<'a> {
 
     pub fn fill_idx(&mut self, i: usize) {
         let pkt = &mut self.0[i];
-        pkt.buf = pkt.iter.next();
+        pkt.buf = pkt.iter.as_mut().and_then(|it| it.next());
     }
 
     pub fn take_minimal(&mut self) -> Option<(usize, (ffmpeg::Stream<'a>, Packet))> {

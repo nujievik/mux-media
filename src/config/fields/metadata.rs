@@ -25,5 +25,5 @@ where
     pub langs: Option<FxIndexMap<Lang, T>>,
 }
 
-deref_singleton_tuple_struct!(ConfigTitleMetadata, ConfigMetadata<String>);
-deref_singleton_tuple_struct!(ConfigLangMetadata, ConfigMetadata<Lang>);
+deref_struct!(ConfigTitleMetadata, ConfigMetadata<String>);
+deref_struct!(ConfigLangMetadata, ConfigMetadata<Lang>);

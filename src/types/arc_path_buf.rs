@@ -10,7 +10,7 @@ use std::{
 #[derive(Debug, Ord, PartialOrd)]
 pub struct ArcPathBuf(pub Arc<PathBuf>);
 
-deref_singleton_tuple_struct!(ArcPathBuf, Arc<PathBuf>);
+deref_struct!(ArcPathBuf, Arc<PathBuf>);
 
 impl AsRef<Path> for ArcPathBuf {
     fn as_ref(&self) -> &Path {

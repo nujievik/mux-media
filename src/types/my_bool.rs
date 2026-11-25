@@ -4,7 +4,7 @@ use crate::IsDefault;
 #[derive(Copy, Clone, Debug, Default, PartialEq, IsDefault)]
 pub struct Bool(pub bool);
 
-deref_singleton_tuple_struct!(Bool, bool);
+deref_struct!(Bool, bool);
 
 impl Bool {
     /// # Examples

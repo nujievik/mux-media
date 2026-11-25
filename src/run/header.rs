@@ -1,28 +1,31 @@
-mod input_stream;
 mod utc_time;
 
-use super::{Encode, Encoder};
+use super::EncoderCopy;
 use crate::config::{MarkConfigTsOffsets, PathConfigs};
 use crate::ffmpeg::{self, Dictionary, format::context};
 use crate::media_info::{MarkMediaInfoStreams, StreamsOrder, StreamsOrderItem};
-use crate::{DispositionType, Lang, MediaInfo, Result, Stream, StreamType, VERSION, immut};
+use crate::{
+    DispositionType, Lang, MediaInfo, Result, Stream, StreamType, VERSION, display, immut,
+};
 use enum_map::EnumMap;
+use log::warn;
 
 pub(super) fn write_header(
     mi: &mut MediaInfo,
     order: &StreamsOrder,
     octx: &mut context::Output,
-) -> Result<(Vec<context::Input>, Vec<Encoder>, Vec<Vec<Option<usize>>>)> {
+) -> Result<(
+    Vec<Option<context::Input>>,
+    Vec<Option<EncoderCopy>>,
+    Vec<Vec<Option<usize>>>,
+)> {
     let mut creation_time = utc_time::UtcTime::now();
-    let creation_time = match creation_time.as_mut() {
-        Some(t) => Some(t.format_to_iso_8601()),
-        None => None,
-    };
+    let creation_time = creation_time.as_mut().map(|t| t.format_to_iso_8601());
 
-    let len = order.iter_first_entries().count();
-    let mut icontexts = Vec::with_capacity(len);
-    let mut idx_map: Vec<Vec<Option<usize>>> = vec![vec![]; len];
-    let mut encoders: Vec<Encoder> = Vec::with_capacity(order.len());
+    let sources_count = order.iter_first_entries().count();
+    let mut icontexts = Vec::with_capacity(sources_count);
+    let mut idx_map: Vec<Vec<Option<usize>>> = vec![vec![]; sources_count];
+    let mut encoders: Vec<Option<EncoderCopy>> = Vec::with_capacity(order.len());
 
     let auto = mi.cfg.auto_flags.map_dispositions();
     let mut counts: EnumMap<StreamType, EnumMap<DispositionType, usize>> = EnumMap::default();
@@ -31,8 +34,34 @@ pub(super) fn write_header(
     let mut lang_default_audio: Option<(bool, Lang)> = None;
 
     for ord in order.iter() {
-        let ist = input_stream::new(mi, &mut icontexts, ord)?;
-        let (mut ost, mut enc) = Encoder::new(&ist, octx, ord.ty)?;
+        if ord.is_font_file {
+            icontexts.push(None);
+            encoders.push(None);
+            push_err_warn(
+                mi,
+                &mut idx_map,
+                ord,
+                EncoderCopy::add_font_file(ord.src(), octx),
+                "fail attach font file",
+            )?;
+            continue;
+        }
+
+        let ist = ictx_stream(&mut icontexts, ord)?;
+
+        if let StreamType::AttachedPic = ord.ty {
+            encoders.push(None);
+            push_err_warn(
+                mi,
+                &mut idx_map,
+                ord,
+                EncoderCopy::copy_attached_pic(&ist, octx),
+                "fail copy attached pic",
+            )?;
+            continue;
+        }
+
+        let (mut ost, mut enc) = EncoderCopy::new(&ist, octx)?;
 
         let path_configs = mi.path_configs(&ord.key);
 
@@ -59,32 +88,65 @@ pub(super) fn write_header(
             let (i, offsets) = mi
                 .cfg
                 .stream_value(MarkConfigTsOffsets, &path_configs, stream);
-            if let Some(offset) = offsets.get(&i, &stream.lang) {
-                enc.set_ts_offset(Some(offset as i64));
-            }
+
+            enc.set_ts_offset(offsets.get(&i, &stream.lang));
         }
 
         push_idx(&mut idx_map[ord.src_num], ord.i_stream, ost.index());
-        encoders.push(enc);
+        encoders.push(Some(enc));
     }
 
     set_octx_metadata(octx, creation_time);
     octx.write_header()?;
 
     for (i, ord) in order.iter().enumerate() {
-        let ost_index = some_or!(continue; idx_map[ord.src_num][ord.i_stream]);
-        let ist_tb = icontexts[ord.src_num]
-            .stream(ord.i_stream)
-            .unwrap()
-            .time_base();
+        let Some(enc) = encoders[i].as_mut() else {
+            continue;
+        };
+        let Some(ictx) = &icontexts[ord.src_num] else {
+            continue;
+        };
+        let Some(ost_index) = idx_map[ord.src_num][ord.i_stream] else {
+            continue;
+        };
+
+        let ist_tb = ictx.stream(ord.i_stream).unwrap().time_base();
         let ost_tb = octx.stream(ost_index).unwrap().time_base();
 
-        let enc = &mut encoders[i];
         enc.set_ist_time_base(ist_tb);
         enc.set_ost_time_base(ost_tb);
     }
 
     Ok((icontexts, encoders, idx_map))
+}
+
+fn push_err_warn<'a>(
+    mi: &MediaInfo,
+    idx_map: &mut Vec<Vec<Option<usize>>>,
+    ord: &StreamsOrderItem,
+    res: Result<ffmpeg::StreamMut<'a>>,
+    warn_message: &str,
+) -> Result<()> {
+    match res {
+        Ok(ost) => push_idx(&mut idx_map[ord.src_num], ord.i_stream, ost.index()),
+        Err(e) if mi.cfg.exit_on_err => return Err(e),
+        Err(e) => warn!("{} '{}': {}. Skipping", warn_message, display(ord.src()), e,),
+    }
+    Ok(())
+}
+
+fn ictx_stream<'a>(
+    icontexts: &'a mut Vec<Option<context::Input>>,
+    ord: &StreamsOrderItem,
+) -> Result<ffmpeg::Stream<'a>> {
+    if icontexts.len() <= ord.src_num {
+        let ictx = ffmpeg::format::input(ord.src())?;
+        icontexts.push(Some(ictx));
+    }
+
+    let ictx = icontexts[ord.src_num].as_mut().unwrap();
+    ictx.stream(ord.i_stream)
+        .ok_or_else(|| err!("not found stream"))
 }
 
 fn set_octx_metadata(octx: &mut context::Output, creation_time: Option<&str>) {

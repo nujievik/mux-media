@@ -34,19 +34,23 @@ macro_rules! some_or {
     };
 }
 
-macro_rules! deref_singleton_tuple_struct {
+macro_rules! deref_struct {
     ($wrapper:ty, $inner:ty) => {
+        deref_struct!($wrapper, $inner, 0);
+    };
+
+    ($wrapper:ty, $inner:ty, $field:tt) => {
         impl std::ops::Deref for $wrapper {
             type Target = $inner;
 
             fn deref(&self) -> &Self::Target {
-                &self.0
+                &self.$field
             }
         }
 
         impl std::ops::DerefMut for $wrapper {
             fn deref_mut(&mut self) -> &mut Self::Target {
-                &mut self.0
+                &mut self.$field
             }
         }
     };
@@ -102,9 +106,12 @@ pub use types::{
     value::Value,
 };
 
-static VERSION: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
+const VERSION: &str = concat!(env!("CARGO_PKG_NAME"), " v", env!("CARGO_PKG_VERSION"));
+
 const MILLISECOND_TIME_BASE: ffmpeg::Rational = ffmpeg::Rational(1, 1000);
 const NANOSECOND_TIME_BASE: ffmpeg::Rational = ffmpeg::Rational(1, 1_000_000_000);
+
+const FFMPEG_PADDING: usize = ffmpeg::ffi::AV_INPUT_BUFFER_PADDING_SIZE as usize;
 
 use ffmpeg_next as ffmpeg;
 use is_default::IsDefault;

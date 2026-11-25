@@ -7,7 +7,7 @@ use std::io::Write;
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub struct ConfigLogLevel(pub LevelFilter);
 
-deref_singleton_tuple_struct!(ConfigLogLevel, LevelFilter);
+deref_struct!(ConfigLogLevel, LevelFilter);
 
 impl ConfigLogLevel {
     pub(crate) fn from_count(cnt: u8) -> ConfigLogLevel {

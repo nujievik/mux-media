@@ -1,83 +1,127 @@
-mod copy;
-
-pub use copy::EncoderCopy;
+mod attached_font;
+mod attached_pic;
 
 use crate::ffmpeg::{
-    self, Packet, Rational,
-    format::{self, context},
+    self, Packet, Rational, Rescale,
+    format::{self, context, stream},
 };
-use crate::{Result, StreamType, helpers};
+use crate::{MILLISECOND_TIME_BASE, Msg, Result, helpers};
+use log::warn;
+use std::path::Path;
 
-#[non_exhaustive]
-pub enum Encoder {
-    AttachedPic,
-    Copy(EncoderCopy),
+pub struct EncoderCopy {
+    ist_time_base: Rational,
+    ost_time_base: Rational,
+    // in ist_time_base
+    ts_offset: i64,
+    ost_index: usize,
+    // in ist_time_base
+    max_dts: i64,
 }
 
-pub trait Encode {
-    fn set_ist_time_base(&mut self, tb: Rational);
+impl<'a> EncoderCopy {
+    pub fn new(
+        ist: &stream::Stream,
+        octx: &'a mut context::Output,
+    ) -> Result<(ffmpeg::StreamMut<'a>, EncoderCopy)> {
+        let ost = helpers::add_copy_stream(ist, octx)?;
+        let enc = Self {
+            ist_time_base: MILLISECOND_TIME_BASE,
+            ost_time_base: MILLISECOND_TIME_BASE,
+            ts_offset: 0,
+            ost_index: ost.index(),
+            max_dts: i64::MIN,
+        };
 
-    fn set_ost_time_base(&mut self, tb: Rational);
+        Ok((ost, enc))
+    }
 
-    fn set_ts_offset(&mut self, offset: Option<i64>);
+    pub fn copy_attached_pic(
+        ist: &stream::Stream,
+        octx: &'a mut context::Output,
+    ) -> Result<ffmpeg::StreamMut<'a>> {
+        attached_pic::copy(ist, octx)
+    }
 
-    fn processing_packet(&mut self, octx: &mut context::Output, packet: &mut Packet) -> Result<()>;
-
-    fn finalize(&mut self, octx: &mut context::Output) -> Result<()>;
-}
-
-impl Encoder {
-    pub fn new<'a>(
-        ist: &format::stream::Stream,
-        octx: &'a mut format::context::Output,
-        ty: StreamType,
-    ) -> Result<(ffmpeg::StreamMut<'a>, Self)> {
-        match ty {
-            StreamType::AttachedPic => match helpers::add_attached_pic(ist, octx) {
-                Ok(ost) => Ok((ost, Encoder::AttachedPic)),
-                Err(e) => {
-                    log::error!("{}", e);
-                    Err(err!("fail copy attached pic stream.\nTry --no-pics"))
-                }
-            },
-            _ => EncoderCopy::new_encoder(ist, octx),
-        }
+    pub fn add_font_file(
+        path: &Path,
+        octx: &'a mut context::Output,
+    ) -> Result<ffmpeg::StreamMut<'a>> {
+        attached_font::add_font_file(path, octx)
     }
 }
 
-impl Encode for Encoder {
-    fn set_ist_time_base(&mut self, tb: Rational) {
-        match self {
-            Self::AttachedPic => (),
-            Self::Copy(enc) => enc.set_ist_time_base(tb),
+impl EncoderCopy {
+    pub fn set_ist_time_base(&mut self, tb: Rational) {
+        if self.ist_time_base != tb {
+            self.ts_offset = self.ts_offset.rescale(self.ist_time_base, tb);
+            self.ist_time_base = tb;
         }
     }
 
-    fn set_ost_time_base(&mut self, tb: Rational) {
-        match self {
-            Self::AttachedPic => (),
-            Self::Copy(enc) => enc.set_ost_time_base(tb),
+    pub fn set_ost_time_base(&mut self, tb: Rational) {
+        self.ost_time_base = tb;
+    }
+
+    pub fn set_ts_offset<T: Into<i64>>(&mut self, offset: Option<T>) {
+        if let Some(ts) = offset {
+            self.ts_offset = ts.into().rescale(MILLISECOND_TIME_BASE, self.ist_time_base)
         }
     }
 
-    fn set_ts_offset(&mut self, offset: Option<i64>) {
-        match self {
-            Self::AttachedPic => (),
-            Self::Copy(enc) => enc.set_ts_offset(offset),
-        }
+    pub fn process_packet(
+        &mut self,
+        octx: &mut context::Output,
+        packet: &mut Packet,
+    ) -> Result<()> {
+        self.offset_packet_ts(packet);
+        packet.rescale_ts(self.ist_time_base, self.ost_time_base);
+
+        packet.set_position(-1);
+        packet.set_stream(self.ost_index);
+        packet.write_interleaved(octx)?;
+        Ok(())
     }
 
-    fn processing_packet(&mut self, octx: &mut context::Output, packet: &mut Packet) -> Result<()> {
-        match self {
-            Self::AttachedPic => Ok(()),
-            Self::Copy(enc) => enc.processing_packet(octx, packet),
-        }
-    }
+    fn offset_packet_ts(&mut self, packet: &mut Packet) {
+        let mut pts = packet.pts().map(|ts| ts + self.ts_offset);
 
-    fn finalize(&mut self, octx: &mut context::Output) -> Result<()> {
-        match self {
-            Self::AttachedPic => Ok(()),
-            Self::Copy(enc) => enc.finalize(octx),
+        if let Some(mut dts) = packet.dts() {
+            dts += self.ts_offset;
+
+            if dts >= self.max_dts {
+                self.max_dts = dts;
+            } else {
+                warn!(
+                    "{}; {}: {}, {}: {}; {} {}. {}.",
+                    Msg::NonMonotonicDts,
+                    Msg::Previous,
+                    self.max_dts,
+                    Msg::Current,
+                    dts,
+                    Msg::ChangingTo,
+                    self.max_dts,
+                    Msg::ThisMayResultInIncorrectTimestampsInTheOutputFile
+                );
+                dts = self.max_dts;
+            }
+
+            if let Some(pts) = pts.as_mut().filter(|pts| **pts < dts) {
+                warn!(
+                    "{}; PTS: {}, DTS: {}; {} {}. {}.",
+                    Msg::PtsLessThanDts,
+                    pts,
+                    dts,
+                    Msg::ChangingTo,
+                    dts,
+                    Msg::ThisMayResultInIncorrectTimestampsInTheOutputFile
+                );
+                *pts = dts;
+            }
+
+            packet.set_dts(Some(dts));
         }
+
+        packet.set_pts(pts);
     }
 }
