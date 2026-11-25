@@ -2,6 +2,7 @@ mod buf_packets;
 mod current;
 mod encoder;
 mod header;
+mod log_progress;
 mod print_info;
 
 use crate::config::MarkConfigChapters;
@@ -14,13 +15,9 @@ use crate::{
 use buf_packets::BufPackets;
 use encoder::EncoderCopy;
 use log::{LevelFilter, debug, info, warn};
+use log_progress::LogProgress;
 use rayon::prelude::*;
-use std::{
-    fs,
-    io::{self, Write},
-    path::Path,
-    sync::Mutex,
-};
+use std::{fs, path::Path, sync::Mutex};
 
 /// Tries run muxing, taking settings from the arguments that this program was started with
 /// (normally passed via the command line).
@@ -120,47 +117,18 @@ impl MediaInfo<'_> {
                 .collect();
             let mut buf_packets = BufPackets::new(*self.cfg.auto_flags.ts_offsets, &mut iters);
 
-            let need_write_progress = self.cfg.log_level.is_need_info() && self.cfg.jobs <= 1;
-
             info!("{} '{}'...", Msg::MuxingTo, display(dest));
+            debug!(
+                "{}:\n{}",
+                Msg::MuxingFiles,
+                crate::display_file_list(order.iter_first_entries().map(|x| x.src()))
+            );
 
-            if self.cfg.log_level.is_need_debug() {
-                debug!(
-                    "{}:\n{}",
-                    Msg::MuxingFiles,
-                    crate::display_file_list(order.iter_first_entries().map(|x| x.src()))
-                );
-            }
+            let mut log_progress = LogProgress::new(self.cfg, &order);
 
-            // packets/msg frequency
-            let mut progress_frequency = 50usize;
-            let mut cnt = 0usize;
-            let mut percentage = 0u64;
-            let first_file_size = new_first_file_size(&order, need_write_progress);
-            let mut writed = 0u64;
-
-            loop {
-                let (idx, (ist, mut packet)) = match buf_packets.take_minimal() {
-                    Some(tuple) => tuple,
-                    None => break,
-                };
+            while let Some((idx, (ist, mut packet))) = buf_packets.take_minimal() {
                 buf_packets.fill_idx(idx);
-
-                if need_write_progress && idx == 0 {
-                    if cnt > progress_frequency {
-                        let p = writed * 100 / first_file_size;
-                        if p > percentage {
-                            percentage = p;
-                            print!("\r{:2}%", p);
-                            let _ = io::stdout().flush();
-                        } else {
-                            progress_frequency = progress_frequency * 2;
-                        }
-                        cnt = 0;
-                    }
-                    writed += packet.size() as u64;
-                    cnt += 1;
-                }
+                log_progress.log(idx, &packet);
 
                 let Some(Some(i)) = idx_map[idx].get(ist.index()) else {
                     continue;
@@ -255,14 +223,6 @@ fn add_cfg_chapter(
     if let Err(e) = octx.add_chapter(i, MILLISECOND_TIME_BASE, start, end, title) {
         warn!("fail add chapter '{}': {}", title, e);
     }
-}
-
-fn new_first_file_size(order: &StreamsOrder, need_write_progress: bool) -> u64 {
-    let size = match order.get(0) {
-        Some(ord) if need_write_progress => fs::metadata(ord.src()).map_or(1, |meta| meta.len()),
-        _ => 1,
-    };
-    if size > 0 { size } else { 1 }
 }
 
 fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Result<()> {

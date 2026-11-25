@@ -24,10 +24,6 @@ impl ConfigLogLevel {
             LevelFilter::Info | LevelFilter::Debug | LevelFilter::Trace
         )
     }
-
-    pub(crate) const fn is_need_debug(&self) -> bool {
-        matches!(self.0, LevelFilter::Debug | LevelFilter::Trace)
-    }
 }
 
 impl Default for ConfigLogLevel {
