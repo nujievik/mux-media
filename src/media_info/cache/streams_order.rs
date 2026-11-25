@@ -1,4 +1,4 @@
-mod extract_ass_fonts;
+mod fonts;
 mod new;
 mod retiming;
 mod subs_encodings;

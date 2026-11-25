@@ -1,5 +1,4 @@
 use super::*;
-use crate::config::MarkConfigStreams;
 use crate::{Config, Extension, MediaInfo, Result, StreamType, display};
 use std::fs::{self, File};
 use std::io::{BufReader, BufWriter, ErrorKind, Write};
@@ -7,60 +6,72 @@ use subtitle_lines::ass::line::{AssLine, FontName};
 use subtitle_lines::{AssLines, FromBytes, StreamingIterator};
 
 impl StreamsOrder {
-    pub fn extract_ass_fonts(mut self, mi: &mut MediaInfo) -> Result<StreamsOrder> {
-        let mut attach_filenames = self.attach_filenames;
-
-        let ass_iter = self
-            .items
-            .iter_mut()
-            .filter(|x| x.is_first_entry)
-            .filter(|x| {
-                Extension::from_path(x.src())
-                    .is_some_and(|ext| matches!(ext, Extension::Ass | Extension::Ssa))
-            });
-
-        let mut extracted_fonts = Vec::new();
-        for item in ass_iter {
-            match ExtractAssFonts::new(mi, &mut attach_filenames, &mut extracted_fonts, item)
-                .and_then(|ext| ext.extract())
-            {
-                Ok(Some(path)) => item.src = Some(path),
-                Ok(None) => continue,
-                Err(e) if mi.cfg.exit_on_err => return Err(e),
-                Err(e) => {
-                    log::warn!(
-                        "fail extract fonts from '{}': {}. Copying subs 'as is'",
-                        display(item.src()),
-                        e
-                    );
-                }
-            }
+    pub fn add_external_and_ass_fonts(mut self, mi: &mut MediaInfo) -> Result<StreamsOrder> {
+        if !mi.cfg.is_save_fonts() {
+            return Ok(self);
         }
+
+        let mut attach_filenames = self.attach_filenames;
+        let mut fonts = Vec::with_capacity(mi.cfg.input.fonts.len());
+
+        push_external_fonts(mi.cfg, &mut attach_filenames, &mut fonts);
+        push_ass_fonts(mi, &mut self.items, &mut attach_filenames, &mut fonts)?;
+
+        recalculate_items(&mut self.items, fonts);
 
         self.attach_filenames = attach_filenames;
-
-        if extracted_fonts.is_empty() {
-            return Ok(self);
-        }
-
-        if mi
-            .cfg
-            .target_or_global(
-                MarkConfigStreams,
-                &mi.cfg.per_stream_type[StreamType::AttachedFont],
-            )
-            .no_flag
-        {
-            return Ok(self);
-        }
-
-        recalculate_items(&mut self.items, extracted_fonts);
-
         Ok(self)
     }
 }
 
-fn recalculate_items(items: &mut Vec<StreamsOrderItem>, extracted_fonts: Vec<(String, PathBuf)>) {
+fn push_external_fonts(
+    cfg: &Config,
+    attach_filenames: &mut FxHashSet<String>,
+    fonts: &mut Vec<(String, PathBuf)>,
+) {
+    for f in cfg.input.iter_fonts() {
+        let Some(fname) = f.file_name().and_then(|n| n.to_str()) else {
+            continue;
+        };
+
+        if !attach_filenames.contains(fname) {
+            attach_filenames.insert(fname.into());
+            fonts.push((fname.to_lowercase(), f.into()))
+        }
+    }
+}
+
+fn push_ass_fonts(
+    mi: &mut MediaInfo,
+    items: &mut [StreamsOrderItem],
+    attach_filenames: &mut FxHashSet<String>,
+    fonts: &mut Vec<(String, PathBuf)>,
+) -> Result<()> {
+    let ass_iter = items.into_iter().filter(|x| x.is_first_entry).filter(|x| {
+        Extension::from_path(x.src())
+            .is_some_and(|ext| matches!(ext, Extension::Ass | Extension::Ssa))
+    });
+
+    for item in ass_iter {
+        match ExtractAssFonts::new(mi, attach_filenames, fonts, item).and_then(|ext| ext.extract())
+        {
+            Ok(Some(path)) => item.src = Some(path),
+            Ok(None) => continue,
+            Err(e) if mi.cfg.exit_on_err => return Err(e),
+            Err(e) => {
+                log::warn!(
+                    "fail extract fonts from '{}': {}. Copying subs 'as is'",
+                    display(item.src()),
+                    e
+                );
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn recalculate_items(items: &mut Vec<StreamsOrderItem>, add_fonts: Vec<(String, PathBuf)>) {
     let mut not_attached_srcs_count = 0usize;
     let mut max_old_src_num = 0usize;
     let mut pos_first_attach = None;
@@ -88,7 +99,7 @@ fn recalculate_items(items: &mut Vec<StreamsOrderItem>, extracted_fonts: Vec<(St
         }
     }
 
-    for (lowercased_filename, key) in extracted_fonts {
+    for (lowercased_filename, key) in add_fonts {
         fonts.push(StreamsOrderItem {
             ty: StreamType::AttachedFont,
             is_signs: false,

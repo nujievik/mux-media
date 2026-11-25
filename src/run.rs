@@ -1,7 +1,6 @@
 mod buf_packets;
 mod current;
 mod encoder;
-mod external_fonts;
 mod header;
 mod print_info;
 
@@ -14,7 +13,6 @@ use crate::{
 };
 use buf_packets::BufPackets;
 use encoder::EncoderCopy;
-use external_fonts::ExternalFonts;
 use log::{LevelFilter, debug, info, warn};
 use rayon::prelude::*;
 use std::{
@@ -83,7 +81,6 @@ impl Config {
     /// - Returns an error if one occurs during processing.
     #[inline]
     pub fn mux(&self) -> Result<()> {
-        let fonts = ExternalFonts::get_new(self);
         let it = Mutex::new(self.input.new_iter_media_grouped_by_stem());
 
         (0..self.jobs).into_par_iter().try_for_each(|j| {
@@ -91,7 +88,7 @@ impl Config {
             loop {
                 let g = { it.lock().map_or(None, |mut it| it.next()) };
                 match g {
-                    Some(g) => current::mux_current_files(self, fonts.as_ref(), &mut mi, g)?,
+                    Some(g) => current::mux_current_files(self, &mut mi, g)?,
                     None => return Ok::<(), MuxError>(()),
                 }
                 mi.clear();
@@ -278,13 +275,8 @@ fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Resu
         .ok_or_else(|| err!("fail get file name"))?;
     let dest = cfg.input.dir().join(dest_file_name);
 
-    for x in order.iter_first_entries() {
+    for x in order.iter_first_entries().filter(|x| !x.is_font_file) {
         let path = x.src();
-
-        // its share temp fonts - do not delete
-        if path.parent().map_or(false, |p| p == cfg.output.temp_dir()) {
-            continue;
-        }
 
         debug!("{} '{}'...", Msg::RemovingInputFile, display(path));
         fs::remove_file(path)?;

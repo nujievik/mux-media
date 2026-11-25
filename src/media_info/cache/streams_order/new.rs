@@ -37,8 +37,9 @@ impl StreamsOrder {
             return Err(err!("not found any cached media file"));
         }
 
-        let sources = sources(mi);
-        let (attach_filenames, sorted_src_stream_key) = try_sorted_src_stream_key(mi, &sources)?;
+        let mut sources = sources(mi);
+        let (attach_filenames, sorted_src_stream_key) =
+            try_sorted_src_stream_key(mi, &mut sources)?;
 
         Ok(StreamsOrder {
             items: sorted_into_items(sources, sorted_src_stream_key),
@@ -64,7 +65,7 @@ fn sources(mi: &mut MediaInfo) -> Vec<ArcPathBuf> {
 
 fn try_sorted_src_stream_key(
     mi: &mut MediaInfo,
-    sources: &Vec<ArcPathBuf>,
+    sources: &mut Vec<ArcPathBuf>,
 ) -> Result<(FxHashSet<String>, Vec<(usize, usize, OrderSortKey)>)> {
     let cfg = mi.cfg;
     let locale = cfg.locales.locale_streams();
@@ -78,14 +79,6 @@ fn try_sorted_src_stream_key(
 
         streams.iter().for_each(|stream| {
             let ty = stream.ty;
-
-            // skip temp dummy sub
-            if ty.is_subtitles()
-                && stream.i == 0
-                && src.parent().map_or(false, |p| p == cfg.output.temp_dir())
-            {
-                return;
-            }
 
             let (i, cfg_streams) = cfg.stream_value(MarkConfigStreams, &path_configs, stream);
             if !cfg_streams.is_save(&i, &stream.lang) {
@@ -232,7 +225,7 @@ fn num_is_first(
     }
 }
 
-struct OrderSortKey {
+pub(crate) struct OrderSortKey {
     cfg_value: u8,
     ty: StreamType,
     default: u8,
@@ -243,7 +236,7 @@ struct OrderSortKey {
 }
 
 impl OrderSortKey {
-    fn new(
+    pub(crate) fn new(
         cfg_value: Option<u8>,
         ty: StreamType,
         default: Option<bool>,

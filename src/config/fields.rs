@@ -22,10 +22,15 @@ use super::{
     Config, ConfigChapters, ConfigDispositions, ConfigLangMetadata, ConfigStreams,
     ConfigStreamsOrder, ConfigSubsEncodings, ConfigTarget, ConfigTitleMetadata, ConfigTsOffsets,
 };
-use crate::{DispositionType, Field, Stream};
+use crate::{DispositionType, Field, Stream, StreamType};
 use std::path::Path;
 
 impl Config {
+    #[inline]
+    pub fn path_configs(&self, file: &Path) -> PathConfigs<'_> {
+        PathConfigs::new(self, file)
+    }
+
     #[inline]
     pub fn target_or_global<'a, F, TY>(&'a self, f: F, trg: &'a ConfigTarget) -> &'a TY
     where
@@ -66,6 +71,15 @@ impl Config {
             DispositionType::Default => self.stream_value(MarkConfigDefaults, path_configs, stream),
             DispositionType::Forced => self.stream_value(MarkConfigForceds, path_configs, stream),
         }
+    }
+
+    pub(crate) fn is_save_fonts(&self) -> bool {
+        !self
+            .target_or_global(
+                MarkConfigStreams,
+                &self.per_stream_type[StreamType::AttachedFont],
+            )
+            .no_flag
     }
 }
 

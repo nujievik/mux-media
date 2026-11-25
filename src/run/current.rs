@@ -1,4 +1,3 @@
-use super::ExternalFonts;
 use crate::media_info::MarkMediaInfoShortestFileStem;
 use crate::{ArcPathBuf, Config, MediaInfo, MuxError, NewMediaGroupedByStem, Result, i18n::logs};
 use log::error;
@@ -6,14 +5,13 @@ use std::{ffi::OsString, path::Path};
 
 pub fn mux_current_files<'a>(
     cfg: &'a Config,
-    fonts: Option<&ExternalFonts<'a>>,
     mi: &mut MediaInfo<'a>,
     m: NewMediaGroupedByStem<'a>,
 ) -> Result<()> {
     let mut out = cfg.output.dir().join(&m.stem);
     out.add_extension("mkv");
 
-    match init_current_files(fonts, mi, m.stem.into(), m.files, &out) {
+    match init_current_files(mi, m.stem.into(), m.files, &out) {
         MuxCurrent::Ok(()) => (),
         MuxCurrent::Continue => return Ok(()),
         MuxCurrent::Err(e) => return Err(e),
@@ -29,7 +27,6 @@ pub fn mux_current_files<'a>(
 }
 
 fn init_current_files<'a>(
-    fonts: Option<&ExternalFonts<'a>>,
     mi: &mut MediaInfo<'a>,
     stem: OsString,
     files: Vec<&'a ArcPathBuf>,
@@ -47,12 +44,6 @@ fn init_current_files<'a>(
         .and_then(|_| mi.try_finalize_init_streams())
     {
         return Err(e).into();
-    }
-
-    if let Some(v) = fonts {
-        mi.cache
-            .of_files
-            .insert(v.temp_file.clone(), v.cache_temp_file.clone());
     }
 
     if mi.cache.of_files.is_empty() {
