@@ -449,7 +449,7 @@ checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
 name = "mux-media"
-version = "0.21.4"
+version = "0.21.5"
 dependencies = [
  "chardet",
  "clap",
@@ -810,7 +810,9 @@ dependencies = [
 
 [[package]]
 name = "subtitle-lines"
-version = "0.3.5"
+version = "0.3.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d8d004f6f670bd189d943e3e5b3fc9580dd51ec58f6f48d22fb1fa2223f976d7"
 
 [[package]]
 name = "syn"

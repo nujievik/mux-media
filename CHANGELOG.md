@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.21.5] - 2026-11-26
+
+### Added
+- Extract fonts from ass subtitles and attach its as MKV attach.
+
+### Changed
+- Allow multi `--input <dir>` if dir identical.
+- Attach each external font individually, no writing temp fonts file.
+- No write `--input <m>` in txt config while media is auto.
+- No write `--output <dir>` in txt config while output is auto.
+- Print sorted streams order on --info with external fonts.
+
+### Fixed
+- Missing n in --auto-subs-encodings arg.
+- Save txt config.
+
+
 ## [0.21.4] - 2026-11-17
 
 ### Fixed
