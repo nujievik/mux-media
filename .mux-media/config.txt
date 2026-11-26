@@ -20,6 +20,8 @@ PATH/TO/OUTPUT/DIRECTORY
 --auto-titles
 --auto-langs
 --auto-subs-encodings
+--auto-ts-offsets
+--auto-extract-fonts
 --target
 global
 --audio

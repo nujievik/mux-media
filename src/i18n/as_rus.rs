@@ -30,6 +30,8 @@ impl_msg_as_str!(
     HelpNoAutoSubsEncodings => "Без автонастройки кодировки субтитров",
     HelpAutoTsOffsets => "Автонастройка ts-offsets",
     HelpNoAutoTsOffsets => "Без автонастройки ts-offsets",
+    HelpAutoExtractFonts => "Автоизвлечение шрифтов из субтитров",
+    HelpNoAutoExtractFonts => "Без автоизвлечения шрифтов из субтитров",
 
     HelpSaveStreams => "Сохранить потоки",
     HelpAudio => "[!]Сохранить аудио потоки",

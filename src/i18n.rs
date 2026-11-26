@@ -52,6 +52,8 @@ pub enum Msg {
     HelpNoAutoSubsEncodings,
     HelpAutoTsOffsets,
     HelpNoAutoTsOffsets,
+    HelpAutoExtractFonts,
+    HelpNoAutoExtractFonts,
 
     HelpSaveStreams,
     HelpAudio,

@@ -70,6 +70,8 @@ enum_cli_arg! {
     HelpAutoTsOffsets => "auto-ts-offsets / --no-auto-ts-offsets",
     AutoTsOffsets => "auto-ts-offsets",
     NoAutoTsOffsets => "no-auto-ts-offsets",
+    AutoExtractFonts => "auto-extract-fonts",
+    NoAutoExtractFonts => "no-auto-extract-fonts",
 
     Audio => "audio",
     NoAudio => "no-audio",

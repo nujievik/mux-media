@@ -61,6 +61,8 @@ impl_msg_as_str!(
     HelpLangs => "Set stream languages",
     HelpSubsEncodings => "Decode subs as E-encoding",
     HelpTsOffsets => "Set streams timestamps offsets (ms)",
+    HelpAutoExtractFonts => "Auto extract fonts from subs",
+    HelpNoAutoExtractFonts => "No auto extract fonts from subs",
 
     HelpRetimingOptions => "Retiming options",
     HelpParts => "[!]Save parts for chapter names",

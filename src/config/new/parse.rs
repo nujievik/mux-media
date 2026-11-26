@@ -218,34 +218,8 @@ impl FromArgMatches for Config {
 
         fn auto_flags(m: &mut ArgMatches) -> ConfigAutoFlags {
             let mut new = ConfigAutoFlags::default();
-
-            if flag!(m, NoAuto) {
-                new.no_auto = true;
-            }
-            let no_auto = new.no_auto;
-
-            new.defaults = val(flag!(m, AutoDefaults), flag!(m, NoAutoDefaults), no_auto);
-            new.forceds = val(flag!(m, AutoForceds), flag!(m, NoAutoForceds), no_auto);
-            new.titles = val(flag!(m, AutoTitles), flag!(m, NoAutoTitles), no_auto);
-            new.langs = val(flag!(m, AutoLangs), flag!(m, NoAutoLangs), no_auto);
-            new.subs_encodings = val(
-                flag!(m, AutoSubsEncodings),
-                flag!(m, NoAutoSubsEncodings),
-                no_auto,
-            );
-            new.ts_offsets = val(flag!(m, AutoTsOffsets), flag!(m, NoAutoTsOffsets), no_auto);
-
-            return new;
-
-            fn val(arg: bool, no_arg: bool, no_auto: bool) -> Value<bool> {
-                if arg {
-                    Value::User(true)
-                } else if no_arg {
-                    Value::User(false)
-                } else {
-                    Value::Auto(!no_auto)
-                }
-            }
+            update_auto_flags(&mut new, m);
+            new
         }
 
         fn retiming(m: &mut ArgMatches) -> ConfigRetiming {
@@ -265,7 +239,7 @@ impl FromArgMatches for Config {
         upd_flag!(self.save_config, m, SaveConfig);
         upd!(self.jobs, m, Jobs, u8);
 
-        auto_flags(self, m);
+        update_auto_flags(&mut self.auto_flags, m);
         upd_flag!(self.clean_flags, m, CleanFlags);
         upd_flag!(self.clean_meta, m, CleanMeta);
         upd_per_stream_type_streams_from_global_aliases(self, m);
@@ -351,63 +325,6 @@ impl FromArgMatches for Config {
                 match m.get_count(undashed!(Verbose)) {
                     0 => (),
                     cnt => cfg.log_level = ConfigLogLevel::from_count(cnt),
-                }
-            }
-        }
-
-        fn auto_flags(cfg: &mut Config, m: &mut ArgMatches) {
-            let auto = &mut cfg.auto_flags;
-
-            if flag!(m, NoAuto) {
-                auto.no_auto = true;
-            }
-            let no_auto = auto.no_auto;
-
-            upd(
-                flag!(m, AutoDefaults),
-                flag!(m, NoAutoDefaults),
-                no_auto,
-                &mut auto.defaults,
-            );
-            upd(
-                flag!(m, AutoForceds),
-                flag!(m, NoAutoForceds),
-                no_auto,
-                &mut auto.forceds,
-            );
-
-            upd(
-                flag!(m, AutoTitles),
-                flag!(m, NoAutoTitles),
-                no_auto,
-                &mut auto.titles,
-            );
-            upd(
-                flag!(m, AutoLangs),
-                flag!(m, NoAutoLangs),
-                no_auto,
-                &mut auto.langs,
-            );
-            upd(
-                flag!(m, AutoSubsEncodings),
-                flag!(m, NoAutoSubsEncodings),
-                no_auto,
-                &mut auto.subs_encodings,
-            );
-            upd(
-                flag!(m, AutoTsOffsets),
-                flag!(m, NoAutoTsOffsets),
-                no_auto,
-                &mut auto.ts_offsets,
-            );
-
-            fn upd(arg: bool, no_arg: bool, no_auto: bool, val: &mut Value<bool>) {
-                if arg {
-                    *val = Value::User(true)
-                } else if no_arg {
-                    *val = Value::User(false)
-                } else if val.is_auto() {
-                    *val = Value::Auto(!no_auto)
                 }
             }
         }
@@ -575,6 +492,37 @@ fn update_input_files(m: &mut ArgMatches, i: &mut ConfigInput) -> Result<(), Err
     fn err_exclusive() -> Result<(), Error> {
         Err(err!("input must be media directory OR media files exclusive").into())
     }
+}
+
+macro_rules! update_auto_flags {
+    ($m:ident, $cfg_auto:expr; $( $field:ident, $arg:ident, $no_arg:ident );* $(;)?) => {{ $(
+        let val = &mut $cfg_auto.$field;
+
+        if flag!($m, $arg) {
+            *val = Value::User(true);
+        } else if flag!($m, $no_arg) {
+            *val = Value::User(false);
+        } else if val.is_auto() {
+            *val = Value::Auto(!$cfg_auto.no_auto)
+        }
+    )* }};
+}
+
+fn update_auto_flags(cfg_auto: &mut ConfigAutoFlags, m: &ArgMatches) {
+    if flag!(m, NoAuto) {
+        cfg_auto.no_auto = true;
+    }
+
+    update_auto_flags!(
+        m, cfg_auto;
+        defaults, AutoDefaults, NoAutoDefaults;
+        forceds, AutoForceds, NoAutoForceds;
+        titles, AutoTitles, NoAutoTitles;
+        langs, AutoLangs, NoAutoLangs;
+        subs_encodings, AutoSubsEncodings, NoAutoSubsEncodings;
+        ts_offsets, AutoTsOffsets, NoAutoTsOffsets;
+        extract_fonts, AutoExtractFonts, NoAutoExtractFonts;
+    );
 }
 
 fn get_chapters(m: &mut ArgMatches) -> Option<ConfigChapters> {

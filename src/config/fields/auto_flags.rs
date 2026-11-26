@@ -3,6 +3,7 @@ use core::fmt::NumBuffer;
 use enum_map::{EnumMap, enum_map};
 use std::io::Write;
 
+// TODO: hide fields and use pub methods
 /// An auto-flags configuration.
 #[derive(Copy, Clone, Debug, PartialEq)]
 #[non_exhaustive]
@@ -14,6 +15,7 @@ pub struct ConfigAutoFlags {
     pub langs: Value<bool>,
     pub subs_encodings: Value<bool>,
     pub ts_offsets: Value<bool>,
+    pub extract_fonts: Value<bool>,
 }
 
 impl ConfigAutoFlags {
@@ -32,6 +34,7 @@ impl Default for ConfigAutoFlags {
             langs: Value::Auto(true),
             subs_encodings: Value::Auto(true),
             ts_offsets: Value::Auto(true),
+            extract_fonts: Value::Auto(true),
         }
     }
 }
@@ -44,6 +47,7 @@ impl IsDefault for ConfigAutoFlags {
             && matches!(self.langs, Value::Auto(true))
             && matches!(self.subs_encodings, Value::Auto(true))
             && matches!(self.ts_offsets, Value::Auto(true))
+            && matches!(self.extract_fonts, Value::Auto(true))
     }
 }
 
@@ -76,6 +80,7 @@ impl ToArgs for ConfigAutoFlags {
             self.langs, AutoLangs, NoAutoLangs,
             self.subs_encodings, AutoSubsEncodings, NoAutoSubsEncodings,
             self.ts_offsets, AutoTsOffsets, NoAutoTsOffsets,
+            self.extract_fonts, AutoExtractFonts, NoAutoExtractFonts,
         );
 
         Ok(())

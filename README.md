@@ -26,6 +26,7 @@ single MKV-container.
 
 ## Auto Features
 - Convert subtitles encoding to UTF-8.
+- Extract fonts from ass subtitles and attach its as MKV attach.
 - Fix "delay relative to video" for external audio.
 - Merge matroska linked video.
 - Set stream titles & langs by parse filenames.
@@ -91,6 +92,8 @@ Run `mux-media -h` to display help.
 | `    --no-auto-subs-encodings` | No auto set subs encodings |
 | `    --auto-ts-offsets` | Auto set audio ts-offsets |
 | `    --no-auto-ts-offsets` | No auto set audio ts-offsets |
+| `    --auto-extract-fonts` | Auto extract fonts from subs |
+| `    --no-auto-extract-fonts` | No auto extract fonts from subs |
 | | |
 | Save streams: | |
 | `-a, --audio <[!]n[,m]...>` | `[!]Save audio streams` |

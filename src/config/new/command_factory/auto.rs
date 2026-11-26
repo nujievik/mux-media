@@ -69,6 +69,19 @@ impl Blocks {
                     .help(Msg::HelpNoAutoTsOffsets.as_str_localized())
                     .action(ArgAction::SetTrue)
                     .conflicts_with(undashed!(AutoTsOffsets)),
+            )
+            .arg(
+                Arg::new(undashed!(AutoExtractFonts))
+                    .long(undashed!(AutoExtractFonts))
+                    .help(msg!(HelpAutoExtractFonts))
+                    .action(ArgAction::SetTrue),
+            )
+            .arg(
+                Arg::new(undashed!(NoAutoExtractFonts))
+                    .long(undashed!(NoAutoExtractFonts))
+                    .help(msg!(HelpNoAutoExtractFonts))
+                    .action(ArgAction::SetTrue)
+                    .conflicts_with(undashed!(AutoExtractFonts)),
             );
 
         self.0 = cmd;

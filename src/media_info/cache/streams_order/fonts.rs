@@ -15,7 +15,10 @@ impl StreamsOrder {
         let mut fonts = Vec::with_capacity(mi.cfg.input.fonts.len());
 
         push_external_fonts(mi.cfg, &mut attach_filenames, &mut fonts);
-        push_ass_fonts(mi, &mut self.items, &mut attach_filenames, &mut fonts)?;
+
+        if *mi.cfg.auto_flags.extract_fonts {
+            push_ass_fonts(mi, &mut self.items, &mut attach_filenames, &mut fonts)?;
+        }
 
         recalculate_items(&mut self.items, fonts);
 

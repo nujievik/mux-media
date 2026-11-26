@@ -14,6 +14,7 @@ fn parse_empty() {
     assert_eq!(Value::Auto(true), f.langs);
     assert_eq!(Value::Auto(true), f.subs_encodings);
     assert_eq!(Value::Auto(true), f.ts_offsets);
+    assert_eq!(Value::Auto(true), f.extract_fonts);
 }
 
 #[test]
@@ -26,6 +27,7 @@ fn parse_no_auto() {
     assert_eq!(Value::Auto(false), f.langs);
     assert_eq!(Value::Auto(false), f.subs_encodings);
     assert_eq!(Value::Auto(false), f.ts_offsets);
+    assert_eq!(Value::Auto(false), f.extract_fonts);
 }
 
 macro_rules! parse_manual_test {
@@ -47,6 +49,7 @@ macro_rules! parse_manual_test {
                 assert_eq!(auto_v, flags.langs);
                 assert_eq!(auto_v, flags.subs_encodings);
                 assert_eq!(auto_v, flags.ts_offsets);
+                assert_eq!(auto_v, flags.extract_fonts);
             )*
         }
     }
@@ -60,6 +63,7 @@ parse_manual_test!(
     &["--auto-langs"], langs;
     &["--auto-subs-encodings"], subs_encodings;
     &["--auto-ts-offsets"], ts_offsets;
+    &["--auto-extract-fonts"], extract_fonts;
 );
 
 parse_manual_test!(
@@ -70,6 +74,7 @@ parse_manual_test!(
     &["--no-auto-langs"], langs;
     &["--no-auto-subs-encodings"], subs_encodings;
     &["--no-auto-ts-offsets"], ts_offsets;
+    &["--no-auto-extract-fonts"], extract_fonts;
 );
 
 parse_manual_test!(
@@ -80,6 +85,7 @@ parse_manual_test!(
     &["--no-auto", "--auto-langs"], langs;
     &["--no-auto", "--auto-subs-encodings"], subs_encodings;
     &["--no-auto", "--auto-ts-offsets"], ts_offsets;
+    &["--no-auto", "--auto-extract-fonts"], extract_fonts;
 );
 
 parse_manual_test!(
@@ -90,6 +96,7 @@ parse_manual_test!(
     &["--no-auto", "--no-auto-langs"], langs;
     &["--no-auto", "--no-auto-subs-encodings"], subs_encodings;
     &["--no-auto", "--no-auto-ts-offsets"], ts_offsets;
+    &["--no-auto", "--no-auto-extract-fonts"], extract_fonts;
 );
 
 macro_rules! update_test {
@@ -115,6 +122,7 @@ update_test!(
     "--auto-langs", "--no-auto-langs";
     "--auto-subs-encodings", "--no-auto-subs-encodings";
     "--auto-ts-offsets", "--no-auto-ts-offsets";
+    "--auto-extract-fonts", "--no-auto-extract-fonts";
 );
 
 crate::build_test_to_args!(
@@ -126,6 +134,7 @@ crate::build_test_to_args!(
     vec!["--auto-langs"],
     vec!["--auto-subs-encodings"],
     vec!["--auto-ts-offsets"],
+    vec!["--auto-extract-fonts"],
 
     vec!["--no-auto-defaults"],
     vec!["--no-auto-forceds"],
@@ -133,6 +142,7 @@ crate::build_test_to_args!(
     vec!["--no-auto-langs"],
     vec!["--no-auto-subs-encodings"],
     vec!["--no-auto-ts-offsets"],
+    vec!["--no-auto-extract-fonts"],
 
     vec!["--no-auto", "--auto-defaults"],
     vec!["--no-auto", "--auto-forceds"],
@@ -140,6 +150,7 @@ crate::build_test_to_args!(
     vec!["--no-auto", "--auto-langs"],
     vec!["--no-auto", "--auto-subs-encodings"],
     vec!["--no-auto", "--auto-ts-offsets"],
+    vec!["--no-auto", "--auto-extract-fonts"],
 
     vec!["--no-auto", "--no-auto-defaults"],
     vec!["--no-auto", "--no-auto-forceds"],
@@ -147,4 +158,5 @@ crate::build_test_to_args!(
     vec!["--no-auto", "--no-auto-langs"],
     vec!["--no-auto", "--no-auto-subs-encodings"],
     vec!["--no-auto", "--no-auto-ts-offsets"],
+    vec!["--no-auto", "--no-auto-extract-fonts"],
 );
