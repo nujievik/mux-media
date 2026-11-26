@@ -83,7 +83,7 @@ impl MediaInfo<'_> {
     pub(crate) fn build_streams_order(&mut self) -> Result<StreamsOrder> {
         StreamsOrder::new(self)?
             .convert_subs_encodings(self)?
-            .add_external_and_ass_fonts(self)?
+            .extract_ass_fonts_and_add_external_fonts(self)?
             .retiming(self)
     }
 

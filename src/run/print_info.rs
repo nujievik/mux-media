@@ -24,8 +24,10 @@ pub(crate) fn print_info(mut cfg: Config) -> Result<()> {
     print_already_cached_streams(&mi, &media.files);
     print_external_fonts(&cfg);
 
-    // unwrap safe: add_external_and_ass_fonts never returns err if extract_fonts false
-    match StreamsOrder::new(&mut mi).map(|o| o.add_external_and_ass_fonts(&mut mi).unwrap()) {
+    // unwrap safe: extract_ass_fonts_and_add_external_fonts never returns err if extract_fonts false
+    match StreamsOrder::new(&mut mi)
+        .map(|o| o.extract_ass_fonts_and_add_external_fonts(&mut mi).unwrap())
+    {
         Ok(o) => print_streams_order(&o),
         Err(e) => error!("{e}"),
     }

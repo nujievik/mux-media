@@ -6,8 +6,11 @@ use subtitle_lines::ass::line::{AssLine, FontName};
 use subtitle_lines::{AssLines, FromBytes, StreamingIterator};
 
 impl StreamsOrder {
-    pub fn add_external_and_ass_fonts(mut self, mi: &mut MediaInfo) -> Result<StreamsOrder> {
-        if !mi.cfg.is_save_fonts() {
+    pub(crate) fn extract_ass_fonts_and_add_external_fonts(
+        mut self,
+        mi: &mut MediaInfo,
+    ) -> Result<StreamsOrder> {
+        if !*mi.cfg.auto_flags.extract_fonts && !mi.cfg.is_save_fonts() {
             return Ok(self);
         }
 
@@ -20,7 +23,9 @@ impl StreamsOrder {
             push_ass_fonts(mi, &mut self.items, &mut attach_filenames, &mut fonts)?;
         }
 
-        recalculate_items(&mut self.items, fonts);
+        if mi.cfg.is_save_fonts() {
+            recalculate_items(&mut self.items, fonts);
+        }
 
         self.attach_filenames = attach_filenames;
         Ok(self)
