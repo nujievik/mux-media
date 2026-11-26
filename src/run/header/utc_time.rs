@@ -1,4 +1,3 @@
-use core::fmt::NumBuffer;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 pub struct UtcTime {
@@ -9,7 +8,6 @@ pub struct UtcTime {
     minute: u8,
     second: u8,
 
-    num_buf: NumBuffer<u16>,
     buf: [u8; 20],
 }
 
@@ -83,7 +81,6 @@ impl UtcTime {
             hour,
             minute,
             second,
-            num_buf: NumBuffer::new(),
             buf: *b"1970-01-01T00:00:00Z",
         })
     }
@@ -109,36 +106,17 @@ impl UtcTime {
     }
 
     fn write_two_digits(&mut self, start_idx: usize, value: u16) {
-        let bytes = value.format_into(&mut self.num_buf).as_bytes();
-        match bytes.len() {
-            1 => {
-                self.buf[start_idx] = b'0';
-                self.buf[start_idx + 1] = bytes[0];
-            }
-            _ => self.buf[start_idx..start_idx + 2].copy_from_slice(&bytes[..2]),
-        }
+        let dst = &mut self.buf[start_idx..start_idx + 2];
+        dst[0] = b'0' + (value / 10 % 10) as u8;
+        dst[1] = b'0' + (value % 10) as u8;
     }
 
     fn write_four_digits(&mut self, start_idx: usize, value: u16) {
-        let bytes = value.format_into(&mut self.num_buf).as_bytes();
-        match bytes.len() {
-            1 => {
-                self.buf[start_idx] = b'0';
-                self.buf[start_idx + 1] = b'0';
-                self.buf[start_idx + 2] = b'0';
-                self.buf[start_idx + 3] = bytes[0];
-            }
-            2 => {
-                self.buf[start_idx] = b'0';
-                self.buf[start_idx + 1] = b'0';
-                self.buf[start_idx + 1..start_idx + 4].copy_from_slice(&bytes[..2]);
-            }
-            3 => {
-                self.buf[start_idx] = b'0';
-                self.buf[start_idx + 1..start_idx + 4].copy_from_slice(&bytes[..3]);
-            }
-            _ => self.buf[start_idx..start_idx + 4].copy_from_slice(&bytes[..4]),
-        }
+        let dst = &mut self.buf[start_idx..start_idx + 4];
+        dst[0] = b'0' + (value / 1000 % 10) as u8;
+        dst[1] = b'0' + (value / 100 % 10) as u8;
+        dst[2] = b'0' + (value / 10 % 10) as u8;
+        dst[3] = b'0' + (value % 10) as u8;
     }
 }
 
