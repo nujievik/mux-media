@@ -235,7 +235,10 @@ fn overwrite(cfg: &Config, temp_muxed_file: &Path, order: &StreamsOrder) -> Resu
         .ok_or_else(|| err!("fail get file name"))?;
     let dest = cfg.input.dir().join(dest_file_name);
 
-    for x in order.iter_first_entries().filter(|x| !x.is_font_file) {
+    for x in order
+        .iter_first_entries()
+        .filter(|x| x.font_filename.is_none())
+    {
         let path = x.src();
 
         debug!("{} '{}'...", Msg::RemovingInputFile, display(path));

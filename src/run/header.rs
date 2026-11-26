@@ -34,14 +34,14 @@ pub(super) fn write_header(
     let mut lang_default_audio: Option<(bool, Lang)> = None;
 
     for ord in order.iter() {
-        if ord.is_font_file {
+        if let Some(filename) = ord.font_filename.as_ref() {
             icontexts.push(None);
             encoders.push(None);
             push_err_warn(
                 mi,
                 &mut idx_map,
                 ord,
-                EncoderCopy::add_font_file(ord.src(), octx),
+                EncoderCopy::add_font_file(octx, ord.src(), filename),
                 "fail attach font file",
             )?;
             continue;

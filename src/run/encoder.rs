@@ -44,10 +44,11 @@ impl<'a> EncoderCopy {
     }
 
     pub fn add_font_file(
-        path: &Path,
         octx: &'a mut context::Output,
+        path: &Path,
+        filename: &str,
     ) -> Result<ffmpeg::StreamMut<'a>> {
-        attached_font::add_font_file(path, octx)
+        attached_font::add_font_file(octx, path, filename)
     }
 }
 

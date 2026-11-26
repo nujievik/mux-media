@@ -152,7 +152,7 @@ fn sorted_into_items(
             src_num: num,
             is_first_entry,
             lowercased_filename: sort_key.lowercased_filename,
-            is_font_file: false,
+            font_filename: None,
         })
     }
 

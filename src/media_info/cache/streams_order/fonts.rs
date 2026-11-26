@@ -35,7 +35,7 @@ impl StreamsOrder {
 fn push_external_fonts(
     cfg: &Config,
     attach_filenames: &mut FxHashSet<String>,
-    fonts: &mut Vec<(String, PathBuf)>,
+    fonts: &mut Vec<(PathBuf, String, String)>,
 ) {
     for f in cfg.input.iter_fonts() {
         let Some(fname) = f.file_name().and_then(|n| n.to_str()) else {
@@ -44,7 +44,7 @@ fn push_external_fonts(
 
         if !attach_filenames.contains(fname) {
             attach_filenames.insert(fname.into());
-            fonts.push((fname.to_lowercase(), f.into()))
+            fonts.push((f.into(), fname.into(), fname.to_lowercase()));
         }
     }
 }
@@ -53,7 +53,7 @@ fn push_ass_fonts(
     mi: &mut MediaInfo,
     items: &mut [StreamsOrderItem],
     attach_filenames: &mut FxHashSet<String>,
-    fonts: &mut Vec<(String, PathBuf)>,
+    fonts: &mut Vec<(PathBuf, String, String)>,
 ) -> Result<()> {
     let ass_iter = items.into_iter().filter(|x| x.is_first_entry).filter(|x| {
         Extension::from_path(x.src())
@@ -79,7 +79,7 @@ fn push_ass_fonts(
     Ok(())
 }
 
-fn recalculate_items(items: &mut Vec<StreamsOrderItem>, add_fonts: Vec<(String, PathBuf)>) {
+fn recalculate_items(items: &mut Vec<StreamsOrderItem>, add_fonts: Vec<(PathBuf, String, String)>) {
     let mut not_attached_srcs_count = 0usize;
     let mut max_old_src_num = 0usize;
     let mut pos_first_attach = None;
@@ -107,7 +107,7 @@ fn recalculate_items(items: &mut Vec<StreamsOrderItem>, add_fonts: Vec<(String, 
         }
     }
 
-    for (lowercased_filename, key) in add_fonts {
+    for (key, font_filename, lowercased_filename) in add_fonts {
         fonts.push(StreamsOrderItem {
             ty: StreamType::AttachedFont,
             is_signs: false,
@@ -118,7 +118,7 @@ fn recalculate_items(items: &mut Vec<StreamsOrderItem>, add_fonts: Vec<(String, 
             src_num: usize::MAX,
             is_first_entry: true,
             lowercased_filename: Some(lowercased_filename),
-            is_font_file: true,
+            font_filename: Some(font_filename),
         });
     }
 
@@ -152,10 +152,11 @@ fn recalculate_items(items: &mut Vec<StreamsOrderItem>, add_fonts: Vec<(String, 
 
 struct ExtractAssFonts<'a> {
     cfg: &'a Config,
+    job: u8,
     src_lines: AssLines<'static, BufReader<File>>,
     attach_filenames: &'a mut FxHashSet<String>,
 
-    extracted_fonts: &'a mut Vec<(String, PathBuf)>,
+    extracted_fonts: &'a mut Vec<(PathBuf, String, String)>,
     out_ass_path: PathBuf,
     out_ass: BufWriter<File>,
 
@@ -167,7 +168,7 @@ impl ExtractAssFonts<'_> {
     fn new<'a>(
         mi: &MediaInfo<'a>,
         attach_filenames: &'a mut FxHashSet<String>,
-        extracted_fonts: &'a mut Vec<(String, PathBuf)>,
+        extracted_fonts: &'a mut Vec<(PathBuf, String, String)>,
         item: &StreamsOrderItem,
     ) -> Result<ExtractAssFonts<'a>> {
         let src_lines = AssLines::open_file(item.src())?;
@@ -181,6 +182,7 @@ impl ExtractAssFonts<'_> {
 
         Ok(ExtractAssFonts {
             cfg,
+            job: mi.job,
             src_lines,
             attach_filenames,
             extracted_fonts,
@@ -200,15 +202,17 @@ impl ExtractAssFonts<'_> {
 
         let mut name = None;
         while let Some(fontname) = self.find_fontname(&mut name)? {
-            let (lowercased_filename, path) = if self.attach_filenames.contains(&fontname) {
+            if self.attach_filenames.contains(&fontname) {
                 continue;
-            } else {
-                let lowercased_filename = fontname.to_lowercase();
-                let path = self.cfg.output.temp_dir().join(&fontname);
+            }
 
-                self.attach_filenames.insert(fontname);
-                (lowercased_filename, path)
-            };
+            self.attach_filenames.insert(fontname.clone());
+            let path = self
+                .cfg
+                .output
+                .temp_dir()
+                .join(format!("{}-{}", self.job, &fontname));
+            let lowercased_filename = fontname.to_lowercase();
 
             let file = match fs::OpenOptions::new()
                 .write(true)
@@ -217,7 +221,8 @@ impl ExtractAssFonts<'_> {
             {
                 Ok(f) => f,
                 Err(err) if matches!(err.kind(), ErrorKind::AlreadyExists) => {
-                    self.extracted_fonts.push((lowercased_filename, path));
+                    self.extracted_fonts
+                        .push((path, fontname, lowercased_filename));
                     continue;
                 }
                 Err(err) => return Err(err.into()),
@@ -226,7 +231,8 @@ impl ExtractAssFonts<'_> {
 
             name = self.decode_font(&mut writer)?;
             writer.flush()?;
-            self.extracted_fonts.push((lowercased_filename, path));
+            self.extracted_fonts
+                .push((path, fontname, lowercased_filename));
         }
 
         self.write_remainder()?;

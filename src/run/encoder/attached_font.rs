@@ -4,17 +4,14 @@ use crate::{Extension, FFMPEG_PADDING};
 use std::{ffi::c_int, fs, ptr};
 
 pub(crate) fn add_font_file<'a>(
-    font: &Path,
     octx: &'a mut format::context::Output,
+    font: &Path,
+    filename: &str,
 ) -> Result<ffmpeg::StreamMut<'a>> {
     let mimetype = match Extension::from_path(font) {
         Some(Extension::Otf) => "application/vnd.ms-opentype",
         Some(Extension::Ttf) => "application/x-truetype-font",
         _ => return Err(err!("unsupported_extension")),
-    };
-
-    let Some(filename) = font.file_name() else {
-        return Err(err!("no file name found"));
     };
 
     let data = fs::read(font)?;
@@ -45,7 +42,7 @@ pub(crate) fn add_font_file<'a>(
 
     let mut meta = ffmpeg::Dictionary::new();
     meta.set("mimetype", mimetype);
-    meta.set("filename", &filename.to_string_lossy());
+    meta.set("filename", filename);
     ost.set_metadata(meta);
 
     Ok(ost)

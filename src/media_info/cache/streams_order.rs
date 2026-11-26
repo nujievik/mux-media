@@ -317,7 +317,8 @@ pub struct StreamsOrderItem {
 
     lowercased_filename: Option<String>,
 
-    pub(crate) is_font_file: bool,
+    // is Some only if src is external font (.OTF or .TTF)
+    pub(crate) font_filename: Option<String>,
 }
 
 deref_struct!(StreamsOrder, Vec<StreamsOrderItem>, items);
